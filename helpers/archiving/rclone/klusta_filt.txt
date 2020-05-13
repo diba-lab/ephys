@@ -1,0 +1,23 @@
+# rclone filter file to copy over klusta cluster and spike files 
+# Example usage:
+#	>> rclone copy --filter-from klusta_filt.txt (local_drive_name):/path_to_recording_session...
+#		 (team_drive_name):/path_to_recording_session/klusta/ -P
+
+# files to include
++ *.kwik
++ *.kwx
++ *.clu*
++ *.fet*
++ *.prb
++ *.prm
+
+# include .eeg files?
++ *.eeg
+
+# Am I missing anything else?
+
+# exclude .dat files and
+- *.dat
+
+# exclude everything else
+- *

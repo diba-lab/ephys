@@ -1,0 +1,21 @@
+# rclone filter file to copy over spyking-circus cluster and spike files 
+# Example usage:
+#	>> rclone copy --filter-from circus_filt.txt (local_drive_name):/path_to_recording_session/...
+#		 (team_drive_name):/path_to_recording_session/spyking-circus/ -P
+#
+# IMPORTANT NOTE: This assumes you have all your clustering files in a folder called "spyking_circus". If not
+# make sure to adjust the folder name below. Also, if you aren't holding you .prb file in the recording folder
+# then make sure to copy it over there before you use rclone!
+
+# include spyking_circus folder
++ spyking_circus/**.params
++ spyking_circus/**.npy
++ spyking_circus/**.hdf5
++ spyking_circus/**.GUI
++ spyking_circus/**.prb
+
+# exclude .dat files
+- *.dat
+
+# exclude everything else
+- *
