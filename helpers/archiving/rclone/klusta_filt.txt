@@ -1,6 +1,6 @@
 # rclone filter file to copy over klusta cluster and spike files 
 # Example usage:
-#	>> rclone copy --filter-from klusta_filt.txt (local_drive_name):/path_to_recording_session...
+#	>> rclone copy --filter-from klusta_filt.txt (local_drive_name):/path_to_recording_session/klust_folder...
 #		 (team_drive_name):/path_to_recording_session/klusta/ -P
 
 # files to include
