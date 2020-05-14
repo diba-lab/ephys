@@ -1,5 +1,5 @@
 total_nb_channels = 96
-radius            = 120
+radius            = 50
 channel_groups    = {1 : {}}
 
 
