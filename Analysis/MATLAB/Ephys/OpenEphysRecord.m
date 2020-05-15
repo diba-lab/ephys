@@ -35,7 +35,7 @@ classdef (Abstract)OpenEphysRecord < Timelined
         function channel=getChannel(obj,chan)
             D = obj.Data;
             dat = double(D.Data.mapped(chan,:));
-            channel = Channel(num2str(chan),obj.getTimestampsInSeconds, dat);
+            channel = Channel(num2str(chan), dat, obj.getTimestamps.Time, obj.getTimestamps.timeInfo.StartDate);
         end
         
         function combined=getTimeWindow(obj, timeWindow)
