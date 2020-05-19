@@ -1,4 +1,4 @@
-classdef (Abstract)OpenEphysRecord < Timelined
+classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
     %OPENEPHYSRECORD Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -16,7 +16,7 @@ classdef (Abstract)OpenEphysRecord < Timelined
         function obj = OpenEphysRecord(filename)
             %OPENEPHYSRECORD Construct an instance of this class
             %   Detailed explanation goes here
-            [filepath,name,ext]=fileparts(filename);
+            [filepath,~,ext]=fileparts(filename);
             switch ext
                 case '.oebin'
                     fileLoaderMethod = FileLoaderBinary(filename);
@@ -28,6 +28,7 @@ classdef (Abstract)OpenEphysRecord < Timelined
                     
             end
             obj.FileLoaderMethod=fileLoaderMethod;
+            obj.Probe=obj.loadProbeFile(filepath);
             obj.Events=[];
         end
         %% Functions
@@ -69,7 +70,7 @@ classdef (Abstract)OpenEphysRecord < Timelined
         
         
         %% PLOTS
-        function display(obj)
+        function display(obj) %#ok<DISPLAY>
             %% TODO
             % List recording time and propetrites
             % additionalrecording properties can be listed here.
@@ -102,7 +103,7 @@ classdef (Abstract)OpenEphysRecord < Timelined
                 evt=evts(ievt);
                 dif1=datetime(evt.StartDate)-ts.TimeInfo.StartDate;
                 try
-                    evttbl(iievt,:)=[1, seconds(seconds(evt.Time)+dif1)];
+                    evttbl(iievt,:)=[1, seconds(seconds(evt.Time)+dif1)]; %#ok<AGROW>
                 catch
                     warning('unknow key.')
                 end
@@ -206,6 +207,9 @@ classdef (Abstract)OpenEphysRecord < Timelined
             hdr=obj.Header;
             chans=hdr.getChannels;
         end
+        function probe=getProbe(obj)
+            probe=obj.Probe;
+        end
         function ind=getChannelIndexes(obj,channels)
             tbl1=obj.getHeader.getChannelsTable;
             tbl=struct2table(tbl1);
@@ -270,10 +274,26 @@ classdef (Abstract)OpenEphysRecord < Timelined
             end
             obj=OpenEphysRecordFactory.getOpenEphysRecord(newFileName);
         end
+        function obj=saveChannels(obj, channels)
+            [filepath, name, ext] = fileparts(obj.getFile);
+            out=fullfile(filepath,sprintf('%s_ch%d-%d%s',...
+                name, min(channels), max(channels), ext));
+            obj.keepChannels(obj.getFile, out, numel(obj.getChannelNames), channels );
+        end
     end
     
     
     methods (Access=private)
-        
+        function probe=loadProbeFile(obj,filepath)
+            list=dir(fullfile(filepath,'..','..','*.mat'));
+            if numel(list)>0
+                probe=Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
+                printf('Probe file: \n\t%s',fullfile(list(1).folder,list(1).name));
+            else
+                a=dir(fullfile(filepath,'..','..'));
+                warning('Couldn''t find a probe file in the folder :\n\t%s\n',a(1).folder);
+                probe=[];
+            end
+        end
     end
 end

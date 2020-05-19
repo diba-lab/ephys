@@ -51,6 +51,15 @@ classdef OpenEphysRecordsCombined < Timelined
                 
             end
         end
+        function saveChannels(obj,channels)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            iter=obj.getIterator();
+            while(iter.hasNext())
+                anOpenEphysRecord=iter.next();
+                anOpenEphysRecord.saveChannels(channels);
+            end
+        end
     end
     
     %% PLOTS

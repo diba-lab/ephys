@@ -13,12 +13,12 @@ classdef OpenEphysRecordFactory
             [~,~,ext]=fileparts(filename);
             switch ext
                 case {'.oebin','.openephys'}
-                    warning(sprintf('File loading:\n %s\n',filename))
+                    fprintf('File loading:\n %s\n',filename)
                     tic
                     oer=OpenEphysRecordRaw(filename);
                     toc
                 case '.lfp'
-                    warning(sprintf('File loading:\n %s\n',filename))
+                    fprintf('File loading:\n %s\n',filename)
                     tic
                     oer = OpenEphysRecordDownsampled(filename);
                     toc

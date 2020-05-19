@@ -13,6 +13,9 @@ classdef (Abstract) Timelined
     methods
         
         function []=plotTimeline(obj,varargin)
+            f=gcf;
+            f.Units='normalized';
+            f.Position=[f.Position(1) f.Position(2) f.Position(4)*2 f.Position(4)/4];
             if nargin>1
                 timelines=varargin{1};
             else
