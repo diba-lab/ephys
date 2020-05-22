@@ -23,12 +23,6 @@ classdef (Abstract) Topography2D
         end
         function obj=setxBins(obj,xbins)
             obj.xBins=xbins;
-            
-        end
-        function outputArg = getSubTopography(obj, xInterests, yInterests)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            outputArg = obj.Property1 + inputArg;
         end
     end
 end

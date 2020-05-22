@@ -28,13 +28,7 @@ classdef (Abstract) TimeFrequencyMap < Topography2D
             obj.timePoints=time;
             obj=obj.setxBins(time);
         end
-        function obj = addTimeAxis(obj)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            ax=gca;
-            ax.XTickLabel= datestr( seconds(ax.XTick)+obj.timePoints(1),...
-                'hh:MM:ss');
-        end
+
     end
 end
 

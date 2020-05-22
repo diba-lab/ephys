@@ -8,12 +8,16 @@ classdef Channel < Oscillation
     end
     
     methods
-        function obj = Channel(channelname,voltageArray,time,startTime)
+        function obj = Channel(channelname, voltageArray, time, startTime)
             %CHANNEL Construct an instance of this class
             %   Detailed explanation goes here
         obj@Oscillation(voltageArray, time);
         obj.ChannelName=channelname;
-        obj.StartTime=startTime;
+        if nargin>3 
+            obj.StartTime=startTime;
+        else
+            obj.StartTime=0;
+        end
         fprintf(...
             'New Channel %s, lenght %d, begin:end  %.0fs:%.0fs, %dHz, %15s\n',...
             obj.ChannelName,numel(obj.getVoltageArray),time(1),time(end),...
@@ -30,6 +34,14 @@ classdef Channel < Oscillation
         end
         function st=getStartTime(obj)
             st=obj.StartTime;
+        end
+        function plot(obj,varargin)
+            t=seconds(obj.time)+obj.StartTime;
+            p1=plot(t,obj.voltageArray,varargin{:});
+            ax=gca;
+            ax.XLim=[t(1) t(end)];
+            STD=std(obj.voltageArray);
+            ax.YLim=[-STD STD]*10;
         end
         function ts=getTimeSeries(obj)
             ts=timeseries(obj.getVoltageArray,obj.getTime);

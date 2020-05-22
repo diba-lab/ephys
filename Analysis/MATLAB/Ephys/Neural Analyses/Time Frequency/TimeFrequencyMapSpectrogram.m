@@ -18,9 +18,8 @@ classdef TimeFrequencyMapSpectrogram < TimeFrequencyMap
         function imsc = plot(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            imsc=imagesc(seconds(obj.timePoints-obj.timePoints(1)),...
+            imsc=imagesc(obj.timePoints,...
                 obj.frequencyPoints,abs(obj.matrix),obj.clim);
-            obj.addTimeAxis()
             
         end
     end
