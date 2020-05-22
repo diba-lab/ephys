@@ -12,6 +12,10 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
     end
     properties (Access = private)
     end
+    methods (Abstract)
+         
+    end
+    
     methods
         function obj = OpenEphysRecord(filename)
             %OPENEPHYSRECORD Construct an instance of this class
@@ -290,9 +294,17 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
                 probe=Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
                 printf('Probe file: \n\t%s',fullfile(list(1).folder,list(1).name));
             else
-                a=dir(fullfile(filepath,'..','..'));
-                warning('Couldn''t find a probe file in the folder :\n\t%s\n',a(1).folder);
-                probe=[];
+                list=dir(fullfile(filepath,'*.mat'));
+                if numel(list)>0
+                    probe=Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
+                    printf('Probe file: \n\t%s',fullfile(list(1).folder,list(1).name));
+                    
+                else
+                    a=dir(fullfile(filepath,'..','..'));
+                    b=dir(fullfile(filepath));
+                    warning('Couldn''t find a probe file in the folder :\n\t%s\nor\t%s\n',a(1).folder,b(1).folder);
+                    probe=[];
+                end
             end
         end
     end

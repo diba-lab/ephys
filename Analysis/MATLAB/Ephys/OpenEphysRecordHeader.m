@@ -15,7 +15,12 @@ classdef OpenEphysRecordHeader
             %OPENEPH Construct an instance of this class
             %   Detailed explanation goes here
             try
-                obj.SampleRate=h.sample_rate;
+                try
+                    obj.SampleRate=h.sample_rate;
+                catch
+                    obj.SampleRate=h.samplingFrequency;
+
+                end
                 obj.ChannelsTable=h.channels;
                 obj.ActiveChannels=true(1,numel(obj.ChannelsTable));
             catch
@@ -27,7 +32,11 @@ classdef OpenEphysRecordHeader
                 names={att.name};
                 obj.ActiveChannels=ismember({obj.ChannelsTable.channel_name},names);
             end
-            obj.SettingsXMLinfo=h.SettingsAtXMLFile;
+            try
+                obj.SettingsXMLinfo=h.SettingsAtXMLFile;
+            catch
+                warning('SettingsAtXMLFile couldn''t be found.\n')
+            end
         end
     end
     methods

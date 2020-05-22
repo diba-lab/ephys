@@ -31,7 +31,6 @@ classdef FileLoaderOpenEphys < FileLoaderMethod
             obj.chunksize=2e6;
             obj.downsample=1250;
         end
-        
         function openEphysRecord = load(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here

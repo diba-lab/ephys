@@ -16,11 +16,11 @@ classdef FileLoaderLFP < FileLoaderMethod
             listing=dir([filepath filesep name '.header*.mat']);
             obj.TimestampsandHeaderFile=fullfile(listing.folder,listing.name);
         end
-        
+      
         function openEphysRecord = load(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            S = load(obj.TimestampsandHeaderFile);            
+            S = load(obj.TimestampsandHeaderFile);
             numberOfChannels=numel(S.header.getChannels);
             file=dir(obj.LFPFile);
             samples=file.bytes/2/numberOfChannels;
