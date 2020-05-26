@@ -278,11 +278,15 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
             end
             obj=OpenEphysRecordFactory.getOpenEphysRecord(newFileName);
         end
-        function obj=saveChannels(obj, channels)
+        function out=saveChannels(obj, channels)
             [filepath, name, ext] = fileparts(obj.getFile);
             out=fullfile(filepath,sprintf('%s_ch%d-%d%s',...
                 name, min(channels), max(channels), ext));
-            obj.keepChannels(obj.getFile, out, numel(obj.getChannelNames), channels );
+            if ~exist(out,'file')
+                obj.keepChannels(obj.getFile, out, numel(obj.getChannelNames), channels );
+            else
+                warning('File is already exist.\n\t%s\n',out);
+            end
         end
     end
     

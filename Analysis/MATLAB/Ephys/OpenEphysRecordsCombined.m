@@ -60,6 +60,33 @@ classdef OpenEphysRecordsCombined < Timelined
                 anOpenEphysRecord.saveChannels(channels);
             end
         end
+        function mergeBlocksOfChannels(obj,channels,path)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            iter=obj.getIterator();
+            first=true
+            while(iter.hasNext())
+                anOpenEphysRecord=iter.next();
+                fileIn=anOpenEphysRecord.saveChannels(channels);
+                [p,name,ext]=fileparts(fileIn);
+                fileout=fullfile(path,[name ext]);
+                if first
+                    fprintf('File\t %s is being added in\nfile\t %s\n',fileIn,fileout)
+                    tic
+                    [status,cmdout]=system(sprintf('cat %s>%s',...
+                        fileIn,fileout),'-echo');toc
+                    first=false;
+                else
+                    fprintf('File\t %s is being added in\nfile\t %s\n',fileIn,fileout)
+                    tic
+                    [status,cmdout]=system(sprintf('cat %s>>%s',...
+                        fileIn,fileout),'-echo');toc
+                    fprintf('File\t %s id added in\nfile\t %s',fileIn,fileout)
+                    
+                end
+                
+            end
+        end
     end
     
     %% PLOTS
@@ -169,7 +196,7 @@ classdef OpenEphysRecordsCombined < Timelined
                 stateDetectionBuzcode=...
                     stateDetectionBuzcode.setBuzcodeStructer(sessionStruct);
                 stateDetectionData=stateDetectionBuzcode.getStates;
-%                 stateDetectionData.openStateEditor
+                %                 stateDetectionData.openStateEditor
             end
         end
         
