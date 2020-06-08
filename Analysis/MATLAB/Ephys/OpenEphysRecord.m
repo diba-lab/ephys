@@ -192,6 +192,9 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
         function ts=getTimestamps(obj)
             ts=obj.Timestamps;
         end
+        function ti=getTimeInterval(obj)
+            ti=TimeInterval(obj.getRecordStartTime, obj.getSampleRate,numel(obj.getTimestamps.time));
+        end
         
         function obj=setTimestamps(obj,timestamps)
             obj.Timestamps=timestamps;
@@ -298,7 +301,7 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
                 probe=Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
                 printf('Probe file: \n\t%s',fullfile(list(1).folder,list(1).name));
             else
-                list=dir(fullfile(filepath,'*.mat'));
+                list=dir(fullfile(filepath,'mas*.mat'));
                 if numel(list)>0
                     probe=Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
                     printf('Probe file: \n\t%s',fullfile(list(1).folder,list(1).name));

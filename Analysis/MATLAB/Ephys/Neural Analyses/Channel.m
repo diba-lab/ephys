@@ -29,8 +29,15 @@ classdef Channel < Oscillation
         function chan=getChannelName(obj)
             chan=obj.ChannelName;
         end
-        function chan=getChannelNumber(obj)
-            chan=str2double(obj.ChannelName(3:end));
+        function Num=getChannelNumber(obj)
+            B=regexp(obj.ChannelName,'\d*','Match');
+            for ii= 1:length(B)
+                if ~isempty(B{ii})
+                    Num(ii,1)=str2double(B{ii});
+                else
+                    Num(ii,1)=NaN;
+                end
+            end
         end
         function st=getStartTime(obj)
             st=obj.StartTime;

@@ -88,7 +88,7 @@ classdef TimeIntervalCombined
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             lastSample=0;
-            if time>obj.getStartTime && time<obj.getEndTime
+            if time>=obj.getStartTime && time<=obj.getEndTime
                 til= obj.timeIntervalList;
                 for iInt=1:til.length
                     theTimeInterval=til.get(iInt);
@@ -100,7 +100,7 @@ classdef TimeIntervalCombined
             else
                 time=datetime('today');
                 time.Format=obj.Format;
-                warning('Sample is not in the TimeInterval -- should be between\n\t%d -- %d\nReturned ''%s''',1,obj.NumberOfPoints,datestr(time));
+                warning('Sample is not in the TimeInterval -- should be between\n\t%d -- %d\nReturned ''%s''',1,obj.getNumberOfPoints,datestr(time));
             end
         end
         
@@ -148,7 +148,33 @@ classdef TimeIntervalCombined
         function startTime=getStartTime(obj)
             til= obj.timeIntervalList;
             theTimeInterval=til.get(1);
-            startTime=theTimeInterval.StartTime;
+            startTime=theTimeInterval.getStartTime;
+        end
+        function timeIntervalCombined=getDownsampled(obj,downsampleFactor)
+            til= obj.timeIntervalList;
+            for iInt=1:til.length
+                theTimeInterval=til.get(iInt);
+                if exist('timeIntervalCombined','var')
+                    timeIntervalCombined=timeIntervalCombined+theTimeInterval.getDownsampled(downsampleFactor);
+                else
+                    timeIntervalCombined=theTimeInterval.getDownsampled(downsampleFactor);
+                end
+            end
+            
+        end
+        function tps=getTimePointsInSec(obj)
+            til= obj.timeIntervalList;
+            st=obj.getStartTime;
+            for iInt=1:til.length
+                theTimeInterval=til.get(iInt);
+                tp=theTimeInterval.getTimePointsInSec+seconds(theTimeInterval.getStartTime-st);
+                if exist('tps','var')
+                    tps=vertcat(tps, tp);
+                else
+                    tps=tp;
+                end
+            end
+            tps(end)=[];
         end
         
         function plot(obj)

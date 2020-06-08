@@ -122,6 +122,16 @@ classdef OpenEphysRecordsCombined < Timelined
                 tls{i}=tl;i=i+1;
             end
         end
+        function timeIntervalCombined=getTimeIntervalCombined(obj)
+            iter=obj.getIterator();
+            tls=[];
+            i=1;
+            timeIntervalCombined=TimeIntervalCombined;
+            while(iter.hasNext)
+                anOpenEphysRecord=iter.next();
+                timeIntervalCombined=timeIntervalCombined+anOpenEphysRecord.getTimeInterval();
+            end
+        end
         function evts=getEvents(obj)
             evts=obj;
         end

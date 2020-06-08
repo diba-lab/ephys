@@ -18,13 +18,15 @@ classdef (Abstract) Oscillation
             obj.samplingRate = round(max(1/period));
         end
         
-        function timeFrequency = getTimeFrequencyMap(obj,...
+        function timeFrequencyMap = getTimeFrequencyMap(obj,...
                 timeFrequencyMethod)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            timeFrequency=timeFrequencyMethod.execute(...
+            timeFrequencyMap=timeFrequencyMethod.execute(...
                 obj.voltageArray, seconds(obj.time)+obj.getStartTime);
-            
+            downsamplefactor=round(numel(obj.time)/numel(timeFrequencyMap.timePoints));
+            tps=seconds(downsample(obj.time,downsamplefactor,downsamplefactor/2))+obj.getStartTime;
+            timeFrequencyMap=timeFrequencyMap.setTimePoints(tps(1:numel(timeFrequencyMap.timePoints)));
         end
         
         function p1=plot(obj,varargin)
@@ -44,7 +46,7 @@ classdef (Abstract) Oscillation
                 obj.getStartTime);
         end
         function ps=getPSpectrum(obj)
-            tt1=timetable(seconds(obj.time),obj.voltageArray');
+            tt1=timetable(seconds(obj.time),obj.voltageArray);
             [pxx,f] = pspectrum(tt1);
             ps=PowerSpectrum(pxx,f);
         end
@@ -60,7 +62,7 @@ classdef (Abstract) Oscillation
             obj.voltageArray=x_whitened';
         end
         function obj=getWhitened(obj)            
-            obj.voltageArray = WhitenSignal(obj.voltageArray,[],1);
+            obj.voltageArray = reshape(WhitenSignal(obj.voltageArray,[],1),size(obj.voltageArray));
         end
         function time=getTime(obj)            
             time = obj.time;
