@@ -54,8 +54,8 @@ classdef TimeInterval
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             if sample>0 && sample<obj.NumberOfPoints
-                time=obj.StartTime+seconds(sample/obj.SampleRate);
-            elsnie guluyonuz!!!!!e
+                time=obj.StartTime+seconds((sample-1)/obj.SampleRate);
+            else
                 time=datetime('today');
                 time.Format=obj.Format;
                 warning('Sample is not in the TimeInterval -- should be between\n\t%d -- %d\nReturned ''%s''',1,obj.NumberOfPoints,datestr(time));
@@ -66,7 +66,7 @@ classdef TimeInterval
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             if time>=obj.StartTime && time<=obj.getEndTime
-                sample=round(seconds(time-obj.StartTime)*obj.SampleRate);
+                sample=round(seconds(time-obj.StartTime)*obj.SampleRate)+1;
             else
                 warning('Time is not in the TimeInterval -- should be between\n\t%s -- %s\nReturned ''-1''',obj.StartTime,obj.getEndTime);
                 sample=-1;
@@ -75,7 +75,7 @@ classdef TimeInterval
         function time=getEndTime(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            time=obj.StartTime+seconds(obj.NumberOfPoints/obj.SampleRate);
+            time=obj.StartTime+seconds((obj.NumberOfPoints-1)/obj.SampleRate);
             time.Format=obj.Format;
         end
         function timeIntervalCombined=plus(obj,timeInterval)
@@ -88,7 +88,7 @@ classdef TimeInterval
             %   Detailed explanation goes here
             timeInterval=TimeInterval(obj.StartTime,...
                 round(obj.SampleRate/downsampleFactor),...
-                round(obj.NumberOfPoints/downsampleFactor));
+                round((obj.NumberOfPoints-1)/downsampleFactor)+1);
         end
         function plot(obj)
             %METHOD1 Summary of this method goes here

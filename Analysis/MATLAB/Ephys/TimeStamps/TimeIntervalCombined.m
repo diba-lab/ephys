@@ -32,7 +32,7 @@ classdef TimeIntervalCombined
             end
             if endSample > obj.getNumberOfPoints
                 endSample=obj.getNumberOfPoints;
-                warning('End sample is > number of point is TimeInterval %d, \n\tit is set that.\n', obj.NumberOfPoints)
+                warning('End sample is > number of point is TimeInterval %d, \n\tit is set that.\n', obj.getNumberOfPoints)
             end
             if startSample>0 && startSample<=endSample && endSample<=obj.getNumberOfPoints
                 til=obj.timeIntervalList;
@@ -52,7 +52,7 @@ classdef TimeIntervalCombined
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             if startTime<obj.getStartTime
-                startTime=obj.StartTime;
+                startTime=obj.getStartTime;
             end
             if endTime>obj.getEndTime
                 endTime=obj.getEndTime;
@@ -88,6 +88,7 @@ classdef TimeIntervalCombined
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             lastSample=0;
+            time.Second=floor(time.Second);
             if time>=obj.getStartTime && time<=obj.getEndTime
                 til= obj.timeIntervalList;
                 for iInt=1:til.length
@@ -95,7 +96,7 @@ classdef TimeIntervalCombined
                     if time>=theTimeInterval.StartTime && time<=theTimeInterval.getEndTime
                         sample=theTimeInterval.getSampleFor(time)+lastSample;
                     end
-                    lastSample=theTimeInterval.NumberOfPoints;
+                    lastSample=lastSample+theTimeInterval.NumberOfPoints;
                 end
             else
                 time=datetime('today');
@@ -109,7 +110,7 @@ classdef TimeIntervalCombined
             %   Detailed explanation goes here
             til= obj.timeIntervalList;
             theTimeInterval=til.get(til.length);
-            time=theTimeInterval.StartTime+seconds(theTimeInterval.NumberOfPoints/theTimeInterval.SampleRate);
+            time=theTimeInterval.getEndTime;
             time.Format=obj.Format;
         end
         
@@ -174,7 +175,7 @@ classdef TimeIntervalCombined
                     tps=tp;
                 end
             end
-            tps(end)=[];
+%             tps(end)=[];
         end
         
         function plot(obj)

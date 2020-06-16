@@ -14,8 +14,11 @@ classdef (Abstract) Oscillation
             %   Detailed explanation goes here
             obj.time=time;
             obj.voltageArray=voltageArray;
-            period=unique(diff(time(2:100)));
-            obj.samplingRate = round(max(1/period));
+            if numel(time)~=numel(voltageArray)
+                error('Sample sizes are different in \n\tvoltageArray(%d) and time(%d)\n',...
+                    numel(voltageArray),numel(time));
+            end
+            obj.samplingRate=mode(1./diff(time(2:1000)));
         end
         
         function timeFrequencyMap = getTimeFrequencyMap(obj,...
@@ -46,8 +49,7 @@ classdef (Abstract) Oscillation
                 obj.getStartTime);
         end
         function ps=getPSpectrum(obj)
-            tt1=timetable(seconds(obj.time),obj.voltageArray);
-            [pxx,f] = pspectrum(tt1);
+            [pxx,f] = pspectrum(obj.voltageArray,obj.getSamplingRate);
             ps=PowerSpectrum(pxx,f);
         end
         function obj=getWhitened_Obsolete(obj, fraquencyRange)
