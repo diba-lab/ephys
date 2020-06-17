@@ -1,4 +1,4 @@
-function [pred, pvals, qvals, ccgR, tR] = CCGconv(res1,res2,SampleRate,BinSize,Duration,varargin)
+function [pvals, pred, qvals, ccgR, tR] = CCGconv(res1,res2,SampleRate,BinSize,Duration,varargin)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -24,6 +24,7 @@ subfig = ip.Results.subfig;
 % Make spike-trains column vectors
 if isrow(res1); res1 = res1'; end
 if isrow(res2); res2 = res2'; end
+
 
 HalfBins = round(Duration/BinSize/2);
 one_ms = 0.001;
@@ -64,7 +65,7 @@ if ~isempty(res1) && ~isempty(res2)
         [ccgR, tR] = CCG([res1;res2],[ones(size(res1));2*ones(size(res2))], ...
             'binSize', BinSize, 'duration', Duration, 'Fs', 1/SampleRate,...
             'norm', 'counts');
-        win_size = round(jscale/1000/BinSize/2);
+        win_size = round(jscale/1000/BinSize/6);
         [pvals, pred, qvals] = EranConv(ccgR(:,1,2), win_size);
     end
     
