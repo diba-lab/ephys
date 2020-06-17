@@ -13,21 +13,21 @@ classdef TimeFrequencyChronuxMtspecgramc < TimeFrequencyMethod
     
     methods
         function obj = TimeFrequencyChronuxMtspecgramc(frequencyInterests,...
-                tapers, pad, err)
+                movingWindow, tapers, pad, err)
             %TIMEFREQUENCYPROPERTIESWAVELET Construct an instance of this class
             %   Detailed explanation goes here
             obj = obj@TimeFrequencyMethod(frequencyInterests);
             obj.fpass=frequencyInterests;
-            obj.movingWindow=[1250 1250/2]/1000;
-            if nargin>3
+            obj.movingWindow=movingWindow;
+            if nargin>4
                 obj.tapers = tapers;
             else
             end
-            if nargin>2
+            if nargin>3
                 obj.pad = pad;
             else
             end
-            if nargin>1
+            if nargin>2
                 obj.err = err;
             else
             end
@@ -42,7 +42,7 @@ classdef TimeFrequencyChronuxMtspecgramc < TimeFrequencyMethod
             params.Fs=obj.getSamplingFrequency(time);
             [matrix,t,f]=mtspecgramc(data,movingwin,params);
             aTimeFrequencyMap=TimeFrequencyMapChronuxMtspecgramc(...
-                matrix, seconds(t)+time(1), f);
+                matrix, seconds(t), f);
         end
     end
 end

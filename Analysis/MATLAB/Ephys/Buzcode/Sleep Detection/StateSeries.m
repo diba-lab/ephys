@@ -11,6 +11,12 @@ classdef StateSeries
             obj.ts=ts;
         end
         
+        function ts = getResampled(obj,newnumpoints)
+            ts1=obj.ts;
+            time=linspace(ts.Time(1),ts.Time(end),newnumpoints);
+            
+            ts=ts1.resample(time,'zoh');
+        end
         function [] = plot(obj,colorMap)
             ts=obj.ts;hold on;
             num=1;

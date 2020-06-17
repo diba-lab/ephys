@@ -18,7 +18,7 @@ classdef BuzcodeFactory
                     filePath.getTimestamps);
                 end
             elseif ischar(filePath)
-                buzcodeStructure=BuzcodeStructure(filepath);
+                buzcodeStructure=BuzcodeStructure(filePath);
             else
                 error('What is this bro?')
             end

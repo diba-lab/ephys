@@ -79,7 +79,7 @@ classdef FileLoaderBinary < FileLoaderMethod
             tst=(double(1:samples)-1)/D.Header.sample_rate;
             ts=timeseries(nan(numel(tst),1),tst);
             ts.TimeInfo.Format='dd-mmm-yyyy HH:MM:SS.FFF';
-            ts.TimeInfo.StartDate=header.startTime;
+            ts.TimeInfo.StartDate=starttime;
             
             openEphysRecord.Timestamps=ts;
             openEphysRecord.DataFile=D.Data.Filename;

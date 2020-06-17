@@ -192,6 +192,9 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
         function ts=getTimestamps(obj)
             ts=obj.Timestamps;
         end
+        function ti=getTimeInterval(obj)
+            ti=TimeInterval(obj.getRecordStartTime, obj.getSampleRate,numel(obj.getTimestamps.time));
+        end
         
         function obj=setTimestamps(obj,timestamps)
             obj.Timestamps=timestamps;
@@ -278,11 +281,15 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
             end
             obj=OpenEphysRecordFactory.getOpenEphysRecord(newFileName);
         end
-        function obj=saveChannels(obj, channels)
+        function out=saveChannels(obj, channels)
             [filepath, name, ext] = fileparts(obj.getFile);
             out=fullfile(filepath,sprintf('%s_ch%d-%d%s',...
                 name, min(channels), max(channels), ext));
-            obj.keepChannels(obj.getFile, out, numel(obj.getChannelNames), channels );
+            if ~exist(out,'file')
+                obj.keepChannels(obj.getFile, out, numel(obj.getChannelNames), channels );
+            else
+                warning('File is already exist.\n\t%s\n',out);
+            end
         end
     end
     
@@ -294,7 +301,7 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
                 probe=Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
                 printf('Probe file: \n\t%s',fullfile(list(1).folder,list(1).name));
             else
-                list=dir(fullfile(filepath,'*.mat'));
+                list=dir(fullfile(filepath,'mas*.mat'));
                 if numel(list)>0
                     probe=Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
                     printf('Probe file: \n\t%s',fullfile(list(1).folder,list(1).name));
