@@ -1,4 +1,5 @@
-function [pvals, pred, qvals, ccgR, tR] = CCGconv(res1,res2,SampleRate,BinSize,Duration,varargin)
+function [pvals, pred, qvals, ccgR, tR] = CCGconv(res1,res2,SampleRate,...
+    BinSize,Duration,varargin)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -9,14 +10,12 @@ ip.addRequired('SampleRate', @(a) isnumeric(a) && a > 0);
 ip.addRequired('BinSize', @(a) isnumeric(a) && a > 0); % in seconds!
 ip.addRequired('Duration', @(a) isnumeric(a) && a >= BinSize); % in seconds!
 ip.addParameter('jscale', 5, @(a) isnumeric(a) && a > 0); % unit is ms!
-ip.addParameter('njitter', 500, @(a) isnumeric(a) && a > 0 && round(a) == a);
 ip.addParameter('alpha', 0.01, @(a) a > 0 && a < 1);
 ip.addParameter('plot_output', 1, @(a) isnumeric(a) && a > 0 && round(a) == a);
 ip.addParameter('subfig', 1, @(a) a > 0 && a <= 16);
 ip.parse(res1, res2, SampleRate, BinSize, Duration, varargin{:});
 
 jscale = ip.Results.jscale;
-njitter = ip.Results.njitter;
 alpha = ip.Results.alpha;
 plot_output = ip.Results.plot_output;
 subfig = ip.Results.subfig;
@@ -25,18 +24,21 @@ subfig = ip.Results.subfig;
 if isrow(res1); res1 = res1'; end
 if isrow(res2); res2 = res2'; end
 
-
-HalfBins = round(Duration/BinSize/2);
-one_ms = 0.001;
-
-% set default values
-if plot_output
-    ccgj = zeros(2*HalfBins+1,njitter);
+% Make sure CCGs are big enough for smoothing window and make duration
+% longer if not
+win_size = round(jscale/1000/BinSize); % calculate window size
+SDG = win_size/2;
+if round(SDG) == SDG; wconv_len = 6*SDG + 1; else wconv_len = 6*SDG + 2; end
+nbins = 2*round(Duration/BinSize/2)+1;
+if nbins < (1.5*wconv_len)  % upsize nbins if too short
+    old_dur = Duration;
+    nbins_min = round(1.5*wconv_len) + 2;
+    Duration = 2*nbins_min*BinSize;
+    disp(['Specified Duration of ' num2str(old_dur) ' seconds not large enough for convolution window.'])
+    disp(['Using new Duration of ' num2str(Duration, '%0.3g') ' seconds.'])
 end
 
-ccgjmax = zeros(1,njitter);
-ccgjmin = zeros(1,njitter);
-
+HalfBins = round(Duration/BinSize/2);
 tR = -HalfBins:HalfBins;
 ccgR = zeros(2*HalfBins+1,2,2);
 
@@ -65,7 +67,7 @@ if ~isempty(res1) && ~isempty(res2)
         [ccgR, tR] = CCG([res1;res2],[ones(size(res1));2*ones(size(res2))], ...
             'binSize', BinSize, 'duration', Duration, 'Fs', 1/SampleRate,...
             'norm', 'counts');
-        win_size = round(jscale/1000/BinSize/6);
+        
         [pvals, pred, qvals] = EranConv(ccgR(:,1,2), win_size);
     end
     

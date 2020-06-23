@@ -8,7 +8,7 @@ function [ExcPairs,InhPairs,GapPairs,numclu] = FindPairsConvAll(fileinfo);
 % % 7th row is cluster type
 % % 8th row is the electrode with maximum amplitude for that Spike waveform (from the spk files)
 
-
+currentdir = pwd
 currentdir = pwd;
 FileBase = [currentdir '/' fileinfo.name '/' fileinfo.name];
 

@@ -44,6 +44,7 @@ ip.addParameter('njitter', 500, @(a) isnumeric(a) && a > 0 && round(a) == a);
 ip.addParameter('alpha', 0.01, @(a) a > 0 && a < 1);
 ip.addParameter('plot_output', 1, @(a) isnumeric(a) && a > 0 && round(a) == a);
 ip.addParameter('subfig', 1, @(a) a > 0 && a <= 16);
+ip.addParameter('subplot_size', [4,4], @(a) length(a) == 2);
 ip.parse(res1, res2, SampleRate, BinSize, Duration, varargin{:});
 
 jscale = ip.Results.jscale;
@@ -51,6 +52,7 @@ njitter = ip.Results.njitter;
 alpha = ip.Results.alpha;
 plot_output = ip.Results.plot_output;
 subfig = ip.Results.subfig;
+subplot_size = ip.Results.subplot_size;
 
 % Make spike-trains column vectors
 if isrow(res1); res1 = res1'; end
@@ -78,7 +80,7 @@ if ~isempty(res1) && ~isempty(res2)
             nn = nearestneighbour(res1',res2','Radius',BinSize*(HalfBins+1));
         catch ME
             if strcmp(ME.identifier, 'MATLAB:array:SizeLimitExceeded')
-                warning('Super large spike trains - skipping CCG_jitter time-saving step');
+%                 warning('Super large spike trains - skipping CCG_jitter time-saving step');
                 nn = 1;
             else
                 error('Error in CCG_jitter>nearest_neighbor')
@@ -140,8 +142,8 @@ if plot_output
     % If new figure, just do one plot
     if isempty(get(figure(plot_output),'Children'))
         subplot(1,1,subfig);
-    else % If pre-existing figure, plot into 4x4 subplot array.
-        subplot(4,4,subfig)
+    else % If pre-existing figure, plot into 4x4 array
+        subplot(subplot_size(1), subplot_size(2), subfig)
     end
     tRms = tR*1000;
     bar(tRms,ccgR(:,1,2),'k')
