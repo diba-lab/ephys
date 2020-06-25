@@ -45,8 +45,14 @@ spikes.spindices = [times_sorted, UIDs_unsorted(isort)];
 
 % shankID and cluID
 shank_clu = cat(1, spikes_file_filt.id);
-spikes.shankID = shank_clu(:,1); 
-spikes.cluID = shank_clu(:,2);
+spikes.shankID = shank_clu(:,1)'; 
+spikes.cluID = shank_clu(:,2)';
+
+% quality
+spikes.quality = cat(1, spikes_file_filt.quality)';
+
+% stability
+spikes.stability = cat(1, spikes_file_filt.stability)';
 
 end
 
