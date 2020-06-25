@@ -232,4 +232,10 @@ min_ISIadj(i,j) = nan;
 %% Now plot
 figure; histogram(min_ISIadj,0.033333:0.033333:1)
 xlabel('Minimum ISI (ms)'); ylabel('Count'); title(sleep_session);
-                
+
+%% Compare pre-rest to post-track sleep
+% Basically, screen for ms connectivity in either case and plot
+% side-by-side
+
+% Step 0 = 
+% First, run EranConv_Group on pre-session and post-session independently

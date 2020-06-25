@@ -1,4 +1,4 @@
-function [spikes] = Hiro_to_bz(spikes_file, session_name)
+function [spikes] = Hiro_to_bz(spike_data, session_name)
 % spikes = Hiro_to_bz(spikes_mat_file, wake_sleep, session_name)
 %   This one-off function converts Hiro Miyawaki's data 
 % (Miyawaki et al., 2016) in .mat format to the output format of 
@@ -8,7 +8,7 @@ function [spikes] = Hiro_to_bz(spikes_file, session_name)
 % 4 and 9 are filtered out by default.
 %
 %   INPUTS
-%   spikes: spikes file from Hiro Miyawaki data
+%   spike_data: spikes data loaded from .m file from Hiro Miyawaki data
 %   session_name: e.g. 'RoySleep0' or 'KevinMaze1'. Note that wake
 %       v sleep can be un-ambiguously determined from this ('Rest =
 %       pre-maze during dark cycle, 'Sleep' = post-maze sleep during light
@@ -22,12 +22,24 @@ time_to_msec=1/(1000);
 
 spikes.sessionName = session_name;
 
+% Make life easy on the user - accept full data structure or
+% session-specific sub-structure
+try 
+    cat(1, spike_data.quality);
+catch ME
+    
+    % load session specific structure
+    if strcmp(ME.identifier, 'MATLAB:nonExistentField')
+        spike_data = spike_data.(session_name);
+    end
+end
+
 % Filter out MUA and poor quality interneurons
-UIDall = 1:length(spikes_file);
-quality_all = cat(1, spikes_file.quality);
+UIDall = 1:length(spike_data);
+quality_all = cat(1, spike_data.quality);
 good_bool = ismember(quality_all, [1 2 3 8]); % filter out poor pyr. cells (4) and MUA (9).
 spikes.UID = UIDall(good_bool);
-spikes_file_filt = spikes_file(good_bool);
+spikes_file_filt = spike_data(good_bool);
 nneurons = length(spikes_file_filt);
 
 % spike times
