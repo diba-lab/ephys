@@ -12,13 +12,13 @@ ip.addRequired('Duration', @(a) isnumeric(a) && a >= BinSize); % in seconds!
 ip.addParameter('jscale', 5, @(a) isnumeric(a) && a > 0); % unit is ms!
 ip.addParameter('alpha', 0.01, @(a) a > 0 && a < 1);
 ip.addParameter('plot_output', 1, @(a) isnumeric(a) && a > 0 && round(a) == a);
-ip.addParameter('subfig', 1, @(a) a > 0 && a <= 16);
+ip.addParameter('ha', 1, @(a) isempty(a) || ishandle(a));
 ip.parse(res1, res2, SampleRate, BinSize, Duration, varargin{:});
 
 jscale = ip.Results.jscale;
 alpha = ip.Results.alpha;
 plot_output = ip.Results.plot_output;
-subfig = ip.Results.subfig;
+ha = ip.Results.subfig;
 
 % Make spike-trains column vectors
 if isrow(res1); res1 = res1'; end
@@ -73,10 +73,21 @@ if ~isempty(res1) && ~isempty(res2)
     
 end
 
-figure;
-bar(tR*1000, ccgR(:,1,2),'k');
-hold on;
-plot(tR*1000, pred, 'b--');
-xlabel('Time Lag (ms'); ylabel('Count');
+if plot_output
+    figure(plot_out)
+    
+    % select appropriate axes to plot into
+    if isempty(ha)
+        subplot(1,1,1);
+    else
+        axes(ha);
+    end
+    bar(tR*1000, ccgR(:,1,2),'k');
+    hold on;
+    hpred = plot(tR*1000, pred, 'b--');
+    xlabel('Time Lag (ms'); ylabel('Count');
+    legend(hpred, 'Conv');
+end
+
 end
 

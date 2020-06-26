@@ -10,7 +10,8 @@ ip.addRequired('session_name', @ischar);
 ip.addParameter('alpha', 0.01, @(a) a > 0 && a < 0.25);
 ip.addParameter('jscale', 5, @(a) a > 0 && a < 10);
 ip.parse(spike_data_fullpath, session_name, varargin{:});
-alpha
+alpha = ip.Results.alpha;
+jscale = ip.Results.jscale;
 
 %% Step 0: load spike and behavioral data, parse into pre, track, and post session
 [data_dir, name, ~] = fileparts(spike_data_fullpath);
@@ -36,15 +37,16 @@ end
 nneurons = length(spikes.(session_name));
 for j = 1:nepochs
     epoch_bool = bz_spikes.spindices(:,1) >= time_list(j,1) ...
-        & bz_spikes(:,1) <= time_list(j,2); % ID spike times in each epoch
+        & bz_spikes.spindices(:,1) <= time_list(j,2); % ID spike times in each epoch
     parse_spikes(j).spindices = bz_spikes.spindices(epoch_bool,:); % parse spikes by epoch into this variable
 end
 
 %% Step 1: Run EranConv_group on each session and ID ms connectivity in each session
 for j = 1:nepochs
+    cell_inds = arrayfun(@(a) find(bz_spikes.UID == a), bz_spikes.UID); 
     [ExcPairs, InhPairs, GapPairs, RZero] = ...
-        EranConv_group(parse_spikes(j).spindices(:,1)/1000, parse_spikes.spindices(:,2), ...
-        bz_spikes.UID, SampleRate, jscale, alpha, bz_spikes.shankID(bz_spikes.UID));
+        EranConv_group(parse_spikes(j).spindices(:,1)/1000, parse_spikes(j).spindices(:,2), ...
+        bz_spikes.UID, SampleRate, jscale, alpha, bz_spikes.shankID(cell_inds));
     pairs(j).ExcPairs = ExcPairs;
     pairs(j).InhPairs = InhPairs;
     pairs(j).GapPairs = GapPairs;
