@@ -13,6 +13,7 @@ ip.parse(spike_data_fullpath, session_name, varargin{:});
 alpha = ip.Results.alpha;
 jscale = ip.Results.jscale;
 
+epoch_names = {'Pre', 'Maze', 'Post'};
 %% Step 0: load spike and behavioral data, parse into pre, track, and post session
 [data_dir, name, ~] = fileparts(spike_data_fullpath);
 load(spike_data_fullpath, 'spikes')
@@ -54,6 +55,34 @@ for j = 1:nepochs
 end
     
 %% Step 2a: Plot out each pair, put star on sessions with ms connectivity
+nplot = 5; % # pairs to plot in top/bottom of range
+ref_epoch = 1;
+ms_type = 'ExcPairs'; % 'ExcPairs', 'InhPairs', 'GapPairs'
+[psort, isort] = sort(pairs(ref_epoch).(ms_type)(:,3));  % sort from strongest ms_conn to weakest
+top = pairs(ref_epoch).(ms_type)(isort(1:nplot),:);
+bottom = pairs(ref_epoch).(ms_type)(isort((end-nplot):end,:));
+pairs_plot = cat(3,bottom,top);
+
+% set up figures and subplots
+hbot = figure(100); htop = figure(101);
+hcomb = cat(1,hbot,htop);
+
+for epoch_plot = 1:2:3
+    for top_bot = 1:2
+        figure(hcomb(top_bot));
+        for k = 1:nplot
+            cell1 = pairs_plot(k,1,top_bot);
+            cell2 = pairs_plot(k,2,top_bot);
+            res1 = parse_spikes(epoch).spindices(parse_spikes(epoch).spindices(:,2) == cell1,1);
+            res2 = parse_spikes(epoch).spindices(parse_spikes(epoch).spindices(:,2) == cell2,1);
+            [pvals, pred, qvals, ccgR, tR] = CCGconv(res1, res2, SampleRate, ...
+                1/SampleRate, 0.05, 'jscale', 1, 'alpha', 0.01, ...
+                'plot_output', get(figure(hcomb(top_bot)), 'Number'), ...
+                'ha', subplot(nplot, 3, epoch_plot + (nplot-1)*epoch_plot));
+            title([epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]);
+        end
+    end
+
 
 %% Step 2b: run CCG_jitter and plot out each as above, but only on good pairs!
 
