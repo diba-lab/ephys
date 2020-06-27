@@ -60,6 +60,15 @@ shank_clu = cat(1, spikes_file_filt.id);
 spikes.shankID = shank_clu(:,1)'; 
 spikes.cluID = shank_clu(:,2)';
 
+% Now do the same as spindices but for cluster and shank ID
+shankIDs_cell = arrayfun(@(a) ones(size(spikes.times{a}))*spikes.shankID(a), ...
+    1:nneurons, 'UniformOutput', false);
+cluIDs_cell = arrayfun(@(a) ones(size(spikes.times{a}))*spikes.cluID(a), ...
+    1:nneurons, 'UniformOutput', false);
+sIDs_unsorted = cat(1, shankIDs_cell{:});
+cIDs_unsorted = cat(1, cluIDs_cell{:});
+spikes.shcluindices = [sIDs_unsorted(isort), cIDs_unsorted(isort)];
+
 % quality
 spikes.quality = cat(1, spikes_file_filt.quality)';
 

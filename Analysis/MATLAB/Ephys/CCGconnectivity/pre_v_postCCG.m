@@ -9,12 +9,16 @@ ip.addRequired('spike_data_fullpath', @isfile);
 ip.addRequired('session_name', @ischar);
 ip.addParameter('alpha', 0.01, @(a) a > 0 && a < 0.25);
 ip.addParameter('jscale', 5, @(a) a > 0 && a < 10);
+ip.addParameter('debug', false, @islogical);
 ip.parse(spike_data_fullpath, session_name, varargin{:});
 alpha = ip.Results.alpha;
 jscale = ip.Results.jscale;
+debug = ip.Results.debug;
 
 epoch_names = {'Pre', 'Maze', 'Post'};
 %% Step 0: load spike and behavioral data, parse into pre, track, and post session
+
+if ~debug
 [data_dir, name, ~] = fileparts(spike_data_fullpath);
 load(spike_data_fullpath, 'spikes')
 if contains(name, 'wake')
@@ -43,6 +47,7 @@ for j = 1:nepochs
 end
 
 %% Step 1: Run EranConv_group on each session and ID ms connectivity in each session
+
 for j = 1:nepochs
     cell_inds = arrayfun(@(a) find(bz_spikes.UID == a), bz_spikes.UID); 
     [ExcPairs, InhPairs, GapPairs, RZero] = ...
@@ -53,36 +58,48 @@ for j = 1:nepochs
     pairs(j).GapPairs = GapPairs;
     pairs(j).RZero = RZero;
 end
+
+elseif debug
+    load('/data/Working/Other Peoples Data/HiroData/wake_new/pre_v_postCCG_debug_data.mat',...
+        'bz_spikes', 'parse_spikes', 'pairs', 'SampleRate');
+end
     
 %% Step 2a: Plot out each pair, put star on sessions with ms connectivity
 nplot = 5; % # pairs to plot in top/bottom of range
 ref_epoch = 1;
 ms_type = 'ExcPairs'; % 'ExcPairs', 'InhPairs', 'GapPairs'
+
+% Need to only include pairs on DIFFERENT shanks here somehow.
 [psort, isort] = sort(pairs(ref_epoch).(ms_type)(:,3));  % sort from strongest ms_conn to weakest
 top = pairs(ref_epoch).(ms_type)(isort(1:nplot),:);
-bottom = pairs(ref_epoch).(ms_type)(isort((end-nplot):end,:));
+bottom = pairs(ref_epoch).(ms_type)(isort((end-nplot+1):end),:);
 pairs_plot = cat(3,bottom,top);
 
 % set up figures and subplots
 hbot = figure(100); htop = figure(101);
 hcomb = cat(1,hbot,htop);
+arrayfun(@(a,b) set(a, 'Position', [70 + b 130 1660 1860]), hcomb, [0 1700]');
 
+%%
+nepochs = length(epoch_names);
 for epoch_plot = 1:2:3
     for top_bot = 1:2
         figure(hcomb(top_bot));
         for k = 1:nplot
             cell1 = pairs_plot(k,1,top_bot);
             cell2 = pairs_plot(k,2,top_bot);
-            res1 = parse_spikes(epoch).spindices(parse_spikes(epoch).spindices(:,2) == cell1,1);
-            res2 = parse_spikes(epoch).spindices(parse_spikes(epoch).spindices(:,2) == cell2,1);
+            res1 = parse_spikes(epoch_plot).spindices(parse_spikes(epoch_plot).spindices(:,2) == cell1,1)/1000;
+            res2 = parse_spikes(epoch_plot).spindices(parse_spikes(epoch_plot).spindices(:,2) == cell2,1)/1000;
+            
             [pvals, pred, qvals, ccgR, tR] = CCGconv(res1, res2, SampleRate, ...
                 1/SampleRate, 0.05, 'jscale', 1, 'alpha', 0.01, ...
                 'plot_output', get(figure(hcomb(top_bot)), 'Number'), ...
-                'ha', subplot(nplot, 3, epoch_plot + (nplot-1)*epoch_plot));
+                'ha', subplot(nplot, 3, epoch_plot + (k-1)*nepochs));
+            
             title([epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]);
         end
     end
-
+end
 
 %% Step 2b: run CCG_jitter and plot out each as above, but only on good pairs!
 

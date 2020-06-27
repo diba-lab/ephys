@@ -18,7 +18,7 @@ ip.parse(res1, res2, SampleRate, BinSize, Duration, varargin{:});
 jscale = ip.Results.jscale;
 alpha = ip.Results.alpha;
 plot_output = ip.Results.plot_output;
-ha = ip.Results.subfig;
+ha = ip.Results.ha;
 
 % Make spike-trains column vectors
 if isrow(res1); res1 = res1'; end
@@ -62,6 +62,9 @@ if ~isempty(res1) && ~isempty(res2)
     if isempty(nn)
         % try to save some time in case no overlap
         warning('two spike trains do not overlap by BinSize*(HalfBins+1)');
+        pvals = nan;
+        pred = nan;
+        qvals = nan;
     else
         
         [ccgR, tR] = CCG([res1;res2],[ones(size(res1));2*ones(size(res2))], ...
@@ -74,7 +77,7 @@ if ~isempty(res1) && ~isempty(res2)
 end
 
 if plot_output
-    figure(plot_out)
+    figure(plot_output)
     
     % select appropriate axes to plot into
     if isempty(ha)
@@ -84,9 +87,17 @@ if plot_output
     end
     bar(tR*1000, ccgR(:,1,2),'k');
     hold on;
-    hpred = plot(tR*1000, pred, 'b--');
-    xlabel('Time Lag (ms'); ylabel('Count');
-    legend(hpred, 'Conv');
+    try
+        hpred = plot(tR*1000, pred, 'b--');
+        legend(hpred, 'Conv');
+    catch ME
+        if strcmp(ME.identifier,'MATLAB:UndefinedFunction')
+            warning('No spikes in CCG! Skipping!')
+        end
+    end
+    
+    xlabel('Time Lag (ms)'); ylabel('Count');
+
 end
 
 end
