@@ -50,20 +50,28 @@ end
 
 %% Step 1: Run EranConv_group on each session and ID ms connectivity in each session
 
-for j = 1:nepochs
+for j = 1:nepochs'
+    % This next line of code seems silly, but I'm leaving it in
+    % You can replace bz_spike.UID with any cell numbers to only plot
+    % through those. Might be handy in the future!
     cell_inds = arrayfun(@(a) find(bz_spikes.UID == a), bz_spikes.UID); 
     [ExcPairs, InhPairs, GapPairs, RZero] = ...
         EranConv_group(parse_spikes(j).spindices(:,1)/1000, parse_spikes(j).spindices(:,2), ...
-        bz_spikes.UID, SampleRate, jscale, alpha, bz_spikes.shankID(cell_inds));
+        bz_spikes.UID(cell_inds), SampleRate, jscale, alpha, bz_spikes.shankID(cell_inds));
     pairs(j).ExcPairs = ExcPairs;
     pairs(j).InhPairs = InhPairs;
     pairs(j).GapPairs = GapPairs;
     pairs(j).RZero = RZero;
 end
 
-elseif debug
-    load('/data/Working/Other Peoples Data/HiroData/wake_new/pre_v_postCCG_debug_data.mat',...
-        'bz_spikes', 'parse_spikes', 'pairs', 'SampleRate');
+elseif debug  % load previously run pairs data to speed things up.
+    if isempty(getenv('computername'))
+        load('/data/Working/Other Peoples Data/HiroData/wake_new/pre_v_postCCG_debug_data.mat',...
+            'bz_spikes', 'parse_spikes', 'pairs', 'SampleRate');
+    elseif strcmp(getenv('computername'),'NATLAPTOP')
+       load('C:\Users\Nat\Documents\UM\Working\HiroData\wake_new\pre_v_postCCG_debug_data.mat',...
+           'bz_spikes', 'parse_spikes', 'pairs', 'SampleRate');
+    end
 end
     
 %% Step 2a: Plot out each pair, put star on sessions with ms connectivity
