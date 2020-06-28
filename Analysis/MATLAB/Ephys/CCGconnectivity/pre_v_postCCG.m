@@ -10,10 +10,12 @@ ip.addRequired('session_name', @ischar);
 ip.addParameter('alpha', 0.01, @(a) a > 0 && a < 0.25);
 ip.addParameter('jscale', 5, @(a) a > 0 && a < 10);
 ip.addParameter('debug', false, @islogical);
+ip.addParameter('wintype', 'gauss', @(a) ismember(a, {'gauss', 'rect', 'triang'})); % convolution window type
 ip.parse(spike_data_fullpath, session_name, varargin{:});
 alpha = ip.Results.alpha;
 jscale = ip.Results.jscale;
 debug = ip.Results.debug;
+wintype = ip.Results.wintype;
 
 epoch_names = {'Pre', 'Maze', 'Post'};
 %% Step 0: load spike and behavioral data, parse into pre, track, and post session
@@ -69,34 +71,53 @@ nplot = 5; % # pairs to plot in top/bottom of range
 ref_epoch = 1;
 ms_type = 'ExcPairs'; % 'ExcPairs', 'InhPairs', 'GapPairs'
 
-% Need to only include pairs on DIFFERENT shanks here somehow.
-[psort, isort] = sort(pairs(ref_epoch).(ms_type)(:,3));  % sort from strongest ms_conn to weakest
-top = pairs(ref_epoch).(ms_type)(isort(1:nplot),:);
-bottom = pairs(ref_epoch).(ms_type)(isort((end-nplot+1):end),:);
+% Get boolean for pairs on different shanks only
+cell1_shank = arrayfun(@(a) bz_spikes.shankID(a == bz_spikes.UID), ...
+    pairs(ref_epoch).(ms_type)(:,1));
+cell2_shank = arrayfun(@(a) bz_spikes.shankID(a == bz_spikes.UID), ...
+    pairs(ref_epoch).(ms_type)(:,2));
+diff_shank_bool = cell1_shank ~= cell2_shank;
+pairs_diff_shank = pairs(ref_epoch).(ms_type)(diff_shank_bool,:);
+[~, isort] = sort(pairs_diff_shank(:,3));  % sort from strongest ms_conn to weakest
+top = pairs_diff_shank(isort(1:nplot),:);
+bottom = pairs_diff_shank(isort((end-nplot+1):end),:);
 pairs_plot = cat(3,bottom,top);
 
 % set up figures and subplots
-hbot = figure(100); htop = figure(101);
-hcomb = cat(1,hbot,htop);
-arrayfun(@(a,b) set(a, 'Position', [70 + b 130 1660 1860]), hcomb, [0 1700]');
+hbotc = figure(100); htopc = figure(101); 
+hbotf = figure(102); htopf = figure(103);
+hcomb = cat(2, cat(1,hbotc,htopc), cat(1,hbotf, htopf));
+arrayfun(@(a,b,c) set(a, 'Position', [70 + b 230 + c 1660 1860]), hcomb(:), [...
+    0 1700 100 1800]', [0 0 -100 -100]');
 
 %%
 nepochs = length(epoch_names);
-for epoch_plot = 1:2:3
-    for top_bot = 1:2
-        figure(hcomb(top_bot));
-        for k = 1:nplot
-            cell1 = pairs_plot(k,1,top_bot);
-            cell2 = pairs_plot(k,2,top_bot);
-            res1 = parse_spikes(epoch_plot).spindices(parse_spikes(epoch_plot).spindices(:,2) == cell1,1)/1000;
-            res2 = parse_spikes(epoch_plot).spindices(parse_spikes(epoch_plot).spindices(:,2) == cell2,1)/1000;
-            
-            [pvals, pred, qvals, ccgR, tR] = CCGconv(res1, res2, SampleRate, ...
-                1/SampleRate, 0.05, 'jscale', 1, 'alpha', 0.01, ...
-                'plot_output', get(figure(hcomb(top_bot)), 'Number'), ...
-                'ha', subplot(nplot, 3, epoch_plot + (k-1)*nepochs));
-            
-            title([epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]);
+for coarse_fine = 1:2
+    if coarse_fine == 1
+        duration = 0.02; binSize = 0.001; jscale = 5;
+    elseif coarse_fine == 2
+        duration = 0.002; binSize = 1/SampleRate; jscale = 1;
+    end
+    for epoch_plot = 1:2:3
+        for top_bot = 1:2
+            fig_use = figure(hcomb(top_bot, coarse_fine));
+            for k = 1:nplot
+                cell1 = pairs_plot(k,1,top_bot);
+                cell2 = pairs_plot(k,2,top_bot);
+                pval = pairs_plot(k,3,top_bot);
+                res1 = parse_spikes(epoch_plot).spindices(...
+                    parse_spikes(epoch_plot).spindices(:,2) == cell1,1)/1000;
+                res2 = parse_spikes(epoch_plot).spindices(...
+                    parse_spikes(epoch_plot).spindices(:,2) == cell2,1)/1000;
+                [pvals, pred, qvals, ccgR, tR] = CCGconv(res1, res2, SampleRate, ...
+                    binSize, duration, 'jscale', jscale, 'alpha', 0.01, ...
+                    'plot_output', get(fig_use, 'Number'), ...
+                    'ha', subplot(nplot, 3, epoch_plot + (k-1)*nepochs),...
+                    'wintype', wintype);
+                
+                title({[epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]; ...
+                    ['pval\_5msjitter= ' num2str(pval)]});
+            end
         end
     end
 end
