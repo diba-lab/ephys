@@ -10,7 +10,7 @@ classdef TimeInterval
     end
     
     methods
-        function obj = TimeInterval(startTime, sampleRate,numberOfPoints)
+        function obj = TimeInterval(startTime, sampleRate, numberOfPoints)
             %INTERVAL Construct an instance of this class
             %   Detailed explanation goes here
             obj.SampleRate = sampleRate;

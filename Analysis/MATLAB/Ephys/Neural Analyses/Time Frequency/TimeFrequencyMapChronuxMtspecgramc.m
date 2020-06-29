@@ -13,7 +13,7 @@ classdef TimeFrequencyMapChronuxMtspecgramc < TimeFrequencyMap
             %   Detailed explanation goes here
             obj@TimeFrequencyMap(matrix, timePoints, frequencyPoints);
             obj.clim=[0 1.5];
-            obj.clim=[0 4];
+            obj.clim=[0 3.7];
         end
         
         function imsc = plot(obj)
@@ -23,6 +23,7 @@ classdef TimeFrequencyMapChronuxMtspecgramc < TimeFrequencyMap
             
             imsc=imagesc(seconds(adj.timePoints-adj.timePoints(1)),...
                 adj.frequencyPoints,log10( abs(adj.matrix')),adj.clim);
+            colormap('hsv');
         end
     end
     methods (Access=private)

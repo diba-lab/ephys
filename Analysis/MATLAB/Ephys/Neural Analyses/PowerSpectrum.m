@@ -5,6 +5,9 @@ classdef PowerSpectrum
     properties
         Frequency
         Power
+        InfoNum
+        InfoName
+        SignalLenght
     end
     
     methods
@@ -22,7 +25,7 @@ classdef PowerSpectrum
             ax=gca;
             if nargin>1
             ax.XLim=frequencyFrame;
-            ax.YLim=[20 60];
+            ax.YLim=[25 55];
             else
                 ax.XLim=[obj.Frequency(1) obj.Frequency(end)];
             end
@@ -30,6 +33,18 @@ classdef PowerSpectrum
             xlabel('Frequency (Hz)')
             ylabel('Power Spectrum (dB)')
             title('Default Frequency Resolution')
+        end
+        function obj=setInfoNumAndName(obj,num,name)
+            obj.InfoNum=num;
+            obj.InfoName=name;
+        end
+        function obj=setSignalLength(obj,proportion)
+            obj.SignalLenght=proportion;
+        end
+        function [str]=print(obj)
+            fprintf('%d, %s\n',obj.InfoNum, obj.InfoName);
+            str=sprintf('%d, %s\n',obj.InfoNum, obj.InfoName);
+
         end
     end
 end
