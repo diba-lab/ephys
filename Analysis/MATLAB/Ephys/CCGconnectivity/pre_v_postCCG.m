@@ -57,7 +57,8 @@ for j = 1:nepochs'
     cell_inds = arrayfun(@(a) find(bz_spikes.UID == a), bz_spikes.UID); 
     [ExcPairs, InhPairs, GapPairs, RZero] = ...
         EranConv_group(parse_spikes(j).spindices(:,1)/1000, parse_spikes(j).spindices(:,2), ...
-        bz_spikes.UID(cell_inds), SampleRate, jscale, alpha, bz_spikes.shankID(cell_inds));
+        bz_spikes.UID(cell_inds), SampleRate, jscale, alpha, bz_spikes.shankID(cell_inds), ...
+        wintype);
     pairs(j).ExcPairs = ExcPairs;
     pairs(j).InhPairs = InhPairs;
     pairs(j).GapPairs = GapPairs;
@@ -67,14 +68,14 @@ end
 elseif debug  % load previously run pairs data to speed things up.
     if isempty(getenv('computername'))
         load('/data/Working/Other Peoples Data/HiroData/wake_new/pre_v_postCCG_debug_data.mat',...
-            'bz_spikes', 'parse_spikes', 'pairs', 'SampleRate');
+            'bz_spikes', 'parse_spikes', 'pairs', 'SampleRate', 'wintype');
     elseif strcmp(getenv('computername'),'NATLAPTOP')
        load('C:\Users\Nat\Documents\UM\Working\HiroData\wake_new\pre_v_postCCG_debug_data.mat',...
-           'bz_spikes', 'parse_spikes', 'pairs', 'SampleRate');
+           'bz_spikes', 'parse_spikes', 'pairs', 'SampleRate', 'wintype');
     end
 end
     
-%% Step 2a: Plot out each pair, put star on sessions with ms connectivity
+%% Step 2a: Set up plots
 nplot = 5; % # pairs to plot in top/bottom of range
 ref_epoch = 1;
 ms_type = 'ExcPairs'; % 'ExcPairs', 'InhPairs', 'GapPairs'
@@ -95,10 +96,16 @@ pairs_plot = cat(3,bottom,top);
 hbotc = figure(100); htopc = figure(101); 
 hbotf = figure(102); htopf = figure(103);
 hcomb = cat(2, cat(1,hbotc,htopc), cat(1,hbotf, htopf));
-arrayfun(@(a,b,c) set(a, 'Position', [70 + b 230 + c 1660 1860]), hcomb(:), [...
-    0 1700 100 1800]', [0 0 -100 -100]');
 
-%%
+% User specific plot settings.
+if isempty(getenv('COMPUTERNAME'));  pos = [70 230 1660 1860]; a_offset = [0 1700 100 1800]'; b_offset = [0 0 -100 -100]'; 
+elseif strcmp(getenv('COMPUTERNAME'), 'NATLAPTOP'); pos = [35 115 740 630]; a_offset = [0 50 700 800]'; b_offset = [0 -50 0 -50]'; end
+arrayfun(@(a,b,c) set(a, 'Position', pos + [b c 0 0]), hcomb(:), a_offset, b_offset);    
+    
+% arrayfun(@(a,b,c) set(a, 'Position', [70 + b 230 + c 1660 1860]), hcomb(:), [...
+%     0 1700 100 1800]', [0 0 -100 -100]');
+
+%% Step 2b: Now plot everything
 nepochs = length(epoch_names);
 for coarse_fine = 1:2
     if coarse_fine == 1
@@ -106,7 +113,7 @@ for coarse_fine = 1:2
     elseif coarse_fine == 2
         duration = 0.002; binSize = 1/SampleRate; jscale = 1;
     end
-    for epoch_plot = 1:2:3
+    for epoch_plot = 1:1:3
         for top_bot = 1:2
             fig_use = figure(hcomb(top_bot, coarse_fine));
             for k = 1:nplot
@@ -122,16 +129,19 @@ for coarse_fine = 1:2
                     'plot_output', get(fig_use, 'Number'), ...
                     'ha', subplot(nplot, 3, epoch_plot + (k-1)*nepochs),...
                     'wintype', wintype);
-                
-                title({[epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]; ...
-                    ['pval\_5msjitter= ' num2str(pval)]});
+                if epoch_plot == ref_epoch
+                    title({[epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]; ...
+                        ['pval\_5msjitter= ' num2str(pval)]});
+                else
+                    title([epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]);
+                end
             end
         end
     end
 end
 
 %% Step 2b: run CCG_jitter and plot out each as above, but only on good pairs!
-
+keyboard
 end
 
 

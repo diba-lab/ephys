@@ -33,7 +33,7 @@ function [ pvals, pred ,qvals] = EranConv( CCH, W, WINTYPE, HF )
 % 1. CHECK ARGUMENTS
 nargs = nargin;
 if nargs < 1, error( 'missing argument CCH' ), end
-[ m n ] = size( CCH );
+[ m, n ] = size( CCH );
 if m * n <= 1, error( 'improper argument CCH' ), end
 if m == 1
     CCH = CCH'; 

@@ -43,6 +43,7 @@ if nbins < (1.5*wconv_len)  % upsize nbins if too short
     old_dur = Duration;
     nbins_min = round(1.5*wconv_len) + 2;
     Duration = 2*nbins_min*BinSize;
+    dur_lims = old_dur/2*[-1 1];
     disp(['Specified Duration of ' num2str(old_dur) ' seconds not large enough for convolution window.'])
     disp(['Using new Duration of ' num2str(Duration, '%0.3g') ' seconds.'])
 end
@@ -106,7 +107,7 @@ if plot_output
             warning('No spikes in CCG! Skipping!')
         end
     end
-    
+    xlim(dur_lims*1000);  % Make x-axis the input size specfied even if you used a larger smoothing window.
     xlabel('Time Lag (ms)'); ylabel('Count');
 
 end
