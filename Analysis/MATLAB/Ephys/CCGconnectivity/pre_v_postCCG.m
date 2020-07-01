@@ -13,6 +13,7 @@ ip.addParameter('debug', false, @islogical);
 ip.addParameter('conn_type', 'ExcPairs', @(a) ismember(a, {'ExcPairs', 'InhPairs', 'GapPairs'}));
 ip.addParameter('wintype', 'gauss', @(a) ismember(a, {'gauss', 'rect', 'triang'})); % convolution window type
 ip.addParameter('plot_jitter', false, @islogical); 
+ip.addParameter('save_plot', '', @(a) ischar(a));
 ip.parse(spike_data_fullpath, session_name, varargin{:});
 alpha = ip.Results.alpha;
 jscale = ip.Results.jscale;
@@ -20,6 +21,7 @@ debug = ip.Results.debug;
 wintype = ip.Results.wintype;
 conn_type = ip.Results.conn_type;
 plot_jitter = ip.Results.plot_jitter;
+save_plot = ip.Results.save_plot;
 
 epoch_names = {'Pre', 'Maze', 'Post'};
 %% Step 0: load spike and behavioral data, parse into pre, track, and post session
@@ -54,7 +56,7 @@ end
 
 %% Step 1: Run EranConv_group on each session and ID ms connectivity in each session
 
-for j = 1:nepochs'
+for j = 1:nepochs
     % This next line of code seems silly, but I'm leaving it in
     % You can replace bz_spike.UID with any cell numbers to only plot
     % through those. Might be handy in the future!
@@ -91,6 +93,7 @@ cell2_shank = arrayfun(@(a) bz_spikes.shankID(a == bz_spikes.UID), ...
     pairs(ref_epoch).(conn_type)(:,2));
 diff_shank_bool = cell1_shank ~= cell2_shank;
 pairs_diff_shank = pairs(ref_epoch).(conn_type)(diff_shank_bool,:);
+% Exclude redundant pairs here!
 [~, isort] = sort(pairs_diff_shank(:,3));  % sort from strongest ms_conn to weakest
 top = pairs_diff_shank(isort(1:nplot),:);
 bottom = pairs_diff_shank(isort((end-nplot+1):end),:);
@@ -147,14 +150,23 @@ for coarse_fine = 1:2
         end
     end
 end
+
+% Save plots here! append the pdfs...
+if ~isempty(save_plot)
+    
+end
 %% Step 2b: run CCG_jitter and plot out each as above, but only on good pairs!
 
 if plot_jitter
     disp('Plotting jitter requires manual entry of pairs_plot and njitter params')
     keyboard
     %%
+    % maximum 5 pairs to plot for now.
+%     pairs_plot = [79 53; 45 15]; conn_type = 'ExcPairs'; %ExcPairs RoyMaze1.
+    pairs_plot = [79 40; 20 45];  conn_type = 'InhPairs'; %InhPairs for RoyMaze1
     njitter = 100;
-    pairs_plot = [79 53; 45 15]; % maximum 5 for now.
+    alpha = 0.05;
+
     hjit_coarse = figure(105); hjit_fine = figure(106);
     hjit_comb = cat(1, hjit_coarse, hjit_fine);
     arrayfun(@(a,b,c) set(a, 'Position', pos + [b c 0 0]), hjit_comb(:), a_offset([ 1 3]), b_offset([1 3]));
@@ -177,7 +189,18 @@ if plot_jitter
                 [GSPExc,GSPInh,pvalE,pvalI,ccgR,tR,LSPExc,LSPInh,JBSIE,JBSII] = ...
                     CCG_jitter(res1, res2, SampleRate, binSize, duration, 'jscale', jscale, ...
                     'plot_output', get(fig_use, 'Number'), 'subfig', epoch_plot + (k-1)*nepochs, ...
-                    'subplot_size', [nplot, 3], 'njitter', njitter);
+                    'subplot_size', [nplot, 3], 'njitter', njitter, 'alpha', alpha);
+                if strcmp(conn_type, 'InhPairs')
+                    JBSI = max(JBSII); jb_type = 'JBSII_{max}= ';
+                else
+                    JBSI = max(JBSIE); jb_type = 'JBSIE_{max}= ';
+                end
+                if epoch_plot == ref_epoch
+                    title({[epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]; ...
+                        [jb_type num2str(JBSI)]});
+                else
+                    title({[jb_type num2str(JBSI)]; [epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]});
+                end
             end
         end
         
