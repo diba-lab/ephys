@@ -1,7 +1,10 @@
 function [pvals, pred, qvals, ccgR, tR] = CCGconv(res1,res2,SampleRate,...
-    BinSize,Duration,varargin)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+    BinSize, Duration,varargin)
+% CCGconv(res1,res2, SampleRate, BinSize, Duration, varargin)
+%   Calculate CCG and stats for millisecond connectivity using convolution
+%   method from Stark and Abeles (2009).  See file for inputs.
+%
+% Written by K.Diba circa 2014, updated by N. Kinsky 2020.
 
 ip = inputParser;
 ip.addRequired('res1', @isnumeric);
@@ -44,8 +47,13 @@ if nbins < (1.5*wconv_len)  % upsize nbins if too short
     nbins_min = round(1.5*wconv_len) + 2;
     Duration = 2*nbins_min*BinSize;
     dur_lims = old_dur/2*[-1 1];
-    disp(['Specified Duration of ' num2str(old_dur) ' seconds not large enough for convolution window.'])
-    disp(['Using new Duration of ' num2str(Duration, '%0.3g') ' seconds.'])
+        persistent DUR_WARNING
+        if ~DUR_WARNING
+            warning(['Specified Duration of ' num2str(old_dur) ' seconds not large enough for convolution window.'])
+            warning(['Using new Duration of ' num2str(Duration, '%0.3g') ' seconds.'])
+            DUR_WARNING = true;
+        end
+
 end
 
 HalfBins = round(Duration/BinSize/2);

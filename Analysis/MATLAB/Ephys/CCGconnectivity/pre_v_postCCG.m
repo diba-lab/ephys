@@ -10,12 +10,16 @@ ip.addRequired('session_name', @ischar);
 ip.addParameter('alpha', 0.01, @(a) a > 0 && a < 0.25);
 ip.addParameter('jscale', 5, @(a) a > 0 && a < 10);
 ip.addParameter('debug', false, @islogical);
+ip.addParameter('conn_type', 'ExcPairs', @(a) ismember(a, {'ExcPairs', 'InhPairs', 'GapPairs'}));
 ip.addParameter('wintype', 'gauss', @(a) ismember(a, {'gauss', 'rect', 'triang'})); % convolution window type
+ip.addParameter('plot_jitter', false, @islogical); 
 ip.parse(spike_data_fullpath, session_name, varargin{:});
 alpha = ip.Results.alpha;
 jscale = ip.Results.jscale;
 debug = ip.Results.debug;
 wintype = ip.Results.wintype;
+conn_type = ip.Results.conn_type;
+plot_jitter = ip.Results.plot_jitter;
 
 epoch_names = {'Pre', 'Maze', 'Post'};
 %% Step 0: load spike and behavioral data, parse into pre, track, and post session
@@ -78,15 +82,15 @@ end
 %% Step 2a: Set up plots
 nplot = 5; % # pairs to plot in top/bottom of range
 ref_epoch = 1;
-ms_type = 'ExcPairs'; % 'ExcPairs', 'InhPairs', 'GapPairs'
+% conn_type = 'ExcPairs'; % 'ExcPairs', 'InhPairs', 'GapPairs'
 
 % Get boolean for pairs on different shanks only
 cell1_shank = arrayfun(@(a) bz_spikes.shankID(a == bz_spikes.UID), ...
-    pairs(ref_epoch).(ms_type)(:,1));
+    pairs(ref_epoch).(conn_type)(:,1));
 cell2_shank = arrayfun(@(a) bz_spikes.shankID(a == bz_spikes.UID), ...
-    pairs(ref_epoch).(ms_type)(:,2));
+    pairs(ref_epoch).(conn_type)(:,2));
 diff_shank_bool = cell1_shank ~= cell2_shank;
-pairs_diff_shank = pairs(ref_epoch).(ms_type)(diff_shank_bool,:);
+pairs_diff_shank = pairs(ref_epoch).(conn_type)(diff_shank_bool,:);
 [~, isort] = sort(pairs_diff_shank(:,3));  % sort from strongest ms_conn to weakest
 top = pairs_diff_shank(isort(1:nplot),:);
 bottom = pairs_diff_shank(isort((end-nplot+1):end),:);
@@ -133,15 +137,56 @@ for coarse_fine = 1:2
                     title({[epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]; ...
                         ['pval\_5msjitter= ' num2str(pval)]});
                 else
-                    title([epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]);
+                    if epoch_plot == 2 && k == 1
+                        title({conn_type; [epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]});
+                    else
+                        title([epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]);
+                    end
                 end
             end
         end
     end
 end
-
 %% Step 2b: run CCG_jitter and plot out each as above, but only on good pairs!
-keyboard
+
+if plot_jitter
+    disp('Plotting jitter requires manual entry of pairs_plot and njitter params')
+    keyboard
+    %%
+    njitter = 100;
+    pairs_plot = [79 53; 45 15]; % maximum 5 for now.
+    hjit_coarse = figure(105); hjit_fine = figure(106);
+    hjit_comb = cat(1, hjit_coarse, hjit_fine);
+    arrayfun(@(a,b,c) set(a, 'Position', pos + [b c 0 0]), hjit_comb(:), a_offset([ 1 3]), b_offset([1 3]));
+    nplot = size(pairs_plot,1);
+    for coarse_fine = 1:2
+        if coarse_fine == 1
+            duration = 0.02; binSize = 0.001; jscale = 5;
+        elseif coarse_fine == 2
+            duration = 0.002; binSize = 1/SampleRate; jscale = 1;
+        end
+        fig_use = figure(hjit_comb(coarse_fine));
+        for epoch_plot = 1:1:3
+            for k = 1:nplot
+                cell1 = pairs_plot(k,1);
+                cell2 = pairs_plot(k,2);
+                res1 = parse_spikes(epoch_plot).spindices(...
+                    parse_spikes(epoch_plot).spindices(:,2) == cell1,1)/1000;
+                res2 = parse_spikes(epoch_plot).spindices(...
+                    parse_spikes(epoch_plot).spindices(:,2) == cell2,1)/1000;
+                [GSPExc,GSPInh,pvalE,pvalI,ccgR,tR,LSPExc,LSPInh,JBSIE,JBSII] = ...
+                    CCG_jitter(res1, res2, SampleRate, binSize, duration, 'jscale', jscale, ...
+                    'plot_output', get(fig_use, 'Number'), 'subfig', epoch_plot + (k-1)*nepochs, ...
+                    'subplot_size', [nplot, 3], 'njitter', njitter);
+            end
+        end
+        
+    end
+    
+end
+%%
+
+
 end
 
 

@@ -117,7 +117,7 @@ if ~isempty(res1) && ~isempty(res2)
 end
 
 %%%%%%  Compute the pointwise line
-signifpoint = floor(njitter*(alpha/2));
+signifpoint = max([floor(njitter*(alpha/2)), 1]);
 
 %%%%%%  Compute the global line
 sortgbDescend   = sort(ccgjmax,'descend');
