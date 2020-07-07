@@ -12,7 +12,7 @@
 extern void _main();
 
 #include <stdlib.h>
-#include <iostream.h>
+#include "iostream.h"
 #include <stdio.h>
 #include <conio.h>
 #include <ctype.h>
@@ -68,7 +68,7 @@ extern void _main();
 //***************************************************************************
 
 #include <stdlib.h>
-#include <iostream.h>
+#include "iostream.h"
 #include <stdio.h>
 #include <conio.h>
 
