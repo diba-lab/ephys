@@ -42,6 +42,7 @@ switch wintype
         if mod(wintype,2) == 0; wconv_len = 2*length(wintype) + 1; else wconv_len = 2*length(wintype) - 1; end 
 end
 nbins = 2*round(Duration/BinSize/2)+1;
+dur_lims = Duration/2*[-1 1];
 if nbins < (1.5*wconv_len)  % upsize nbins if too short
     old_dur = Duration;
     nbins_min = round(1.5*wconv_len) + 2;
