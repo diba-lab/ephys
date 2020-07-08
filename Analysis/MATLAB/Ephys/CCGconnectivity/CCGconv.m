@@ -95,6 +95,7 @@ if plot_output
         subplot(1,1,1);
     else
         axes(ha);
+        
     end
     bar(tR*1000, ccgR(:,1,2),'k');
     hold on;
