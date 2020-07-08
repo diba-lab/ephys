@@ -1,5 +1,5 @@
-function [spikes] = Hiro_to_bz(spike_data, session_name)
-% spikes = Hiro_to_bz(spikes_mat_file, wake_sleep, session_name)
+function [spikes] = Hiro_to_bz(spike_data, session_name, stable_filter)
+% spikes = Hiro_to_bz(spikes_mat_file, session_name, stable_filter)
 %   This one-off function converts Hiro Miyawaki's data 
 % (Miyawaki et al., 2016) in .mat format to the output format of 
 % bz_GetSpikes, or at least enough to msec time-scale functions by
@@ -14,9 +14,16 @@ function [spikes] = Hiro_to_bz(spike_data, session_name)
 %       pre-maze during dark cycle, 'Sleep' = post-maze sleep during light
 %       cycle, 'Maze' = 3 hr end of rest + 3 hour on linear track + 3 hour
 %       beginning of sleep).
+%   stable_filter (optional): true (default) = keep only neurons that are
+%   stable across ALL epochs. Accepts either single boolean or array
+%   boolean matching # epochs in data.
 %
 %  OUTPUTS - see bz_GetSpikes. Includes spike.times, .UID, .sessionName,
 %  .shankID, and .cluID. Spike times in MILLISECONDS.
+
+if nargin < 3
+    stable_filter = true;
+end
 
 time_to_msec=1/(1000); 
 
@@ -34,10 +41,18 @@ catch ME
     end
 end
 
+
+% Filter out unstable neurons
+stable_bool = true(1,length(spike_data));
+if any(stable_filter)
+    stability_all = cat(1, spike_data.isStable);
+    stable_bool = all(stability_all == stable_filter,2);
+end
+
 % Filter out MUA and poor quality interneurons
 UIDall = 1:length(spike_data);
 quality_all = cat(1, spike_data.quality);
-good_bool = ismember(quality_all, [1 2 3 8]); % filter out poor pyr. cells (4) and MUA (9).
+good_bool = ismember(quality_all, [1 2 3 8]) & stable_bool; % filter out poor pyr. cells (4) and MUA (9).
 spikes.UID = UIDall(good_bool);
 spikes_file_filt = spike_data(good_bool);
 nneurons = length(spikes_file_filt);

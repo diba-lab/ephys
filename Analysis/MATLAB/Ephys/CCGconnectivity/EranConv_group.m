@@ -1,7 +1,7 @@
 function [ExcPairs,InhPairs,GapPairs,Rzero] = EranConv_group(spiket,spikeind,Cells,...
-    SampleRate,jscale,alpha,shank)
+    SampleRate,jscale,alpha,shank,wintype)
 % [ExcPairs,InhPairs,GapPairs] = EranConv_group(spiket,spikeind,Cells,...
-%                                SampleRate,jscale,alpha,shank)
+%                                SampleRate,jscale,alpha,shank,wintype)
 %
 % This function calculates pairs of neurons with millisecond time-scale
 % synchrony and spits out excitatory and inhibitory connections 
@@ -25,6 +25,10 @@ function [ExcPairs,InhPairs,GapPairs,Rzero] = EranConv_group(spiket,spikeind,Cel
 % pvalue of connection.
 % shank is needed in case neurons are on the same shank
 
+if nargin < 8
+    wintype = 'gauss';
+end
+
 nCells = length(Cells);
 
 InhPairs = [];
@@ -35,7 +39,7 @@ Rzero = [];
 one_ms = 0.001;  %one_ms = SampleRate/1000;
 BinSize = 0.001;
 Duration = 0.05;
-wintype = 'gauss'; 
+ 
 % alpha_base = .1;
 if alpha == .01
     alpha_base = .05; % this is needed for the second bin in inhibitory pairs, to make sure at least two bordering bins meet some criterion.
@@ -60,9 +64,11 @@ if isrow(spiket); spiket = spiket'; end
 plot_output = 0;
 
 % ii=0;jj=0;kk=0;
+N = nCells*(nCells-1)/2;
+p = ProgressBar(N);
 for cell_i=1:nCells-1
     %     disp(['evaluating all pairs for cell #' num2str(cell_i) '/' num2str(nCells) ' ...'])
-    for cell_j=cell_i+1:nCells
+    parfor cell_j=cell_i+1:nCells
         shank_i = shank(cell_i);
         shank_j = shank(cell_j);
 %         find_i=find(spikeind==Cells(cell_i));
@@ -193,6 +199,8 @@ for cell_i=1:nCells-1
                 end
             end
         end
+        p.progress;
     end
 end
+p.stop;
 end

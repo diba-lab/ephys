@@ -41,7 +41,7 @@ ip.addRequired('BinSize', @(a) isnumeric(a) && a > 0); % in seconds!
 ip.addRequired('Duration', @(a) isnumeric(a) && a >= BinSize); % in seconds!
 ip.addParameter('jscale', 5, @(a) isnumeric(a) && a > 0); % unit is ms!
 ip.addParameter('njitter', 500, @(a) isnumeric(a) && a > 0 && round(a) == a);
-ip.addParameter('alpha', 0.01, @(a) a > 0 && a < 1);
+ip.addParameter('alpha', 0.05, @(a) a > 0 && a < 1);
 ip.addParameter('plot_output', 1, @(a) isnumeric(a) && a > 0 && round(a) == a);
 ip.addParameter('subfig', 1, @(a) a > 0 && a <= 16);
 ip.addParameter('subplot_size', [4,4], @(a) length(a) == 2);
@@ -117,7 +117,7 @@ if ~isempty(res1) && ~isempty(res2)
 end
 
 %%%%%%  Compute the pointwise line
-signifpoint = floor(njitter*(alpha/2));
+signifpoint = max([floor(njitter*(alpha/2)), 1]);
 
 %%%%%%  Compute the global line
 sortgbDescend   = sort(ccgjmax,'descend');
@@ -137,10 +137,15 @@ end
 ccgjm  = mean(ccgj,2);
 
 if plot_output
+    if ~ishandle(plot_output)
+        newfig = true;
+    else 
+        newfig = false;
+    end
     figure(plot_output)
     
     % If new figure, just do one plot
-    if isempty(get(figure(plot_output),'Children'))
+    if isempty(get(figure(plot_output),'Children')) && newfig
         subplot(1,1,subfig);
     else % If pre-existing figure, plot into 4x4 array
         subplot(subplot_size(1), subplot_size(2), subfig)
