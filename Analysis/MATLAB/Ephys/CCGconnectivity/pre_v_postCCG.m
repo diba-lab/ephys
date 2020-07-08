@@ -71,6 +71,7 @@ catch
         % You can replace bz_spike.UID with any cell numbers to only plot
         % through those. Might be handy in the future!
         cell_inds = arrayfun(@(a) find(bz_spikes.UID == a), bz_spikes.UID);
+        disp(['Running EranConv_group for ' session_name ' ' epoch_names{j} ' epoch'])
         [ExcPairs, InhPairs, GapPairs, RZero] = ...
             EranConv_group(parse_spikes(j).spindices(:,1)/1000, parse_spikes(j).spindices(:,2), ...
             bz_spikes.UID(cell_inds), SampleRate, jscale, alpha, bz_spikes.shankID(cell_inds), ...
@@ -204,10 +205,12 @@ for nfig = 1:nfigs
                         cur_ax = subplot(nplot, 3, epoch_plot + (k-1)*nepochs);
                         xlabel(cur_ax,'');
                         set(cur_ax,'XTick',[],'XTickLabel','');
+                        last_xtick = get(cur_ax,'XTick');
+                        last_xticklabel = get(cur_ax, 'XTickLabel');
                     end
                     catch ME
                         if strcmp(ME.identifier, 'MATLAB:badsubscript')
-                            
+                            set(cur_ax,'XTick',last_xtick,'XTickLabel',last_xticklabel); % put xlabels back on bottom row for last page of plotting if not bottom row.
                         else
                             error('Error in pre_v_postCCG')
                         end

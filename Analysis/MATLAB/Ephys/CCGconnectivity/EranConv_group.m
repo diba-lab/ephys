@@ -64,9 +64,11 @@ if isrow(spiket); spiket = spiket'; end
 plot_output = 0;
 
 % ii=0;jj=0;kk=0;
+N = nCells*(nCells-1)/2;
+p = ProgressBar(N);
 for cell_i=1:nCells-1
     %     disp(['evaluating all pairs for cell #' num2str(cell_i) '/' num2str(nCells) ' ...'])
-    for cell_j=cell_i+1:nCells
+    parfor cell_j=cell_i+1:nCells
         shank_i = shank(cell_i);
         shank_j = shank(cell_j);
 %         find_i=find(spikeind==Cells(cell_i));
@@ -197,6 +199,8 @@ for cell_i=1:nCells-1
                 end
             end
         end
+        p.progress;
     end
 end
+p.stop;
 end

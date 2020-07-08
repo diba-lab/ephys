@@ -1,10 +1,10 @@
 % CCG batch run script
 data_dir = 'C:\Users\Nat\Documents\UM\Working\HiroData\wake_new';
 
-session_names = {'TedMaze3'}; %{'RoyMaze1', 'RoyMaze2', 'RoyMaze3', 'TedMaze1',...
+session_names = {'TedMaze1'}; %{'RoyMaze1', 'RoyMaze2', 'RoyMaze3', 'TedMaze1',...
     % 'TedMaze2', 'TedMaze3', 'KevinMaze1'};
-conn_types = {'ExcPairs', 'InhPairs', 'GapPairs'};
-jscale = 5;
+conn_types = {'ExcPairs'}; %{'ExcPairs', 'InhPairs', 'GapPairs'};
+jscale = 1;
 alpha = 0.05;
 for session = 1:length(session_names)
     session_use = session_names{session};
