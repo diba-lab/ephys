@@ -13,7 +13,6 @@ ip.addParameter('debug', false, @islogical);
 ip.addParameter('conn_type', 'ExcPairs', @(a) ismember(a, {'ExcPairs', 'InhPairs', 'GapPairs'}));
 ip.addParameter('wintype', 'gauss', @(a) ismember(a, {'gauss', 'rect', 'triang'})); % convolution window type
 ip.addParameter('plot_jitter', false, @islogical); 
-ip.addParameter('plot_top_bot', true, @islogical); % only plot the 5 most/least significant pairs...false = plot ALL pairs.
 ip.addParameter('save_plots', true, @islogical); % save all the plots you make 
 ip.parse(spike_data_fullpath, session_name, varargin{:});
 alpha = ip.Results.alpha;
@@ -22,7 +21,7 @@ debug = ip.Results.debug;
 wintype = ip.Results.wintype;
 conn_type = ip.Results.conn_type;
 plot_jitter = ip.Results.plot_jitter;
-plot_top_bot = ip.Results.plot_top_bot;
+
 save_plots = ip.Results.save_plots;
 
 epoch_names = {'Pre', 'Maze', 'Post'};
@@ -98,88 +97,92 @@ end
     
 %% Step 2a: Set up plots
 nplot = 5; % # pairs to plot in top/bottom of range
-ref_epoch = 1;
+% ref_epoch = 1;
 % conn_type = 'ExcPairs'; % 'ExcPairs', 'InhPairs', 'GapPairs'
 
 % Get boolean for pairs on different shanks only
-cell1_shank = arrayfun(@(a) bz_spikes.shankID(a == bz_spikes.UID), ...
-    pairs(ref_epoch).(conn_type)(:,1));
-cell2_shank = arrayfun(@(a) bz_spikes.shankID(a == bz_spikes.UID), ...
-    pairs(ref_epoch).(conn_type)(:,2));
-diff_shank_bool = cell1_shank ~= cell2_shank;
-pairs_diff_shank = pairs(ref_epoch).(conn_type)(diff_shank_bool,:);
-% Exclude redundant pairs here!
-[~, isort] = sort(pairs_diff_shank(:,3));  % sort from strongest ms_conn to weakest
-if length(isort) >= nplot
-    top = pairs_diff_shank(isort(1:nplot),:);
-    bottom = pairs_diff_shank(isort((end-nplot+1):end),:);
-else
-    mid = floor(length(isort)/2);
-    top = pairs_diff_shank(isort(1:mid),:);
-    bottom = pairs_diff_shank(isort((mid+1):end),:);
+for ref_epoch = 1:3
+    cell1_shank = arrayfun(@(a) bz_spikes.shankID(a == bz_spikes.UID), ...
+        pairs(ref_epoch).(conn_type)(:,1));
+    cell2_shank = arrayfun(@(a) bz_spikes.shankID(a == bz_spikes.UID), ...
+        pairs(ref_epoch).(conn_type)(:,2));
+    diff_shank_bool = cell1_shank ~= cell2_shank;
+    pairs_diff_shank = pairs(ref_epoch).(conn_type)(diff_shank_bool,:);
+    % Exclude redundant pairs here!
+    [~, isort] = sort(pairs_diff_shank(:,3));  % sort from strongest ms_conn to weakest
+    if ref_epoch == 1  % set row 4 to 
+        pairs_plot_all = pairs_diff_shank(isort,:);
+    elseif ref_epoch > 1
+        % First ID cell pairs with ms_connectivity in multiple epochs
+        temp = arrayfun(@(a,b) find(all(pairs_plot_all(:,1:2) == [a b],2)), ...
+            pairs_diff_shank(:,1), pairs_diff_shank(:,2), 'UniformOutput', false);
+        redundant_pairs = cat(2, cat(1,temp{:}), find(~cellfun(@isempty, temp)));
+        unique_pairs = find(cellfun(@isempty, temp));
+        
+        % Now add in pvalues if signficant in that epoch
+        pairs_plot_all = [pairs_plot_all nan(size(pairs_plot_all,1),1)];  %#ok<AGROW>
+        pairs_plot_all(redundant_pairs(:,1), ref_epoch + 1) = pairs_diff_shank(redundant_pairs(:,2),3);
+        
+        %%% NRK debug here!
+        % Now add in cells that gain ms connectivity in that epoch
+        pairs_plot_all = cat(1, pairs_plot_all, ...
+            cat(2, pairs_diff_shank(unique_pairs,1:2), nan(length(unique_pairs),ref_epoch - 1), ...
+            pairs_diff_shank(unique_pairs,3)));
+            
+        
+    end
 end
-
-pairs_plot = cat(3,bottom,top);
-
 
 % set up figures and subplots
-if plot_top_bot
-    hbotc = figure(100); htopc = figure(101);
-    hbotf = figure(102); htopf = figure(103);
-    hcomb = cat(2, cat(1,hbotc,htopc), cat(1,hbotf, htopf));
-    nfigs = 1;
-else
-    hcomb = cat(2, figure(100), figure(102));
-    pairs_plot_all = pairs_diff_shank(isort,:);
-    npairs_all = size(pairs_plot_all,1);
-    nfigs = ceil(npairs_all/nplot);
-end
+hcomb = cat(2, figure(100), figure(102));
+
+npairs_all = size(pairs_plot_all,1);
+nfigs = ceil(npairs_all/nplot);
 
 % User specific plot settings.
-if isempty(getenv('COMPUTERNAME'));  pos = [70 230 1660 1860]; a_offset = [0 1700 100 1800]'; b_offset = [0 0 -100 -100]'; 
-elseif strcmp(getenv('COMPUTERNAME'), 'NATLAPTOP'); pos = [35 115 740 630]; a_offset = [0 50 700 800]'; b_offset = [0 -50 0 -50]'; end
-if plot_top_bot
-    arrayfun(@(a,b,c) set(a, 'Position', pos + [b c 0 0]), hcomb(:), a_offset, b_offset);
+screensize = get(0,'screensize');
+% set plotting up for 4k vs HD monitors
+if screensize(3) >= 3840 && screensize(4) >= 2160  
+    res_type = '4k';
+    pos = [70 230 1660 1860]; a_offset = [0 1700 100 1800]'; b_offset = [0 0 -100 -100]'; 
 else
-    arrayfun(@(a) set(a, 'Position', pos), hcomb(:));
+    res_type = 'HD';
+    pos = [35 115 740 630]; a_offset = [0 50 700 800]'; b_offset = [0 -50 0 -50]'; 
 end
-   
+arrayfun(@(a) set(a, 'Position', pos), hcomb(:));
 
+  
 %% Step 2b: Now plot everything
 % implementation of plotting is not very pretty - want to accommodate
 % plotting ALL pairs as well as just most/least significant pairs...
 coarse_fine_text = {'coarse', 'fine'};
 nepochs = length(epoch_names);
 for nfig = 1:nfigs
-    if ~plot_top_bot
-        if nfig < nfigs
-            pairs_plot = pairs_plot_all((nplot*(nfig-1)+1):nplot*nfig,:); % update pairs to plot
-        elseif nfig == nfigs
-            pairs_plot = pairs_plot_all((nplot*(nfig-1)+1):end,:); % update pairs to plot
-        end
-        if nfig > 1  % set up new figures
-            try close 100; end; try close 102; end
-            hcomb = cat(2, figure(100), figure(102)); arrayfun(@(a) set(a, 'Position', pos), hcomb(:));
-        end
+    if nfig < nfigs % update pairs to plot
+        pairs_plot = pairs_plot_all((nplot*(nfig-1)+1):nplot*nfig,:); 
+    elseif nfig == nfigs
+        pairs_plot = pairs_plot_all((nplot*(nfig-1)+1):end,:);
+        nplot = size(pairs_plot,1);
     end
-    for top_bot = 1:2
-        if ~plot_top_bot && top_bot == 2  % skip plotting bottom if plot_top_bot = false!
-            continue
+    if nfig > 1  % set up new figures
+        try close 100; end; try close 102; end
+        hcomb = cat(2, figure(100), figure(102)); arrayfun(@(a) set(a, 'Position', pos), hcomb(:));
+    end
+
+    for coarse_fine = 1:2
+        if coarse_fine == 1 % coarse
+            duration = 0.02; binSize = 0.001; jscale_plot = 5;
+        elseif coarse_fine == 2 % fine
+            duration = 0.006; binSize = 1/SampleRate; jscale_plot = 1;
         end
-        for coarse_fine = 1:2
-            if coarse_fine == 1 % coarse
-                duration = 0.02; binSize = 0.001; jscale_plot = 5;
-            elseif coarse_fine == 2 % fine
-                duration = 0.006; binSize = 1/SampleRate; jscale_plot = 1;
-            end
-            fig_use = figure(hcomb(top_bot, coarse_fine));
-            for epoch_plot = 1:1:3
-                
-                for k = 1:nplot
-                    try
-                    cell1 = pairs_plot(k,1,top_bot);
-                    cell2 = pairs_plot(k,2,top_bot);
-                    pval = pairs_plot(k,3,top_bot);
+        fig_use = figure(hcomb(top_bot, coarse_fine));
+        for epoch_plot = 1:1:3
+            
+            for k = 1:nplot
+%                 try
+                    cell1 = pairs_plot(k,1);
+                    cell2 = pairs_plot(k,2);
+                    pval = pairs_plot(k,3);
                     res1 = parse_spikes(epoch_plot).spindices(...
                         parse_spikes(epoch_plot).spindices(:,2) == cell1,1)/1000;
                     res2 = parse_spikes(epoch_plot).spindices(...
@@ -200,29 +203,32 @@ for nfig = 1:nfigs
                         end
                     end
                     
-                    % Turn off xlabels for all but bottom row for readability
-                    if k < nplot
+                    % Turn off xlabels for all but bottom row for
+                    % readability on HD monitors
+                    if k < nplot && strcmp(res_type,'HD')
                         cur_ax = subplot(nplot, 3, epoch_plot + (k-1)*nepochs);
                         xlabel(cur_ax,'');
-                        set(cur_ax,'XTick',[],'XTickLabel','');
-                        last_xtick = get(cur_ax,'XTick');
+                        %                         set(cur_ax,'XTick',[],'XTickLabel','');
+                        %                         last_xtick = get(cur_ax,'XTick');
                         last_xticklabel = get(cur_ax, 'XTickLabel');
                     end
-                    catch ME
-                        if strcmp(ME.identifier, 'MATLAB:badsubscript')
-                            set(cur_ax,'XTick',last_xtick,'XTickLabel',last_xticklabel); % put xlabels back on bottom row for last page of plotting if not bottom row.
-                        else
-                            error('Error in pre_v_postCCG')
-                        end
-                    end
-                end
-            end
-            if save_plots  % save all plots!
-                printNK([session_name '_all_' conn_type '_jscale' num2str(jscale) '_' coarse_fine_text{coarse_fine} '_CCGs'],...
-                    data_dir, 'hfig', fig_use, 'append', true);
+%                 catch ME
+%                     if strcmp(ME.identifier, 'MATLAB:badsubscript')
+%                         xlabel(cur_ax, 'Time (ms)')
+%                         set(cur_ax,'XTick',last_xtick,'XTickLabel',last_xticklabel); % put xlabels back on bottom row for last page of plotting if not bottom row.
+%                     else
+%                         error('Error in pre_v_postCCG')
+%                     end
+%                 end
             end
         end
+        if save_plots  % save all plots!
+            printNK([session_name '_all_' conn_type '_jscale' num2str(jscale) '_' ...
+                coarse_fine_text{coarse_fine} '_CCGs'],...
+                data_dir, 'hfig', fig_use, 'append', true);
+        end
     end
+
 end
 %% Step 2b: run CCG_jitter and plot out each as above, but only on good pairs!
 
