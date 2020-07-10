@@ -172,6 +172,9 @@ LSPInh = zeros(size(tR));  % Local Significant Period of Mono Inhibition
 
 pvalE = ones(size(tR));
 pvalI = ones(size(tR));
+
+JBSIE = nan(size(tR));
+JBSII = nan(size(tR));
     
 min_ccgcount = 1*(2*HalfBins+1);
 mincount = 6;

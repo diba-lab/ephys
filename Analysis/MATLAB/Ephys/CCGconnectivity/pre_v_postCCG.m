@@ -16,6 +16,7 @@ ip.addParameter('plot_conv', true, @islogical);
 ip.addParameter('plot_jitter', false, @islogical); 
 ip.addParameter('save_plots', true, @islogical); % save all the plots you make 
 ip.addParameter('jitter_debug', true, @islogical); % used for debugging jitter code only
+ip.addParameter('save_jitter', false, @islogical); % save jitter results for fast recall!
 ip.addParameter('njitter', 100, @(a) a > 0 && round(a) == a);
 ip.parse(spike_data_fullpath, session_name, varargin{:});
 alpha = ip.Results.alpha;
@@ -28,6 +29,7 @@ plot_jitter = ip.Results.plot_jitter;
 save_plots = ip.Results.save_plots;
 jitter_debug = ip.Results.jitter_debug;
 njitter = ip.Results.njitter;
+save_jitter = ip.Results.save_jitter;
 
 epoch_names = {'Pre', 'Maze', 'Post'};
 nplot = 5; % # pairs to plot per figure
@@ -169,8 +171,10 @@ if plot_conv || plot_jitter
 end
 
 %% Step 3: Now plot everything
+if save_jitter; jitter_data = struct(); end
 if plot_jitter || plot_conv
     if jitter_debug  % grab only a couple cell pairs to plot when debugging.
+        keyboard
         input_pairs = input('Enter 2xn array of cells pairs to plot, otherwise type ''all'' to plot all pairs: ');
         if ~strcmp(input_pairs, 'all')
             temp = arrayfun(@(a,b) find(all(pairs_plot_all(:,1:2) == [a b],2)), ...
@@ -240,6 +244,10 @@ if plot_jitter || plot_conv
                             CCG_jitter(res1, res2, SampleRate, binSize, duration, 'jscale', jscale, ...
                             'plot_output', get(fig_use, 'Number'), 'subfig', epoch_plot + (k-1)*nepochs, ...
                             'subplot_size', [nrows, 3], 'njitter', njitter, 'alpha', alpha);
+                        if save_jitter
+                           jitter_data =  save_jitter_vars(jitter_data, [cell1, cell2],...
+                               GSPExc,GSPInh,pvalE,pvalI,ccgR,tR,LSPExc,LSPInh,JBSIE,JBSII);
+                        end
                         if strcmp(conn_type, 'InhPairs')
                             JBSI = max(JBSII); jb_type = 'JBSII_{max}= ';
                         else
@@ -247,12 +255,23 @@ if plot_jitter || plot_conv
                         end
                         title({top_row; [epoch_names{epoch_plot} ' ' num2str(cell1) ' v ' num2str(cell2) ': ' ...
                             jb_type num2str(JBSI)]});
+                        ylims = get(gca,'ylim');
+                        if any(GSPExc)
+                            hold on;
+                            plot(tR(GSPExc == 1)*1000, 0.95*ylims(2), 'r^');
+                        end
+                        if any(GSPInh)
+                            hold on;
+                            plot(tR(GSPInh == 1)*1000, 0.95*ylims(2),'bv');
+                        end
+                            
+                        
                     end
                     
                     % Turn off xlabels for all but bottom row for
                     % readability on HD monitors
                     if k < nplot
-                        cur_ax = subplot(nplot, 3, epoch_plot + (k-1)*nepochs);
+                        cur_ax = subplot(nrows, 3, epoch_plot + (k-1)*nepochs);
                         xlabel(cur_ax,'');
                         if strcmp(res_type,'HD')
                             set(cur_ax,'XTick',[],'XTickLabel','');
@@ -283,6 +302,12 @@ if plot_jitter || plot_conv
                 data_dir, 'hfig', fig_use, 'append', true);
         end
     end
+end
+
+if plot_jitter && save_jitter
+    jitter_filename = fullfile(data_dir, [session_name '_' conn_type '_jscale' num2str(jscale) ...
+        '_alpha' num2str(round(alpha*100)) '_jitterdata.mat']);
+    save(jitter_filename,'jitter_data', 'njitter')
 end
 %% Step 3: run CCG_jitter and plot out each as above, but only on good pairs!
 % Legacy code here - keep until above is polished.
@@ -342,4 +367,19 @@ end
 try close 100; end; try close 102; end
 end
 
+%% Send all variables calculated from jitter into data structure.
+function [jit_var_out] = save_jitter_vars(jit_var_in, cell_pair, varargin)
+var_names = {'GSPExc','GSPInh','pvalE','pvalI','ccgR','tR','LSPExc',...
+    'LSPInh','JBSIE','JBSII'};
+if isfield(jit_var_in, 'JBSII')
+    npairs = length(jit_var_in);
+else
+    npairs = 0;
+end
+jit_var_out = jit_var_in;
+jit_var_out(npairs+1).cell_pair = cell_pair;
+for var_num = 1:length(var_names)
+    jit_var_out(npairs+1).(var_names{var_num}) = varargin{var_num};
+end
+end
 
