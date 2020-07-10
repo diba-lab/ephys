@@ -177,7 +177,6 @@ if plot_jitter || plot_conv
                 input_pairs(:,1), input_pairs(:,2), 'UniformOutput', false);
             pair_inds_use = cat(1,temp{:});
             pairs_plot_all = pairs_plot_all(pair_inds_use, :);
-            keyboard
         end
     end
     
@@ -203,7 +202,13 @@ if plot_jitter || plot_conv
             if coarse_fine == 1 % coarse
                 duration = 0.02; binSize = 0.001; jscale_plot = 5;
             elseif coarse_fine == 2 % fine
-                duration = 0.006; binSize = 1/SampleRate; jscale_plot = 1;
+                duration = 0.007; binSize = 1/SampleRate; jscale_plot = 1;
+            end
+            
+            % If plotting jitter only do at the time-scale specified to
+            % save time.
+            if plot_jitter && jscale_plot ~= jscale
+                continue
             end
             fig_use = figure(hcomb(1, coarse_fine));
             for epoch_plot = 1:1:3
@@ -234,7 +239,7 @@ if plot_jitter || plot_conv
                         [GSPExc,GSPInh,pvalE,pvalI,ccgR,tR,LSPExc,LSPInh,JBSIE,JBSII] = ...
                             CCG_jitter(res1, res2, SampleRate, binSize, duration, 'jscale', jscale, ...
                             'plot_output', get(fig_use, 'Number'), 'subfig', epoch_plot + (k-1)*nepochs, ...
-                            'subplot_size', [nplot, 3], 'njitter', njitter, 'alpha', alpha);
+                            'subplot_size', [nrows, 3], 'njitter', njitter, 'alpha', alpha);
                         if strcmp(conn_type, 'InhPairs')
                             JBSI = max(JBSII); jb_type = 'JBSII_{max}= ';
                         else
@@ -256,8 +261,9 @@ if plot_jitter || plot_conv
                 end
             end
             if save_plots  % save all plots!
+                if plot_conv; type = 'conv'; elseif plot_jitter; type = 'jitter'; end
                 printNK([session_name '_all_' conn_type '_jscale' num2str(jscale) '_' ...
-                    coarse_fine_text{coarse_fine} '_CCGs'],...
+                    coarse_fine_text{coarse_fine} '_CCGs_' type],...
                     data_dir, 'hfig', fig_use, 'append', true);
             end
         end
