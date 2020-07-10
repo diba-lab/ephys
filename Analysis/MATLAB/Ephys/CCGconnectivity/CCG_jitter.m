@@ -98,7 +98,7 @@ if ~isempty(res1) && ~isempty(res2)
             'norm', 'counts');
         
         %%%%%%  CCG for jittering data
-        for ii=1:njitter
+        parfor ii=1:njitter
 %             This is probably ok but could end up with jittered spike
 %             times that don't conform to SampleRate
 %             res2_jitter = res2 + 2*(one_ms*jscale)*rand(size(res2))-1*one_ms*jscale;
