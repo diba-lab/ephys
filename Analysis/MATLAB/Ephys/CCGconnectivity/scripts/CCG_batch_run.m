@@ -8,9 +8,9 @@ end
 session_names = {'RoyMaze1', 'RoyMaze2', 'RoyMaze3', 'TedMaze1',...
     'TedMaze2', 'TedMaze3', 'KevinMaze1'};
 conn_types = {'ExcPairs', 'InhPairs', 'GapPairs'};
-jscale_use = [1 5];
+jscale_use = 5; % [1 5];
 alpha = 0.05;
-for j = 1:2
+for j = 1:length(jscale_use)
     jscale = jscale_use(j);
     hw = waitbar(0, ['running CCG\_batch\_run for jscale=' num2str(jscale) ' ms']);
     set(hw,'Position', [1420 550 220 34]);

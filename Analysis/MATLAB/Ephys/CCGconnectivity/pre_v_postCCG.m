@@ -15,7 +15,7 @@ ip.addParameter('wintype', 'gauss', @(a) ismember(a, {'gauss', 'rect', 'triang'}
 ip.addParameter('plot_conv', true, @islogical);
 ip.addParameter('plot_jitter', false, @islogical); 
 ip.addParameter('save_plots', true, @islogical); % save all the plots you make 
-ip.addParameter('jitter_debug', false, @islogical); % used for debugging jitter code only
+ip.addParameter('jitter_debug', true, @islogical); % used for debugging jitter code only
 ip.addParameter('njitter', 100, @(a) a > 0 && round(a) == a);
 ip.parse(spike_data_fullpath, session_name, varargin{:});
 alpha = ip.Results.alpha;
