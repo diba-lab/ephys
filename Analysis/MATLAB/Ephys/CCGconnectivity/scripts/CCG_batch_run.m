@@ -5,11 +5,11 @@ elseif isempty(getenv('COMPUTERNAME'))
     data_dir = '/data/Working/Other Peoples Data/HiroData/wake_new';
 end
 
-session_names = {'RoyMaze2', 'RoyMaze3', 'TedMaze1',...
+session_names = {'RoyMaze1', 'RoyMaze2', 'RoyMaze3', 'TedMaze1',...
     'TedMaze2', 'TedMaze3', 'KevinMaze1'}; %{'RoyMaze1', 'RoyMaze2', 'RoyMaze3', 'TedMaze1',...
 %     'TedMaze2', 'TedMaze3', 'KevinMaze1'};
 conn_types = {'ExcPairs', 'InhPairs', 'GapPairs'};
-jscale_use = 1; % [1 5];
+jscale_use = 5; % [1 5];
 alpha = 0.05;
 plot_jitter = true;
 save_jitter = true;
