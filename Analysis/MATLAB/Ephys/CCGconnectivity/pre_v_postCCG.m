@@ -2,7 +2,9 @@ function [] = pre_v_postCCG(spike_data_fullpath, session_name, varargin)
 % pre_v_postCCG(spike_data_path, session_name)
 %   Screen for ms connectivity in ANY of the PRE-rest (3hr) , MAZE (3hr) or
 %   POST-sleep (3hr) sessions and plot CCGs with stats for visual
-%   inspection.
+%   inspection. Useful for initial screening of millisecond-connectivity
+%   across all cell pairs and plotting of ALL pairs. See ____ for plotting
+%   final pairs only.
 
 ip = inputParser;
 ip.addRequired('spike_data_fullpath', @isfile);
@@ -15,9 +17,11 @@ ip.addParameter('wintype', 'gauss', @(a) ismember(a, {'gauss', 'rect', 'triang'}
 ip.addParameter('plot_conv', true, @islogical);
 ip.addParameter('plot_jitter', false, @islogical); 
 ip.addParameter('save_plots', true, @islogical); % save all the plots you make 
-ip.addParameter('jitter_debug', true, @islogical); % used for debugging jitter code only
+ip.addParameter('jitter_debug', false, @islogical); % used for debugging jitter code only
 ip.addParameter('save_jitter', false, @islogical); % save jitter results for fast recall!
 ip.addParameter('njitter', 100, @(a) a > 0 && round(a) == a);
+ip.addParameter('screen_type', 'one_prong', @(a) ismember(a, ...
+    {'one_prong', 'two_prong'})); % one_prong = @jscale and alpha specified, two_prong = @alpha specified + EITHER 5ms or 1ms convolution window.
 ip.parse(spike_data_fullpath, session_name, varargin{:});
 alpha = ip.Results.alpha;
 jscale = ip.Results.jscale;
@@ -30,6 +34,7 @@ save_plots = ip.Results.save_plots;
 jitter_debug = ip.Results.jitter_debug;
 njitter = ip.Results.njitter;
 save_jitter = ip.Results.save_jitter;
+screen_type = ip.Results.screen_type;
 
 epoch_names = {'Pre', 'Maze', 'Post'};
 nplot = 5; % # pairs to plot per figure
@@ -68,34 +73,77 @@ end
 
 %% Step 1: Screen for ms connectivity by running EranConv_group on each session 
 alpha_orig = alpha; jscale_orig = jscale;
-try
-    load(fullfile(data_dir,[session_name '_jscale' num2str(jscale) '_alpha' ...
-        num2str(round(alpha*100)) '_pairs']), 'pairs', 'jscale', 'alpha')
-    if alpha_orig ~= alpha || jscale_orig ~= jscale
-        disp('input jscale and/or alpha values differ from inputs. Re-running Eran Conv')
-        error('Re-run EranConv analysis with specified jscale and alpha')
+% try
+    if strcmp(screen_type, 'one_prong')
+        jscale_use = jscale;
+    elseif strcmp(screen_type, 'two_prong')
+        jscale_use = [1 5];
     end
-catch
-    for j = 1:nepochs
-        % This next line of code seems silly, but I'm leaving it in
-        % You can replace bz_spike.UID with any cell numbers to only plot
-        % through those. Might be handy in the future!
-        cell_inds = arrayfun(@(a) find(bz_spikes.UID == a), bz_spikes.UID);
-        disp(['Running EranConv_group for ' session_name ' ' epoch_names{j} ' epoch'])
-        [ExcPairs, InhPairs, GapPairs, RZero] = ...
-            EranConv_group(parse_spikes(j).spindices(:,1)/1000, parse_spikes(j).spindices(:,2), ...
-            bz_spikes.UID(cell_inds), SampleRate, jscale, alpha, bz_spikes.shankID(cell_inds), ...
-            wintype);
-        pairs(j).ExcPairs = ExcPairs;
-        pairs(j).InhPairs = InhPairs;
-        pairs(j).GapPairs = GapPairs;
-        pairs(j).RZero = RZero;
-        pairs(j).jscale = jscale;
+    for js = 1:length(jscale_use)
+        if ~exist('pairs','var')
+            load(fullfile(data_dir,[session_name '_jscale' num2str(jscale_use(js)) '_alpha' ...
+                num2str(round(alpha*100)) '_pairs']), 'pairs', 'jscale', 'alpha')
+        elseif strcmp(screen_type,'two_prong') && js >= 2
+            if pairs(1).jscale == 1
+                pairs_comb(1).pairs = pairs;
+                load(fullfile(data_dir,[session_name '_jscale' num2str(jscale_use(js)) '_alpha' ...
+                    num2str(round(alpha*100)) '_pairs']), 'pairs', 'jscale', 'alpha')
+                pairs_comb(2).pairs = pairs; % concatenate!
+                
+            else
+                error('Error in pre_v_postCCG')
+            end
+            
+        end
+        if alpha_orig ~= alpha || jscale_use(js) ~= jscale
+            disp('input jscale and/or alpha values differ from inputs. Re-running Eran Conv')
+            error('Re-run EranConv analysis with specified jscale and alpha')
+        end
     end
-    save(fullfile(data_dir,[session_name '_jscale' num2str(jscale) '_alpha' ...
-        num2str(round(alpha*100)) '_pairs']), 'pairs', 'jscale', 'alpha')
-end
+% catch
+%     for js = 1:length(jscale_use)
+%         for j = 1:nepochs
+%             % This next line of code seems silly, but I'm leaving it in
+%             % You can replace bz_spike.UID with any cell numbers to only plot
+%             % through those. Might be handy in the future!
+%             cell_inds = arrayfun(@(a) find(bz_spikes.UID == a), bz_spikes.UID);
+%             disp(['Running EranConv_group for ' session_name ' ' epoch_names{j} ' epoch'])
+%             [ExcPairs, InhPairs, GapPairs, RZero] = ...
+%                 EranConv_group(parse_spikes(j).spindices(:,1)/1000, parse_spikes(j).spindices(:,2), ...
+%                 bz_spikes.UID(cell_inds), SampleRate, jscale_use(js), alpha, bz_spikes.shankID(cell_inds), ...
+%                 wintype);
+%             pairs(j).ExcPairs = ExcPairs;
+%             pairs(j).InhPairs = InhPairs;
+%             pairs(j).GapPairs = GapPairs;
+%             pairs(j).RZero = RZero;
+%             pairs(j).jscale = jscale_use(js);
+%         end
+%         save(fullfile(data_dir,[session_name '_jscale' num2str(jscale_use(js)) '_alpha' ...
+%             num2str(round(alpha*100)) '_pairs']), 'pairs', 'jscale', 'alpha')
+%     end
+% end
 
+% Now concatenate all cell pairs that pass EITHER timescale criteria if
+% using two-pronged screening approach
+if strcmp(screen_type, 'two_prong')
+    
+    % concatenate pairs 
+    for k = 1:nepochs
+        pairs(k).(conn_type) = cat(1, pairs_comb(1).pairs(k).(conn_type),...
+            pairs_comb(2).pairs(k).(conn_type));
+        
+        % Identify unique pairs
+        pair_row_inds = arrayfun(@(a,b) find(all(pairs(k).(conn_type)(:,1:2) == [a b],2)), ...
+            pairs(k).(conn_type)(:,1), pairs(k).(conn_type)(:,2), ...
+            'UniformOutput', false); % this identifies all row indices that match a given cell-pair
+        
+        unique_pairs = unique(cellfun(@(a) a(1), pair_row_inds)); % keep only the first of a redundant pair
+        
+        % Keep only unique pairs
+        pairs(k).(conn_type) = pairs(k).(conn_type)(unique_pairs,:);
+    end
+    
+end
 elseif debug  % use this to cut down on time while debugging...
     if isempty(getenv('computername'))
         load('/data/Working/Other Peoples Data/HiroData/wake_new/pre_v_postCCG_debug_data.mat',...
@@ -106,7 +154,7 @@ elseif debug  % use this to cut down on time while debugging...
     end
 end
     
-%% Step 2a: Identify pairs that passed the screening test above in step1
+%% Step 2a: Identify pairs that passed the screening test above in Step 1
 for ref_epoch = 1:3
     if ~isempty(pairs(ref_epoch).(conn_type))
         % Get boolean for pairs on different shanks only
@@ -190,13 +238,16 @@ if plot_jitter || plot_conv
     nrows = nplot;
     coarse_fine_text = {'coarse', 'fine'};
     nepochs = length(epoch_names);
+    hw2 = waitbar(0, ['running CCG\_jitter for ' session_name ' ' conn_type]);
+    set(hw2,'Position', [1420 250 220 34]);
     for nfig = 1:nfigs
         if nfig < nfigs % update pairs to plot
-            pairs_plot = pairs_plot_all((nplot*(nfig-1)+1):nplot*nfig,:);
+            rows_to_plot = (nplot*(nfig-1)+1):nplot*nfig;
         elseif nfig == nfigs
-            pairs_plot = pairs_plot_all((nplot*(nfig-1)+1):end,:);
-            nplot = size(pairs_plot,1);
+            rows_to_plot = (nplot*(nfig-1)+1):npairs_all;
+            nplot = length(rows_to_plot);
         end
+        pairs_plot = pairs_plot_all(rows_to_plot,:);
         if nfig > 1  % set up new figures
             try close 100; end; try close 102; end
             hcomb = cat(2, figure(100), figure(102)); arrayfun(@(a) set(a, 'Position', pos), hcomb(:));
@@ -245,8 +296,9 @@ if plot_jitter || plot_conv
                             'plot_output', get(fig_use, 'Number'), 'subfig', epoch_plot + (k-1)*nepochs, ...
                             'subplot_size', [nrows, 3], 'njitter', njitter, 'alpha', alpha);
                         if save_jitter
-                           jitter_data =  save_jitter_vars(jitter_data, [cell1, cell2],...
-                               GSPExc,GSPInh,pvalE,pvalI,ccgR,tR,LSPExc,LSPInh,JBSIE,JBSII);
+                           jitter_data =  save_jitter_vars(jitter_data, [cell1, cell2], ...
+                               rows_to_plot(k), epoch_plot, GSPExc, GSPInh,...
+                               pvalE,pvalI,ccgR,tR,LSPExc,LSPInh,JBSIE,JBSII);
                         end
                         if strcmp(conn_type, 'InhPairs')
                             JBSI = max(JBSII); jb_type = 'JBSII_{max}= ';
@@ -277,6 +329,7 @@ if plot_jitter || plot_conv
                             set(cur_ax,'XTick',[],'XTickLabel','');
                         end
                     end
+                    waitbar(rows_to_plot(k)/npairs_all, hw2);
                 end
             end
             if save_plots  % save all plots!
@@ -302,84 +355,37 @@ if plot_jitter || plot_conv
                 data_dir, 'hfig', fig_use, 'append', true);
         end
     end
+    try close(hw2); end
 end
 
+%%
 if plot_jitter && save_jitter
-    jitter_filename = fullfile(data_dir, [session_name '_' conn_type '_jscale' num2str(jscale) ...
+    if strcmp('screen_type', 'one_prong')
+        scale_name = ['_jscale' num2str(jscale)];
+    else
+        scale_name = ['_twoprong_jscale' num2str(jscale)];
+    end
+    jitter_filename = fullfile(data_dir, [session_name '_' conn_type scale_name...
         '_alpha' num2str(round(alpha*100)) '_jitterdata.mat']);
-    save(jitter_filename,'jitter_data', 'njitter')
+    save(jitter_filename,'jitter_data', 'njitter','epoch_names')
 end
-%% Step 3: run CCG_jitter and plot out each as above, but only on good pairs!
-% Legacy code here - keep until above is polished.
-% if plot_jitter
-%     nrows = nplot;
-%     disp('Plotting jitter requires manual entry of pairs_plot and njitter params')
-%     keyboard
-%     %%
-%     % maximum 5 pairs to plot for now.
-% %     pairs_plot = [79 53; 45 15]; conn_type = 'ExcPairs'; %ExcPairs RoyMaze1.
-%     pairs_plot = [79 40; 20 45];  conn_type = 'InhPairs'; %InhPairs for RoyMaze1
-%     njitter = 100;
-%     alpha = 0.05;
-% 
-%     hjit_coarse = figure(105); hjit_fine = figure(106);
-%     hjit_comb = cat(1, hjit_coarse, hjit_fine);
-%     arrayfun(@(a,b,c) set(a, 'Position', pos + [b c 0 0]), hjit_comb(:), a_offset([ 1 3]), b_offset([1 3]));
-%     nplot = size(pairs_plot,1);
-%     for coarse_fine = 1:2
-%         if coarse_fine == 1
-%             duration = 0.02; binSize = 0.001; jscale = 5;
-%         elseif coarse_fine == 2
-%             duration = 0.002; binSize = 1/SampleRate; jscale = 1;
-%         end
-%         fig_use = figure(hjit_comb(coarse_fine));
-%         for epoch_plot = 1:1:3
-%             for k = 1:nplot
-%                 cell1 = pairs_plot(k,1);
-%                 cell2 = pairs_plot(k,2);
-%                 res1 = parse_spikes(epoch_plot).spindices(...
-%                     parse_spikes(epoch_plot).spindices(:,2) == cell1,1)/1000;
-%                 res2 = parse_spikes(epoch_plot).spindices(...
-%                     parse_spikes(epoch_plot).spindices(:,2) == cell2,1)/1000;
-%                 [GSPExc,GSPInh,pvalE,pvalI,ccgR,tR,LSPExc,LSPInh,JBSIE,JBSII] = ...
-%                     CCG_jitter(res1, res2, SampleRate, binSize, duration, 'jscale', jscale, ...
-%                     'plot_output', get(fig_use, 'Number'), 'subfig', epoch_plot + (k-1)*nepochs, ...
-%                     'subplot_size', [nplot, 3], 'njitter', njitter, 'alpha', alpha);
-%                 if strcmp(conn_type, 'InhPairs')
-%                     JBSI = max(JBSII); jb_type = 'JBSII_{max}= ';
-%                 else
-%                     JBSI = max(JBSIE); jb_type = 'JBSIE_{max}= ';
-%                 end
-%                 if epoch_plot == ref_epoch
-%                     title({[epoch_names{epoch_plot} ' ' num2str(cell1) ' v ' num2str(cell2)]; ...
-%                         [jb_type num2str(JBSI)]});
-%                 else
-%                     title({[jb_type num2str(JBSI)]; [epoch_names{epoch_plot} ': ' num2str(cell1) ' v ' num2str(cell2)]});
-%                 end
-%             end
-%         end
-%         
-%     end
-%     
-% end
-% %%
 
 try close 100; end; try close 102; end
 end
 
 %% Send all variables calculated from jitter into data structure.
-function [jit_var_out] = save_jitter_vars(jit_var_in, cell_pair, varargin)
-var_names = {'GSPExc','GSPInh','pvalE','pvalI','ccgR','tR','LSPExc',...
-    'LSPInh','JBSIE','JBSII'};
-if isfield(jit_var_in, 'JBSII')
-    npairs = length(jit_var_in);
-else
-    npairs = 0;
-end
-jit_var_out = jit_var_in;
-jit_var_out(npairs+1).cell_pair = cell_pair;
-for var_num = 1:length(var_names)
-    jit_var_out(npairs+1).(var_names{var_num}) = varargin{var_num};
-end
+function [jit_var_out] = save_jitter_vars(jit_var_in, cell_pair, row, epoch, varargin)
+    var_names = {'GSPExc','GSPInh','pvalE','pvalI','ccgR','tR','LSPExc',...
+        'LSPInh','JBSIE','JBSII'};
+%     if isfield(jit_var_in, 'JBSII')
+%         npairs = size(jit_var_in,1);
+%     else
+%         npairs = 0;
+%     end
+    jit_var_out = jit_var_in;
+    jit_var_out(row, epoch).cell_pair = cell_pair;
+    for var_num = 1:length(var_names)
+        jit_var_out(row, epoch).(var_names{var_num}) = varargin{var_num};
+    end
 end
 
