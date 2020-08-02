@@ -28,6 +28,12 @@ classdef (Abstract) TimeFrequencyMap < Topography2D
             obj.timePoints=time;
             obj=obj.setxBins(time);
         end
+        function [mat, freq] = getSpectogramSamples(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            mat=obj.matrix;
+            freq=obj.frequencyPoints;
+        end
 
     end
 end

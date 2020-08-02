@@ -52,10 +52,10 @@ classdef TimeIntervalCombined
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             if startTime<obj.getStartTime
-                startTime=obj.getStartTime;
+                startTime=obj.getStartTime+seconds(1);
             end
             if endTime>obj.getEndTime
-                endTime=obj.getEndTime;
+                endTime=obj.getEndTime-seconds(1);
             end
             startSample=obj.getSampleFor(startTime);
             endSample=obj.getSampleFor(endTime);

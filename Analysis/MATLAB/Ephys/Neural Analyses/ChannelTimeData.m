@@ -7,7 +7,7 @@ classdef ChannelTimeData
     end
     
     methods
-        function newObj = ChannelTimeData(tscollectiondata)
+        function newObj = ChannelTimeData(sudotscollectiondata)
             newObj.TimeseriesCollection=tscollectiondata;
         end
         

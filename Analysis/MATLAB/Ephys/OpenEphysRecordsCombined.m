@@ -19,7 +19,7 @@ classdef OpenEphysRecordsCombined < Timelined
                 theOpenEphysRecord=varargin{iArgIn};
                 assert(isa(theOpenEphysRecord,'OpenEphysRecord'));
                 openEphysRecords.add(theOpenEphysRecord);
-                warning(sprintf('Record addded:\n%s\n', theOpenEphysRecord.getFile))
+                fprintf('Record addded:\n%s\n', theOpenEphysRecord.getFile);
             end
             newobj.OpenEphysRecords=openEphysRecords;
         end
@@ -31,7 +31,7 @@ classdef OpenEphysRecordsCombined < Timelined
                 theOpenEphysRecord=varargin{iArgIn};
                 assert(isa(theOpenEphysRecord,'OpenEphysRecord'));
                 obj.OpenEphysRecords.add(theOpenEphysRecord);
-                warning(sprintf('Record addded:\n%s\n', theOpenEphysRecord.getFile))
+                fprintf('Record addded:\n%s\n', theOpenEphysRecord.getFile);
             end
         end
         
@@ -60,32 +60,47 @@ classdef OpenEphysRecordsCombined < Timelined
                 anOpenEphysRecord.saveChannels(channels);
             end
         end
-        function mergeBlocksOfChannels(obj,channels,path)
+        function fileout=mergeBlocksOfChannels(obj,channels,path)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             iter=obj.getIterator();
-            first=true
+            first=true;
+            oers=obj.getOpenEphysRecords;
+            strt =oers.get(1).getRecordStartTime;
+            end1 =oers.get(oers.length).getRecordEndTime;
+            fname=sprintf('merged_%s__%s_%s',datestr(strt,'yyyy-mmm-dd'),...
+                datestr(strt,'HH-MM-SS'),datestr(end1,'HH-MM-SS'));
+            fileout=fullfile(path, fname,[fname '.lfp']);
+            
+            [folder,fname,ext]=fileparts(fileout);
+            ticd=obj.getTimeIntervalCombined;
+            if ~isfolder(folder), mkdir(folder), end
+            save(fullfile(folder,[fname '.TimeIntervalCombined.mat']),'ticd');
+            probe=obj.getProbe;
+            probe=probe.setActiveChannels(channels);
             while(iter.hasNext())
                 anOpenEphysRecord=iter.next();
                 fileIn=anOpenEphysRecord.saveChannels(channels);
-                [p,name,ext]=fileparts(fileIn);
-                fileout=fullfile(path,[name ext]);
                 if first
-                    fprintf('File\t %s is being added in\nfile\t %s\n',fileIn,fileout)
+                    fprintf('\nFile\t %s is being added\n\tin file  %s\n',fileIn,fileout)
                     tic
-                    [status,cmdout]=system(sprintf('cat %s>%s',...
+                    system(sprintf('cat %s>%s',...
                         fileIn,fileout),'-echo');toc
                     first=false;
                 else
-                    fprintf('File\t %s is being added in\nfile\t %s\n',fileIn,fileout)
+                    fprintf('\nFile\t %s is being added\n\tin file  %s\n',fileIn,fileout)
                     tic
-                    [status,cmdout]=system(sprintf('cat %s>>%s',...
+                    system(sprintf('cat %s>>%s',...
                         fileIn,fileout),'-echo');toc
-                    fprintf('File\t %s id added in\nfile\t %s',fileIn,fileout)
+                    fprintf('Done.\n')
                     
                 end
-                
+                delete(fileIn);
             end
+            probe=probe.renameChannelsByOrder(channels);
+            probe.saveProbeTable( fullfile(folder,[fname '.Probe.mat']));
+            ticd=obj.getTimeIntervalCombined;
+            probe.createXMLFile(fullfile(folder,[fname '.xml']),ticd.getSampleRate)
         end
     end
     
@@ -147,7 +162,10 @@ classdef OpenEphysRecordsCombined < Timelined
                     oerc=oer;
                 end
             end
-            
+            oerc.Probe=obj.Probe;
+            oerc.Animal=obj.Animal;
+            oerc.RoomInfo=obj.RoomInfo;
+            oerc.Day=obj.Day;
         end
         
         function oers=getOpenEphysRecords(obj)
@@ -211,10 +229,20 @@ classdef OpenEphysRecordsCombined < Timelined
         end
         
     end
-    %% Private Functions
+    %% Public Functions
     methods (Access=public)
         function iterator=getIterator(obj)
             iterator=obj.OpenEphysRecords.createIterator;
         end
+        function obj=setProbe(obj,Probe)
+            obj.Probe=Probe;
+        end
+        function probe=getProbe(obj)
+            probe=obj.Probe;
+        end
+    end
+    %% Private Functions
+    methods (Access=private)
+        
     end
 end

@@ -27,9 +27,12 @@ classdef (Abstract) Oscillation
             %   Detailed explanation goes here
             timeFrequencyMap=timeFrequencyMethod.execute(...
                 obj.voltageArray, seconds(obj.time)+obj.getStartTime);
-            downsamplefactor=round(numel(obj.time)/numel(timeFrequencyMap.timePoints));
-            tps=seconds(downsample(obj.time,downsamplefactor,downsamplefactor/2))+obj.getStartTime;
-            timeFrequencyMap=timeFrequencyMap.setTimePoints(tps(1:numel(timeFrequencyMap.timePoints)));
+            try
+                downsamplefactor=round(numel(obj.time)/numel(timeFrequencyMap.timePoints));
+                tps=seconds(downsample(obj.time,downsamplefactor,downsamplefactor/2))+obj.getStartTime;
+                timeFrequencyMap=timeFrequencyMap.setTimePoints(tps(1:numel(timeFrequencyMap.timePoints)));
+            catch
+            end
         end
         
         function p1=plot(obj,varargin)
@@ -49,8 +52,16 @@ classdef (Abstract) Oscillation
                 obj.getStartTime);
         end
         function ps=getPSpectrum(obj)
-            [pxx,f] = pspectrum(obj.voltageArray,obj.getSamplingRate);
+            [pxx,f] = pspectrum(obj.voltageArray,obj.getSamplingRate,...
+                'FrequencyLimits',[1 250]);
             ps=PowerSpectrum(pxx,f);
+        end
+        function ps=getPSpectrumChronux(obj)
+%             params.tapers=[3 5];
+            params.Fs=obj.getSamplingRate;
+            params.fpass=[1 250];
+            [S,f] = mtspectrumc( obj.voltageArray, params );
+            ps=PowerSpectrum(S,f);
         end
         function obj=getWhitened_Obsolete(obj, fraquencyRange)
             Fs=obj.samplingRate;
@@ -63,35 +74,35 @@ classdef (Abstract) Oscillation
             end
             obj.voltageArray=x_whitened';
         end
-        function obj=getWhitened(obj)            
+        function obj=getWhitened(obj)
             obj.voltageArray = reshape(WhitenSignal(obj.voltageArray,[],1),size(obj.voltageArray));
         end
-        function time=getTime(obj)            
+        function time=getTime(obj)
             time = obj.time;
         end
-        function newobj=getTimePoints(obj,timePoints)            
+        function newobj=getTimePoints(obj,timePoints)
             newobj = obj;
             newobj.time=obj.time(timePoints);
-            newobj.voltageArray=obj.voltageArray(timePoints);   
+            newobj.voltageArray=obj.voltageArray(timePoints);
         end
-        function obj=getLowpassFiltered(obj,filterFreq)            
+        function obj=getLowpassFiltered(obj,filterFreq)
             obj.voltageArray=ft_preproc_lowpassfilter(...
                 obj.voltageArray,obj.samplingRate,filterFreq);
         end
-        function obj=getHighpassFiltered(obj,filterFreqBand)            
+        function obj=getHighpassFiltered(obj,filterFreqBand)
             obj.voltageArray=ft_preproc_highpassfilter(...
                 obj.voltageArray,obj.samplingRate,filterFreqBand,[],[],[]);
         end
-        function time=getVoltageArray(obj)            
+        function time=getVoltageArray(obj)
             time = obj.voltageArray;
         end
-        function time=getSamplingRate(obj)            
+        function time=getSamplingRate(obj)
             time = obj.samplingRate;
         end
-        function obj=setSamplingRate(obj,newrate)            
+        function obj=setSamplingRate(obj,newrate)
             obj.samplingRate=newrate;
         end
-     
+        
         
     end
     

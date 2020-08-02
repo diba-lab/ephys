@@ -54,7 +54,7 @@ classdef TimeInterval
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             if sample>0 && sample<obj.NumberOfPoints
-                time=obj.StartTime+seconds((sample-1)/obj.SampleRate);
+                time=obj.StartTime+seconds(double((sample-1))/obj.SampleRate);
             else
                 time=datetime('today');
                 time.Format=obj.Format;

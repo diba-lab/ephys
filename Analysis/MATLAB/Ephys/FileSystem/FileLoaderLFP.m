@@ -14,14 +14,21 @@ classdef FileLoaderLFP < FileLoaderMethod
             obj.LFPFile=LFPFile;
             [filepath,name,ext]=fileparts(LFPFile);
             listing=dir([filepath filesep name '.header*.mat']);
+            if numel(listing)==0
+                listing=dir([filepath filesep name '*TimeIntervalCombined*.mat']);
+            end
             obj.TimestampsandHeaderFile=fullfile(listing.folder,listing.name);
         end
-      
+        
         function openEphysRecord = load(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             S = load(obj.TimestampsandHeaderFile);
-            numberOfChannels=numel(S.header.getChannels);
+            try
+                numberOfChannels=numel(S.header.getChannels);
+            catch
+
+            end
             file=dir(obj.LFPFile);
             samples=file.bytes/2/numberOfChannels;
             Data=memmapfile(obj.LFPFile,'Format',{'int16' [numberOfChannels samples] 'mapped'});

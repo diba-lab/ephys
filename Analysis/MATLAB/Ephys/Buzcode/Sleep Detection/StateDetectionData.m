@@ -12,7 +12,8 @@ classdef StateDetectionData
         SleepStateEpisodes
         Probe
         Blocks
-        TimeIntervalCombined
+        TimeIntervalCombinedDownSampled
+        TimeIntervalCombinedOriginal
         BaseName
     end
     
@@ -45,13 +46,14 @@ classdef StateDetectionData
             
             fname=fieldnames(S);
             timeIntervalCombined=S.(fname{1});
+            obj.TimeIntervalCombinedOriginal=timeIntervalCombined;
             downsampleFactor=timeIntervalCombined.getSampleRate/obj.SleepScoreLFP.sf;
             timeIntervalCombinedDownsampled=timeIntervalCombined.getDownsampled(downsampleFactor);
             npds=timeIntervalCombinedDownsampled.getNumberOfPoints;
             npss=numel(obj.SleepScoreLFP.t);
             if abs((npds-npss)/npss)<.0001
                 
-                obj.TimeIntervalCombined=timeIntervalCombinedDownsampled;
+                obj.TimeIntervalCombinedDownSampled=timeIntervalCombinedDownsampled;
             else
                 error('Number of samples are not the same in \n\tTimeIntervalCombined(%d) and SleepScoreLFP(%d)',...
                     timeIntervalCombinedDownsampled.getNumberOfPoints,...
@@ -89,14 +91,23 @@ classdef StateDetectionData
                 warning('Number of points in array adjusted\n\t%d-->%d',numel(ch),numel(t))
             end
             chname=num2str(obj.getThetaChannelID);
-            starttime=obj.TimeIntervalCombined.getStartTime;
+            starttime=obj.TimeIntervalCombinedDownSampled.getStartTime;
             LFP=Channel(chname,ch,t,starttime);
         end
         function [LFP]= getThetaChannelID(obj)
             LFP=obj.SleepScoreLFP.THchanID;
         end
-        function [tps]= getTimePoints(obj)
-            ti=obj.TimeIntervalCombined;
+        function [tps]= getTimePoints(obj,downsample)
+            ti=obj.TimeIntervalCombinedOriginal;
+            tis=ti.getDownsampled(downsample);
+            tps=tis.getTimePointsInSec;
+        end
+        function [tps]= getTimePointsOriginal(obj)
+            ti=obj.TimeIntervalCombinedOriginal;
+            tps=ti.getTimePointsInSec;
+        end
+        function [tps]= getTimePointsDownSampled(obj)
+            ti=obj.TimeIntervalCombinedDownSampled;
             tps=ti.getTimePointsInSec;
         end
         function ts=getEMG(obj)
@@ -133,7 +144,45 @@ classdef StateDetectionData
             ax.XLim=seconds([ts.Time(1) ts.Time(end)])+ts.TimeInfo.StartDate;
             ax.Color='none';title('');ylabel(chanSelected.getChannelName)
         end
-        
+        function ts=plotLFP(obj,channel,varargin)
+            chanSelected=obj.getLFP(channel,50);
+            p1(1)=chanSelected.getTimeSeries.plot(varargin{:});
+            M=nanmean(chanSelected.getVoltageArray);SD=8*nanstd(chanSelected.getVoltageArray);
+            ax=gca;
+            ax.YLim=[M-SD M+SD];
+            ts=chanSelected.getTimeSeries;
+            ax.XLim=seconds([ts.Time(1) ts.Time(end)])+ts.TimeInfo.StartDate;
+            ax.Color='none';title('');ylabel(chanSelected.getChannelName)
+        end
+        function [LFP]= getLFP(obj,channel,downsample)
+            tokens=tokenize(obj.BaseName,filesep);
+            path=[];
+            for i=1:numel(tokens)-1
+                path=[path tokens{i} filesep];
+            end
+            curr=cd(path);
+            filename=[obj.BaseName '.lfp.ch' num2str(channel) '.' num2str(downsample) '.mat'];
+            if ~exist(filename,'file')
+                LFP=bz_GetLFP(channel,'downsample',downsample);
+                save(filename,'LFP')
+            else
+                S=load(filename);
+                LFP=S.LFP;
+            end
+            cd(curr)
+            ch=double(LFP.data);
+            t=obj.getTimePoints(downsample);
+            if numel(ch)>=numel(t)
+                ch=ch(1:numel(t));
+            else
+                t=t(1:numel(ch));
+                
+                warning('Number of points in array adjusted\n\t%d-->%d',numel(ch),numel(t))
+            end
+            chname=num2str(channel);
+            starttime=obj.TimeIntervalCombinedOriginal.getStartTime;
+            LFP=Channel(chname,ch,t,starttime);
+        end
         function ts=getSW(obj)
             ts1= obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.broadbandSlowWave;
             ts=obj.getTimeSeriesForArray(ts1);
@@ -155,28 +204,32 @@ classdef StateDetectionData
         function probe=getProbe(obj)
             probe=obj.Probe;
         end
-        function [powerSpectrums, filename]=plot(obj,varargin)
+        function [powerSpectrums, filename]=plot(obj,channel,varargin)
             if nargin>1
                 window1=varargin{1};
                 saveplot=varargin{2};
-                st=obj.TimeIntervalCombined.getStartTime;
+                st=obj.TimeIntervalCombinedDownSampled.getStartTime;
                 window=window1+datetime(st.Year, st.Month, st.Day);
             else
-                window=[obj.TimeIntervalCombined.getStartTime obj.TimeIntervalCombined.getEndTime];
+                window=[obj.TimeIntervalCombinedDownSampled.getStartTime obj.TimeIntervalCombinedDownSampled.getEndTime];
             end
-            ticd=obj.TimeIntervalCombined.getTimeIntervalForTimes(window(1),window(2));
-            t(1)=obj.TimeIntervalCombined.getSampleFor(window(1));
-            t(2)=obj.TimeIntervalCombined.getSampleFor(window(2));
+            ticd=obj.TimeIntervalCombinedOriginal.getTimeIntervalForTimes(window(1),window(2));
+            t(1)=obj.TimeIntervalCombinedOriginal.getSampleFor(window(1));
+            t(2)=obj.TimeIntervalCombinedOriginal.getSampleFor(window(2));
             
             colorl=linspecer(5);
             statesmap=containers.Map([1 2 3 5],{'A-WAKE','Q-WAKE','SWS','REM'});
             colors=containers.Map([0 1 2 3 5],{colorl(1,:),colorl(2,:),colorl(3,:),colorl(4,:),colorl(5,:)});
             figure('units','normalized','outerposition',[0 1/5 1 3/5]);
             
-            size.heigth.thin=.1;
-            size.heigth.thick=.2;
-            size.width.thin=.1;
-            size.width.thick=.1;
+            size.left.heigth.thin=.1;
+            size.left.heigth.thick=.2;
+            size.left.width.thin=.1;
+            size.left.width.thick=.1;
+            size.right.heigth.thin=.1;
+            size.right.heigth.thick=.2;
+            size.right.width.thin=.1;
+            size.right.width.thick=.1;
             
             tf=axes;
             tf.Position(1)=0.05;
@@ -186,7 +239,8 @@ classdef StateDetectionData
             raw.Position=tf.Position;
             raw.Position(2)=.1;
             raw.Position(4)=.075;
-            obj.plotThetaLFP('Color','k');
+            obj.plotLFP(channel)
+            %             obj.plotThetaLFP('Color','k');
             hold on
             blcks=obj.Blocks.TimeTable;clr=[.3 .3 .3];
             for ibl=1:height(blcks)
@@ -211,7 +265,7 @@ classdef StateDetectionData
             ss.plot(colors);
             
             hold on
-            ticdds=obj.TimeIntervalCombined.getDownsampled(ticd.getSampleRate);
+            ticdds=obj.TimeIntervalCombinedDownSampled;
             tps=ticdds.getTimePointsInSec;
             plot([tps(ticdds.getSampleFor(window(1))) tps(ticdds.getSampleFor(window(1))) tps(ticdds.getSampleFor(window(2))) tps(ticdds.getSampleFor(window(2))) tps(ticdds.getSampleFor(window(1)))],...
                 [states.YLim(1) states.YLim(2) states.YLim(2) states.YLim(1) states.YLim(1)],'LineWidth',2,'Color','k');
@@ -284,14 +338,14 @@ classdef StateDetectionData
                 tx.Color='r';tx.HorizontalAlignment='right';
             end
             
-            thetaChan=obj.getThetaLFP;
+            lfp=obj.getLFP(channel,1);
             
             keys=statesmap.keys;
             keysPlotted=[];
             ivalid=1;
             ss=obj.getStateSeries;
             ts1=ss.ts;
-            ts=ts1.resample(thetaChan.getTimeSeries.time,'zoh');
+            ts=ts1.resample(lfp.getTimeSeries.time,'zoh');
             for istate=1:statesmap.Count
                 key=keys{istate};
                 idxkey=ts.Data==key;
@@ -299,33 +353,38 @@ classdef StateDetectionData
                 mask(t(1):t(2))=true;
                 idx=idxkey & mask;
                 proportion(istate)=sum(idx)/sum(mask);
-                aChan1=thetaChan.getTimePoints(idx);
+                aChan1=lfp.getTimePoints(idx);
                 try
-                    powerSpectrumState{ivalid}=aChan1.getPSpectrum();ivalid=ivalid+1;
-                    keysPlotted=horzcat(keysPlotted, key);
+                    powerSpectrumState{ivalid}=aChan1.getPSpectrum();
+                    TFState{ivalid}=aChan1.getTimeFrequencyMap(TimeFrequencyChronuxMtspecgramc(1:1:250,[2 1]));
+                    keysPlotted=horzcat(keysPlotted, key);ivalid=ivalid+1;
                 catch
+                    fprintf('Some Problem at loading PowerSpectrums or TimeFrequencies')
                 end
             end
-            all=thetaChan.getTimePoints(mask);
+            all=lfp.getTimePoints(mask);
             powerSpectrum=all.getPSpectrum();
+            tfmap=all.getTimeFrequencyMap(TimeFrequencyChronuxMtspecgramc(1:1:250,[2 1]));
             pwrspctrm=axes;
-            p0=powerSpectrum.plot([0 30]);
+            p0=powerSpectrum.semilogx([0 250],[15 60]);
             hold on
             p0.LineWidth=1.5;
             p0.Color=colors(0);
             inum=2;lbls=[];lbls{1}='ALL';
             powerSpectrums=PowerSpectrumCombined;
             powerSpectrum=powerSpectrum.setInfoNumAndName(0,'ALL');
+            powerSpectrum=powerSpectrum.addTimeFrequencyEnhance(tfmap);
             powerSpectrums=powerSpectrums+powerSpectrum;
             for istate=1:numel(keysPlotted)
                 try
                     pss=powerSpectrumState{istate};
-                    p1(istate)=pss.plot([0 30]);
+                    p1(istate)=pss.semilogx([0 250],[15 60]);
                     p1(istate).Color=colors(keysPlotted(istate));inum=inum+1;
                     p1(istate).LineWidth=3*proportion(istate)+.5;
                     lbls=horzcat(lbls,{statesmap(keysPlotted(istate))});
                     pss=pss.setInfoNumAndName(keysPlotted(istate),statesmap(keysPlotted(istate)));
                     pss=pss.setSignalLength(proportion(istate));
+                    pss=pss.addTimeFrequencyEnhance(TFState{istate});
                     powerSpectrums=powerSpectrums+pss;
                 catch
                 end
@@ -356,27 +415,27 @@ classdef StateDetectionData
             probe.Position=pwrspctrm.Position;
             probe.Position(2)=pwrspctrm.Position(2)+pwrspctrm.Position(4)+.01;
             probe.Position(4)=.20;
-            masmanidis_128Kx2.plotProbeLayout(thetaChan.getChannelNumber)
+            masmanidis_128Kx2.plotProbeLayout(lfp.getChannelNumber+1)
             probe.Visible='off';
             
             if saveplot
-                thetaChan=obj.getThetaLFP;
-                thetaChanw=thetaChan.getWhitened();
-                tfmsel=thetaChanw.getTimeFrequencyMap(...
-                    TimeFrequencyChronuxMtspecgramc(1:.1:30,[2 1])...
+                lfp=obj.getLFP(channel,1);
+                chanw=lfp.getWhitened();
+                tfmsel=chanw.getTimeFrequencyMap(...
+                    TimeFrequencyChronuxMtspecgramc(1:.1:120,[2 1])...
                     );
                 axes(tf);
                 tfmsel.plot()
                 tf.YDir='normal';
                 tf.XTick=[];
-                tx=text(.02,.5,[thetaChan.getChannelName ''],'Units','normalized');tx.FontSize=20;
+                tx=text(.02,.5,[lfp.getChannelName ''],'Units','normalized');tx.FontSize=20;
                 
                 
                 folder=obj.BaseName;
                 formatOut = 'HH-MM-SS';
                 FigureFactory.instance.save(...
                     sprintf('%s%s_%s-%s.png',folder,...
-                    thetaChan.getChannelName,...
+                    lfp.getChannelName,...
                     datestr(window(1), formatOut),...
                     datestr(window(2), formatOut)...
                     )...
@@ -384,7 +443,7 @@ classdef StateDetectionData
             end
             formatOut = 'HH-MM-SS';
             filename=sprintf('%s_%s-%s',...
-                thetaChan.getChannelName,...
+                lfp.getChannelName,...
                 datestr(window(1), formatOut),...
                 datestr(window(2), formatOut)...
                 );
@@ -393,15 +452,17 @@ classdef StateDetectionData
     end
     methods (Access=private)
         function ts=getTimeSeriesForArray(obj,array)
-            tp=obj.TimeIntervalCombined.getDownsampled(obj.TimeIntervalCombined.getSampleRate*1).getTimePointsInSec;
+            tp=obj.TimeIntervalCombinedOriginal.getDownsampled(...
+                obj.TimeIntervalCombinedOriginal.getSampleRate/1)...
+                .getTimePointsInSec;
             if numel(tp)>=numel(array)
                 tp=tp(1:numel(array));
             end
             ts=timeseries(array,tp);
-            ts.TimeInfo.StartDate=obj.TimeIntervalCombined.getStartTime;
+            ts.TimeInfo.StartDate=obj.TimeIntervalCombinedDownSampled.getStartTime;
         end
         function ts=getTimeSeriesForArraywBAD(obj,array)
-            tp=obj.TimeIntervalCombined.getDownsampled(obj.TimeIntervalCombined.getSampleRate*1).getTimePointsInSec;
+            tp=obj.TimeIntervalCombinedDownSampled.getTimePointsInSec;
             
             ts=timeseries(array,tp);
             ts.TimeInfo.StartDate=obj.TimeIntervalCombined.getStartTime;

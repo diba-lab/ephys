@@ -40,7 +40,8 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
         function channel=getChannel(obj,chan)
             D = obj.Data;
             dat = double(D.Data.mapped(chan,:));
-            channel = Channel(num2str(chan), dat, obj.getTimestamps.Time, obj.getTimestamps.timeInfo.StartDate);
+            channel = Channel(num2str(chan), dat, obj.getTimestamps.Time,...
+                obj.getTimestamps.timeInfo.StartDate);
         end
         
         function combined=getTimeWindow(obj, timeWindow)
@@ -61,7 +62,8 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
             D = obj.Data;
             dat = double(D.Data.mapped(:,idx));
             for ichan=1:numel(obj.getChannelNames)
-                ts1=timeseries(dat(ichan,:),selectedTimePoints,'Name',obj.getChannelNames{ichan});
+                ts1=timeseries(dat(ichan,:),selectedTimePoints,'Name',...
+                    obj.getChannelNames{ichan});
                 ts1.TimeInfo.StartDate=obj.getRecordStartTime;
                 tsc=tsc.addts(ts1);
             end
@@ -193,7 +195,8 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
             ts=obj.Timestamps;
         end
         function ti=getTimeInterval(obj)
-            ti=TimeInterval(obj.getRecordStartTime, obj.getSampleRate,numel(obj.getTimestamps.time));
+            ti=TimeInterval(obj.getRecordStartTime, ...
+                obj.getSampleRate,numel(obj.getTimestamps.time));
         end
         
         function obj=setTimestamps(obj,timestamps)
@@ -309,7 +312,8 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
                 else
                     a=dir(fullfile(filepath,'..','..'));
                     b=dir(fullfile(filepath));
-                    warning('Couldn''t find a probe file in the folder :\n\t%s\nor\t%s\n',a(1).folder,b(1).folder);
+                    warning('Couldn''t find a probe file in the folder :\n\t%s\nor\t%s\n',...
+                        a(1).folder,b(1).folder);
                     probe=[];
                 end
             end
