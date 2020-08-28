@@ -20,14 +20,14 @@ import helpers
 # First import openephys data - all channels + input TTL events
 def load_openephys(folder):
     """Loads in openephys continuous and event data. Openephys format ok, binary format not yet finished/vetted"""
-    try:  # Load in openephy sformat
+    try:  # Load in openephys format
         cont_array = oe.loadFolder(folder)
         events = oe.loadEvents(os.path.join(folder, 'all_channels.events'))
         oe_type = 'oe'
         Rate = 'See cont_array variable'
-    except ZeroDivisionError:  # load in binary format - not yet finished
+    except ZeroDivisionError:  # load in binary format
 
-        binData, Rate = ob.Load(folder)
+        cont_array, Rate = ob.Load(folder)
         SR = Rate['100']['0']  # get sample rate
         cont_time = np.load(os.path.join(folder, 'experiment1/recording1/continuous/Rhythm_FPGA-100.0/timestamps.npy'))
         event_folder = os.path.join(folder, 'experiment1/recording1/events/Rhythm_FPGA-100.0/TTL_1')
@@ -35,7 +35,6 @@ def load_openephys(folder):
         for file_name in ['channel_states.npy', 'channels.npy', 'full_words.npy', 'timestamps.npy']:
             event_data.append(np.load(os.path.join(event_folder, file_name)))
 
-        cont_array, Rate = ob.Load(folder)
         oe_type = 'binary'
 
     return event_data, cont_array, Rate
