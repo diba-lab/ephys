@@ -18,14 +18,13 @@ classdef StateDetectionData
     end
     
     methods
-        function obj = StateDetectionData(basename)
+        function obj = StateDetectionData(basepath)
             %STATEDETECTIONDATA Construct an instance of this class
             %   Detailed explanation goes here
             list={'EMGFromLFP','SleepScoreLFP','SleepState',...
                 'SleepStateEpisodes'};
-            basepath=obj.getBasePath(basename);
             for ilist=1:numel(list)
-                thefile=dir([basename, '*',list{ilist},'*']);
+                thefile=dir(fullfile(basepath,['*',list{ilist},'*']));
                 S=load(fullfile(thefile(1).folder,thefile(1).name));
                 fname=fieldnames(S);
                 obj.(list{ilist})=S.(fname{1});
@@ -59,6 +58,9 @@ classdef StateDetectionData
                     timeIntervalCombinedDownsampled.getNumberOfPoints,...
                     numel(obj.SleepScoreLFP.t));
             end
+            thefile=dir(fullfile(basepath, '*.lfp'));
+            [~,name,~]=fileparts(thefile(1).name);
+            basename=fullfile(basepath,name);
             obj.BaseName=basename;
             thefile=dir(fullfile(basepath, '*BlockTimes*'));
             try
@@ -66,7 +68,7 @@ classdef StateDetectionData
                 fname=fieldnames(S);
                 obj.Blocks=S.(fname{1});
             catch
-                warning('I couldn''t find the TimeIntervalCombined file.\n\t%s',thefile);
+                warning('I couldn''t find the BlockTimes file.\n\t%s',thefile);
             end
         end
         
@@ -331,7 +333,7 @@ classdef StateDetectionData
             broad.XLim=seconds([ss.Time(1) ss.Time(end)])+ss.TimeInfo.StartDate;
             plot(broad.XLim,[obj.getSWThreshold obj.getSWThreshold],'Color','r')
             broad.Color='none';title('');
-            broad.Box='off';broad.YLabel=[]
+            broad.Box='off';broad.YLabel=[];
             tx=text(.02,.5,'Broad-Band SW','Units','normalized');tx.FontSize=20;
             if obj.isSWSticky
                 tx=text(.98,double(obj.getSWThreshold),'Sticky','Units','normalized');tx.FontSize=10;
@@ -341,7 +343,7 @@ classdef StateDetectionData
             lfp=obj.getLFP(channel,1);
             
             keys=statesmap.keys;
-            keysPlotted=[];
+            keysPlotted=[];proportion=nan(1,5);
             ivalid=1;
             ss=obj.getStateSeries;
             ts1=ss.ts;
@@ -352,39 +354,45 @@ classdef StateDetectionData
                 mask=false(numel(idxkey),1);
                 mask(t(1):t(2))=true;
                 idx=idxkey & mask;
-                proportion(istate)=sum(idx)/sum(mask);
+                proportion(key)=sum(idx)/sum(mask);
                 aChan1=lfp.getTimePoints(idx);
                 try
                     powerSpectrumState{ivalid}=aChan1.getPSpectrum();
+                    powerSpectrumSlope{ivalid}=aChan1.getPSpectrumSlope();
                     TFState{ivalid}=aChan1.getTimeFrequencyMap(TimeFrequencyChronuxMtspecgramc(1:1:250,[2 1]));
                     keysPlotted=horzcat(keysPlotted, key);ivalid=ivalid+1;
                 catch
                     fprintf('Some Problem at loading PowerSpectrums or TimeFrequencies')
                 end
             end
+            clear ts
             all=lfp.getTimePoints(mask);
-            powerSpectrum=all.getPSpectrum();
-            tfmap=all.getTimeFrequencyMap(TimeFrequencyChronuxMtspecgramc(1:1:250,[2 1]));
+            powerSpectrumAll=all.getPSpectrum();
+            powerSpectrumslopeAll=all.getPSpectrumSlope();
+            tfmapall=all.getTimeFrequencyMap(TimeFrequencyChronuxMtspecgramc(1:1:250,[2 1]));
             pwrspctrm=axes;
-            p0=powerSpectrum.semilogx([0 250],[15 60]);
+            p0=powerSpectrumAll.semilogx([0 250],[15 60]);
             hold on
             p0.LineWidth=1.5;
             p0.Color=colors(0);
-            inum=2;lbls=[];lbls{1}='ALL';
+            lbls=[];lbls{1}='ALL';
             powerSpectrums=PowerSpectrumCombined;
-            powerSpectrum=powerSpectrum.setInfoNumAndName(0,'ALL');
-            powerSpectrum=powerSpectrum.addTimeFrequencyEnhance(tfmap);
-            powerSpectrums=powerSpectrums+powerSpectrum;
+            powerSpectrumAll=powerSpectrumAll.setInfoNumAndName(0,'ALL');
+            powerSpectrumAll=powerSpectrumAll.addTimeFrequencyEnhance(tfmapall);
+            powerSpectrumAll=powerSpectrumAll.addPowerSpectrumSlope(powerSpectrumslopeAll);
+            powerSpectrums=powerSpectrums+powerSpectrumAll;
             for istate=1:numel(keysPlotted)
                 try
+                    key=keysPlotted(istate);
                     pss=powerSpectrumState{istate};
-                    p1(istate)=pss.semilogx([0 250],[15 60]);
-                    p1(istate).Color=colors(keysPlotted(istate));inum=inum+1;
-                    p1(istate).LineWidth=3*proportion(istate)+.5;
+                    p1(istate)=pss.semilogx([0 250],[10 60]);
+                    p1(istate).Color=colors(key);
+                    p1(istate).LineWidth=3*proportion(key)+.5;
                     lbls=horzcat(lbls,{statesmap(keysPlotted(istate))});
                     pss=pss.setInfoNumAndName(keysPlotted(istate),statesmap(keysPlotted(istate)));
-                    pss=pss.setSignalLength(proportion(istate));
+                    pss=pss.setSignalLength(proportion(key));
                     pss=pss.addTimeFrequencyEnhance(TFState{istate});
+                    pss=pss.addPowerSpectrumSlope(powerSpectrumSlope{istate});
                     powerSpectrums=powerSpectrums+pss;
                 catch
                 end
@@ -402,28 +410,39 @@ classdef StateDetectionData
             b1=bar(1,proportion*100,'stacked');
             stateprop.YLim=[0 100];
             stateprop.XLim=[0.9 1.1];
-            for istate=1:numel(keysPlotted)
-                b1(istate).FaceColor=colors(keysPlotted(istate));
-                b1(istate).EdgeColor=colors(keysPlotted(istate));
+            for istate=1:statesmap.Count
+                key=keys{istate};
+                b1(key).FaceColor=colors(key);
+                b1(key).EdgeColor=colors(key);
             end
             stateprop.XTick=[];
             stateprop.Box='off';
             stateprop.Color='none';
             
-            load('masmanides_128Kx2.mat');
             probe=axes;
             probe.Position=pwrspctrm.Position;
             probe.Position(2)=pwrspctrm.Position(2)+pwrspctrm.Position(4)+.01;
             probe.Position(4)=.20;
-            masmanidis_128Kx2.plotProbeLayout(lfp.getChannelNumber+1)
+            obj.Probe.plotProbeLayout(lfp.getChannelNumber+1)
             probe.Visible='off';
             
+            folder=obj.BaseName;
+                formatOut = 'HH-MM-SS';
+                
+            filesave=sprintf('%s%s_%s-%s',folder,...
+                    lfp.getChannelName,...
+                    datestr(window(1), formatOut),...
+                    datestr(window(2), formatOut)...
+                    );
+                    
+           
             if saveplot
                 lfp=obj.getLFP(channel,1);
                 chanw=lfp.getWhitened();
                 tfmsel=chanw.getTimeFrequencyMap(...
-                    TimeFrequencyChronuxMtspecgramc(1:.1:120,[2 1])...
+                    TimeFrequencyChronuxMtspecgramc(1:.1:30,[2 1])...
                     );
+                clear chanw
                 axes(tf);
                 tfmsel.plot()
                 tf.YDir='normal';
@@ -433,13 +452,7 @@ classdef StateDetectionData
                 
                 folder=obj.BaseName;
                 formatOut = 'HH-MM-SS';
-                FigureFactory.instance.save(...
-                    sprintf('%s%s_%s-%s.png',folder,...
-                    lfp.getChannelName,...
-                    datestr(window(1), formatOut),...
-                    datestr(window(2), formatOut)...
-                    )...
-                    );
+                FigureFactory.instance.save([filesave '.png']);
             end
             formatOut = 'HH-MM-SS';
             filename=sprintf('%s_%s-%s',...
@@ -447,6 +460,7 @@ classdef StateDetectionData
                 datestr(window(1), formatOut),...
                 datestr(window(2), formatOut)...
                 );
+            save([filesave '.powerspec.mat'],'powerSpectrums')
         end
         
     end

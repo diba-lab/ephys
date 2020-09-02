@@ -70,37 +70,39 @@ classdef OpenEphysRecordsCombined < Timelined
             end1 =oers.get(oers.length).getRecordEndTime;
             fname=sprintf('merged_%s__%s_%s',datestr(strt,'yyyy-mmm-dd'),...
                 datestr(strt,'HH-MM-SS'),datestr(end1,'HH-MM-SS'));
-            fileout=fullfile(path, fname,[fname '.lfp']);
+            fileout=fullfile(path, fname,[fname '.dat']);
             
             [folder,fname,ext]=fileparts(fileout);
-            ticd=obj.getTimeIntervalCombined;
-            if ~isfolder(folder), mkdir(folder), end
-            save(fullfile(folder,[fname '.TimeIntervalCombined.mat']),'ticd');
             probe=obj.getProbe;
             probe=probe.setActiveChannels(channels);
-            while(iter.hasNext())
-                anOpenEphysRecord=iter.next();
-                fileIn=anOpenEphysRecord.saveChannels(channels);
-                if first
-                    fprintf('\nFile\t %s is being added\n\tin file  %s\n',fileIn,fileout)
-                    tic
-                    system(sprintf('cat %s>%s',...
-                        fileIn,fileout),'-echo');toc
-                    first=false;
-                else
-                    fprintf('\nFile\t %s is being added\n\tin file  %s\n',fileIn,fileout)
-                    tic
-                    system(sprintf('cat %s>>%s',...
-                        fileIn,fileout),'-echo');toc
-                    fprintf('Done.\n')
-                    
-                end
-                delete(fileIn);
-            end
             probe=probe.renameChannelsByOrder(channels);
             probe.saveProbeTable( fullfile(folder,[fname '.Probe.mat']));
             ticd=obj.getTimeIntervalCombined;
             probe.createXMLFile(fullfile(folder,[fname '.xml']),ticd.getSampleRate)
+            
+            if ~isfolder(folder), mkdir(folder), end
+            save(fullfile(folder,[fname '.TimeIntervalCombined.mat']),'ticd');
+            if ~exist(fileout,'file')
+                while(iter.hasNext())
+                    anOpenEphysRecord=iter.next();
+                    fileIn=anOpenEphysRecord.saveChannels(channels);
+                    if first
+                        fprintf('\nFile\t %s is being added\n\tin file  %s\n',fileIn,fileout)
+                        tic
+                        system(sprintf('cat %s>%s',...
+                            fileIn,fileout),'-echo');toc
+                        first=false;
+                    else
+                        fprintf('\nFile\t %s is being added\n\tin file  %s\n',fileIn,fileout)
+                        tic
+                        system(sprintf('cat %s>>%s',...
+                            fileIn,fileout),'-echo');toc
+                        fprintf('Done.\n')
+                        
+                    end
+                    delete(fileIn);
+                end
+            end
         end
     end
     

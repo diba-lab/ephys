@@ -1,4 +1,4 @@
-classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope
+classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope & Persist
     
     %PROBE Summary of this class goes here
     %   Detailed explanation goes here
@@ -13,6 +13,7 @@ classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope
         function newobj = Probe(probeFile)
             %PROBE Construct an instance of this class
             %   Detailed explanation goes here
+            newobj=newobj@Persist(probeFile);
             T=load(probeFile);
             fnames=fieldnames(T);
             lay =T.(fnames{1});
@@ -97,6 +98,10 @@ classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope
         end
         function obj=saveProbeTable(obj,filepath)
             siteLayout=obj.SiteSpatialLayout;
+            [folder,name,ext]=fileparts(filepath);
+            if ~exist(folder,'dir')
+                mkdir(folder);
+            end
             save(filepath,'siteLayout');
         end
         function obj=setActiveChannels(obj,chans)
@@ -142,6 +147,8 @@ classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope
     end
     %%abstract
     methods
-
+        function save(obj)
+            obj.saveProbeTable(obj.FileLocation)
+        end
     end
 end

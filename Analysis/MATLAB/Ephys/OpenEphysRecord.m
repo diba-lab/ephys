@@ -299,12 +299,12 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
     
     methods (Access=private)
         function probe=loadProbeFile(obj,filepath)
-            list=dir(fullfile(filepath,'..','..','*.mat'));
+            list=dir(fullfile(filepath,'..','..','*Probe*.mat'));
             if numel(list)>0
                 probe=Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
                 printf('Probe file: \n\t%s',fullfile(list(1).folder,list(1).name));
             else
-                list=dir(fullfile(filepath,'mas*.mat'));
+                list=dir(fullfile(filepath,'*Probe*.mat'));
                 if numel(list)>0
                     probe=Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
                     printf('Probe file: \n\t%s',fullfile(list(1).folder,list(1).name));

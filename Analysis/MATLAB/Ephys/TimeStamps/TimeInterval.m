@@ -102,8 +102,7 @@ classdef TimeInterval
         st.Format=obj.Format;
         end
         function tps=getTimePointsInSec(obj)
-            ts=obj.getTimeSeries;
-            tps=ts.Time;
+            tps=0:(1/obj.SampleRate):((obj.NumberOfPoints-1)/obj.SampleRate);
         end
     end
     methods (Access=private)

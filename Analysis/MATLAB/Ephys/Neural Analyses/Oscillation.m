@@ -63,6 +63,13 @@ classdef (Abstract) Oscillation
             [S,f] = mtspectrumc( obj.voltageArray, params );
             ps=PowerSpectrum(S,f);
         end
+        function specslope=getPSpectrumSlope(obj)
+            LFP.data=obj.voltageArray;
+            LFP.timestamps=obj.getTime;
+            LFP.samplingRate=obj.getSamplingRate;
+            [specslope,~] = bz_PowerSpectrumSlope(LFP,3,1,...
+                'frange',[4 250],'nfreqs',250,'showfig',false);
+        end
         function obj=getWhitened_Obsolete(obj, fraquencyRange)
             Fs=obj.samplingRate;
             x=obj.voltageArray;

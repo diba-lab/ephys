@@ -8,6 +8,7 @@ classdef PowerSpectrum <TimeFrequencyEnhance
         InfoNum
         InfoName
         SignalLenght
+        Slope
     end
     
     methods
@@ -60,7 +61,6 @@ classdef PowerSpectrum <TimeFrequencyEnhance
                 ax.YLim=ylim;
             catch
             end
-            
             grid on
             xlabel('Frequency (Hz)')
             ylabel('Power Spectrum (dB)')
@@ -72,6 +72,9 @@ classdef PowerSpectrum <TimeFrequencyEnhance
         end
         function obj=setSignalLength(obj,proportion)
             obj.SignalLenght=proportion;
+        end
+        function obj=addPowerSpectrumSlope(obj,powerSpectrumSlope)
+            obj.Slope=powerSpectrumSlope;
         end
         function [str]=print(obj)
             fprintf('%d, %s\n',obj.InfoNum, obj.InfoName);
