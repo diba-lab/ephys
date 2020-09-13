@@ -98,27 +98,33 @@ classdef TimeIntervalCombined
                 time=obj.convertDurationToDatetime(time);
             end
             time.Second=floor(time.Second);
-            if time>=obj.getStartTime && time<=obj.getEndTime
-                til= obj.timeIntervalList;
-                for iInt=1:til.length
-                    theTimeInterval=til.get(iInt);
-                    if time>=theTimeInterval.StartTime
-                        if time<=theTimeInterval.getEndTime
-                            sample=theTimeInterval.getSampleFor(time)+lastSample;
-                            return
-                        end
-                    else
-                        sample=1+lastSample;
+            if time<obj.getStartTime
+                warning('Given time(%s) is earlier then record start(%s).\n',...
+                    time,obj.getStartTime);
+                time=obj.getStartTime;
+            elseif time>obj.getEndTime
+                warning('Given time(%s) is later then record end(%s).\n',...
+                    time,obj.getEndTime);
+                time=obj.getEndTime;
+            end
+            
+            
+            til= obj.timeIntervalList;
+            for iInt=1:til.length
+                theTimeInterval=til.get(iInt);
+                if time>=theTimeInterval.StartTime
+                    if time<=theTimeInterval.getEndTime
+                        sample=theTimeInterval.getSampleFor(time)+lastSample;
                         return
                     end
-                    
-                    lastSample=lastSample+theTimeInterval.NumberOfPoints;
+                else
+                    sample=1+lastSample;
+                    return
                 end
-            else
-                time=datetime('today');
-                time.Format=obj.Format;
-                warning('Sample is not in the TimeInterval -- should be between\n\t%d -- %d\nReturned ''%s''',1,obj.getNumberOfPoints,datestr(time));
+                
+                lastSample=lastSample+theTimeInterval.NumberOfPoints;
             end
+           
         end
         
         function time=getEndTime(obj)
@@ -190,6 +196,31 @@ classdef TimeIntervalCombined
                 else
                     tps=tp;
                 end
+            end
+%             tps(end)=[];
+        end
+        function arrnew=adjustTimestampsAsIfNotInterrupted(obj,arr)
+            arrnew=arr;
+            til= obj.timeIntervalList;
+            st=obj.getStartTime;
+            for iAdj=1:til.length
+                theTimeInterval=til.get(iAdj);
+                tistart=theTimeInterval.getStartTime;
+                
+                if iAdj==1
+                    sample(iAdj).adj=0;
+                    sample(iAdj).begin=1;
+                    sample(iAdj).end=theTimeInterval.NumberOfPoints;
+                else
+                    tiprev=til.get(iAdj-1);
+                    adjustinthis=seconds(theTimeInterval.getStartTime-tiprev.getEndTime)*...
+                        obj.getSampleRate;
+                    sample(iAdj).adj=sample(iAdj-1).adj+adjustinthis;
+                    sample(iAdj).begin=sample(iAdj-1).end+1;
+                    sample(iAdj).end=sample(iAdj).begin+theTimeInterval.NumberOfPoints;
+                end
+                idx=(arr>=sample(iAdj).begin)&(arr<=sample(iAdj).end);
+                arrnew(idx)=arr(idx) + sample(iAdj).adj;
             end
 %             tps(end)=[];
         end

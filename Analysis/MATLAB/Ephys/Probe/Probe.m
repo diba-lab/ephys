@@ -13,7 +13,7 @@ classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope & Persist
         function newobj = Probe(probeFile)
             %PROBE Construct an instance of this class
             %   Detailed explanation goes here
-            newobj=newobj@Persist(probeFile);
+%             newobj=newobj@Persist(probeFile);
             T=load(probeFile);
             fnames=fieldnames(T);
             lay =T.(fnames{1});
@@ -147,7 +147,7 @@ classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope & Persist
     end
     %%abstract
     methods
-        function save(obj)
+        function saveObject(obj)
             obj.saveProbeTable(obj.FileLocation)
         end
     end

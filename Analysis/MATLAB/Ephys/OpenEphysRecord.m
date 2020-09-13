@@ -4,7 +4,7 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
     
     properties (Access = protected)
         Data
-        Timestamps
+        TimeInterval
         Header
         FileLoaderMethod
         Events
@@ -40,12 +40,11 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
         function channel=getChannel(obj,chan)
             D = obj.Data;
             dat = double(D.Data.mapped(chan,:));
-            channel = Channel(num2str(chan), dat, obj.getTimestamps.Time,...
-                obj.getTimestamps.timeInfo.StartDate);
+            channel = Channel(num2str(chan), dat, obj.getTimeInterval);
         end
-        
+%%%% THIS PART WILL BE UPDATED!        
         function combined=getTimeWindow(obj, timeWindow)
-            ts=obj.getTimestamps.time;
+            ts=obj.getTimeInterval;
             if nargin<2
                 timeWindow=[ts(1) ts(end)];
             end
@@ -69,7 +68,7 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
             end
             combined=ChannelTimeData(tsc);
         end
-        
+%%%%%%        
         function newOpenEphysRecordsCombined = plus(obj,recordToAdd)
             newOpenEphysRecordsCombined=OpenEphysRecordsCombined(obj,recordToAdd);
         end
@@ -99,63 +98,64 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
             events=obj.Events;
         end
         function evttbl = getEventTable(obj)
-            tsc=obj.getTimestamps;
-            ts=tsc.IsActive;
-            evts=ts.Events;
-            evttbl=[];
-            iievt=0;
-            for ievt=1:numel(evts)
-                iievt=iievt+1;
-                evt=evts(ievt);
-                dif1=datetime(evt.StartDate)-ts.TimeInfo.StartDate;
-                try
-                    evttbl(iievt,:)=[1, seconds(seconds(evt.Time)+dif1)]; %#ok<AGROW>
-                catch
-                    warning('unknow key.')
-                end
-            end
+% UPDATE IT!
+            %             tsc=obj.getTimestamps;
+%             ts=tsc.IsActive;
+%             evts=ts.Events;
+%             evttbl=[];
+%             iievt=0;
+%             for ievt=1:numel(evts)
+%                 iievt=iievt+1;
+%                 evt=evts(ievt);
+%                 dif1=datetime(evt.StartDate)-ts.TimeInfo.StartDate;
+%                 try
+%                     evttbl(iievt,:)=[1, seconds(seconds(evt.Time)+dif1)]; %#ok<AGROW>
+%                 catch
+%                     warning('unknow key.')
+%                 end
+%             end
         end
         function obj = addEvents(obj,evts)
-            obj.Events=[obj.Events evts];
-            try
-                tsc=obj.getTimestamps;
-                tsnames=tsc.gettimeseriesnames;
-                if numel(tsnames)<1
-                    ts=timeseries(true(numel(tsc.Time),1),tsc.Time,'Name','IsActive');
-                    ts.TimeInfo.StartDate=tsc.TimeInfo.StartDate;
-                else
-                    ts= tsc.(tsnames{1});
-                    tsc=tsc.removets(tsnames{1});
-                end
-                for ievent=1:numel(evts)
-                    evt=evts(ievent);
-                    evtTime=datetime(evt.StartDate)+seconds(evt.Time);
-                    biggerThanBegin=evtTime>=(seconds(ts.Time(1))+ts.TimeInfo.StartDate);
-                    smallerThanEnd=evtTime<=(seconds(ts.Time(end))+ts.TimeInfo.StartDate);
-                    inThisRecord=biggerThanBegin&&smallerThanEnd;
-                    if inThisRecord
-                        ts=ts.addevent(evt);
-                    else
-%                         warning(['Event cannot be added ' evt.Name ' ' evt.getTimeStr{:}]);
-                    end
-                end
-                tsc=tsc.addts(ts);
-                obj=obj.setTimestamps(tsc);
-            catch
-            end
+%             obj.Events=[obj.Events evts];
+%             try
+%                 tsc=obj.getTimestamps;
+%                 tsnames=tsc.gettimeseriesnames;
+%                 if numel(tsnames)<1
+%                     ts=timeseries(true(numel(tsc.Time),1),tsc.Time,'Name','IsActive');
+%                     ts.TimeInfo.StartDate=tsc.TimeInfo.StartDate;
+%                 else
+%                     ts= tsc.(tsnames{1});
+%                     tsc=tsc.removets(tsnames{1});
+%                 end
+%                 for ievent=1:numel(evts)
+%                     evt=evts(ievent);
+%                     evtTime=datetime(evt.StartDate)+seconds(evt.Time);
+%                     biggerThanBegin=evtTime>=(seconds(ts.Time(1))+ts.TimeInfo.StartDate);
+%                     smallerThanEnd=evtTime<=(seconds(ts.Time(end))+ts.TimeInfo.StartDate);
+%                     inThisRecord=biggerThanBegin&&smallerThanEnd;
+%                     if inThisRecord
+%                         ts=ts.addevent(evt);
+%                     else
+% %                         warning(['Event cannot be added ' evt.Name ' ' evt.getTimeStr{:}]);
+%                     end
+%                 end
+%                 tsc=tsc.addts(ts);
+%                 obj=obj.setTimestamps(tsc);
+%             catch
+%             end
         end
         function ts = getTimeline(obj)
-            ts=obj.getTimestamps;
-            step=diff([ts.Time(1) ts.Time(end)])/numel(ts.Time);
-            newtime=linspace(ts.Time(1),ts.Time(end),1000);
-            ts=ts.resample(newtime);
-            try
-                ts=ts.addsample('Data',false,'Time',ts.Time(1)-step);
-            catch
-                ts=ts.IsActive;
-                ts=ts.addsample('Data',false,'Time',ts.Time(1)-step);
-            end
-            ts=ts.addsample('Data',false,'Time',ts.Time(end)+step);
+%             ts=obj.getTimestamps;
+%             step=diff([ts.Time(1) ts.Time(end)])/numel(ts.Time);
+%             newtime=linspace(ts.Time(1),ts.Time(end),1000);
+%             ts=ts.resample(newtime);
+%             try
+%                 ts=ts.addsample('Data',false,'Time',ts.Time(1)-step);
+%             catch
+%                 ts=ts.IsActive;
+%                 ts=ts.addsample('Data',false,'Time',ts.Time(1)-step);
+%             end
+%             ts=ts.addsample('Data',false,'Time',ts.Time(end)+step);
         end
         function data=getData(obj)
             data=obj.Data;
@@ -183,24 +183,20 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
         end
         
         function st=getRecordStartTime(obj)
-            ts=obj.Timestamps;
-            st=ts.TimeInfo.StartDate;
+%             ts=obj.Timestamps;
+%             st=ts.TimeInfo.StartDate;
         end
         function st=getRecordEndTime(obj)
-            timeInfo=obj.Timestamps.TimeInfo;
-            st=timeInfo.StartDate+seconds(timeInfo.end);
+%             timeInfo=obj.Timestamps.TimeInfo;
+%             st=timeInfo.StartDate+seconds(timeInfo.end);
         end
         
-        function ts=getTimestamps(obj)
-            ts=obj.Timestamps;
-        end
         function ti=getTimeInterval(obj)
-            ti=TimeInterval(obj.getRecordStartTime, ...
-                obj.getSampleRate,numel(obj.getTimestamps.time));
+            ti=obj.TimeInterval;
         end
         
-        function obj=setTimestamps(obj,timestamps)
-            obj.Timestamps=timestamps;
+        function obj=setTimeInterval(obj,timeinterval)
+            obj.TimeInterval=timeinterval;
         end
         
         function flm=getFileLoaderMethod(obj)

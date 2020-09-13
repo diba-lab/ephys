@@ -3,17 +3,23 @@ classdef (Abstract) Persist
     %   Detailed explanation goes here
     
     properties
-        FileLocation
+        
     end
     methods (Abstract)
-        save(obj)
+        saveObject(obj,location)
     end
     methods
-        function obj = Persist(fileLocation)
+        function obj = Persist()
             %PERSIST Construct an instance of this class
             %   Detailed explanation goes here
-            obj.FileLocation=fileLocation;
-        end      
+        end
+        function saveBasedOn(obj,data,folder)
+            str=DataHash(data);
+            if ~isfolder(fullfile(folder,'cache'))
+                mkdir(fullfile(folder,'cache'));
+            end
+            save(fullfile(folder,'cache',str),'obj');   
+        end
     end
 end
 
