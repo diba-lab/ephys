@@ -6,59 +6,55 @@ classdef ChannelTimeData
         Probe
         TimeIntervalCombined
         Data
-        folder
+        Filepath
     end
     
     methods
         function newObj = ChannelTimeData(filepath)
             [folder,~,~]=fileparts(filepath);
-            lfpfile=dir(fullfile(folder,'*.lfp'));
+            exts={'.lfp','.eeg','.dat'};
+            for iext=1:numel(exts)
+                theext=exts{iext};
+                thefile=dir(fullfile(folder,['*' theext]));
+                if numel(thefile)>0
+                    break
+                end
+            end
             probefile=dir(fullfile(folder,'*Probe*'));
             probe=Probe(fullfile(probefile.folder,probefile.name));
             chans=probe.getActiveChannels;
             numberOfChannels=numel(chans);
             newObj.Probe=probe;
-            samples=lfpfile.bytes/2/numberOfChannels;
-            newObj.Data=memmapfile(fullfile(lfpfile.folder,lfpfile.name),...
+            samples=thefile.bytes/2/numberOfChannels;
+            newObj.Data=memmapfile(fullfile(thefile.folder,thefile.name),...
                 'Format',{'int16' [numberOfChannels samples] 'mapped'});
             timeFile=dir(fullfile(folder,'*TimeInterval*'));
             s=load(fullfile(timeFile.folder,timeFile.name));
             fnames=fieldnames(s);
             newObj.TimeIntervalCombined=s.(fnames{1});
-            newObj.folder=folder;
+            newObj.Filepath=newObj.Data.Filename;
         end
         
-        %         function newobj = getChannels(obj,channelNames)
-        %             tsc=obj.TimeseriesCollection;
-        %             channels=tsc.gettimeseriesnames;
-        %             try
-        %                 [~,Locb]=ismember(channelNames,channels);
-        %             catch
-        %                 channels=cell2mat(cellfun(@(x) str2double(x(3:end)),...
-        %                     channels,'UniformOutput',false));
-        %                 [~,Locb]=ismember(channelNames,channels);
-        %             end
-        %             channelstoRemove=tsc.gettimeseriesnames;
-        %             channelstoRemove(Locb)=[];
-        %             newtsc=tsc.removets(channelstoRemove);
-        %             newobj=ChannelTimeData(newtsc);
-        %             if numel(Locb)==1
-        %                 newobj=Channel(channelNames,...
-        %                     squeeze(newobj.TimeseriesCollection.(channelNames).Data)',...
-        %                     obj.TimeseriesCollection.Time,...
-        %                     obj.TimeseriesCollection.TimeInfo.StartDate);
-        %             end
-        %         end
+        function newobj = getChannel(obj,channelNames)
+            ticd=obj.getTimeIntervalCombined;
+            probe=obj.Probe;
+            channelList=probe.getActiveChannels;
+            data=obj.Data;
+           
+        end
         function newobj = getDownSampled(obj, newRate, newFolder)
+            if nargin>2
+            else
+                newFolder=fileparts(obj.Filepath);
+            end
             ticd=obj.TimeIntervalCombined;
             currentRate=ticd.getSampleRate;
             probe=obj.Probe;
             chans=probe.getActiveChannels;
             numberOfChannels=numel(chans);
-            currentFolder=obj.folder;
-            list=dir(fullfile(currentFolder,'*.lfp'));
-            currentFileName=fullfile(list.folder,list.name);
-            [~,name,ext]=fileparts(list.name);
+            currentFileName=obj.Filepath;
+            [~,name,~]=fileparts(currentFileName);
+            ext='.lfp';
             newFileName=fullfile(newFolder,...
                 sprintf('%s',name),...
                 sprintf('%s%s',name,ext));
@@ -105,7 +101,10 @@ classdef ChannelTimeData
         %             end
         %         end
         function out=getFolder(obj)
-            out=obj.folder;
+            out=fileparts(obj.Filepath);
+        end
+        function out=getFilepath(obj)
+            out=obj.Filepath;
         end
         function out=getData(obj)
             out=obj.Data;
