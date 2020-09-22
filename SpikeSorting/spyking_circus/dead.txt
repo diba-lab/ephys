@@ -1,0 +1,10 @@
+// myartefact.dead
+// Exclude 500 ms every 1000 ms from t=0 until t=10 seg
+// times are given in 'ms' (set dead_unit = 'ms' in [triggers]
+// columns: t_start t_stop
+31980000 31990000
+32104000 32140000
+32226000 32236000
+32453700 32497800
+
+
