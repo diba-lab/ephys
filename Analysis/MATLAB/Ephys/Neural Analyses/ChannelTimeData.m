@@ -1,4 +1,4 @@
-classdef ChannelTimeData
+classdef ChannelTimeData < BinarySave
     %COMBINEDCHANNELS Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -29,18 +29,35 @@ classdef ChannelTimeData
             newObj.Data=memmapfile(fullfile(thefile.folder,thefile.name),...
                 'Format',{'int16' [numberOfChannels samples] 'mapped'});
             timeFile=dir(fullfile(folder,'*TimeInterval*'));
-            s=load(fullfile(timeFile.folder,timeFile.name));
-            fnames=fieldnames(s);
-            newObj.TimeIntervalCombined=s.(fnames{1});
+            try
+                s=load(fullfile(timeFile.folder,timeFile.name));
+                fnames=fieldnames(s);
+                newObj.TimeIntervalCombined=s.(fnames{1});
+            catch
+                numberOfPoints=samples;
+                prompt = {'Start DateTime:','SampleRate:'};
+                dlgtitle = 'Input';
+                dims = [1 35];
+                definput = {'11-Aug-2011 11:11:11','1250'};
+                answer = inputdlg(prompt,dlgtitle,dims,definput);
+                startTime=datetime(answer{1},'InputFormat','dd-MMM-yyyy HH:mm:ss');
+                sampleRate=str2num(answer{2});
+                ti=TimeInterval(startTime, sampleRate, numberOfPoints);
+                ticd=TimeIntervalCombined(ti);
+                newObj.TimeIntervalCombined=ticd;
+            end
             newObj.Filepath=newObj.Data.Filename;
         end
         
-        function newobj = getChannel(obj,channelNames)
+        function ch = getChannel(obj,channelNumber)
             ticd=obj.getTimeIntervalCombined;
             probe=obj.Probe;
             channelList=probe.getActiveChannels;
-            data=obj.Data;
-           
+            index=channelList==channelNumber;
+            datamemmapfile=obj.Data;
+            datamat=datamemmapfile.Data;
+            voltageArray=datamat.mapped(index,:);
+            ch=Channel(channelNumber,voltageArray,ticd);
         end
         function newobj = getDownSampled(obj, newRate, newFolder)
             if nargin>2

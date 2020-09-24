@@ -2,58 +2,52 @@ classdef Channel < Oscillation
     %CHANNEL Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (Access=private)
+    properties (Access=protected)
         ChannelName
-        StartTime
+        TimeIntervalCombined
     end
     
     methods
-        function obj = Channel(channelname, voltageArray, time, startTime)
+        function obj = Channel(channelname, voltageArray, timeIntervalCombined)
             %CHANNEL Construct an instance of this class
             %   Detailed explanation goes here
-        obj@Oscillation(voltageArray, time);
+        obj@Oscillation(voltageArray, timeIntervalCombined.getSampleRate);
         obj.ChannelName=channelname;
-        if nargin>3 
-            obj.StartTime=startTime;
-        else
-            obj.StartTime=0;
-        end
+        obj.TimeIntervalCombined=timeIntervalCombined;
         fprintf(...
-            'New Channel %s, lenght %d, begin:end  %.0fs:%.0fs, %dHz, %15s\n',...
-            obj.ChannelName,numel(obj.getVoltageArray),time(1),time(end),...
-            obj.getSamplingRate,datestr(obj.getStartTime))
-        end
-        function obj=setStartTime(obj,startTime)
-            obj.StartTime=startTime;
+            'New Channel %d, lenght %d, %s -- %s, %dHz\n',...
+            obj.ChannelName,numel(obj.getVoltageArray),...
+            datestr(timeIntervalCombined.getStartTime),...
+            datestr(timeIntervalCombined.getEndTime),...
+            obj.sampleRate)
         end
         function chan=getChannelName(obj)
             chan=obj.ChannelName;
         end
-        function Num=getChannelNumber(obj)
-            B=regexp(obj.ChannelName,'\d*','Match');
-            for ii= 1:length(B)
-                if ~isempty(B{ii})
-                    Num(ii,1)=str2double(B{ii});
-                else
-                    Num(ii,1)=NaN;
-                end
-            end
+        function st=getTimeIntervalCombined(obj)
+            st=obj.TimeIntervalCombined;
         end
-        function st=getStartTime(obj)
-            st=obj.StartTime;
+
+        function obj=getTimeWindowForAbsoluteTime(obj,window)
+            ticd=obj.TimeIntervalCombined;
+            [h,m,s]=hms(ticd.getStartTime);
+            basetime=ticd.getStartTime-hours(h)-minutes(m)-seconds(s);
+            time.start=basetime+window(1);
+            time.end=basetime+window(2);
+            sample.start=ticd.getSampleFor(time.start);
+            sample.end=ticd.getSampleFor(time.end);
+            obj.voltageArray=obj.voltageArray(sample.start:sample.end);
+            
         end
+
         function plot(obj,varargin)
-            t=seconds(obj.time)+obj.StartTime;
-            p1=plot(t,obj.voltageArray,varargin{:});
-            ax=gca;
-            ax.XLim=[t(1) t(end)];
-            STD=std(obj.voltageArray);
-            ax.YLim=[-STD STD]*10;
-        end
-        function ts=getTimeSeries(obj)
-            ts=timeseries(obj.getVoltageArray,obj.getTime);
-            ts.TimeInfo.StartDate=obj.getStartTime;  
-            ts.TimeInfo.Format=TimeFactory.getHHMMSS;
+            va=obj.getVoltageArray;
+            t=obj.TimeIntervalCombined;
+            t_s=t.getTimePointsInSec;
+            diff1=numel(t_s)-numel(va);
+            va((numel(va)+1):(numel(va)+diff1))=zeros(diff1,1);
+            t_s=t.getStartTime+seconds(t_s);
+            plot(t_s,va);
         end
     end
 end

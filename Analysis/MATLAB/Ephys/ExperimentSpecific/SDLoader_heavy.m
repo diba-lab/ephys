@@ -1,9 +1,7 @@
 classdef SDLoader_heavy < SDLoader
     %SDLOADER Summary of this class goes here
     %   Detailed explanation goes here
-    
     properties(Access = private)
-        
     end
     methods(Access = private)
         % Guard the constructor against external invocation.  We only want
@@ -14,7 +12,6 @@ classdef SDLoader_heavy < SDLoader
             newObj.datafolder='/data2/gdrive/ephys/AG/Day04_NSD';
         end
     end
-    
     methods(Static)
         % Concrete implementation.  See Singleton superclass.
         function obj = instance()
@@ -120,7 +117,5 @@ classdef SDLoader_heavy < SDLoader
             obj.activeWorkspaceFile=...
                 '/data/EphysAnalysis/SleepDeprivationData/RAT_04_AF/Day02_NSD';
         end
-        
     end
 end
-

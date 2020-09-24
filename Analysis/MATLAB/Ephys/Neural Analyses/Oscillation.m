@@ -1,58 +1,41 @@
 classdef (Abstract) Oscillation
     %OSCILLATION Summary of this class goes here
     %   Detailed explanation goes here
-    
     properties (Access=protected)
-        time
         voltageArray
-        samplingRate
+        sampleRate
     end
-    
     methods
-        function obj = Oscillation(voltageArray, time)
+        function obj = Oscillation(voltageArray, sampleRate)
             %OSCILLATION Construct an instance of this class
             %   Detailed explanation goes here
-            obj.time=time;
-            obj.voltageArray=voltageArray;
-            if numel(time)~=numel(voltageArray)
-                error('Sample sizes are different in \n\tvoltageArray(%d) and time(%d)\n',...
-                    numel(voltageArray),numel(time));
+            obj.sampleRate=sampleRate;
+            if ~isa(voltageArray,'double')
+                obj.voltageArray=double(voltageArray);
+            else
+                obj.voltageArray=voltageArray;
             end
-            obj.samplingRate=mode(1./diff(time(2:1000)));
         end
-        
         function timeFrequencyMap = getTimeFrequencyMap(obj,...
                 timeFrequencyMethod)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             timeFrequencyMap=timeFrequencyMethod.execute(...
-                obj.voltageArray, seconds(obj.time)+obj.getStartTime);
-            try
-                downsamplefactor=round(numel(obj.time)/numel(timeFrequencyMap.timePoints));
-                tps=seconds(downsample(obj.time,downsamplefactor,downsamplefactor/2))+obj.getStartTime;
-                timeFrequencyMap=timeFrequencyMap.setTimePoints(tps(1:numel(timeFrequencyMap.timePoints)));
-            catch
-            end
+                obj.voltageArray, obj.getSampleRate);
         end
-        
         function p1=plot(obj,varargin)
             p1=plot(obj.time,obj.voltageArray,varargin{:});
             ax=gca;
             ax.XLim=[obj.time(1) obj.time(end)];
         end
-        
-        function obj=setTime(obj,time)
-            obj.time=time;
-        end
-        function theChan=getDownSampled(obj,newRate)
-            rate=obj.getSamplingRate/newRate;
-            downsampledVA=downsample(obj.getVoltageArray,rate);
-            downsampledtime=downsample(obj.getTime,rate);
-            theChan=Channel(obj.getChannelName,downsampledVA,downsampledtime,...
-                obj.getStartTime);
+
+        function obj=getDownSampled(obj,newRate)
+            rate=obj.sampleRate/newRate;
+            obj.voltageArray=downsample(obj.getVoltageArray,rate);
+            obj.sampleRate=newRate;
         end
         function ps=getPSpectrum(obj)
-            [pxx,f] = pspectrum(obj.voltageArray,obj.getSamplingRate,...
+            [pxx,f] = pspectrum(double(obj.voltageArray),obj.getSampleRate,...
                 'FrequencyLimits',[1 250]);
             ps=PowerSpectrum(pxx,f);
         end
@@ -84,14 +67,6 @@ classdef (Abstract) Oscillation
         function obj=getWhitened(obj)
             obj.voltageArray = reshape(WhitenSignal(obj.voltageArray,[],1),size(obj.voltageArray));
         end
-        function time=getTime(obj)
-            time = obj.time;
-        end
-        function newobj=getTimePoints(obj,timePoints)
-            newobj = obj;
-            newobj.time=obj.time(timePoints);
-            newobj.voltageArray=obj.voltageArray(timePoints);
-        end
         function obj=getLowpassFiltered(obj,filterFreq)
             obj.voltageArray=ft_preproc_lowpassfilter(...
                 obj.voltageArray,obj.samplingRate,filterFreq);
@@ -103,15 +78,12 @@ classdef (Abstract) Oscillation
         function time=getVoltageArray(obj)
             time = obj.voltageArray;
         end
-        function time=getSamplingRate(obj)
-            time = obj.samplingRate;
+        function time=getSampleRate(obj)
+            time = obj.sampleRate;
         end
-        function obj=setSamplingRate(obj,newrate)
-            obj.samplingRate=newrate;
+        function obj=setSampleRate(obj,newrate)
+            obj.sampleRate=newrate;
         end
-        
-        
     end
-    
 end
 
