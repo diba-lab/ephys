@@ -13,19 +13,16 @@ classdef TimeFrequencyMapChronuxMtspecgramc < TimeFrequencyMap
         function imsc = plot(obj,ax,clim)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes her  e
-            adj=obj.getTimePointsAdjusted;
-            
-            if ~exist('ax','var')
+            if ~exist('ax','var')||isempty('ax')
                 ax=gca;
             end
-            if ~exist('clim','var')
-                imsc=imagesc(ax,minutes(adj.timePoints-adj.timePoints(1)),...
-                adj.frequencyPoints,10*log10( abs(adj.matrix')));
+            imsc=imagesc(ax,hours(seconds(obj.timePoints-obj.timePoints(1))),...
+                obj.frequencyPoints,10*log10( abs(obj.matrix')));
+            if ~exist('clim','var')||isempty('clim')
             else
-                imsc=imagesc(ax,seconds(adj.timePoints-adj.timePoints(1)),...
-                adj.frequencyPoints,10*log10( abs(adj.matrix')),clim);
+                ax.CLim=clim;
             end
-            ax.XLabel.String='Time (minutes)';
+            ax.XLabel.String='Time (hours)';
             ax.YLabel.String='Frequency';
             colormap('copper');
             cb=colorbar;
@@ -33,7 +30,7 @@ classdef TimeFrequencyMapChronuxMtspecgramc < TimeFrequencyMap
             ax.YDir='normal';
         end
     end
-    methods (Access=private)
+    methods (Access=public)
         function new=getTimePointsAdjusted(obj)
             sampleRate=mode(seconds(diff(obj.timePoints)));
             tps=obj.timePoints;
@@ -48,7 +45,7 @@ classdef TimeFrequencyMapChronuxMtspecgramc < TimeFrequencyMap
                 [minValue,closestIndex]=min(abs(tps-tp));
                 if seconds(minValue)<1
                     newmat(itp,:) = mat(closestIndex,:);
-                else 
+                else
                 end
                 itp=itp+1;
             end

@@ -11,7 +11,17 @@ classdef ChannelTimeData < BinarySave
     
     methods
         function newObj = ChannelTimeData(filepath)
-            [folder,~,~]=fileparts(filepath);
+            if ~exist('filepath','var')
+                defpath='/data/EphysAnalysis/SleepDeprivationData/';
+                defpath1={'*.eeg;*.lfp;*.dat;*.mat','Binary Record Files (*.eeg,*.lfp,*.dat)'};
+                title='Select basepath';
+                [file,filepath,~] = uigetfile(defpath1, title, defpath,'MultiSelect', 'off');
+            end
+            if isfolder(filepath)
+                folder=filepath;
+            else
+                [folder,~,~]=fileparts(filepath);
+            end
             exts={'.lfp','.eeg','.dat'};
             for iext=1:numel(exts)
                 theext=exts{iext};

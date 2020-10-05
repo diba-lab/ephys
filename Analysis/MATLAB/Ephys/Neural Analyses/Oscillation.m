@@ -20,8 +20,14 @@ classdef (Abstract) Oscillation
                 timeFrequencyMethod)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            [ticd1, res]=obj.getTimeIntervalCombined.getDownsampled(...
+                obj.getTimeIntervalCombined.getSampleRate/...
+                timeFrequencyMethod.movingWindow(2));
+            obj.voltageArray(res)=[];
             timeFrequencyMap=timeFrequencyMethod.execute(...
                 obj.voltageArray, obj.getSampleRate);
+            t=ticd1.getTimePointsInSec;
+            timeFrequencyMap.timePoints=t(1:numel(timeFrequencyMap.timePoints));
         end
         function p1=plot(obj,varargin)
             p1=plot(obj.time,obj.voltageArray,varargin{:});
@@ -41,15 +47,15 @@ classdef (Abstract) Oscillation
         end
         function ps=getPSpectrumChronux(obj)
 %             params.tapers=[3 5];
-            params.Fs=obj.getSamplingRate;
+            params.Fs=obj.getSampleRate;
             params.fpass=[1 250];
             [S,f] = mtspectrumc( obj.voltageArray, params );
             ps=PowerSpectrum(S,f);
         end
         function specslope=getPSpectrumSlope(obj)
             LFP.data=obj.voltageArray;
-            LFP.timestamps=obj.getTime;
-            LFP.samplingRate=obj.getSamplingRate;
+            LFP.timestamps=obj.get;
+            LFP.samplingRate=obj.getSampleRate;
             [specslope,~] = bz_PowerSpectrumSlope(LFP,3,1,...
                 'frange',[4 250],'nfreqs',250,'showfig',false);
         end
@@ -80,6 +86,10 @@ classdef (Abstract) Oscillation
         end
         function time=getSampleRate(obj)
             time = obj.sampleRate;
+        end
+        function obj=getIdxPoints(obj,idx)
+            va = obj.voltageArray;
+            obj.voltageArray=va(idx);
         end
         function obj=setSampleRate(obj,newrate)
             obj.sampleRate=newrate;
