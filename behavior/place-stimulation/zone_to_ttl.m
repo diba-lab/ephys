@@ -19,6 +19,7 @@ global SR
 global a
 global on_minutes  % Marker for on and minutes
 global hl
+global hlcart
 D2value = 0; D4value = 0;
 zone_sum = 0;
 
@@ -38,14 +39,14 @@ SR = 20; %Hz
 % Construct pos vector to keep track of last 0.25 seconds
 nquarter = ceil(SR/4); % #samples in a quarter second
 pos = repmat([0 0 -500], nquarter, 1); % Start pos with z-position waaaay off
-pos_opti = [];
+pos_opti = [nan, nan, nan];
 pos_lin = [nan; nan];
 time_opti = [];
 time_mat = [];
 trig_on = [0; 0];
 on_minutes = [false; false];
 
-% Make sure track is aligned with z axis in optitrack calibration first!
+% Make sure track is aligned with z axis (long side of ground plane L) in optitrack calibration first!
 % Connect to optitrack
 trackobj = natnet;
 trackobj.connect;
@@ -75,13 +76,16 @@ if ~debug
 end
 
 % set up window sanity check
-hf = figure; set(gcf,'Position', [250 500 1100 430]); ax = subplot(1,2,1);
+hf = figure; set(gcf,'Position', [250 500 1780 430]); ax = subplot(1,3,1);
 imagesc(ax, 1);
 colormap(ax,[1 0 0])
 ht = text(ax, 1, 1, 'OFF', 'FontSize', 50, 'HorizontalAlignment', 'center');
-subplot(1,2,2);
-hl = plot(pos_lin); hold on;
+subplot(1,3,2); hold on; title('Linear Position');
+hl = plot(pos_lin);
 hl(2) = plot(pos_lin,'r.');
+subplot(1,3,3); hold on; title('Z Cartesian Position');
+hlcart = plot(pos_opti(:,3));
+hlcart(2) = plot(pos_opti(:,3),'r.');
 
 % Make aware running in DEBUG mode, set arduino object to nan.
 if debug
@@ -148,18 +152,40 @@ clear a
 
 end
 
+%% Code to write a digital pin with error catching in case arduino not connected
+function [] = writePinsafe(pin, pinvalue)
+
+global a
+
+try
+    writeDigitalPin(a,pin,pinvalue);
+catch ME
+    if ~strcmpi(ME.identifier, 'MATLAB:UndefinedFunction')
+        rethrow(ME)
+    end
+end
+
+end
+
 %% Start minute marker - turns on on even minutes and off on odd minutes
 function [] = minute_marker()
 global a
 global D4value
 
-if D4value == 0
-    D4value = 1;
-elseif D4value == 1
-    D4value = 0;
+try
+    if D4value == 0
+        D4value = 1;
+    elseif D4value == 1
+        D4value = 0;
+    end
+    
+%     writeDigitalPin(a,'D4',D4value);
+    writePinsafe('D4', D4value);
+catch ME
+    if ~strcmpi(ME.identifier, 'MATLAB:UndefinedFunction')
+        rethrow(ME)
+    end
 end
-
-writeDigitalPin(a,'D4',D4value);
 
 end
 
@@ -168,7 +194,9 @@ function [] = send_start()
 global a
 global D4value
 D4value = 1;
-writeDigitalPin(a,'D4',D4value);
+
+% writeDigitalPin(a,'D4',D4value);
+writePinsafe('D4', D4value);
 
 
 end
@@ -190,7 +218,9 @@ if D4value == 1
 elseif D4value == 0
     D4value = 1;
 end
-writeDigitalPin(a,'D4',D4value);
+
+% writeDigitalPin(a,'D4',D4value);
+writePinsafe('D4',D4value);
 
 % Should give decent idea of when you stopped things...
 save(save_loc, 'time_opti', 'time_mat', 'pos_lin', 'pos_opti', 'trig_on', ...
@@ -286,8 +316,10 @@ function [] = trigger_on(ax, ht, pos_curr)
 global D2value
 global a
 global pos_lin
+global pos_opti
 global trig_on
 global hl
+global hlcart
 D2value = 1;
 % text_append = '';
 
@@ -298,8 +330,10 @@ else
 end
 
 if isobject(a)
-    writeDigitalPin(a,'D2',0) % OCSlite1 only seems to trigger when it detects an off->on tranisition
-    writeDigitalPin(a,'D2',D2value)
+%     writeDigitalPin(a,'D2',0) % OCSlite1 only seems to trigger when it detects an off->on tranisition
+%     writeDigitalPin(a,'D2',D2value)
+    writePinsafe('D2',0);
+    writePinsafe('D2', D2value);
 end
 text_append = ['-' num2str(pos_use, '%0.2g')];
 
@@ -309,6 +343,10 @@ hl(1).YData = pos_lin;
 hl(2).XData = find(trig_on == 1);
 hl(2).YData = pos_lin(trig_on == 1);
 
+hlcart(1).YData = pos_opti(:,3);
+hlcart(2).XData = find(trig_on == 1);
+hlcart(2).YData = pos_opti(trig_on == 1, 3);
+
 end
 
 %% Turn off LED/screen
@@ -317,7 +355,9 @@ function [] = trigger_off(ax, ht, pos_curr)
 global D2value
 global a
 global hl
+global hlcart
 global pos_lin
+global pos_opti
 global trig_on
 D2value = 0;
 % text_append = '';
@@ -329,7 +369,8 @@ else
 end
 
 if isobject(a)
-    writeDigitalPin(a,'D2',D2value)
+%     writeDigitalPin(a,'D2',D2value)
+    writePinsafe('D2',D2value);
 end
 text_append = ['-' num2str(pos_use, '%0.2g')];
 
@@ -338,6 +379,11 @@ ht.String = ['OFF' text_append];
 hl(1).YData = pos_lin;
 hl(2).XData = find(trig_on == 1);
 hl(2).YData = pos_lin(trig_on == 1);
+
+hlcart(1).YData = pos_opti(:,3);
+hlcart(2).XData = find(trig_on == 1);
+hlcart(2).YData = pos_opti(trig_on == 1, 3);
+
 
 end
 
