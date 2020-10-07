@@ -48,14 +48,25 @@ classdef TimeIntervalCombined
             end
         end
         
+        
         function timeIntervalCombined=getTimeIntervalForTimes(obj, startTime, endTime)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             if isduration(startTime)
                 startTime=obj.convertDurationToDatetime(startTime);
+            elseif isstring(startTime)
+                t1=datetime(startTime,'Format','HH:mm');
+                [h,m,s]=hms(obj.getStartTime);
+                basetime=obj.getStartTime-hours(h)-minutes(m)-seconds(s);
+                startTime=basetime+hours(t1.Hour)+minutes(t1.Minute);
             end
             if isduration(endTime)
                 endTime=obj.convertDurationToDatetime(endTime);
+            elseif isstring(endTime)
+                t1=datetime(endTime,'Format','HH:mm');
+                [h,m,s]=hms(obj.getStartTime);
+                basetime=obj.getStartTime-hours(h)-minutes(m)-seconds(s);
+                endTime=basetime+hours(t1.Hour)+minutes(t1.Minute);
             end
             if startTime<obj.getStartTime
                 startTime=obj.getStartTime+seconds(1);
@@ -124,7 +135,7 @@ classdef TimeIntervalCombined
                 
                 lastSample=lastSample+theTimeInterval.NumberOfPoints;
             end
-           
+            
         end
         
         function time=getEndTime(obj)
@@ -173,15 +184,27 @@ classdef TimeIntervalCombined
             theTimeInterval=til.get(1);
             startTime=theTimeInterval.getStartTime;
         end
-        function timeIntervalCombined=getDownsampled(obj,downsampleFactor)
+        function [timeIntervalCombined,resArr]=getDownsampled(obj,downsampleFactor)
             til= obj.timeIntervalList;
+            resArr=[];
             for iInt=1:til.length
                 theTimeInterval=til.get(iInt);
-                if exist('timeIntervalCombined','var')
-                    timeIntervalCombined=timeIntervalCombined+theTimeInterval.getDownsampled(downsampleFactor);
+                [ds_ti, residual]=theTimeInterval.getDownsampled(downsampleFactor);
+                if iInt==1
+                    residuals(iInt,1)=ds_ti.NumberOfPoints*downsampleFactor+1;
+                    residuals(iInt,2)=ds_ti.NumberOfPoints*downsampleFactor+residual;
                 else
-                    timeIntervalCombined=theTimeInterval.getDownsampled(downsampleFactor);
+                    numPointsPrev=residuals(iInt-1,2);
+                    residuals(iInt,1)=numPointsPrev+ds_ti.NumberOfPoints*downsampleFactor+1;
+                    residuals(iInt,2)=numPointsPrev+ds_ti.NumberOfPoints*downsampleFactor+residual;
                 end
+                resArr=[resArr residuals(iInt,1):residuals(iInt,2)];
+                if exist('timeIntervalCombined','var')
+                    timeIntervalCombined=timeIntervalCombined+ds_ti;
+                else
+                    timeIntervalCombined=ds_ti;
+                end
+                
             end
             
         end
@@ -197,7 +220,14 @@ classdef TimeIntervalCombined
                     tps=tp;
                 end
             end
-%             tps(end)=[];
+        end
+        function tps=getTimePointsInAbsoluteTimes(obj)
+            tps=obj.getTimePointsInSec+obj.getStartTime;
+        end
+        function tps=getTimePointsInSamples(obj)
+            
+            %             secs=obj.getTimePointsInSec
+            %             tps(end)=[];
         end
         function arrnew=adjustTimestampsAsIfNotInterrupted(obj,arr)
             arrnew=arr;
@@ -222,14 +252,14 @@ classdef TimeIntervalCombined
                 idx=(arr>=sample(iAdj).begin)&(arr<=sample(iAdj).end);
                 arrnew(idx)=arr(idx) + sample(iAdj).adj;
             end
-%             tps(end)=[];
+            %             tps(end)=[];
         end
         function ti=mergeTimeIntervals(obj)
             til= obj.timeIntervalList;
             st=obj.getStartTime;
             
             ti=TimeInterval(obj.getStartTime, obj.getSampleRate, obj.getNumberOfPoints);
-%             tps(end)=[];
+            %             tps(end)=[];
         end
         
         function plot(obj)

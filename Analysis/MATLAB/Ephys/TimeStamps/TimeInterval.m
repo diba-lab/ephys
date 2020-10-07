@@ -83,12 +83,14 @@ classdef TimeInterval
             %   Detailed explanation goes here
             timeIntervalCombined=TimeIntervalCombined(obj,timeInterval);
         end
-        function timeInterval=getDownsampled(obj,downsampleFactor)
+        function [timeInterval,residual]=getDownsampled(obj,downsampleFactor)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            newnumPoints=floor(obj.NumberOfPoints/downsampleFactor);
+            residual=mod(obj.NumberOfPoints,downsampleFactor);
             timeInterval=TimeInterval(obj.StartTime,...
                 round(obj.SampleRate/downsampleFactor),...
-                round((obj.NumberOfPoints-1)/downsampleFactor)+1);
+                newnumPoints);
         end
         function plot(obj)
             %METHOD1 Summary of this method goes here
