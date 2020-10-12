@@ -1,20 +1,39 @@
-classdef SpikeFactory
+classdef SpikeFactory < SpikeNeuroscope
     %SPIKEFACTORY Summary of this class goes here
     %   Detailed explanation goes here
     properties
         
     end
     
-    methods
+    methods(Access=private)
+        % Guard the constructor against external invocation.  We only want
+        % to allow a single instance of this class.  See description in
+        % Singleton superclass.
+        function obj = SpikeFactory()
+            % Initialise your custom properties.
+        end
     end
-    methods (Static)
-        function [sa foldername]= getSpykingCircusOutputFolder(foldername,what)
+    methods(Static)
+        % Concrete implementation.  See Singleton superclass.
+        function obj = instance()
+            persistent uniqueInstance
+            if isempty(uniqueInstance)
+                obj = SpikeFactory();
+                uniqueInstance = obj;
+            else
+                obj = uniqueInstance;
+            end
+        end
+    end
+    
+    methods
+        function [sa, foldername]= getSpykingCircusOutputFolder(obj,foldername)
             defaultloc='/data/EphysAnalysis/cluster';
             title='Select folder for spike data';
             if ~exist('foldername','var')
                 foldername = uigetdir(defaultloc,title);
             elseif ~isfolder(foldername)
-                    foldername = uigetdir(defaultloc,title);
+                foldername = uigetdir(defaultloc,title);
             end
             try
                 theFile=dir(fullfile(foldername,'..',['*TimeIntervalCombined*' '.mat']));
@@ -29,23 +48,36 @@ classdef SpikeFactory
             
             theFile=dir(fullfile(foldername,['spike_clusters' '.npy']));
             spikeclusters=readNPY(fullfile(theFile.folder, theFile.name));
-
-            goodClusterIds=cluster_info.id(ismember(cluster_info.group,'good'));
-            idx=ismember(spikeclusters, goodClusterIds);
-
             interestedFiles={'amplitudes';...
-                'spike_times'};            
+                'spike_times'};
             for ifile=1:numel(interestedFiles)
                 aFile=interestedFiles{ifile};
                 theFile=dir(fullfile(foldername,[aFile '.npy']));
-                temp=readNPY(fullfile(theFile.folder, theFile.name));
-                data.(aFile)=temp(idx);
+                temps{ifile}=readNPY(fullfile(theFile.folder, theFile.name));
             end
-            data.spike_clusters=spikeclusters(idx);
-            sa=SpikeArray(data.spike_clusters,data.spike_times);
-            sa=sa.setTimeIntervalCombined(ticd);
-
-            sa=sa.setClusterInfo(cluster_info(ismember(cluster_info.id,goodClusterIds),:));
+            groups={'good','mua'};
+            sas=[];
+            for igroup=1:numel(groups)
+                group=groups{igroup};
+                ClusterIds=cluster_info.id(ismember(cluster_info.group,group));
+                idx=ismember(spikeclusters, ClusterIds);
+                for ifile=1:numel(interestedFiles)
+                    aFile=interestedFiles{ifile};
+                    temp=temps{ifile};
+                    data.(aFile)=temp(idx);
+                end
+                data.spike_clusters=spikeclusters(idx);
+                
+                sa=SpikeArray(data.spike_clusters,data.spike_times);
+                sa=sa.setTimeIntervalCombined(ticd);
+                
+                sa=sa.setClusterInfo(cluster_info(ismember(cluster_info.id,ClusterIds),:));
+                ts=tokenize(theFile.folder,filesep);
+                filename=fullfile(theFile.folder,'..',ts{numel(ts)-1});
+                obj.saveCluFile([filename '.' group '.clu.0'],sa.SpikeTable.SpikeCluster);
+                obj.saveResFile([filename '.' group '.res.0'],sa.SpikeTable.SpikeTimes);
+            end
+            
         end
     end
     

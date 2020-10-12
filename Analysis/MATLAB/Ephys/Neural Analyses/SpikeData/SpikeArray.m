@@ -1,4 +1,4 @@
-classdef SpikeArray < Persist
+classdef SpikeArray < SpikeNeuroscope
     %SPIKEARRAY Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -92,12 +92,12 @@ classdef SpikeArray < Persist
             spikeUnit=SpikeUnit(spikeId,spktimes,obj.TimeIntervalCombined,...
                 aci.amp,aci.ch,aci.fr,aci.group,aci.n_spikes,aci.purity);
         end
+        function []=saveNeuroscopeSpikeFiles(obj,folder)
+             obj.saveCluFile(folder)
+        end
     end
     methods %interited
-        function saveObject(obj,path)
-            obj.saveBasedOn(obj.SpikeTable,path)
-        end
-        
+
     end
 end
 

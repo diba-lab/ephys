@@ -7,16 +7,12 @@ classdef BuzcodeFactory
     end
     
     methods (Static)
-        function buzcodeStructure = getBuzcode(filePath)
-            if isa(filePath,'OpenEphysRecord')
-                [filepath,name,ext]=fileparts(filePath.getFile)
+        function buzcodeStructure = getBuzcode(filepath)
+            if ~exist('filepath','var')
+                buzcodeStructure=BuzcodeStructure();
+            elseif isa(filepath,'OpenEphysRecord')
+                [filepath,name,ext]=fileparts(filePath.getFile);
                 buzcodeStructure=BuzcodeStructure(filepath);
-                try buzcodeStructure=buzcodeStructure.SetTimestamps(...
-                    filePath.getTimestamps.IsActive);
-                catch
-                buzcodeStructure=buzcodeStructure.SetTimestamps(...
-                    filePath.getTimestamps);
-                end
             elseif ischar(filePath)
                 buzcodeStructure=BuzcodeStructure(filePath);
             else
@@ -24,7 +20,7 @@ classdef BuzcodeFactory
             end
         end
         
-     
+        
     end
 end
 
