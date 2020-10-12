@@ -54,6 +54,8 @@ classdef ChannelTimeData < BinarySave
                 sampleRate=str2num(answer{2});
                 ti=TimeInterval(startTime, sampleRate, numberOfPoints);
                 ticd=TimeIntervalCombined(ti);
+                filename=fullfile(folder,'abc.TimeInterval.mat');
+                save(filename,'ticd');
                 newObj.TimeIntervalCombined=ticd;
             end
             newObj.Filepath=newObj.Data.Filename;
