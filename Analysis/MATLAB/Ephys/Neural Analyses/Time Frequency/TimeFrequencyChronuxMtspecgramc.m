@@ -34,12 +34,12 @@ classdef TimeFrequencyChronuxMtspecgramc < TimeFrequencyMethod
         end
         
         function aTimeFrequencyMap = execute(obj,...
-                data, time)
+                data, Fs)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             movingwin=obj.movingWindow;
             params.fpass=[obj.FrequencyInterest(1) obj.FrequencyInterest(end)];
-            params.Fs=obj.getSamplingFrequency(time);
+            params.Fs=Fs;
             [matrix,t,f]=mtspecgramc(data,movingwin,params);
             aTimeFrequencyMap=TimeFrequencyMapChronuxMtspecgramc(...
                 matrix, seconds(t), f);

@@ -1,33 +1,36 @@
 classdef TimeFrequencyMapChronuxMtspecgramc < TimeFrequencyMap
     %TIMEFREQUENCYMAPSPECTROGRAM Summary of this class goes here
     %   Detailed explanation goes here
-    
     properties
-        
     end
-    
     methods
         function obj = TimeFrequencyMapChronuxMtspecgramc(...
                 matrix, timePoints, frequencyPoints)
             %TIMEFREQUENCYMAPSPECTROGRAM Construct an instance of this class
             %   Detailed explanation goes here
             obj@TimeFrequencyMap(matrix, timePoints, frequencyPoints);
-            obj.clim=[0 1.5];
-            obj.clim=[0 3.7];
-            obj.clim=[0 2];
         end
-        
-        function imsc = plot(obj)
+        function imsc = plot(obj,ax,clim)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes her  e
-            adj=obj.getTimePointsAdjusted;
-            
-            imsc=imagesc(seconds(adj.timePoints-adj.timePoints(1)),...
-                adj.frequencyPoints,log10( abs(adj.matrix')),adj.clim);
+            if ~exist('ax','var')||isempty('ax')
+                ax=gca;
+            end
+            imsc=imagesc(ax,hours(seconds(obj.timePoints-obj.timePoints(1))),...
+                obj.frequencyPoints,10*log10( abs(obj.matrix')));
+            if ~exist('clim','var')||isempty('clim')
+            else
+                ax.CLim=clim;
+            end
+            ax.XLabel.String='Time (hours)';
+            ax.YLabel.String='Frequency';
             colormap('copper');
+            cb=colorbar;
+            cb.Label.String='Amplitude (dB)';
+            ax.YDir='normal';
         end
     end
-    methods (Access=private)
+    methods (Access=public)
         function new=getTimePointsAdjusted(obj)
             sampleRate=mode(seconds(diff(obj.timePoints)));
             tps=obj.timePoints;
@@ -43,7 +46,6 @@ classdef TimeFrequencyMapChronuxMtspecgramc < TimeFrequencyMap
                 if seconds(minValue)<1
                     newmat(itp,:) = mat(closestIndex,:);
                 else
-                    
                 end
                 itp=itp+1;
             end

@@ -13,7 +13,7 @@ classdef OpenEphysRecordRaw < OpenEphysRecord
             
             oeProperties = fileLoaderMethod.load();
             obj = obj.setData(oeProperties.Data);
-            obj = obj.setTimestamps(oeProperties.Timestamps);
+            obj = obj.setTimeInterval(oeProperties.TimeInterval);
             header=OpenEphysRecordHeader(oeProperties.Header);
             header.setDataFile(oeProperties.Data.Filename);
             obj = obj.setHeader(header);

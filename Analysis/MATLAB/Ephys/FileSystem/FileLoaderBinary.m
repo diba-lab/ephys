@@ -19,7 +19,7 @@ classdef FileLoaderBinary < FileLoaderMethod
                 if numel(listing)>1
                     listing1=dir(fullfile(filepath,'..'));
                     experimentno=str2double(listing1(1).folder(end));
-                    xmlfile=fullfile(listing(1).folder,sprintf('settings_%d.xml',experimentno));
+                    xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
                 else
                     xmlfile=fullfile(listing.folder,listing.name);
                 end
@@ -76,12 +76,8 @@ classdef FileLoaderBinary < FileLoaderMethod
 
             file=dir(D.Data.Filename);
             samples=file.bytes/2/hdr.num_channels;
-            tst=(double(1:samples)-1)/D.Header.sample_rate;
-            ts=timeseries(nan(numel(tst),1),tst);
-            ts.TimeInfo.Format='dd-mmm-yyyy HH:MM:SS.FFF';
-            ts.TimeInfo.StartDate=starttime;
             
-            openEphysRecord.Timestamps=ts;
+            openEphysRecord.TimeInterval=TimeInterval(starttime,D.Header.sample_rate,samples);
             openEphysRecord.DataFile=D.Data.Filename;
         end
     end

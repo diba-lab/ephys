@@ -36,7 +36,7 @@ classdef (Abstract) Neuroscope
             s.parameters.files.file.samplingRate.Text=num2str(obj.samplingRate2);
             lay=obj.getSiteSpatialLayout;
             shanks=unique(lay.ShankNumber(lay.isActive==1));
-            
+%             xVals=obj.getXvalsofShanks(shanks)
             for ishank=1:numel(shanks)
                 chans=lay.ChannelNumberComingOutPreAmp(lay.isActive==1&lay.ShankNumber==shanks(ishank));
                 for ichan=1:numel(chans)
@@ -79,5 +79,15 @@ classdef (Abstract) Neuroscope
             
         end
     end
+    methods(Access=private)
+        function xVals=getXvalsofShanks(obj,shanks)
+            lay=obj.getSiteSpatialLayout;
+            for ishank=1:numel(shanks)
+                shank=shanks(ishank);
+                xVals(ishank)= mean(lay.X( lay.ShankNumber==shank&lay.isActive==1));
+            end
+            
+        end
+        
+    end
 end
-
