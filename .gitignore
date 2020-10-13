@@ -33,6 +33,10 @@
  
 # OS generated files #
 ######################
+
+
+# Python specfic #
+#####################
 .DS_Store
 .DS_Store?
 ._*
@@ -40,6 +44,57 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+.DS_Store
+.huskyrc.json
+out
+log.log
+**/node_modules
+*.pyc
+*.vsix
+**/.vscode/.ropeproject/**
+**/testFiles/**/.cache/**
+*.noseids
+.nyc_output
+.vscode-test
+__pycache__
+npm-debug.log
+**/.mypy_cache/**
+!yarn.lock
+coverage/
+cucumber-report.json
+**/.vscode-test/**
+**/.vscode test/**
+**/.vscode-smoke/**
+**/.venv*/
+port.txt
+precommit.hook
+pythonFiles/experimental/ptvsd/**
+pythonFiles/lib/**
+debug_coverage*/**
+languageServer/**
+languageServer.*/**
+bin/**
+obj/**
+.pytest_cache
+tmp/**
+.python-version
+.vs/
+test-results.xml
+xunit-test-results.xml
+build/ci/performance/performance-results.json
+!build/
+debug*.log
+ptvsd*.log
+pydevd*.log
+nodeLanguageServer/**
+nodeLanguageServer.*/**
+ModulesPath/__pycache__
+.ipynb_checkpoints
+*.pdf
+*.evt
+oscillations/.ipynb_checkpoints/theta_periods-checkpoint.ipynb
+
 
 # Directories #
 ###############
