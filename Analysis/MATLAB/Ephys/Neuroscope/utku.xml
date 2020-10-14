@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<parameters creator="neuroscope-2.0.0 by utku" version="1.0">
+   <acquisitionSystem>
+      <nBits>16</nBits>
+      <nChannels>32</nChannels>
+   </acquisitionSystem>
+</parameters>

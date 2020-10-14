@@ -34,6 +34,14 @@ classdef (Abstract) TimeFrequencyMap < Topography2D
             mat=obj.matrix;
             freq=obj.frequencyPoints;
         end
+        function [meanfreq] = getMeanFrequency(obj,freqRange)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            mat=10*log10( abs(obj.matrix));
+            freq=obj.frequencyPoints;
+            freqpoints=(freqRange(1)<freq)&(freqRange(2)>freq);
+            meanfreq=mean(mat(:,freqpoints),2);
+        end
 
     end
 end
