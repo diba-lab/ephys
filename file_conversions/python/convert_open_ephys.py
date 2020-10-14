@@ -30,7 +30,7 @@ def events2neuroscope(exp_folder, Processor='100', Experiment=1, Recording=1, TT
                                                Recording=Recording, TTLport=TTLport)
 
     # write to the file
-    file1 = open(os.path.join(evt_folder, 'ttl_events.TL' + str(TTLport) + '.evt'), 'w')
+    file1 = open(os.path.join(evt_folder, 'Processor' + str(Processor) + 'ttl_events.TL' + str(TTLport) + '.evt'), 'w')
     file1.writelines([str(timestamp) + ' ' + str(state) + '\n' for timestamp, state in
                       zip(event_times_ms, channel_states)])  # Event times in milliseconds + TTL channel in...
     file1.close()
