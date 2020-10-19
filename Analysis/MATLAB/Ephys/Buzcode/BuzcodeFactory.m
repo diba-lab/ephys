@@ -11,10 +11,10 @@ classdef BuzcodeFactory
             if ~exist('filepath','var')
                 buzcodeStructure=BuzcodeStructure();
             elseif isa(filepath,'OpenEphysRecord')
-                [filepath,name,ext]=fileparts(filePath.getFile);
+                [filepath,name,ext]=fileparts(filepath.getFile);
                 buzcodeStructure=BuzcodeStructure(filepath);
-            elseif ischar(filePath)
-                buzcodeStructure=BuzcodeStructure(filePath);
+            elseif ischar(filepath)
+                buzcodeStructure=BuzcodeStructure(filepath);
             else
                 error('What is this bro?')
             end

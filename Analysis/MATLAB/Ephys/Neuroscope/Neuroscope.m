@@ -40,7 +40,8 @@ classdef (Abstract) Neuroscope
             for ishank=1:numel(shanks)
                 chans=lay.ChannelNumberComingOutPreAmp(lay.isActive==1&lay.ShankNumber==shanks(ishank));
                 for ichan=1:numel(chans)
-                    chan=chans(ichan);
+                    chan1=chans(ichan);
+                    chan=find(channels==chan1);
                     s.parameters.anatomicalDescription.channelGroups...
                         .group{ishank}.channel{ichan}.Attributes.skip='0';
                     s.parameters.anatomicalDescription.channelGroups...
@@ -60,8 +61,10 @@ classdef (Abstract) Neuroscope
             chansordered=sort(channels);
             lineStyles = linspecer(numel(unique(lay.ShankNumber)),'qualitative');
             for ichan=1:numel(chansordered)
-                chan=chansordered(ichan);
-                shank=lay.ShankNumber(lay.ChannelNumberComingOutPreAmp==chan);
+                chan1=chansordered(ichan);
+                chan=find(channels==chan1);
+
+                shank=lay.ShankNumber(lay.ChannelNumberComingOutPreAmp==chan1);
                 s.parameters.neuroscope.channels.channelColors{ichan}.channel.Text=num2str(chan-1);
                 hexcolor=lower( rgb2hex(lineStyles(shank,:)));
                 s.parameters.neuroscope.channels.channelColors{ichan}.color.Text=hexcolor;
