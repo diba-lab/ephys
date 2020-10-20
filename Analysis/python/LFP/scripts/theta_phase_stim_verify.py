@@ -7,6 +7,9 @@ import numpy as np
 import Analysis.python.LFP.preprocess_data as pd
 import Analysis.python.LFP.lfp_analysis as lfp
 import scipy.signal as signal
+import pickle
+import os
+import Analysis.python.LFP.helpers as helpers
 ## Import 2/14/2020 theta stim session
 sync_cputime = 4285440  # from sync_message.txt in recording1 folder
 folder = '/data/Working/Opto Project/Rat 615/Rat615_2020-02-14_11-16-15/'
@@ -16,6 +19,19 @@ phase_events = pd.load_binary_events(phase_detect_folder)
 SRoe = Rate['100']['0']
 
 traces_ds, SRlfp = lfp.OEtoLFP(cont_array['100']['0']['0'])  # downsample
+
+## or just load directly
+if os.environ['os'] == 'Windows_NT' and os.environ['COMPUTERNAME'] == 'NATLAPTOP':
+    phase_detect_folder = r'C:\Users\Nat\Documents\UM\Working\Opto\Rat615\2020-02-14_11-16-15\experiment1\recording1\events\Phase_Detector-108.0\TTL_1'
+    event_detect_folder = r'C:\Users\Nat\Documents\UM\Working\Opto\Rat615\2020-02-14_11-16-15\experiment1\recording1\events\Rhythm_FPGA-100.0\TTL_1'
+    save_loc = r'C:\Users\Nat\Dropbox\UM\Meeting Plots'
+
+saved_data_file = r'C:\Users\Nat\Documents\UM\Working\Opto\Rat615\2020-02-14_11-16-15\theta_phase_data.pkl'
+save_file = open(saved_data_file, 'rb')
+data = pickle.load(save_file)
+traces_ds, SRoe, SRlfp = data['traces_ds'], data['SRoe'], data['SRlfp']
+event_data = pd.load_binary_events(event_detect_folder)
+phase_events = pd.load_binary_events(phase_detect_folder)
 
 ## Plot channel with units on
 chan_plot = 19  # channel you triggered off of
@@ -379,6 +395,7 @@ axc.plot([-np.pi, np.pi], [-np.pi, np.pi], 'r')
 
 ## Get phases of detection and stim with Belluscio method!
 nbins = 30  # number of bins to use in histograms
+peak_target_lag_time = 50  # ms to inject
 
 # Now plot histogram of trigger phases!!! Looks great!! Mostly a match
 detect_phases2bell = []
@@ -386,12 +403,12 @@ detect_phases2bell = []
  for on_detect_time in on_detect_times]
 
 # Same but for start and end
-stim_start_phasesbell = []
-stim_end_phasesbell = []
+stim_start_phasesbell, stim_end_phasesbell = [], []
 [stim_start_phasesbell.append(wide_phase[np.searchsorted(time_plot, on_stim_time, side='left')])
  for on_stim_time in on_stim_times]
 [stim_end_phasesbell.append(wide_phase[np.searchsorted(time_plot, off_stim_time, side='left')])
  for off_stim_time in off_stim_times]
+
 
 # Now plot histogram of trigger phases!!! Looks great!! Mostly a match
 detect_phases2 = []
@@ -424,6 +441,51 @@ for i in range(0, 2):
     plot_phase = np.linspace(-np.pi, np.pi, 50)
     curve_plot = np.cos(plot_phase)
     [a.plot(plot_phase, curve_plot*ylim/4 + ylim/2, 'm-') for a, ylim in zip(axh[i], ylims)]
+
+## same as above but after adding a lag to target the peak
+
+font = {'family': 'normal', 'weight': 'normal', 'size': 22}
+plt.rc('font', **font)
+peak_target_lag_time = 60  # ms to inject
+
+stim_pseudostart_w_lag, stim_pseudoend_w_lag = [], []
+[stim_pseudostart_w_lag.append(wide_phase[np.searchsorted(time_plot, on_stim_time + peak_target_lag_time/1000, side='left')])
+ for on_stim_time in on_stim_times[on_stim_times + peak_target_lag_time/1000 < on_stim_times.max()]]
+[stim_pseudoend_w_lag.append(wide_phase[np.searchsorted(time_plot, off_stim_time + peak_target_lag_time/1000, side='left')])
+ for off_stim_time in off_stim_times[off_stim_times + peak_target_lag_time/1000 < off_stim_times.max()]]
+
+figh2, axh2 = plt.subplots(2, 2)
+figh2.set_size_inches([16.1, 9.2])
+phases_list = [[stim_start_phasesbell, stim_end_phasesbell],
+               [stim_pseudostart_w_lag, stim_pseudoend_w_lag]]
+titles = [['Stim Start - Peak Detection', 'Stim End - Peak Detection'],
+          ['Stim Start - Peak Det. + ' + str(peak_target_lag_time) + 'ms Lag',
+           'Stim End - Peak Det. + ' + str(peak_target_lag_time) + 'ms Lag']]
+overlay = False
+colors = [(0, 0, 0, 0.5), (0, 1, 0, 0.5)]
+ecs = ['k', 'g']
+for i in range(0, 2):
+    if overlay:
+        [a.hist(phases, bins=nbins, color=colors[i], ec=ecs[i]) for a, phases in zip(axh2[0], phases_list[i])]
+    else:
+        [a.hist(phases, bins=nbins, color='k') for a, phases in zip(axh2[i], phases_list[i])]
+
+    [a.set_xlabel(r'$\theta$ Phase') for a in axh2[i]]
+    [a.set_ylabel('Count') for a in axh2[i]]
+    [a.set_title(title) for a, title in zip(axh2[i], titles[i])]
+
+    # Draw an example cosine trace on top of each plot
+    ylims = [a.get_ylim()[1] for a in axh2[i]]
+    plot_phase = np.linspace(-np.pi, np.pi, 50)
+    curve_plot = np.cos(plot_phase)
+    [a.plot(plot_phase, curve_plot*ylim/4 + ylim/2, 'm-') for a, ylim in zip(axh2[i], ylims)]
+
+    # Make plots pretty TODO: fold this into helper function later!
+    [helpers.pretty_plot(a) for a in axh2[i]]
+    [a.set_xticks([-3.14, 0, 3.14]) for a in axh2[i]]
+    [a.set_xticklabels([r'-$\pi$', str(0), r'$\pi$']) for a in axh2[i]]
+
+figh2.savefig(os.path.join(save_loc, 'Stim time histograms w ' + str(peak_target_lag_time) + 'ms lag.pdf'))
 
 ## Compare lfilt to filtfilt
 fig, ax = plt.subplots()

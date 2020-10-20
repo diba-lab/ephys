@@ -2,6 +2,21 @@
 import numpy as np
 import datetime
 import math
+import numpy as np
+
+
+def pretty_plot(ax):
+    """Generic function to make plot pretty, bare bones for now, will need updating"""
+    # set ylims to min/max, rounded to nearest 10
+    ylims_round = np.round(ax.get_ylim(), decimals=-1)
+    ax.set_yticks(ylims_round)
+    ax.set_yticklabels([f'{lim:g}' for lim in iter(ylims_round)])
+
+    # turn off top and right axis lines
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    return ax
 
 
 def mat_time_to_sec(t0, t):
