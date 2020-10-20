@@ -4,8 +4,8 @@
 ## Scratchpad for opto
 import matplotlib.pyplot as plt
 import numpy as np
-import Analysis.python.preprocess_data as pd
-import Analysis.python.lfp_analysis as lfp
+import Analysis.python.LFP.preprocess_data as pd
+import Analysis.python.LFP.lfp_analysis as lfp
 import scipy.signal as signal
 ## Import 2/14/2020 theta stim session
 sync_cputime = 4285440  # from sync_message.txt in recording1 folder

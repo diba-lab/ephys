@@ -19,6 +19,11 @@ classdef OpenEphysRecordsCombined < Timelined
                 theOpenEphysRecord=varargin{iArgIn};
                 assert(isa(theOpenEphysRecord,'OpenEphysRecord'));
                 openEphysRecords.add(theOpenEphysRecord);
+                try
+                  newobj.Probe=theOpenEphysRecord.getProbe;
+                catch
+                    
+                end
                 fprintf('Record addded:\n%s\n', theOpenEphysRecord.getFile);
             end
             newobj.OpenEphysRecords=openEphysRecords;
@@ -32,6 +37,13 @@ classdef OpenEphysRecordsCombined < Timelined
                 assert(isa(theOpenEphysRecord,'OpenEphysRecord'));
                 obj.OpenEphysRecords.add(theOpenEphysRecord);
                 fprintf('Record addded:\n%s\n', theOpenEphysRecord.getFile);
+                try
+                    if isempty(obj.Probe)
+                        obj.Probe=theOpenEphysRecord.getProbe;
+                    end
+                catch
+                    
+                end
             end
         end
         
