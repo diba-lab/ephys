@@ -78,6 +78,7 @@ def OEtoLFP(traces, SRin=30000, SRout=1250):
 
         # this is a poor way to do this in python but it'll work for now
         ds_trace_list = []
+
         print('Downsampling data from ' + str(SRin) + 'Hz to ' + str(SRout) + 'Hz')
         for chan in range(0, nchannels):
             ds_trace_list.append(signal.decimate(signal.decimate(traces[:, chan], 6), 4))

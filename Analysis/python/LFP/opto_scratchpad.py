@@ -27,5 +27,5 @@ data_ds = np.load(full_raw_path)
 timestamps = np.load(os.path.join(full_raw_path, 'timestamps.npy'))
 time_ds = timestamps[0:-1:24]
 
-on_times = np.where(data_ds[adc_channel] > on_thresh)
-off_times = np.where(data_ds < on_thresh)
+on_times = np.where(data_ds[adc_channel] > on_thresh)[0]
+off_times = np.where(data_ds[adc_channel] <= on_thresh)[0]
