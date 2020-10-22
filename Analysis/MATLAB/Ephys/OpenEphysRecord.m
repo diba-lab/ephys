@@ -183,12 +183,12 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
         end
         
         function st=getRecordStartTime(obj)
-%             ts=obj.Timestamps;
-%             st=ts.TimeInfo.StartDate;
+            ti=obj.TimeInterval;
+            st=ti.getStartTime;
         end
         function st=getRecordEndTime(obj)
-%             timeInfo=obj.Timestamps.TimeInfo;
-%             st=timeInfo.StartDate+seconds(timeInfo.end);
+            ti=obj.TimeInterval;
+            st=ti.getEndTime;
         end
         
         function ti=getTimeInterval(obj)

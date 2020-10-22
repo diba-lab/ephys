@@ -40,10 +40,14 @@ data_ds = np.load(full_raw_path)
 timestamps = np.load(os.path.join(full_raw_path, 'timestamps.npy'))
 time_ds = timestamps[0:-1:24]
 
+
 on_idx = np.where(data_ds[adc_channel] > on_thresh)[0]
 off_idx = np.where(data_ds < on_thresh)[0]
 on_times = on_idx[lfhelp.contiguous_regions(np.diff(on_idx) == 1)[:, 0]]/1250
 off_times = on_idx[lfhelp.contiguous_regions(np.diff(on_idx) == 1)[:, 1]]/1250
+
+# on_times = np.where(data_ds[adc_channel] > on_thresh)[0]
+# off_times = np.where(data_ds[adc_channel] <= on_thresh)[0]
 
 spike_times = np.load(os.path.join(full_spike_path, 'spike_times.npy'))/30000
 clusters = np.load(os.path.join(full_spike_path, 'spike_clusters.npy'))

@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import Analysis.python.LFP.preprocess_data as pd
 import Analysis.python.LFP.lfp_analysis as lfp
+import Python3.Binary as ob
+import Python3.SettingsXML as sxml
 import scipy.signal as signal
 import pickle
 import os
@@ -13,93 +15,74 @@ import Analysis.python.LFP.helpers as helpers
 
 # Make text save as whole words
 plt.rcParams['pdf.fonttype'] = 42
+## Import session(s) from Rat 613 SWR closed loops sessions - options = 1a , 2a, 2b
+day = 2
+session = '1a'
+Ripple_Proc = '104'
+Intan_Proc = '111'
+if day == 1:
+    a = 1
+elif day == 2:
+    if session == '1a':
+        base_folder = r'C:\Users\Nat\Documents\UM\Working\Opto\Rat613\ClosedLoopTest2\Rat613_SWRstimprobe2_2020-08-07_09-20-49'
+        Experiment, Recording, set_append = 1, 1, ''
+    elif session == '2a':
+        base_folder = r'C:\Users\Nat\Documents\UM\Working\Opto\Rat613\ClosedLoopTest2\Rat613_SWRstim_probe1_2020-08-07_10-55-22'
+        Experiment, Recording, set_append = 2, 1, '_2'
+    elif session == '2b':
+        base_folder = r'C:\Users\Nat\Documents\UM\Working\Opto\Rat613\ClosedLoopTest2\Rat613_SWRstim_probe1_2020-08-07_10-55-22'
+        Experiment, Recording, set_append = 3, 1, '_3'
 
-## Import 2/14/2020 theta stim session
-sync_cputime = 4285440  # from sync_message.txt in recording1 folder
-folder = '/data/Working/Opto/Rat615/Rat615_2020-02-14_11-16-15_track/'
-phase_detect_folder = '/data/Working/Opto/Rat615/Rat615_2020-02-14_11-16-15_track/experiment1/recording1/events/Phase_Detector-108.0/TTL_1/'
-event_data, cont_array, SRoe = pd.load_openephys(folder)
-phase_events = pd.load_binary_events(phase_detect_folder)
+traces_ds = np.load(os.path.join(base_folder, 'continuous_eeg' + str(Experiment) + '.npy'))
+SRlfp = 1250
+detection_events, detection_timing = ob.LoadTTLEvents(base_folder, Processor='104', Experiment=Experiment, Recording=Recording, TTLport=2)
+stim_events, stim_timing = ob.LoadTTLEvents(base_folder, Processor='111', Experiment=Experiment, Recording=Recording, TTLport=1)
 
-traces_ds, SRlfp = pd.OEtoLFP(cont_array['100']['0']['0'])  # downsample
-traces_ds = traces_ds.T  # hack
+sync_start_time = int(detection_timing[Ripple_Proc][str(Experiment-1)][str(Recording-1)]['start_time'])
+SRoe = int(detection_timing[Ripple_Proc][str(Experiment-1)][str(Recording-1)]['Rate'])
+detect_time_sec = (detection_events[Ripple_Proc][str(Experiment-1)][str(Recording-1)]['timestamps'] - sync_start_time)/SRoe
+stim_time_sec = (stim_events[Intan_Proc][str(Experiment-1)][str(Recording-1)]['timestamps'] - sync_start_time)/SRoe
 
-## or just load directly
-if os.environ['os'] == 'Windows_NT' and os.environ['COMPUTERNAME'] == 'NATLAPTOP':
-    phase_detect_folder = r'C:\Users\Nat\Documents\UM\Working\Opto\Rat615\2020-02-14_11-16-15\experiment1\recording1\events\Phase_Detector-108.0\TTL_1'
-    event_detect_folder = r'C:\Users\Nat\Documents\UM\Working\Opto\Rat615\2020-02-14_11-16-15\experiment1\recording1\events\Rhythm_FPGA-100.0\TTL_1'
-    save_loc = r'C:\Users\Nat\Dropbox\UM\Meeting Plots'
+detect_states = detection_events[Ripple_Proc][str(Experiment-1)][str(Recording-1)]['channel_states']
+stim_states = stim_events[Intan_Proc][str(Experiment-1)][str(Recording-1)]['channel_states']
 
-sync_cputime = 4285440  # from sync_message.txt in recording1 folder
-saved_data_file = r'C:\Users\Nat\Documents\UM\Working\Opto\Rat615\2020-02-14_11-16-15\theta_phase_data.pkl'
-save_file = open(saved_data_file, 'rb')
-data = pickle.load(save_file)
-traces_ds, SRoe, SRlfp = data['traces_ds'], data['SRoe'], data['SRlfp']
-event_data = pd.load_binary_events(event_detect_folder)
-phase_events = pd.load_binary_events(phase_detect_folder)
-
-## Plot channel with units on
-chan_plot = 19  # channel you triggered off of
-artifact_chan = 13  # this channel should have good stimulation artifact on it for reference...
-start_time = 17  # minutes
-end_time = 29  # minutes
+## Plot traces
+# Plot channel with units on
+ripple_chan = 22
+ripple_limits = [125, 250]
 v_range = 600  # uV
 time_span = 2  # seconds
-fig, ax = plt.subplots(2, 1, sharex=True, sharey=True)
+fig, ax = plt.subplots(2, 1, sharex=True, sharey=False, figsize=[19.2, 5.5])
 fig.set_size_inches([26, 7])
 
-time_sec = np.arange(0, traces_ds.shape[0])/SRlfp
-event_times_sec = (event_data[3] - sync_cputime)/SRoe
-phase_times_sec = (phase_events[3] - sync_cputime)/SRoe
+time_sec = np.arange(0, traces_ds.shape[1])/SRlfp
 
-plot_bool = np.bitwise_and(time_sec > start_time*60, time_sec <= end_time*60)
-event_plot_bool = np.bitwise_and(event_times_sec > start_time*60, event_times_sec <= end_time*60)
-phase_plot_bool = np.bitwise_and(phase_times_sec > start_time*60, phase_times_sec <= end_time*60)
+ripple_filtered = lfp.butter_bandpass_filter(traces_ds[ripple_chan], ripple_limits[0], ripple_limits[1], SRlfp,
+                                       type='filtfilt', order=2)
 
-ax[0].plot(time_sec[plot_bool], traces_ds[plot_bool, chan_plot])
-ax[1].plot(time_sec[plot_bool], traces_ds[plot_bool, artifact_chan])
-ax[0].set_ylim([-v_range, v_range])
-ax[1].set_xlim([start_time*60, start_time*60 + time_span])
+ax[0].plot(time_sec, traces_ds[ripple_chan])
+ax[0].set_title('Wideband')
+ax[1].plot(time_sec, ripple_filtered)
+ax[1].set_title('Ripple Filter ' + str(ripple_limits[0]) + ' Hz to ' + str(ripple_limits[1]) + ' Hz')
+[a.set_xlabel('Time (s)') for a in ax]
+[a.set_ylabel('uV') for a in ax]
 
-## Plot stim start and end times
+# Set limits nice and large for starters
+ax[0].set_ylim([-1200, 1200])
+ax[1].set_ylim([-400, 400])
 
-# First get TTL in from OSC1lite
-on_stim_bool = np.bitwise_and(event_plot_bool, event_data[0] == 1)
-off_stim_bool = np.bitwise_and(event_plot_bool, event_data[0] == -1)
-on_stim_times = event_times_sec[on_stim_bool]
-off_stim_times = event_times_sec[off_stim_bool]
-ylims = [-2*v_range, 2*v_range]
-ylims_plot = [-2*v_range, 2*v_range, np.nan]
-on_stim_time_plot = []
-off_stim_time_plot = []
-ystim_plot = []
-for t_start, t_end in zip(on_stim_times, off_stim_times):
-    on_stim_time_plot.extend([t_start, t_start, np.nan])
-    off_stim_time_plot.extend([t_end, t_end, np.nan])
-    ystim_plot.extend(ylims_plot)
+# Plot stim start and end times
 
-hon = [a.plot(on_stim_time_plot, ystim_plot, 'g-') for a in ax]
-hoff = [a.plot(off_stim_time_plot, ystim_plot, 'r-') for a in ax]
+on_detect_times, off_detect_times = detect_time_sec[detect_states > 0], detect_time_sec[detect_states < 0]
+on_stim_times, off_stim_times = stim_time_sec[stim_states == -2], stim_time_sec[stim_states == 2]
+start_time = np.max([on_stim_times[0], on_detect_times[0]])
+ax[0].set_xlim([start_time, start_time + 10])
 
-# Now plot phase detector times
-on_detect_bool = np.bitwise_and(phase_plot_bool, phase_events[0] > 0)
-off_detect_bool = np.bitwise_and(phase_plot_bool, phase_events[0] < 0)
-on_detect_times = phase_times_sec[on_detect_bool]
-off_detect_times = phase_times_sec[off_detect_bool]
-on_detect_time_plot = []
-off_detect_time_plot = []
-ydetect_plot = []
-# aggregate these into a list.
-for t_on, t_off in zip(on_detect_times, off_detect_times):
-    on_detect_time_plot.extend([t_on, t_on, np.nan])
-    off_detect_time_plot.extend([t_off, t_off, np.nan])
-    ydetect_plot.extend(ylims_plot)
+for a in ax:
+    hond = [a.axvline(ond, color='g') for ond in on_detect_times]
+    hstim = [a.axvspan(ons, offs, facecolor=[0, 0, 1, 0.3]) for ons, offs in zip(on_stim_times, off_stim_times)]
 
-hon_detect = [a.plot(on_detect_time_plot, ydetect_plot, 'g--') for a in ax]
-hoff_detect = [a.plot(off_detect_time_plot, ydetect_plot, 'r--') for a in ax]
-
-fig.legend([hon_detect[1][0], hoff_detect[1][0], hon[1][0], hoff[1][0]],
-             ['Phase Detect Start', 'Phase Detect End', 'Stim TTL Start', 'Stim TTL End'])
+fig.legend([hond[0], hstim[0]], ['SWR detect', 'Stimulation'])
 
 ## Get histogram of lag times between phase detection and stimulation TTL
 
@@ -282,8 +265,6 @@ ax.plot(time_plot, wide_filt, 'm')
 ax.plot(time_plot, trace_lfilt, 'k--')
 ax.set_xlim([start_time*60, start_time*60 + time_span])
 ax.set_ylim([-v_range, v_range])
-ax.set_xlabel(['Time (s)'])
-ax.set_ylabel('uV')
 
 offset_frames = np.round(peak_trough_offset_sec*SRlfp)
 
@@ -443,7 +424,7 @@ titles = [['Detection - 4-12Hz Bandpass', 'Start of Stim - 4-12Hz Bandpass', 'En
           ['Detection - Belluscio Method', 'Start of Stim - Belluscio Method', 'End of Stim - Belluscio Method']]
 
 for i in range(0, 2):
-    [a.hist(phases, bins=nbins, color='k') for a, phases in zip(axh[i], phases_list[i])]
+    [a.hist(phases, bins=nbins) for a, phases in zip(axh[i], phases_list[i])]
     [a.set_xlabel('Phase (-pi = trough, 0 = peak)') for a in axh[i]]
     [a.set_ylabel('Count') for a in axh[i]]
     [a.set_title(title) for a, title in zip(axh[i], titles[i])]
@@ -454,8 +435,6 @@ for i in range(0, 2):
     curve_plot = np.cos(plot_phase)
     [a.plot(plot_phase, curve_plot*ylim/4 + ylim/2, 'm-') for a, ylim in zip(axh[i], ylims)]
 
-[a.spines['right'].set_visible(False) for a in axh.reshape(-1)]
-[a.spines['top'].set_visible(False) for a in axh.reshape(-1)]
 ## same as above but after adding a lag to target the peak
 
 font = {'family': 'normal', 'weight': 'normal', 'size': 22}

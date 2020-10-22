@@ -64,7 +64,4 @@ def get_local_extrema(trace, type='max'):
     return ind_rel_extreme
 
 
-
-
-
 ## Plot trace in a nice working window

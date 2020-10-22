@@ -75,7 +75,7 @@ classdef StateDetectionData
                 fname=fieldnames(S);
                 obj.Blocks=S.(fname{1});
             catch
-                warning('I couldn''t find the BlockTimes file.\n\t%s',thefile);
+                warning('I couldn''t find the BlockTimes file.\n\t%s',basepath);
             end
         end
         
