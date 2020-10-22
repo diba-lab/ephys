@@ -100,7 +100,9 @@ def events2ms(exp_folder, Processor='100', Experiment=1, Recording=1, TTLport=1)
 
 
 if __name__ == '__main__':
-     artifacts2circus(r'/data/Working/Opto Project/Rat 613/Rat613Day1/Rat613simtest_2020-08-01_08-47-11/', 2)
+     events2neuroscope(r'/data/Working/Opto/Rat613/ClosedLoopTest2/Rat613_SWRstim_probe1_2020-08-07_10-55-22', Processor='104', TTLport=2, Experiment=2)
+
+     pass
 
 
 

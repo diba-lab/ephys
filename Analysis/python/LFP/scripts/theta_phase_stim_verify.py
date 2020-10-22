@@ -7,15 +7,18 @@ import numpy as np
 import Analysis.python.LFP.preprocess_data as pd
 import Analysis.python.LFP.lfp_analysis as lfp
 import scipy.signal as signal
+
+# Make text save as whole words
+plt.rcParams['pdf.fonttype'] = 42
 ## Import 2/14/2020 theta stim session
 sync_cputime = 4285440  # from sync_message.txt in recording1 folder
-folder = '/data/Working/Opto Project/Rat 615/Rat615_2020-02-14_11-16-15/'
-phase_detect_folder = '/data/Working/Opto Project/Rat 615/Rat615_2020-02-14_11-16-15/experiment1/recording1/events/Phase_Detector-108.0/TTL_1/'
-event_data, cont_array, Rate = pd.load_openephys(folder)
+folder = '/data/Working/Opto/Rat615/Rat615_2020-02-14_11-16-15_track/'
+phase_detect_folder = '/data/Working/Opto/Rat615/Rat615_2020-02-14_11-16-15_track/experiment1/recording1/events/Phase_Detector-108.0/TTL_1/'
+event_data, cont_array, SRoe = pd.load_openephys(folder)
 phase_events = pd.load_binary_events(phase_detect_folder)
-SRoe = Rate['100']['0']
 
-traces_ds, SRlfp = lfp.OEtoLFP(cont_array['100']['0']['0'])  # downsample
+traces_ds, SRlfp = pd.OEtoLFP(cont_array['100']['0']['0'])  # downsample
+traces_ds = traces_ds.T  # hack
 
 ## Plot channel with units on
 chan_plot = 19  # channel you triggered off of
@@ -255,6 +258,8 @@ ax.plot(time_plot, wide_filt, 'm')
 ax.plot(time_plot, trace_lfilt, 'k--')
 ax.set_xlim([start_time*60, start_time*60 + time_span])
 ax.set_ylim([-v_range, v_range])
+ax.set_xlabel(['Time (s)'])
+ax.set_ylabel('uV')
 
 offset_frames = np.round(peak_trough_offset_sec*SRlfp)
 
@@ -414,7 +419,7 @@ titles = [['Detection - 4-12Hz Bandpass', 'Start of Stim - 4-12Hz Bandpass', 'En
           ['Detection - Belluscio Method', 'Start of Stim - Belluscio Method', 'End of Stim - Belluscio Method']]
 
 for i in range(0, 2):
-    [a.hist(phases, bins=nbins) for a, phases in zip(axh[i], phases_list[i])]
+    [a.hist(phases, bins=nbins, color='k') for a, phases in zip(axh[i], phases_list[i])]
     [a.set_xlabel('Phase (-pi = trough, 0 = peak)') for a in axh[i]]
     [a.set_ylabel('Count') for a in axh[i]]
     [a.set_title(title) for a, title in zip(axh[i], titles[i])]
@@ -424,6 +429,9 @@ for i in range(0, 2):
     plot_phase = np.linspace(-np.pi, np.pi, 50)
     curve_plot = np.cos(plot_phase)
     [a.plot(plot_phase, curve_plot*ylim/4 + ylim/2, 'm-') for a, ylim in zip(axh[i], ylims)]
+
+[a.spines['right'].set_visible(False) for a in axh.reshape(-1)]
+[a.spines['top'].set_visible(False) for a in axh.reshape(-1)]
 
 ## Compare lfilt to filtfilt
 fig, ax = plt.subplots()

@@ -7,6 +7,7 @@ test_bin_folder = '/data/Working/Opto Project/Rat 594/594_placestim_test_2019-12
 
 import Python3.OpenEphys as oe
 import Python3.Binary as ob
+import Python3.SettingsXML as SettingsXML
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.io as sio
@@ -14,30 +15,38 @@ import os
 import glob
 import pandas as pd
 import helpers
-
+import scipy.signal as signal
 
 ## Now load everything
 # First import openephys data - all channels + input TTL events
-def load_openephys(folder):
-    """Loads in openephys continuous and event data. Openephys format ok, binary format not yet finished/vetted"""
+def load_openephys(folder, Experiment=1, Recording=1, TTLport=None):
+    """Loads in openephys continuous and event data from processor. Openephys format ok, binary format not yet finished/vetted"""
     try:  # Load in openephys format
         cont_array = oe.loadFolder(folder)
         events = oe.loadEvents(os.path.join(folder, 'all_channels.events'))
         oe_type = 'oe'
         Rate = 'See cont_array variable'
     except ZeroDivisionError:  # load in binary format
+        _, PluginNames = SettingsXML.GetRecChs(os.path.join(folder, 'settings.xml'))
+        Proc = list(PluginNames.keys())[0]  # assume first node is the recording processor
+        ProcName = PluginNames[Proc]  # Get processor name
+        ProcFolderName = ProcName.replace(' ', '_') + '-' + Proc + '.0'
+        cont_array, Rate = ob.Load(folder, Experiment=Experiment, Recording=Recording)
+        Proc = list(Rate.keys())[0]
+        SR = Rate[Proc][str(Experiment - 1)]  # get sample rate
+        cont_time = np.load(os.path.join(folder, 'experiment' + str(Experiment) + '/recording' + str(Recording)
+                                         + '/continuous/' + ProcFolderName + '/timestamps.npy'))
 
-        cont_array, Rate = ob.Load(folder)
-        SR = Rate['100']['0']  # get sample rate
-        cont_time = np.load(os.path.join(folder, 'experiment1/recording1/continuous/Rhythm_FPGA-100.0/timestamps.npy'))
-        event_folder = os.path.join(folder, 'experiment1/recording1/events/Rhythm_FPGA-100.0/TTL_1')
-        event_data = []
-        for file_name in ['channel_states.npy', 'channels.npy', 'full_words.npy', 'timestamps.npy']:
-            event_data.append(np.load(os.path.join(event_folder, file_name)))
+        if TTLport is not None:
+            event_folder = os.path.join(folder, 'experiment' + str(Experiment) + '/recording' + str(Recording) +
+                                        '/events/' + ProcFolderName + '/TTL_' + str(TTLport))
+            event_data = load_binary_events(event_folder)
+        else:
+            event_data = None
 
         oe_type = 'binary'
 
-    return event_data, cont_array, Rate
+    return event_data, cont_array, SR
 
 
 ## Load events only recorded in binary format
@@ -175,17 +184,54 @@ def plot_opti_v_mat(opti_data, mat_data, cont_data=np.nan, event_data=np.nan, Ra
 
     return fig1, ax1, fig2, ax2
 
-
 # Get start time
+
+## Downsample OE to 1250Hz
+def resampleOEtoLFP(traces, SRin=30000, SRout=1250):
+    """
+    downsample open-ephys traces from 30000 to 1250 Hz. Currently only supports those two sampling rates
+    :param traces: ntimes x nchannels memmap array
+    :param SRin: 30000
+    :param SRout: 1250
+    :return:
+    """
+    if SRin == 30000 and SRout == 1250:
+        nchannels = traces.shape[1]
+
+        # this is a poor way to do this in python but it'll work for now
+        ds_trace_list = []
+        print('Downsampling data from ' + str(SRin) + 'Hz to ' + str(SRout) + 'Hz')
+        for chan in range(0, nchannels):
+            ds_trace_list.append(signal.decimate(signal.decimate(traces[:, chan], 6), 4))
+
+        traces_ds = np.array(ds_trace_list)
+
+        # This is buggy - figure out later!
+        # if traces_ds.shape[1] != nchannels:  # make it the same format as the input!
+        #     traces_ds.swapaxes(0, 1)
+
+    else:
+        print('SRin=30000 and SRout=1250 only supported currently')
+        traces_ds = []
+
+    return traces_ds, SRout
+
+
+
+## Create eeg file from dat file
+def oe_to_lfp_file(folder, Experiment=1, Recording=1, SReeg=1250):
+    """Downsamples a .dat file to 1250 (default) and saves with .lfp"""
+    _, full_traces, SRoe = load_openephys(folder, Experiment=Experiment, Recording=Recording)
+
+    _, PluginNames = SettingsXML.GetRecChs(os.path.join(folder, 'settings.xml'))
+    Proc = list(PluginNames.keys())[0]  # assume first node is the recording processor
+    traces_eeg, _ = resampleOEtoLFP(full_traces[Proc][str(Experiment - 1)][str(Recording - 1)], SRin=SRoe, SRout=1250)
+    np.save(os.path.join(folder, 'continuous_eeg.npy'), traces_eeg)
 
 
 ## Now plot stuff!!
 
 if __name__ == '__main__':
-    mat_data = load_mat(test_folder)
-    opti_data, opti_start_time = load_opti(test_folder)
-    event_data, cont_array, Rate = load_openephys(test_folder)
-    cont_data = cont_array['100']['0']['0']
-    plot_opti_v_mat(opti_data, mat_data, cont_data=cont_data[:, 3], event_data=event_data)
+    oe_to_lfp_file(r'/data/Working/Opto/Rat613/ClosedLoopTest2/Rat613_SWRstim_probe1_2020-08-07_10-55-22/', Experiment=2)
 
     pass
