@@ -3,10 +3,11 @@ import numpy as np
 import datetime
 import math
 import numpy as np
-
+import math
 
 def pretty_plot(ax):
     """Generic function to make plot pretty, bare bones for now, will need updating"""
+    # TODO: move this into a plot_function helper module or something similar
     # set ylims to min/max, rounded to nearest 10
     ylims_round = np.round(ax.get_ylim(), decimals=-1)
     ax.set_yticks(ylims_round)
@@ -15,6 +16,17 @@ def pretty_plot(ax):
     # turn off top and right axis lines
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
+
+    return ax
+
+
+def set_ytick_units(ax, unit):
+    """Set tick units on y-axis, e.g. unit=100 will label 0, 100, 200, etc."""
+    order_mag = math.floor(math.log10(unit))
+    # ylims_round = [int(np.round(lim, decimals=-order_mag)) for lim in ax.get_ylim()]
+    ylims_round = [int(np.floor(ax.get_ylim()[0]/unit)*unit), int(np.ceil(ax.get_ylim()[1]/unit)*unit)]
+    ax.set_yticks(np.arange(ylims_round[0], ylims_round[1], unit))
+    ax.set_yticklabels(np.arange(ylims_round[0], ylims_round[1], unit).astype('str'))
 
     return ax
 
