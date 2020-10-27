@@ -35,11 +35,10 @@ else:
     full_spike_path = r'/data/Working/Opto/Jackie671/Jackie_placestim_day2/Jackie_PRE_2020-10-07_10-48-13/experiment1/recording1/continuous/Intan_Rec._Controller-100.0/spyking_circus/Jackie_pre_2020-10-07_nobadchannels/Jackie_pre_2020-10-07.GUI/'
 spike_folder = 'Jackie_pre_2020-10-07.GUI'
 raw_folder = 'Jackie_PRE_2020-10-07_10-48-13'
-data_ds = np.load(full_raw_path)
+data_ds = np.load(os.path.join(full_raw_path, 'continuous_lfp.npy'))
 
 timestamps = np.load(os.path.join(full_raw_path, 'timestamps.npy'))
 time_ds = timestamps[0:-1:24]
-
 
 on_idx = np.where(data_ds[adc_channel] > on_thresh)[0]
 off_idx = np.where(data_ds < on_thresh)[0]
@@ -54,7 +53,8 @@ clusters = np.load(os.path.join(full_spike_path, 'spike_clusters.npy'))
 cluster_info = pd.read_csv(os.path.join(full_spike_path, 'cluster_info.tsv'), sep='\t')
 good_units = cluster_info['id'][cluster_info['group'] == 'good'].array
 
-##
+## Plot FR boxplot
+sns.set_palette('Set2')
 clusters_use = [5, 34, 59]
 silenced_shank = [11, 7, 4, 8, 10, 6, 5, 9]
 adjacent_shank = [15, 3, 0, 12, 14, 2, 1, 13]
@@ -82,3 +82,16 @@ for idc, cluster_use in enumerate(clusters_use):
     elif channel.isin(adjacent_shank).values[0]: ax[idc].set_title('Cell on Adjacent Shank')
     else: ax[idc].set_title('Cell on Non-Adjacent Shank')
 
+## Plot rasters
+
+figr, axr = plt.subplots(1, 3)
+figr.set_size_inches([22, 6])
+for idc, cluster_use in enumerate(clusters_use):
+    cl_spike_times = spike_times[clusters == cluster_use]
+    channel = cluster_info["ch"][cluster_info["id"] == cluster_use]
+
+    buffer = 1  # seconds before/after to consider for spiking
+    for idn, on in enumerate(on_times):
+        spike_times_on_aligned = cl_spike_times[np.bitwise_and(cl_spike_times > (on - buffer),
+                                                               cl_spike_times < (off_times[idn] + buffer))] - on
+        axr[idc].vlines(spike_times_on_aligned, idn, idn + 1)

@@ -25,7 +25,7 @@ traces_ds, SRlfp = pd.OEtoLFP(cont_array['100']['0']['0'])  # downsample
 traces_ds = traces_ds.T  # hack
 
 ## or just load directly
-if os.environ['os'] == 'Windows_NT' and os.environ['COMPUTERNAME'] == 'NATLAPTOP':
+if os.name == 'nt':
     phase_detect_folder = r'C:\Users\Nat\Documents\UM\Working\Opto\Rat615\2020-02-14_11-16-15\experiment1\recording1\events\Phase_Detector-108.0\TTL_1'
     event_detect_folder = r'C:\Users\Nat\Documents\UM\Working\Opto\Rat615\2020-02-14_11-16-15\experiment1\recording1\events\Rhythm_FPGA-100.0\TTL_1'
     save_loc = r'C:\Users\Nat\Dropbox\UM\Meeting Plots'
