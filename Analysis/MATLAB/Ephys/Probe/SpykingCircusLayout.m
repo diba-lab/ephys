@@ -14,18 +14,12 @@ classdef (Abstract) SpykingCircusLayout
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             T=obj.getSiteSpatialLayout;
-            
+            T=T(T.isActive==1,:);
             for ichan=1:numel(T.ChannelNumberComingOutPreAmp)
                 thechan=T(ichan,:);
-                if thechan.ChannelNumberComingOutPreAmp<129
-                    probeaddition=0;
-                else
-                    probeaddition=400*4;
-                end
                 if thechan.ChannelNumberComingOutPreAmp<=128+128
                     fprintf(' %d: [%.1f, %.1f],\n',...
-                        thechan.ChannelNumberComingOutPreAmp-1, 1550-thechan.X,...
-                        3115-(thechan.Z + (thechan.ShankNumber-1) * 400 + probeaddition));
+                        ichan-1, thechan.X,max(T.Z)-thechan.Z );
                 end
             end
         end
