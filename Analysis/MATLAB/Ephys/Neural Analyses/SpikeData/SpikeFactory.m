@@ -36,7 +36,7 @@ classdef SpikeFactory < SpikeNeuroscope
                 foldername = uigetdir(defaultloc,title);
             end
             try
-                theFile=dir(fullfile(foldername,'..',['*TimeIntervalCombined*' '.mat']));
+                theFile=dir(fullfile(foldername,'..','..',['*TimeIntervalCombined*' '.mat']));
                 S=load(fullfile(theFile.folder, theFile.name));
                 fnames=fieldnames(S);
                 ticd=S.(fnames{1});
