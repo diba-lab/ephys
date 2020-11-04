@@ -495,7 +495,7 @@ for i in range(0, 2):
     curve_plot = np.cos(plot_phase)
     [a.plot(plot_phase, curve_plot*ylim/4 + ylim/2, 'm-') for a, ylim in zip(axh2[i], ylims)]
 
-    # Make plots pretty TODO: fold this into helper function later!
+    # Make plots pretty
     [helpers.pretty_plot(a) for a in axh2[i]]
     [a.set_xticks([-3.14, 0, 3.14]) for a in axh2[i]]
     [a.set_xticklabels([r'-$\pi$', str(0), r'$\pi$']) for a in axh2[i]]
