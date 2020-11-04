@@ -75,11 +75,15 @@ classdef (Abstract) Oscillation
         end
         function obj=getLowpassFiltered(obj,filterFreq)
             obj.voltageArray=ft_preproc_lowpassfilter(...
-                obj.voltageArray,obj.samplingRate,filterFreq);
+                obj.voltageArray',obj.sampleRate,filterFreq);
         end
         function obj=getHighpassFiltered(obj,filterFreqBand)
             obj.voltageArray=ft_preproc_highpassfilter(...
-                obj.voltageArray,obj.samplingRate,filterFreqBand,[],[],[]);
+                obj.voltageArray',obj.sampleRate,filterFreqBand,[],[],[]);
+        end
+        function obj=getBandpassFiltered(obj,filterFreqBand)
+            obj.voltageArray=ft_preproc_bandpassfilter(...
+                obj.voltageArray',obj.sampleRate,filterFreqBand,[],[],[]);
         end
         function time=getVoltageArray(obj)
             time = obj.voltageArray;

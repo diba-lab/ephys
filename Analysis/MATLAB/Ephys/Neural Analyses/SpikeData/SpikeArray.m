@@ -40,8 +40,10 @@ classdef SpikeArray < SpikeNeuroscope
             tbl=array2table(horzcat(spikeIDs,spikecounts'),'VariableNames',{'ID','count'});
         end
         function []=plot(obj,unitnumbers)
+            colors=linspecer(32);
             spiketablet=obj.SpikeTable;
             ticd=obj.TimeIntervalCombined;
+            clustinfo=obj.ClusterInfo;
             st=spiketablet.SpikeTimes;
             sc=spiketablet.SpikeCluster;
             if nargin<2
@@ -50,16 +52,26 @@ classdef SpikeArray < SpikeNeuroscope
             figurename=sprintf('Rasterplot %s-%s',seconds(st([1 end])/ticd.getSampleRate)+ticd.getStartTime);
             try close(figurename);catch,end
             figure('Name',figurename, 'Units','normalized','Position',[0 0 1 .2])
-            for iunit=1:numel(unitnumbers)
-                unitnumber=unitnumbers(iunit);
-                idx=ismember(sc,unitnumber);
+            clustinfo1=clustinfo(ismember(clustinfo.id,unitnumbers),:);
+            for iunit=1:height(clustinfo1)
+                unit=clustinfo1(iunit,:);
+                idx=ismember(sc,unit.id);
                 stn=st(idx);
                 arr=seconds(double(stn)/ticd.getSampleRate)+ticd.getStartTime;
-                s1=scatter(arr,ones(size(arr))*iunit,20,[0 0 0],'filled');
                 hold on
-                s1.MarkerEdgeAlpha=.1;
-                s1.MarkerFaceAlpha=.1;
+                p1=plot(arr,iunit...
+                    ,'Marker','|'...
+                    ,'Color',colors(unit.ch+1,:)...
+                    ,'MarkerSize',3,...
+                    'MarkerEdgeColor',colors(unit.ch+1,:));
+                %                 s1=scatter(arr,ones(size(arr))*iunit,20,[0 0 0],'filled');
+                %                 s1.MarkerEdgeAlpha=.1;
+                %                 s1.MarkerFaceAlpha=.1;
             end
+            ax=gca;
+            ax.YDir='reverse';
+            ax.YTick=2:5:height(clustinfo1);
+            ax.YTickLabel=clustinfo1.sh(ax.YTick);
         end
         function obj=getTimeInterval(obj,timeWindow)
             ticd = obj.TimeIntervalCombined;
@@ -92,12 +104,30 @@ classdef SpikeArray < SpikeNeuroscope
             spikeUnit=SpikeUnit(spikeId,spktimes,obj.TimeIntervalCombined,...
                 aci.amp,aci.ch,aci.fr,aci.group,aci.n_spikes,aci.purity);
         end
-        function []=saveNeuroscopeSpikeFiles(obj,folder)
-             obj.saveCluFile(folder)
+        function []=saveNeuroscopeFiles(obj,folder,filename)
+            if ~exist('filename','var')
+                filename='neuro';
+            end
+            if ~exist('folder','var')
+                folder='.';
+            end
+            obj.saveCluFile(fullfile(folder,[filename  '.clu.0']),obj.SpikeTable.SpikeCluster);
+            obj.saveResFile(fullfile(folder,[filename  '.res.0']),obj.SpikeTable.SpikeTimes);
+        end
+        function [sa]=plus(obj,sa)
+            shift=max(obj.ClusterInfo.id);
+            sa.ClusterInfo.id=sa.ClusterInfo.id+shift;
+            sa.SpikeTable.SpikeCluster=sa.SpikeTable.SpikeCluster+shift;
+            sa.ClusterInfo=sortrows([obj.ClusterInfo; sa.ClusterInfo],{'group','sh','ch'});
+            
+            sa.SpikeTable=sortrows([obj.SpikeTable; sa.SpikeTable],{'SpikeTimes'});
+        end
+        function [obj]=setShank(obj,shankno)
+            obj.ClusterInfo.sh=ones(height(obj.ClusterInfo),1)*shankno;
         end
     end
     methods %interited
-
+        
     end
 end
 

@@ -30,11 +30,12 @@ Data, Rate = ob.Load(data_folder, ChannelMap=channels_use, Experiment=2, Recordi
 ## Look at silencing for Jackie place stim day 2
 adc_channel = 35  # channel with adc input
 on_thresh = 1300000 # on voltage threshold
-if not os.environ['LOGNAME'] is not 'nkinsky':
+if os.environ['APPDATA'][0] == 'C':
     base_dir = r'C:\Users\Nat\Documents\UM\Working\Opto\Jackie671\placestim_day2\PRE'
     full_raw_path = r'C:\Users\Nat\Documents\UM\Working\Opto\Jackie671\placestim_day2\PRE\Jackie_PRE_2020-10-07_10-48-13\experiment1\recording1\continuous\Intan_Rec._Controller-100.0'
     save_loc = np.nan
-else:
+
+elif os.environ['APPDATA'][0] == '/':
     base_dir = r'/data/Working/Opto/Jackie671/Jackie_placestim_day2/Jackie_PRE_2020-10-07_10-48-13'
     full_raw_path = r'/data/Working/Opto/Jackie671/Jackie_placestim_day2/Jackie_PRE_2020-10-07_10-48-13/experiment1/recording1/continuous/Intan_Rec._Controller-100.0'
     full_spike_path = r'/data/Working/Opto/Jackie671/Jackie_placestim_day2/Jackie_PRE_2020-10-07_10-48-13/experiment1/recording1/continuous/Intan_Rec._Controller-100.0/spyking_circus/Jackie_pre_2020-10-07_nobadchannels/Jackie_pre_2020-10-07.GUI/'

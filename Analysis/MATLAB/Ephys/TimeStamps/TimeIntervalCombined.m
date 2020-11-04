@@ -22,10 +22,9 @@ classdef TimeIntervalCombined
             obj.Format='dd-MMM-uuuu HH:mm:ss.SSS';
         end
         
-        function timeIntervalCombined=getTimeIntervalForSamples(obj, startSample, endSample)
+        function new_timeIntervalCombined=getTimeIntervalForSamples(obj, startSample, endSample)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            timeIntervalCombined=TimeIntervalCombined;
             if startSample <1
                 startSample=1;
                 warning('Start sample is <1, \n\tit is set to ''1''\n')
@@ -39,12 +38,23 @@ classdef TimeIntervalCombined
                 lastSample=0;
                 for iInt=1:til.length
                     theTimeInterval=til.get(iInt);
-                    timeIntervalCombined=timeIntervalCombined+theTimeInterval.getTimeIntervalForSamples(startSample-lastSample,endSample-lastSample);
+                    upstart=startSample-lastSample;
+                    upend=endSample-lastSample;
+                    if upend>0
+                        newti=theTimeInterval.getTimeIntervalForSamples(upstart,upend);
+                        if ~isempty(newti)
+                            try
+                                new_timeIntervalCombined=new_timeIntervalCombined+newti;
+                            catch
+                                new_timeIntervalCombined=newti;
+                            end
+                        end
+                    end
                     lastSample=lastSample+theTimeInterval.NumberOfPoints;
                 end
             else
                 warning('Something wrong with the numbers. Please check if correct. \n\tThe same interval is returned.')
-                timeIntervalCombined=obj;
+                new_timeIntervalCombined=obj;
             end
         end
         
