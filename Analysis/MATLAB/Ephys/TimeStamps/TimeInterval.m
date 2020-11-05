@@ -100,12 +100,16 @@ classdef TimeInterval
             p1.LineWidth=5;
         end
         function st=getStartTime(obj)
-        st=obj.StartTime;
-        st.Format=obj.Format;
+            st=obj.StartTime;
+            st.Format=obj.Format;
         end
         function tps=getTimePointsInSec(obj)
             tps=0:(1/obj.SampleRate):((obj.NumberOfPoints-1)/obj.SampleRate);
         end
+        function tps=getTimePointsInAbsoluteTimes(obj)
+            tps=seconds(obj.getTimePointsInSec)+obj.getStartTime;
+        end
+        
     end
     methods (Access=private)
         function ts=getTimeSeries(obj)

@@ -51,11 +51,21 @@ classdef Ripple
         function ripples=getRipplesInAbsoluteTime(obj,toi)
             
             ticd=obj.TimeIntervalCombined;
-            st=ticd.getStartTime;
-            toi=datetime(st.Year,st.Month,st.Day)+toi;
-            pt=seconds(obj.PeakTimes)+st;
-            idx=pt>toi(1)&pt<toi(2);
-            ripples=pt(idx);
+            if isduration(toi)
+                st=ticd.getStartTime;
+                toi1=datetime(st.Year,st.Month,st.Day)+toi;
+            else
+                toi1=toi;
+            end
+            samples=ticd.getSampleFor(toi1);
+            secs=samples/ticd.getSampleRate;
+            pt1=obj.PeakTimes(obj.PeakTimes>=secs(1)&obj.PeakTimes<=secs(2));
+            if ~isempty(pt1)
+                sample=pt1*ticd.getSampleRate;
+                ripples=ticd.getRealTimeFor(sample);
+            else
+                ripples=[];
+            end
             
         end
         

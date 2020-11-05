@@ -20,14 +20,17 @@ classdef (Abstract) Oscillation
                 timeFrequencyMethod)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            [ticd1, res]=obj.getTimeIntervalCombined.getDownsampled(...
+            try
+                [ticd1, res]=obj.getTimeIntervalCombined.getDownsampled(...
                 obj.getTimeIntervalCombined.getSampleRate/...
                 timeFrequencyMethod.movingWindow(2));
             obj.voltageArray(res)=[];
+            catch
+                ticd1=obj.getTimeIntervalCombined;
+            end
             timeFrequencyMap=timeFrequencyMethod.execute(...
                 obj.voltageArray, obj.getSampleRate);
-            t=ticd1.getTimePointsInSec;
-            timeFrequencyMap.timePoints=t(1:numel(timeFrequencyMap.timePoints));
+            timeFrequencyMap=timeFrequencyMap.setTimeintervalCombined(ticd1);
         end
         function p1=plot(obj,varargin)
             p1=plot(obj.time,obj.voltageArray,varargin{:});

@@ -1,4 +1,4 @@
-classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope & Persist
+classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope
     
     %PROBE Summary of this class goes here
     %   Detailed explanation goes here
