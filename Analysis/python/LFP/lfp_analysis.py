@@ -64,35 +64,4 @@ def get_local_extrema(trace, type='max'):
     return ind_rel_extreme
 
 
-## Downsample OE to 1250Hz
-def OEtoLFP(traces, SRin=30000, SRout=1250):
-    """
-    downsample open-ephys traces from 30000 to 1250 Hz. Currently only supports those two sampling rates
-    :param traces: ntimes x nchannels memmap array
-    :param SRin: 30000
-    :param SRout: 1250
-    :return:
-    """
-    if SRin == 30000 and SRout== 1250:
-        nchannels = traces.shape[1]
-
-        # this is a poor way to do this in python but it'll work for now
-        ds_trace_list = []
-        print('Downsampling data from ' + str(SRin) + 'Hz to ' + str(SRout) + 'Hz')
-        for chan in range(0, nchannels):
-            ds_trace_list.append(signal.decimate(signal.decimate(traces[:, chan], 6), 4))
-
-        traces_ds = np.array(ds_trace_list)
-
-        # This is buggy - figure out later!
-        # if traces_ds.shape[1] != nchannels:  # make it the same format as the input!
-        #     traces_ds.swapaxes(0, 1)
-
-    else:
-        print('SRin=30000 and SRout=1250 only supported currently')
-        traces_ds = []
-
-    return traces_ds, SRout
-
-
 ## Plot trace in a nice working window

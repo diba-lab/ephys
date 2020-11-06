@@ -27,7 +27,7 @@ classdef SpikeFactory < SpikeNeuroscope
     end
     
     methods
-        function [sa, foldername]= getSpykingCircusOutputFolder(obj,foldername)
+        function [sanew, foldername]= getSpykingCircusOutputFolder(obj,foldername)
             defaultloc='/data/EphysAnalysis/cluster';
             title='Select folder for spike data';
             if ~exist('foldername','var')
@@ -37,6 +37,9 @@ classdef SpikeFactory < SpikeNeuroscope
             end
             try
                 theFile=dir(fullfile(foldername,'..',['*TimeIntervalCombined*' '.mat']));
+                if isempty(theFile)
+                    theFile=dir(fullfile(foldername,'..','..',['*TimeIntervalCombined*' '.mat']));
+                end
                 S=load(fullfile(theFile.folder, theFile.name));
                 fnames=fieldnames(S);
                 ticd=S.(fnames{1});
@@ -56,7 +59,6 @@ classdef SpikeFactory < SpikeNeuroscope
                 temps{ifile}=readNPY(fullfile(theFile.folder, theFile.name));
             end
             groups={'good','mua'};
-            sas=[];
             for igroup=1:numel(groups)
                 group=groups{igroup};
                 ClusterIds=cluster_info.id(ismember(cluster_info.group,group));
@@ -73,7 +75,12 @@ classdef SpikeFactory < SpikeNeuroscope
                 
                 sa=sa.setClusterInfo(cluster_info(ismember(cluster_info.id,ClusterIds),:));
                 ts=tokenize(theFile.folder,filesep);
-                filename=fullfile(theFile.folder,'..',ts{numel(ts)-1});
+                try 
+                    sanew=sanew+sa;
+                catch
+                    sanew=sa;
+                end
+                filename=fullfile(theFile.folder,'..','..',ts{numel(ts)-1});
                 obj.saveCluFile([filename '.' group '.clu.0'],sa.SpikeTable.SpikeCluster);
                 obj.saveResFile([filename '.' group '.res.0'],sa.SpikeTable.SpikeTimes);
             end

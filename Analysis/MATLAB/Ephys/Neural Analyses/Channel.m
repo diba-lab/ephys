@@ -38,12 +38,23 @@ classdef Channel < Oscillation
         end
         
         function obj=getTimeWindowForAbsoluteTime(obj,window)
-            window1=datetime(window,'Format','HH:mm');
             ticd=obj.TimeIntervalCombined;
             [h,m,s]=hms(ticd.getStartTime);
             basetime=ticd.getStartTime-hours(h)-minutes(m)-seconds(s);
-            time.start=basetime+hours(window1(1).Hour)+minutes(window1(1).Minute);
-            time.end=basetime+hours(window1(2).Hour)+minutes(window1(2).Minute);
+            if isstring(window)
+                window1=datetime(window,'Format','HH:mm');
+                add1(1)=hours(window1(1).Hour)+minutes(window1(1).Minute);
+                add1(2)=hours(window1(2).Hour)+minutes(window1(2).Minute);
+                time.start=basetime+add1(1);
+                time.end=basetime+add1(2);
+            elseif isduration(window)
+                add1=window;
+                time.start=basetime+add1(1);
+                time.end=basetime+add1(2);
+            elseif isdatetime(window)
+                time.start=window(1);
+                time.end=window(2);
+            end
             sample.start=ticd.getSampleFor(time.start);
             sample.end=ticd.getSampleFor(time.end);
             ticd1=ticd.getTimeIntervalForTimes(time.start,time.end);
@@ -58,9 +69,9 @@ classdef Channel < Oscillation
             diff1=numel(t_s)-numel(va);
             va((numel(va)+1):(numel(va)+diff1))=zeros(diff1,1);
             t_s=t.getStartTime+seconds(t_s);
-            plot(t_s,va);
+            plot(t_s,va,varargin{:});
         end
     end
-
+    
 end
 
