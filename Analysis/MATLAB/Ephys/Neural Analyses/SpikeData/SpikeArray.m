@@ -96,6 +96,45 @@ classdef SpikeArray < SpikeNeuroscope
             end
             phasebar('size',.15,'location','southeast');
         end
+        function []=plotRaster(obj)
+            spiketablet=obj.SpikeTable;
+            ticd=obj.TimeIntervalCombined;
+            clustinfo=obj.ClusterInfo;
+            st=spiketablet.SpikeTimes;
+            sc=spiketablet.SpikeCluster;
+            figurename=sprintf('Rasterplot %s-%s',ticd.getRealTimeFor(st([1 end])));
+            try close(figurename);catch,end
+            figure('Name',figurename, 'Units','normalized','Position',[0 0 .2 .3])
+            clustinfo1=clustinfo;
+            locations=unique(clustinfo1.sh);
+            colors=linspecer(numel(locations),'qualitative');
+
+            for iunit=1:height(clustinfo1)
+                unit=clustinfo1(iunit,:);
+                idx=ismember(sc,unit.id);
+                stn=st(idx);
+                if ~isempty(stn)
+                    arr=ticd.getRealTimeFor(stn);
+                    hold on
+                    idx_location=ismember(locations,unit.sh);
+                    %                     s=scatter(arr,ones(size(arr))*iunit,ones(size(arr))*30,c,'|');
+                    %                     s.LineWidth=2;
+                    p1=plot(arr,iunit...
+                        ,'Marker','|'...
+                        ,'LineWidth',2 ...
+                        ,'Color',colors(idx_location,:)...
+                        ,'MarkerSize',3,...
+                        'MarkerEdgeColor',colors(idx_location,:));
+%                     s1=scatter(arr,ones(size(arr))*iunit,20,[0 0 0],'filled');
+                    s1.MarkerEdgeAlpha=.1;
+                    s1.MarkerFaceAlpha=.1;
+                end
+            end
+            ax=gca;
+            ax.YDir='reverse';
+            ax.YTick=2:5:height(clustinfo1);
+            ax.YTickLabel=clustinfo1.sh(ax.YTick);
+        end
         function obj=getTimeInterval(obj,timeWindow)
             ticd = obj.TimeIntervalCombined;
             if isduration(timeWindow)

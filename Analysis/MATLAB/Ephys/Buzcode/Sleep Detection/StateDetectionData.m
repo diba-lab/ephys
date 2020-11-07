@@ -42,7 +42,7 @@ classdef StateDetectionData
             catch
                 warning('I couldn''t find the Probe file.\n\t%s',thefile);
             end
-            thefile=dir(fullfile(basepath, '*TimeInterval*'));
+            thefile=dir(fullfile(basepath, '*TimeIntervalCombined*'));
             try
                 S=load(fullfile(thefile(1).folder,thefile(1).name));
             catch

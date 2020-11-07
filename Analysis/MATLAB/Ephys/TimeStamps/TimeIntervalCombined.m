@@ -223,7 +223,7 @@ classdef TimeIntervalCombined
                 if exist('timeIntervalCombined','var')
                     timeIntervalCombined=timeIntervalCombined+ds_ti;
                 else
-                    timeIntervalCombined=TimeIntervalCombined(ds_ti);
+                    timeIntervalCombined=ds_ti;
                 end
                 
             end

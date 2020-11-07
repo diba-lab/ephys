@@ -10,9 +10,6 @@ classdef StateSeries
     methods
         function obj = StateSeries(states,ticd)
             obj.TimeIntervalCombined=ticd;
-            if ticd.getNumberOfPoints>numel(states)
-                states(numel(states)+1)=states(end);
-            end
             obj.States=states(1:ticd.getNumberOfPoints);
         end
         function newobj = getResampled(obj,timeIntervalCombined)
