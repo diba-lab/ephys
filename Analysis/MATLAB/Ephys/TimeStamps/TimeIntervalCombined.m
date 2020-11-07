@@ -102,7 +102,7 @@ classdef TimeIntervalCombined
                         lastSample=newSample;
                         newSample=lastSample+theTimeInterval.NumberOfPoints;
                         if sample>lastSample && sample<=newSample
-                            time=theTimeInterval.getRealTimeFor(sample-lastSample);
+                            time=theTimeInterval.getRealTimeFor(double(sample)-lastSample);
                         end
                     end
                 else
