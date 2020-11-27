@@ -291,6 +291,11 @@ classdef TimeIntervalCombined
                 theTimeInterval.plot;hold on;
             end
         end
+        function save(obj,folder)
+            filename=fullfile(folder,'_added_TimeIntervalCombined.mat');
+            save(filename,'obj');
+        end
+
     end
     methods
         function dt=convertDurationToDatetime(obj,time)

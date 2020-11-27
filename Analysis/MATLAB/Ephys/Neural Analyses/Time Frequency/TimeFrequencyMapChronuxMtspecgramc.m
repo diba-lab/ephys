@@ -16,7 +16,7 @@ classdef TimeFrequencyMapChronuxMtspecgramc < TimeFrequencyMap
             if ~exist('ax','var')||isempty('ax')
                 ax=gca;
             end
-            imsc=imagesc(ax,hours(seconds(obj.timePoints-obj.timePoints(1))),...
+            imsc=imagesc(ax,seconds(obj.timePoints-obj.timePoints(1)),...
                 obj.frequencyPoints,10*log10( abs(obj.matrix')));
             if ~exist('clim','var')||isempty('clim')
             else
