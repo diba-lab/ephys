@@ -109,7 +109,10 @@ classdef TimeInterval
         function tps=getTimePointsInAbsoluteTimes(obj)
             tps=seconds(obj.getTimePointsInSec)+obj.getStartTime;
         end
-        
+        function nop=getNumberOfPoints(obj)
+            nop=numel(obj.NumberOfPoints);
+        end
+    
     end
     methods (Access=private)
         function ts=getTimeSeries(obj)
