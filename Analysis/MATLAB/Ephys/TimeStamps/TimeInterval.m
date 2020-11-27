@@ -110,7 +110,7 @@ classdef TimeInterval
             tps=seconds(obj.getTimePointsInSec)+obj.getStartTime;
         end
         function nop=getNumberOfPoints(obj)
-            nop=numel(obj.NumberOfPoints);
+            nop=obj.NumberOfPoints;
         end
     
     end
