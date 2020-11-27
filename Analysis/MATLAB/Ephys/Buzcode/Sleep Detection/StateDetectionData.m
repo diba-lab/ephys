@@ -55,7 +55,7 @@ classdef StateDetectionData
             obj.TimeIntervalCombinedOriginal=timeIntervalCombined;
             downsampleFactor=timeIntervalCombined.getSampleRate/obj.SleepScoreLFP.sf;
             timeIntervalCombinedDownsampled=timeIntervalCombined.getDownsampled(downsampleFactor);
-            npds=timeIntervalCombinedDownsampled.getNumberOfPoints;
+            npds=numel(timeIntervalCombinedDownsampled.getTimePointsInSec);
             npss=numel(obj.SleepScoreLFP.t);
             if abs((npds-npss)/npss)<.0001
                 
@@ -203,6 +203,9 @@ classdef StateDetectionData
             states=idx.states;
             ticd=obj.TimeIntervalCombinedOriginal.getDownsampled(...
                 obj.TimeIntervalCombinedOriginal.getSampleRate/1);
+            if numel(states)<ticd.getNumberOfPoints
+                states(numel(states)+1)=states(numel(states));
+            end
             ss=StateSeries(states,ticd);
         end
         function probe=getProbe(obj)
