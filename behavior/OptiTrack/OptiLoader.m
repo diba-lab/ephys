@@ -16,7 +16,11 @@ classdef OptiLoader<Singleton
             s=xml2struct('configuration.xml');
             fname=fieldnames(s);
             newObj.parameters=s.(fname{1});
-            newObj=newObj.loadFile(files);
+            try
+                newObj=newObj.loadFile(files);
+            catch
+                newObj=newObj.loadFile();
+            end
         end
     end
     
@@ -25,7 +29,11 @@ classdef OptiLoader<Singleton
         function obj = instance(files)
             persistent uniqueInstance
             if isempty(uniqueInstance)
-                obj = OptiLoader(files);
+                try
+                    obj = OptiLoader(files);
+                catch
+                    obj = OptiLoader();
+                end
                 uniqueInstance = obj;
             else
                 obj = uniqueInstance;

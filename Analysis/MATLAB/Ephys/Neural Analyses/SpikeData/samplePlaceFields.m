@@ -42,8 +42,15 @@ time1=hours(13)+minutes(29)+seconds(0);
 time1=hours(13)+minutes(29)+seconds(0);
 time1=hours(13)+minutes(3)+seconds(9);
 % time1=hours(13)+minutes(19)+seconds(0);
-toi=[time0 time0+seconds(5)];
+toi=[time0 time0+seconds(3)];
 tracksa=sa.getTimeInterval(toi);
+
+t_lfp=readtable('LFPfiles.txt','Delimiter',',');
+idx_animal=ismember(t_lfp.animal,animal);
+idx_day=ismember(t_lfp.day,day);
+idx_all=idx_animal&idx_day;
+filepath=t_lfp.Filepath{idx_all};
+sdd=StateDetectionData(filepath);
 
 ch1=sdd.getLFP(1,1);
 ch1_short=ch1.getTimeWindowForAbsoluteTime(toi);
@@ -52,12 +59,6 @@ tfm=ch1_short.getTimeFrequencyMap(TimeFrequencyWavelet([8]));
 
 tracksa_s=tracksa.sort({'location','ch','group','sh'});
 tracksa_s.plot(tfm);f1=gcf;
-t_lfp=readtable('LFPfiles.txt','Delimiter',',');
-idx_animal=ismember(t_lfp.animal,animal);
-idx_day=ismember(t_lfp.day,day);
-idx_all=idx_animal&idx_day;
-filepath=t_lfp.Filepath{idx_all};
-sdd=StateDetectionData(filepath);
 ax=gca;
 ax.Position(4)=.7;
 ticd=ch1_short.getTimeIntervalCombined;
@@ -107,7 +108,7 @@ if ~exist(fullfile(folder,'figures',sprintf('%s.png',matlab.lang.makeValidName(f
 end
 tracksa.saveObject(folder);
 trackSus=tracksa.getSpikeUnits;
-ol=OptiLoader.instance(0);
+ol=OptiLoader.instance();
 olc=ol.getOptiFilesCombined;
 mld=olc.getMergedLocationData;
 mldtrack=mld.getTimeWindow(toi);
