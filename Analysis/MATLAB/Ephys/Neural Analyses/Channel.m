@@ -1,4 +1,4 @@
-classdef Channel < Oscillation
+classdef Channel < Oscillation & matlab.mixin.CustomDisplay
     %CHANNEL Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -36,6 +36,12 @@ classdef Channel < Oscillation
         function st=getTimeIntervalCombined(obj)
             st=obj.TimeIntervalCombined;
         end
+        function st=getTimeInterval(obj)
+            st=obj.TimeIntervalCombined;
+        end
+        function obj=setTimeInterval(obj,ti)
+            obj.TimeIntervalCombined=ti;
+        end
         
         function obj=getTimeWindowForAbsoluteTime(obj,window)
             ticd=obj.TimeIntervalCombined;
@@ -62,16 +68,31 @@ classdef Channel < Oscillation
             obj.TimeIntervalCombined=ticd1;
         end
         
-        function plot(obj,varargin)
+        function p=plot(obj,varargin)
             va=obj.getVoltageArray;
             t=obj.TimeIntervalCombined;
             t_s=t.getTimePointsInSec;
             diff1=numel(t_s)-numel(va);
             va((numel(va)+1):(numel(va)+diff1))=zeros(diff1,1);
             t_s=t.getStartTime+seconds(t_s);
-            plot(t_s,va,varargin{:});
+            p=plot(t_s,va(1:numel(t_s)),varargin{:});
+        end
+        function obj=plus(obj,aChan)
+            obj.TimeIntervalCombined=obj.TimeIntervalCombined+aChan.getTimeInterval;
+            obj.voltageArray=[obj.getVoltageArray ;aChan.voltageArray];
+        end
+        
+    end
+    methods (Access = protected)
+        function header = getHeader(obj)
+            if ~isscalar(obj)
+                header = getHeader@matlab.mixin.CustomDisplay(obj);
+            else
+                headerStr = matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
+                headerStr = [headerStr,' with Customized Display'];
+                header = sprintf('%s\n',headerStr);
+            end
         end
     end
-    
 end
 

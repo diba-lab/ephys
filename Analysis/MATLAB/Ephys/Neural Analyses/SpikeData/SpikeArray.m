@@ -138,14 +138,7 @@ classdef SpikeArray < SpikeNeuroscope
             ax.YTickLabel=clustinfo1.sh(ax.YTick);
         end
         function obj=getTimeInterval(obj,timeWindow)
-            ticd = obj.TimeIntervalCombined;
-            if isduration(timeWindow)
-                t(1)=ticd.convertDurationToDatetime(timeWindow(1));
-                t(2)=ticd.convertDurationToDatetime(timeWindow(2));
-            else
-                t=timeWindow;
-            end
-            s=ticd.getSampleFor(t);
+            s=obj.TimeIntervalCombined.getSampleFor(timeWindow);
             tbl=obj.SpikeTable;
             tbl((tbl.SpikeTimes<s(1))|(tbl.SpikeTimes>=s(2)),:)=[];
             obj.SpikeTable=tbl;

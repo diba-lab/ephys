@@ -42,7 +42,7 @@ time1=hours(13)+minutes(29)+seconds(0);
 time1=hours(13)+minutes(29)+seconds(0);
 time1=hours(13)+minutes(3)+seconds(9);
 % time1=hours(13)+minutes(19)+seconds(0);
-toi=[time0 time0+seconds(3)];
+toi=[time0 time0+seconds(10)];
 tracksa=sa.getTimeInterval(toi);
 
 t_lfp=readtable('LFPfiles.txt','Delimiter',',');

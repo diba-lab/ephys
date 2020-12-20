@@ -23,6 +23,18 @@ classdef TimeFrequencyMapWavelet < TimeFrequencyMap
                     obj.frequencyPoints,abs(obj.matrix),obj.clim);
                 obj.addTimeAxis()
         end
+        function phase = getPhase(obj,freq)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            va=angle(obj.matrix(ismember(obj.frequencyPoints,freq),:));
+            phase=Channel(num2str(freq),va,obj.timeIntervalCombined);
+        end
+        function power = getPower(obj,freq)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            va=abs(obj.matrix(ismember(obj.frequencyPoints,freq),:));
+            power=Channel(num2str(freq),va,obj.timeIntervalCombined);
+        end
     end
 end
 

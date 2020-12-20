@@ -33,6 +33,42 @@ classdef OptiFileCombined < Timelined
                 tls{i}=tl;i=i+1;
             end
         end
+        function tic=getTimeInterval(obj)
+            iter=obj.getIterator();
+            while(iter.hasNext)
+                optifile=iter.next();
+                ti=optifile.getTimeInterval();
+                if exist('tic','var')
+                    tic=tic+ti;
+                else
+                    tic=ti;
+                end
+            end
+        end
+        function chans=getChannels(obj,vars)
+            files=obj.OptiFiles.createIterator;
+            while(files.hasNext)
+                aFile=files.next;
+                t=aFile.table;
+                if ~exist('vars','var')
+                    vars=t.Properties.VariableNames;
+                end
+                for iDimension=1:numel(vars)
+                    dim=vars{iDimension};
+                    aDim=t.(dim);
+                    aChan= Channel(dim, aDim, aFile.getTimeInterval);
+                    chan.(dim)=aChan;
+                end
+                if ~exist('chans','var')
+                    chans=chan;
+                else
+                    for iDimension=1:numel(vars)
+                        dim=vars{iDimension};
+                        chans.(dim)=chans.(dim)+chan.(dim);
+                    end
+                end
+            end
+        end
         function ofs=getOptiFiles(obj)
             ofs=obj.OptiFiles;
         end

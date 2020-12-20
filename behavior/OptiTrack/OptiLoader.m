@@ -46,6 +46,17 @@ classdef OptiLoader<Singleton
         function files=getFiles(obj)
             files= obj.Files;
         end
+        function ofc=getOptiFilesCombined(obj)
+            files= obj.Files;
+            for ifile=1:numel(files)
+                file=files{ifile};
+                try 
+                    ofc=ofc+file;
+                catch
+                    ofc=file;
+                end
+            end
+        end
         function saveFiles(obj)
             files= obj.Files;
             for ifile=1:numel(files)
@@ -70,7 +81,10 @@ classdef OptiLoader<Singleton
             end
             for ifile=1:numel(files)
                 filename=files{ifile};
-                [path,fname,ext]=fileparts(filename);
+                [path1,fname,ext]=fileparts(filename);
+                if ~isempty(path1)
+                    path=path1;
+                end
                 filename=[fname ext];
                 switch ext
                     case '.fbx'

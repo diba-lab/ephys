@@ -77,6 +77,18 @@ classdef OptiFile < Timelined
             ts=timeseries(true(numel(tl),1),tl,'Name','IsActive');
             ts.TimeInfo.StartDate=startDate;
         end
+        function chans = getChannels(obj,vars)
+            t=obj.table;
+            if ~exist('vars','var')
+                vars=t.Properties.VariableNames;
+            end
+            for iDimension=1:numel(vars)
+                dim=vars{iDimension};
+                aDim=t.(dim);
+                aChan= Channel(dim, aDim, obj.getTimeInterval);
+                chans.(dim)=aChan;
+            end
+        end
         function ts = getTimeline(obj)
             ts=obj.getTimestamps;
             step=diff([ts.Time(1) ts.Time(end)])/numel(ts.Time);
@@ -84,6 +96,9 @@ classdef OptiFile < Timelined
             ts=ts.resample(newtime);
             ts=ts.addsample('Data',false,'Time',ts.Time(1)-step);
             ts=ts.addsample('Data',false,'Time',ts.Time(end)+step);
+        end
+        function ti = getTimeInterval(obj)
+            ti=TimeInterval(obj.CaptureStartTime, obj.ExportFrameRate,  obj.TotalExportedFrames);
         end
     end
 end

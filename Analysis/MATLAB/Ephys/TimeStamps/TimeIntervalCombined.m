@@ -84,9 +84,8 @@ classdef TimeIntervalCombined
             if endTime>obj.getEndTime
                 endTime=obj.getEndTime-seconds(1);
             end
-            startSample=obj.getSampleFor(startTime);
-            endSample=obj.getSampleFor(endTime);
-            timeIntervalCombined=obj.getTimeIntervalForSamples(startSample,endSample);
+            times=obj.getSampleFor([startTime endTime]);
+            timeIntervalCombined=obj.getTimeIntervalForSamples(times(1),times(2));
         end
         
         function times=getRealTimeFor(obj,samples)
@@ -122,17 +121,21 @@ classdef TimeIntervalCombined
                 time=times(itime);
                 
                 lastSample=0;
-                if isduration(time)
-                    time=obj.convertDurationToDatetime(time);
+                if ~isdatetime(times)
+                    if isduration(time)
+                        time=obj.convertDurationToDatetime(time);
+                    elseif isstring(time{1})||ischar(time{1})
+                        time=obj.convertStringToDatetime(time);
+                    end
                 end
 %                 time.Second=floor(time.Second);
                 if time<obj.getStartTime
-                    warning('Given time(%s) is earlier then record start(%s).\n',...
-                        time,obj.getStartTime);
+%                     warning('Given time(%s) is earlier then record start(%s).\n',...
+%                         time,obj.getStartTime);
                     time=obj.getStartTime;
                 elseif time>obj.getEndTime
-                    warning('Given time(%s) is later then record end(%s).\n',...
-                        time,obj.getEndTime);
+%                     warning('Given time(%s) is later then record end(%s).\n',...
+%                         time,obj.getEndTime);
                     time=obj.getEndTime;
                 end
                 
@@ -174,9 +177,17 @@ classdef TimeIntervalCombined
             for iArgIn=1:nargin-1
                 theTimeInterval=varargin{iArgIn};
                 if ~isempty(theTimeInterval)
-                    assert(isa(theTimeInterval,'TimeInterval'));
-                    obj.timeIntervalList.add(theTimeInterval);
-                    fprintf('Record addded:');display(theTimeInterval);
+                    try
+                        assert(isa(theTimeInterval,'TimeInterval'));
+                        obj.timeIntervalList.add(theTimeInterval);
+                        fprintf('Record addded:');display(theTimeInterval);
+                    catch
+                        assert(isa(theTimeInterval,'TimeIntervalCombined'));
+                        til=theTimeInterval.timeIntervalList.createIterator;
+                        while(til.hasNext)
+                            obj.timeIntervalList.add(til.next);
+                        end
+                    end
                 end
             end
         end
@@ -301,6 +312,11 @@ classdef TimeIntervalCombined
         function dt=convertDurationToDatetime(obj,time)
             st=obj.getStartTime;
             dt=datetime(st.Year,st.Month,st.Day)+time;
+        end
+        function dt=convertStringToDatetime(obj,time)
+            st=obj.getStartTime;
+            dt1=datetime(time,'Format','HH:mm');
+            dt=datetime(st.Year,st.Month,st.Day)+hours(dt1.Hour)+minutes(dt1.Minute);
         end
     end
 end
