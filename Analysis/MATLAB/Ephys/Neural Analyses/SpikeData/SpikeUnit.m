@@ -34,7 +34,7 @@ classdef SpikeUnit
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             ticd=obj.TimeIntervalCombined;
-            timesnew=seconds(double(obj.Times)/ticd.getSampleRate)+ticd.getStartTime;
+            timesnew=ticd.getRealTimeFor(double(obj.Times));
         end
         function [] = plotOnTimeTrack(obj,track,speedthreshold)
             %METHOD1 Summary of this method goes here

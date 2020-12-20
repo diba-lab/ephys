@@ -22,13 +22,24 @@ classdef Ripple
             obj.RipMax=ripple.RipMax;
         end
         
-        function outputArg = plotScatter(obj)
+        function outputArg = plotScatterHoursInXAxes(obj)
             ticd=obj.TimeIntervalCombined;
             peaktimestamps=obj.PeakTimes*ticd.getSampleRate;
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
             peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
             peakripmax=obj.RipMax(:,1);
             s=scatter(hours(seconds(peakTimesAdjusted)),peakripmax...
+                ,'Marker','.','MarkerFaceAlpha',.7,'MarkerEdgeAlpha',.7,...
+                'SizeData',50);
+            
+        end
+        function outputArg = plotScatterAbsoluteTimeInXAxes(obj)
+            ticd=obj.TimeIntervalCombined;
+            peaktimestamps=obj.PeakTimes*ticd.getSampleRate;
+            peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
+            peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
+            peakripmax=obj.RipMax(:,1);
+            s=scatter(seconds(peakTimesAdjusted)+ticd.getStartTime,peakripmax...
                 ,'Marker','.','MarkerFaceAlpha',.7,'MarkerEdgeAlpha',.7,...
                 'SizeData',50);
             
@@ -48,7 +59,7 @@ classdef Ripple
             p2=plot(t1,N,'LineWidth',1);
         end
         
-        function ripples=getRipplesInAbsoluteTime(obj,toi)
+        function [ripples y]=getRipplesTimesInWindow(obj,toi)
             
             ticd=obj.TimeIntervalCombined;
             if isduration(toi)
@@ -59,7 +70,10 @@ classdef Ripple
             end
             samples=ticd.getSampleFor(toi1);
             secs=samples/ticd.getSampleRate;
-            pt1=obj.PeakTimes(obj.PeakTimes>=secs(1)&obj.PeakTimes<=secs(2));
+            idx=obj.PeakTimes>=secs(1)&obj.PeakTimes<=secs(2);
+            pt1=obj.PeakTimes(idx);
+            ripmax=obj.RipMax;
+            y=ripmax(idx);
             if ~isempty(pt1)
                 sample=pt1*ticd.getSampleRate;
                 ripples=ticd.getRealTimeFor(sample);
@@ -67,6 +81,28 @@ classdef Ripple
                 ripples=[];
             end
             
+        end
+        function obj=getRipplesInWindow(obj,toi)
+%             
+%             ticd=obj.TimeIntervalCombined;
+%             if isduration(toi)
+%                 st=ticd.getStartTime;
+%                 toi1=datetime(st.Year,st.Month,st.Day)+toi;
+%             else
+%                 toi1=toi;
+%             end
+%             samples=ticd.getSampleFor(toi1);
+%             secs=samples/ticd.getSampleRate;
+%             idx=obj.PeakTimes>=secs(1)&obj.PeakTimes<=secs(2);
+%             ticd_new=obj.TimeIntervalCombined.getTimeIntervalForTimes(toi(1),toi(2));
+%             dt=ticd_new.getStartTime-ticd.getStartTime;
+% 
+%             obj.PeakTimes=obj.PeakTimes(idx);
+%             obj.PeakTimes-seconds(dt)
+%             obj.RipMax=obj.RipMax(idx,:);
+%             obj.SwMax=obj.SwMax(idx,:);
+%             obj.TimeStamps=obj.TimeStamps(idx,:);
+%             obj.TimeIntervalCombined
         end
         
         function obj = setTimeIntervalCombined(obj,ticd)

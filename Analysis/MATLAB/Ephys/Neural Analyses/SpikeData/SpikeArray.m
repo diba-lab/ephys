@@ -54,8 +54,8 @@ classdef SpikeArray < SpikeNeuroscope
             clustinfo1=clustinfo;
             locations=unique(clustinfo1.location);
             colors=linspecer(numel(locations),'qualitative');
-            phasemap(4);
-            color=phasemap(4);
+            phasemap(8);
+            color=phasemap(8);
             for iunit=1:height(clustinfo1)
                 unit=clustinfo1(iunit,:);
                 idx=ismember(sc,unit.id);
@@ -73,7 +73,8 @@ classdef SpikeArray < SpikeNeuroscope
                     hold on
                     idx_location=ismember(locations,unit.location);
                     s=scatter(arr,ones(size(arr))*iunit,ones(size(arr))*30,c,'|');
-                    s.LineWidth=2;
+                    s.LineWidth=4;
+                    s.MarkerEdgeAlpha=.8;
 %                     p1=plot(arr,iunit...
 %                         ,'Marker','|'...
 %                         ,'LineWidth',2 ...
@@ -89,7 +90,8 @@ classdef SpikeArray < SpikeNeuroscope
             ax.YDir='reverse';
             ax.YTick=2:5:height(clustinfo1);
             ax.YTickLabel=clustinfo1.sh(ax.YTick);
-            [~,locs]=findpeaks(angles1);
+            locs = find(diff(sign(angles1))>0);
+%             [~,locs]=findpeaks(angles1);
             t1=t(locs);
             for iline=1:numel(locs)
                 xline(t1(iline));
@@ -136,14 +138,7 @@ classdef SpikeArray < SpikeNeuroscope
             ax.YTickLabel=clustinfo1.sh(ax.YTick);
         end
         function obj=getTimeInterval(obj,timeWindow)
-            ticd = obj.TimeIntervalCombined;
-            if isduration(timeWindow)
-                t(1)=ticd.convertDurationToDatetime(timeWindow(1));
-                t(2)=ticd.convertDurationToDatetime(timeWindow(2));
-            else
-                t=timeWindow;
-            end
-            s=ticd.getSampleFor(t);
+            s=obj.TimeIntervalCombined.getSampleFor(timeWindow);
             tbl=obj.SpikeTable;
             tbl((tbl.SpikeTimes<s(1))|(tbl.SpikeTimes>=s(2)),:)=[];
             obj.SpikeTable=tbl;

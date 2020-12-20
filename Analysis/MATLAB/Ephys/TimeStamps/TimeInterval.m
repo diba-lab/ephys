@@ -65,11 +65,11 @@ classdef TimeInterval
         function sample=getSampleFor(obj,time)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            if time>=obj.StartTime && time<=obj.getEndTime
+            if time>=obj.StartTime & time<=obj.getEndTime
                 sample=round(seconds(time-obj.StartTime)*obj.SampleRate)+1;
             else
-                warning('Time is not in the TimeInterval -- should be between\n\t%s -- %s\nReturned ''-1''',obj.StartTime,obj.getEndTime);
-                sample=-1;
+%                 warning('Time is not in the TimeInterval -- should be between\n\t%s -- %s\nReturned ''-1''',obj.StartTime,obj.getEndTime);
+                sample=[];
             end
         end
         function time=getEndTime(obj)
@@ -112,7 +112,13 @@ classdef TimeInterval
         function nop=getNumberOfPoints(obj)
             nop=obj.NumberOfPoints;
         end
-    
+        function sr=getSampleRate(obj)
+            sr=obj.SampleRate;
+        end
+        function arrnew=adjustTimestampsAsIfNotInterrupted(obj,arr)
+            arrnew=arr;
+        end
+        
     end
     methods (Access=private)
         function ts=getTimeSeries(obj)

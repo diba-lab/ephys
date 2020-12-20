@@ -42,6 +42,7 @@ classdef (Abstract) Oscillation
             rate=obj.sampleRate/newRate;
             obj.voltageArray=downsample(obj.getVoltageArray,rate);
             obj.sampleRate=newRate;
+            obj=obj.setTimeInterval(obj.getTimeInterval.getDownsampled(rate));
         end
         function ps=getPSpectrum(obj)
             [pxx,f] = pspectrum(double(obj.voltageArray),obj.getSampleRate,...
@@ -88,8 +89,22 @@ classdef (Abstract) Oscillation
             obj.voltageArray=ft_preproc_bandpassfilter(...
                 obj.voltageArray',obj.sampleRate,filterFreqBand,[],[],[]);
         end
+        function obj=getMedianFiltered(obj,windowInSeconds)
+            obj.voltageArray=medfilt1(obj.voltageArray',...
+                obj.getSampleRate*windowInSeconds);
+        end
+        function obj=getMeanFiltered(obj,windowInSeconds)
+            obj.voltageArray=smoothdata(obj.voltageArray',...
+                'movmean', obj.getSampleRate*windowInSeconds);
+        end
+        function obj=getZScored(obj)
+            obj.voltageArray=zscore(obj.voltageArray');
+        end
         function time=getVoltageArray(obj)
             time = obj.voltageArray;
+        end
+        function obj=setVoltageArray(obj,va)
+            obj.voltageArray=va;
         end
         function time=getSampleRate(obj)
             time = obj.sampleRate;
@@ -100,6 +115,42 @@ classdef (Abstract) Oscillation
         end
         function obj=setSampleRate(obj,newrate)
             obj.sampleRate=newrate;
+        end
+        function obj=rdivide(obj,num)
+            obj=obj.setVoltageArray(obj.getVoltageArray./num);
+        end
+        function obj=plus(obj,num)
+            obj=obj.setVoltageArray(obj.getVoltageArray+num);
+        end
+        function obj=minus(obj,num)
+            obj=obj.setVoltageArray(obj.getVoltageArray-num);
+        end
+        function obj=times(obj,num)
+            obj=obj.setVoltageArray(obj.getVoltageArray.*num);
+        end
+        function idx=lt(obj,num)
+            idx=obj.getVoltageArray<num;
+        end
+        function idx=gt(obj,num)
+            idx=obj.getVoltageArray>num;
+        end
+        function obj=subsasgn(obj,s,n)
+            va=obj.getVoltageArray;
+            va(s.subs{:})=n;
+            obj=obj.setVoltageArray(va );
+        end
+        function samples=subsindex(obj,s)
+            idx=s.subs{:};
+            if numel(idx)>1
+                for iidx=1:numel(idx)
+                    id=idx(iidx);
+                    samples(iidx)=obj(id);
+                end
+            else
+                ti=obj.getTimeInterval;
+                ti.getSampleFor(idx);
+            end
+            
         end
     end
 end

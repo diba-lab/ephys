@@ -16,7 +16,11 @@ classdef OptiLoader<Singleton
             s=xml2struct('configuration.xml');
             fname=fieldnames(s);
             newObj.parameters=s.(fname{1});
-            newObj=newObj.loadFile(files);
+            try
+                newObj=newObj.loadFile(files);
+            catch
+                newObj=newObj.loadFile();
+            end
         end
     end
     
@@ -25,7 +29,11 @@ classdef OptiLoader<Singleton
         function obj = instance(files)
             persistent uniqueInstance
             if isempty(uniqueInstance)
-                obj = OptiLoader(files);
+                try
+                    obj = OptiLoader(files);
+                catch
+                    obj = OptiLoader();
+                end
                 uniqueInstance = obj;
             else
                 obj = uniqueInstance;
@@ -37,6 +45,17 @@ classdef OptiLoader<Singleton
     methods % Public Access
         function files=getFiles(obj)
             files= obj.Files;
+        end
+        function ofc=getOptiFilesCombined(obj)
+            files= obj.Files;
+            for ifile=1:numel(files)
+                file=files{ifile};
+                try 
+                    ofc=ofc+file;
+                catch
+                    ofc=file;
+                end
+            end
         end
         function saveFiles(obj)
             files= obj.Files;
@@ -62,7 +81,10 @@ classdef OptiLoader<Singleton
             end
             for ifile=1:numel(files)
                 filename=files{ifile};
-                [path,fname,ext]=fileparts(filename);
+                [path1,fname,ext]=fileparts(filename);
+                if ~isempty(path1)
+                    path=path1;
+                end
                 filename=[fname ext];
                 switch ext
                     case '.fbx'
