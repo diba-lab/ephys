@@ -94,7 +94,36 @@ classdef RippleAbs
 %             obj.TimeStamps=obj.TimeStamps(idx,:);
 %             obj.TimeIntervalCombined
         end
-        
+        function []= saveEventsNeuroscope(obj,pathname)
+            rippleFiles = dir(fullfile(pathname,'*.R*.evt'));
+            if isempty(rippleFiles)
+                fileN = 1;
+            else
+                %set file index to next available value\
+                pat = '.R[0-9].';
+                fileN = 0;
+                for ii = 1:length(rippleFiles)
+                    token  = regexp(rippleFiles(ii).name,pat);
+                    val    = str2double(rippleFiles(ii).name(token+2:token+4));
+                    fileN  = max([fileN val]);
+                end
+                fileN = fileN + 1;
+            end
+            tokens=tokenize(pathname,filesep);
+            filename=tokens{end};
+            fid = fopen(sprintf('%s%s%s.R%02d.evt',pathname,filesep,filename,fileN),'w');
+            
+            % convert detections to milliseconds
+            peakTimes= obj.getPeakTimes*1000;
+            startStopTimes= obj.getStartStopTimes*1000;
+            fprintf(1,'Writing event file ...\n');
+            for ii = 1:size(peakTimes,1)
+                fprintf(fid,'%9.1f\tstart\n',startStopTimes(ii,1));
+                fprintf(fid,'%9.1f\tpeak\n',peakTimes(ii));
+                fprintf(fid,'%9.1f\tstop\n',startStopTimes(ii,2));
+            end
+            fclose(fid);
+        end
         function obj = setTimeIntervalCombined(obj,ticd)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here

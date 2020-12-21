@@ -95,13 +95,22 @@ classdef BuzcodeStructure
                 end
             end
             conf=readConf(fullfile(list.folder,list.name));
+            ctd=ChannelTimeData(obj.BasePath);
             chans=str2double( conf.ripple_channel);
+            LFP=ctd.getChannelsLFP(chans);
+            chan=obj.getBestChannel(LFP,conf.ripple_passband);
             list1=dir(fullfile(obj.BasePath,'*.xml'));
             str=DataHash(conf);
             cacheFileName=fullfile(obj.BasePath,'cacheripple',[str '.mat']);
             [folder,~,~]=fileparts(cacheFileName);if ~isfolder(folder), mkdir(folder); end
             if ~exist(cacheFileName,'file')
-                ripple=bz_FindRipples(list1.folder,chans);
+                ripple=bz_FindRipples(list1.folder,chan...
+                    ,'durations',str2double(conf.ripple_durations)...
+                    ,'passband',str2double(conf.ripple_passband)...
+                    ,'plotType',str2double(conf.ripple_plottype)...
+                    ,'show',conf.ripple_show...
+                    ,'thresholds',str2double(conf.ripple_threshold)...
+                    );
                 save(cacheFileName,'ripple');
             else
                 S=load(cacheFileName);
@@ -110,7 +119,30 @@ classdef BuzcodeStructure
             end
             ripple1=Ripple(ripple);
             ripple1=ripple1.setTimeIntervalCombined(obj.TimeIntervalCombined);
+            ripple1.saveEventsNeuroscope(obj.BasePath)
         end
+        function channel=getBestChannel(obj,LFP, frequencyBand)
+            %[chan] = bz_GetBestRippleChan(lfp)
+            %eventually this will detect which lfp channel has the highest SNR for the
+            % ripple componenent of SPWR events....
+            
+            data=ft_preproc_bandpassfilter(LFP.data,LFP.sampleRate,frequencyBand);
+            
+            for i=1:length(LFP.channels)
+                pow = fastrms(data(i,:),15);
+                mRipple(i) = mean(pow);
+                meRipple(i) = median(pow);
+                mmRippleRatio(i) = mRipple(i)./meRipple(i);
+            end
+            
+            mmRippleRatio(mRipple<1) = 0;
+            mmRippleRatio(meRipple<1) = 0;
+            
+            [~, loc] = max(mmRippleRatio);
+            channel = LFP.channels(loc);
+            
+        end
+        
     end
 end
 

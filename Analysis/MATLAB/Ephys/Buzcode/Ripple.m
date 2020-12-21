@@ -20,8 +20,8 @@ classdef Ripple < RippleAbs
             peakTimes=obj.PeakTimes.peak;
         end
         function peakTimes= getStartStopTimes(obj)
-            peakTimes(1,:)=obj.PeakTimes.start;
-            peakTimes(2,:)=obj.PeakTimes.stop;
+            peakTimes(:,1)=obj.PeakTimes.start;
+            peakTimes(:,2)=obj.PeakTimes.stop;
         end
         function power= getRipplePower(obj)
             power=obj.RipplePower;

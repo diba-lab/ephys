@@ -70,6 +70,22 @@ classdef ChannelTimeData < BinarySave
             voltageArray=datamat.mapped(index,:);
             ch=Channel(channelNumber,voltageArray,ticd);
         end
+        function LFP = getChannelsLFP(obj,channelNumber)
+            ticd=obj.getTimeIntervalCombined;
+            probe=obj.Probe;
+            channelList=probe.getActiveChannels;
+            if exist('channelNumber','var')
+                index=ismember(channelList, channelNumber);
+            else
+                index=true(size(channelList));
+            end
+            datamemmapfile=obj.Data;
+            datamat=datamemmapfile.Data;
+            
+            LFP.data=datamat.mapped(index,:);
+            LFP.channels=channelList(index);
+            LFP.sampleRate=ticd.getSampleRate;
+        end
         function newobj = getDownSampled(obj, newRate, newFolder)
             if nargin>2
             else
