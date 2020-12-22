@@ -26,8 +26,9 @@ classdef Ripple < RippleAbs
         function power= getRipplePower(obj)
             power=obj.RipplePower;
         end
-        
-
+        function ripmax= getRipMax(obj)
+            ripmax=obj.RipplePower;
+        end
     end
 end
 

@@ -8,6 +8,8 @@ classdef RippleAbs
     end
     methods (Abstract)
         getPeakTimes(obj)
+        getStartStopTimes(obj)
+        getRipMax(obj)
     end
     methods
 
@@ -49,7 +51,7 @@ classdef RippleAbs
             p2=plot(t1,N,'LineWidth',1);
         end
         
-        function [ripples y]=getRipplesTimesInWindow(obj,toi)
+        function [ripples, y]=getRipplesTimesInWindow(obj,toi)
             
             ticd=obj.TimeIntervalCombined;
             if isduration(toi)
@@ -60,9 +62,10 @@ classdef RippleAbs
             end
             samples=ticd.getSampleFor(toi1);
             secs=samples/ticd.getSampleRate;
-            idx=obj.PeakTimes>=secs(1)&obj.PeakTimes<=secs(2);
-            pt1=obj.PeakTimes(idx);
-            ripmax=obj.RipMax;
+            peaktimes=obj.getPeakTimes;
+            idx=peaktimes>=secs(1)&peaktimes<=secs(2);
+            pt1=peaktimes(idx);
+            ripmax=obj.getRipMax;
             y=ripmax(idx);
             if ~isempty(pt1)
                 sample=pt1*ticd.getSampleRate;

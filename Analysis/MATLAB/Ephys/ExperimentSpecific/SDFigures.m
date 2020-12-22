@@ -381,7 +381,7 @@ classdef SDFigures <Singleton
             ax.YLim=[min(track1.getVoltageArray) max(track1.getVoltageArray)];
             
             bcs=obj.bc;
-            swr=bcs.calculateRipple;
+            swr=bcs.calculateSWR;
             [ripple_times, y]=swr.getRipplesTimesInWindow(time);
             s=scatter(ripple_times, y,'filled');
             s.AlphaData=ones(numel(y),1)*.5;
