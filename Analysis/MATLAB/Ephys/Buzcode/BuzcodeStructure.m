@@ -96,9 +96,15 @@ classdef BuzcodeStructure
             end
             conf=readConf(fullfile(list.folder,list.name));
             ctd=ChannelTimeData(obj.BasePath);
-            chans=str2double( conf.ripple_channel);
+            try 
+                chans=str2double( conf.ripple_channelstartstop);
+                chans=chans(1):chans(2);
+            catch
+                chans=str2double( conf.ripple_channel);
+            end
             LFP=ctd.getChannelsLFP(chans);
-            chan=obj.getBestChannel(LFP,conf.ripple_passband);
+%             FrequencyBand=[140 180];
+            chan=obj.getBestChannel(LFP,str2double(conf.ripple_passband));
             list1=dir(fullfile(obj.BasePath,'*.xml'));
             str=DataHash(conf);
             cacheFileName=fullfile(obj.BasePath,'cacheripple',[str '.mat']);
@@ -134,7 +140,6 @@ classdef BuzcodeStructure
                 meRipple(i) = median(pow);
                 mmRippleRatio(i) = mRipple(i)./meRipple(i);
             end
-            
             mmRippleRatio(mRipple<1) = 0;
             mmRippleRatio(meRipple<1) = 0;
             
@@ -142,7 +147,6 @@ classdef BuzcodeStructure
             channel = LFP.channels(loc);
             
         end
-        
     end
 end
 
