@@ -83,7 +83,7 @@ classdef BuzcodeStructure
                 fnames=fieldnames(S);
                 ripple=S.(fnames{1});
             end
-            ripple1=Ripple(ripple);
+            ripple1=SWRipple(ripple);
             ripple1=ripple1.setTimeIntervalCombined(obj.TimeIntervalCombined);
         end
         function ripple1 = calculateRipple(obj)
