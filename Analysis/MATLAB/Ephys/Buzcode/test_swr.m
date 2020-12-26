@@ -1,0 +1,6 @@
+FileTable=readtable(...
+    fullfile('/data/EphysAnalysis/Structure', 'LFPfiles.txt'),...
+    'Delimiter',',');
+filepath=FileTable.Filepath{1};
+bc=BuzcodeFactory.getBuzcode(filepath);
+ripple=bc.calculateSWR

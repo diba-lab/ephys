@@ -339,6 +339,7 @@ classdef SDFigures <Singleton
             yyaxis right
             ps=speed_ch.plot;
             ps.LineWidth=1.5;
+            
             not_running=speed_ch<5 & speed_ch>-5;
             speedEdges=diff(~not_running);
             startRunnig=find(speedEdges==1);
@@ -347,20 +348,37 @@ classdef SDFigures <Singleton
             loc=trackall.getVoltageArray;
             locAtStartRunning=loc(startRunnig);
             locAtStopRunning=loc(stopRunning);
+            runDirectionLeft=(locAtStopRunning-locAtStartRunning)<0;
             amountOfWayRun=abs(locAtStopRunning-locAtStartRunning);
             longruns_idx=amountOfWayRun>100;
             longRunStart_abs=startRunnig(longruns_idx);
             longRunStart_abs(20)=[];
             longRunStop_abs=stopRunning(longruns_idx);
             longRunStop_abs(20)=[];
-            running=zeros(numel(not_running),1);
+            
+            longRundirectionsLeft=runDirectionLeft(longruns_idx);
+            longRundirectionsLeft(20)=[];
+            
+            runningLeft=zeros(numel(not_running),1);
+            runningRight=zeros(numel(not_running),1);
             for iperiod=1:numel(longRunStart_abs)
-                running(longRunStart_abs(iperiod):longRunStop_abs(iperiod))=1;
+                if longRundirectionsLeft(iperiod)
+                    runningLeft(longRunStart_abs(iperiod):longRunStop_abs(iperiod))=1;
+                else
+                    runningRight(longRunStart_abs(iperiod):longRunStop_abs(iperiod))=1;
+                end
             end
-            track1(~running)=nan;
-            yyaxis left
-            pt=track1.plot;
+            trackLeft=track1;
+            trackRight=track1;
+            trackLeft(~runningLeft)=nan;
+            trackRight(~runningRight)=nan;
+            yyaxis left;hold on;
+            pt=trackLeft.plot;
             pt.LineWidth=1.5;
+            pt.LineStyle='-';
+            pt=trackRight.plot;
+            pt.LineWidth=1.5;
+            pt.LineStyle='-';
             
             sdd=obj.Sdd;
             ch1=sdd.getLFP(1,1);
@@ -386,6 +404,8 @@ classdef SDFigures <Singleton
             s=scatter(ripple_times, y,'filled');
             s.AlphaData=ones(numel(y),1)*.5;
             s.SizeData=20;s.MarkerFaceAlpha='flat';
+            fig=FigureFactory.instance;
+            fig.save('Track_speed_theta')
             
             try close(3); catch, end;f=figure(3);
             f.Units='normalized';
@@ -453,55 +473,110 @@ classdef SDFigures <Singleton
             sa=obj.Sa.getTimeInterval(time);
             sus=sa.getSpikeUnits;
             fig=FigureFactory.instance;
-            fig.save('Track_speed_theta')
+            fig.save('Run_theta')
             close all
             for iunit=1:numel(sus)
                 su=sus(iunit);
                 times_phase=phase.getTimeInterval;
-                pa=phase.getVoltageArray;
+                phaseValues=phase.getVoltageArray;
                 times_track=track1.getTimeInterval;
-                ta=track1.getVoltageArray;
+                trackLocationLeft=trackLeft.getVoltageArray;
+                trackLocationRight=trackRight.getVoltageArray;
                 spktimes=su.getAbsoluteSpikeTimes;
                 
                 idx=times_track.getSampleFor(spktimes);
-                locs=ta(idx);
-                active_idx=~isnan(locs);
-                locs_active=locs(active_idx);
-                idx=times_phase.getSampleFor(spktimes(active_idx));
-                phases_active=pa(idx);
-                if numel(idx)>30
-                    try close(2);catch, end;f=figure(2);
-                    f.Units='normalized';
-                    f.Position=[0 .3 .225 .3];
-                    s=polarscatter(phases_active,locs_active,'filled');
-                    s.SizeData=30;
-                    s.AlphaData=ones(numel(locs_active),1)*.5;
-                    s.MarkerFaceAlpha='flat';
-                    ax=gca;
-                    ax.RLim=[-200 100];
-                    ax.RTick=[-100 0 100];
-                    mu=circ_mean(phases_active');
-                    r=circ_r(phases_active');
-                    [pval, z]=circ_rtest(phases_active');
-                    hold on;
-                    zm = r*exp(1i*mu);
-                    pp=polarplot([0 mu],[-200 r*300-200]);
-                    pp.LineWidth=3;
-                    pp.Color='r';
-                    text(0,-200,sprintf('p= %.3f\nz= %.3f\n\nmean=%.1f\nr=%.3f',pval,z,rad2deg( mu),r),'HorizontalAlignment','center')
-                    clusterinfo=sa.ClusterInfo;
-                    gr=clusterinfo(clusterinfo.id==su.Id,:).group;
-                    loc=clusterinfo(clusterinfo.id==su.Id,:).location{:};
-                    shank=clusterinfo(clusterinfo.id==su.Id,:).sh;
-                    channel=clusterinfo(clusterinfo.id==su.Id,:).ch;
-                    text(pi/4,120,sprintf('Id= %d, %s, %s\nshank= %d, channel= %d',su.Id,loc,gr,shank,channel),'HorizontalAlignment','left')
-                    axes;
-                    ph=polarhistogram(phases_active,12,'Normalization','pdf','DisplayStyle','stairs');
-                    ax=gca;
-                    ax.Visible='off';
-                    ph.LineWidth=2;
-                    ph.EdgeAlpha=.5;ph.EdgeColor='r';
-                    fig.save(['PhasePrecession_' num2str(su.Id)])
+                locsLeft=trackLocationLeft(idx);
+                locsRight=trackLocationRight(idx);
+                active_idxLeft=~isnan(locsLeft);
+                active_idxRight=~isnan(locsRight);
+                locs_actives{1}=locsLeft(active_idxLeft);
+                locs_actives{2}=locsRight(active_idxRight);
+                idxL=times_phase.getSampleFor(spktimes(active_idxLeft));
+                idxR=times_phase.getSampleFor(spktimes(active_idxRight));
+                phases_actives{1}=phaseValues(idxL);
+                phases_actives{2}=phaseValues(idxR);
+                titles=["Running to Left","Running to Right"];
+                if numel(idxL)>30||numel(idxR)>30
+                    try
+                        try close(2);catch, end;f=figure(2);
+                        f.Units='normalized';
+                        f.Position=[0 .3 .35 .50];
+                        for idir=1:2
+                            phases_active=phases_actives{idir};
+                            locs_active=locs_actives{idir};
+                            subplot(4,2,[0 2]+idir);
+                            s=polarscatter(phases_active,locs_active,'filled');
+                            s.SizeData=30;
+                            s.AlphaData=ones(numel(locs_active),1)*.5;
+                            s.MarkerFaceAlpha='flat';
+                            ax=gca;
+                            ax.RLim=[-200 100];
+                            ax.RTick=[-100 0 100];
+                            mu=circ_mean(phases_active');
+                            r=circ_r(phases_active');
+                            [pval, z]=circ_rtest(phases_active');
+                            hold on;
+                            zm = r*exp(1i*mu);
+                            pp=polarplot([0 mu],[-200 r*300-200]);
+                            pp.LineWidth=3;
+                            pp.Color='r';
+                            [rho pval1] = circ_corrcl(phases_active, locs_active);
+                            text(0,-200,sprintf('z= %.3f\np= %.3f\n\nrho=%.3f\np=%.3f'...
+                                ,z,pval,rho,pval1),'HorizontalAlignment','center')
+                            
+                            clusterinfo=sa.ClusterInfo;
+                            gr=clusterinfo(clusterinfo.id==su.Id,:).group;
+                            loc=clusterinfo(clusterinfo.id==su.Id,:).location{:};
+                            shank=clusterinfo(clusterinfo.id==su.Id,:).sh;
+                            channel=clusterinfo(clusterinfo.id==su.Id,:).ch;
+                            text(pi/4,120,sprintf('Id= %d, %s, %s\nshank= %d, channel= %d',su.Id,loc,gr,shank,channel),'HorizontalAlignment','left')
+                            title1=text(pi/2,150,titles{idir});title1.HorizontalAlignment='center';
+                            title1.FontSize=12;title1.FontWeight='bold';
+                            ax1=axes;
+                            ax1.Position=ax.Position;
+                            ph=polarhistogram(phases_active,12,'Normalization','pdf','DisplayStyle','stairs');
+                            ax1=gca;
+                            ax1.Visible='off';
+                            ph.LineWidth=2;
+                            ph.EdgeAlpha=.5;ph.EdgeColor='r';
+                            
+                            subplot(5,2,[6]+idir);
+                            s1=scatter(locs_active,phases_active,'filled');
+                            s1.SizeData=30;
+                            s1.AlphaData=ones(numel(locs_active),1)*.5;
+                            s1.MarkerFaceAlpha='flat';
+                            ax=gca;
+                            ax.YLim=[-pi pi];
+                            ax.XLim=[-100 100];
+                            title('');
+                            legend off;
+                            xlabel('Location (cm)');
+                            ylabel('Theta Phase (rad)');
+                            ax_=axes;
+                            ax_.Position=ax.Position;
+                            ax_.Position(2)=ax_.Position(2)-ax_.Position(4);
+                            s1=scatter(locs_active,phases_active,'filled');
+                            s1.SizeData=30;
+                            s1.AlphaData=ones(numel(locs_active),1)*.5;
+                            s1.MarkerFaceAlpha='flat';
+                            ax_.YLim=[-pi pi];
+                            ax_.XLim=[-100 100];
+                            
+                            ax_.Visible='off';
+                           
+                            ax1=axes;
+                            ax1.Position=ax.Position;
+                            ax1.Position(2)=ax1.Position(2)+ax1.Position(4);
+                            ax1.Position(4)=.08;
+                            h1=histogram(locs_active);
+                            h1.BinEdges=-100:5:100;
+                            ax1.XLim=[-100 100];
+                            ax1.Visible='off';
+                            
+                        end
+                        fig.save(['PhasePrecession_' num2str(su.Id)])
+                    catch
+                    end
                 end
             end
         end

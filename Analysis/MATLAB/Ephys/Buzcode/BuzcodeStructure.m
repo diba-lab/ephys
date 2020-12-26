@@ -56,93 +56,22 @@ classdef BuzcodeStructure
                 end
             end
             conf=readConf(fullfile(list.folder,list.name));
-            chans=str2double( conf.channnels);
-            list1=dir(fullfile(obj.BasePath,'*.xml'));
-            str=DataHash(conf);
-            cacheFileName=fullfile(obj.BasePath,'cache',[str '.mat']);
-            [folder,~,~]=fileparts(cacheFileName);if ~isfolder(folder), mkdir(folder); end
-            if ~exist(cacheFileName,'file')
-                ripple=detect_swr(fullfile(list1.folder,list1.name),chans,[]...
-                    ,'EVENTFILE',str2double( conf.eventfile)...
-                    ,'FIGS',str2double( conf.figs)...
-                    ,'swBP',str2double( conf.swbp)...
-                    ,'ripBP',str2double( conf.ripbp)...
-                    ,'WinSize',str2double( conf.winsize)...
-                    ,'Ns_chk',str2double( conf.ns_chk)...
-                    ,'thresSDswD',str2double( conf.thressdswd)...
-                    ,'thresSDrip',str2double( conf.thressdrip)...
-                    ,'minIsi',str2double( conf.minisi)...
-                    ,'minDurSW',str2double( conf.mindursw)...
-                    ,'maxDurSW',str2double( conf.maxdursw)...
-                    ,'minDurRP',str2double( conf.mindurrp)...
-                    ,'DEBUG',str2double( conf.debug)...
-                    );
-                save(cacheFileName,'ripple');
-            else
-                S=load(cacheFileName);
-                fnames=fieldnames(S);
-                ripple=S.(fnames{1});
+            switch str2double(conf.detectiontype)
+                case 1
+                    method=SWRDetectionMethodRippleOnly(obj.BasePath);
+                case 2
+                    method=SWRDetectionMethodSWR(obj.BasePath);
+                case 3
+                    method=SWRDetectionMethodCombined(obj.BasePath);
+                otherwise
+                    error('Incorrect Detection Type. Should be 1,2, or 3.')
             end
-            ripple1=SWRipple(ripple);
+            ripple1=method.execute;
             ripple1=ripple1.setTimeIntervalCombined(obj.TimeIntervalCombined);
         end
-        function ripple1 = calculateRipple(obj)
-            folders={'.','..',['..',filesep,'..']};
-            for ifolder=1:numel(folders)
-                list=dir(fullfile(obj.BasePath,folders{ifolder},'*.conf'));
-                if ~isempty(list)
-                    break
-                end
-            end
-            conf=readConf(fullfile(list.folder,list.name));
-            ctd=ChannelTimeData(obj.BasePath);
-            chans=str2double( conf.ripple_channel);
-            LFP=ctd.getChannelsLFP(chans);
-            chan=obj.getBestChannel(LFP,conf.ripple_passband);
-            list1=dir(fullfile(obj.BasePath,'*.xml'));
-            str=DataHash(conf);
-            cacheFileName=fullfile(obj.BasePath,'cacheripple',[str '.mat']);
-            [folder,~,~]=fileparts(cacheFileName);if ~isfolder(folder), mkdir(folder); end
-            if ~exist(cacheFileName,'file')
-                ripple=bz_FindRipples(list1.folder,chan...
-                    ,'durations',str2double(conf.ripple_durations)...
-                    ,'passband',str2double(conf.ripple_passband)...
-                    ,'plotType',str2double(conf.ripple_plottype)...
-                    ,'show',conf.ripple_show...
-                    ,'thresholds',str2double(conf.ripple_threshold)...
-                    );
-                save(cacheFileName,'ripple');
-            else
-                S=load(cacheFileName);
-                fnames=fieldnames(S);
-                ripple=S.(fnames{1});
-            end
-            ripple1=Ripple(ripple);
-            ripple1=ripple1.setTimeIntervalCombined(obj.TimeIntervalCombined);
-            ripple1.saveEventsNeuroscope(obj.BasePath)
-        end
-        function channel=getBestChannel(obj,LFP, frequencyBand)
-            %[chan] = bz_GetBestRippleChan(lfp)
-            %eventually this will detect which lfp channel has the highest SNR for the
-            % ripple componenent of SPWR events....
-            
-            data=ft_preproc_bandpassfilter(LFP.data,LFP.sampleRate,frequencyBand);
-            
-            for i=1:length(LFP.channels)
-                pow = fastrms(data(i,:),15);
-                mRipple(i) = mean(pow);
-                meRipple(i) = median(pow);
-                mmRippleRatio(i) = mRipple(i)./meRipple(i);
-            end
-            
-            mmRippleRatio(mRipple<1) = 0;
-            mmRippleRatio(meRipple<1) = 0;
-            
-            [~, loc] = max(mmRippleRatio);
-            channel = LFP.channels(loc);
-            
-        end
-        
+        function [] = calculateRipple(obj)
+            warning('Depricated! Use calculateSWR() and change configure.conf file. Set detection type=1.')
+        end        
     end
 end
 
