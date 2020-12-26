@@ -13,8 +13,8 @@ classdef SWRipple < RippleAbs
             obj.PeakTimes.start=ripple.timestamps(:,1);
             obj.PeakTimes.peak=ripple.peaktimes;
             obj.PeakTimes.stop=ripple.timestamps(:,2);
-            obj.SwMax=ripple.SwMax;
-            obj.RipMax=ripple.RipMax;
+            obj.SwMax=ripple.SwMax(:,1);
+            obj.RipMax=ripple.RipMax(:,1);
             obj.DetectorInfo=ripple.detectorinfo;
         end
         function peakTimes= getPeakTimes(obj)
