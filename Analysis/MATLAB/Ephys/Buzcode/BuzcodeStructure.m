@@ -127,12 +127,12 @@ classdef BuzcodeStructure
             ripple1=ripple1.setTimeIntervalCombined(obj.TimeIntervalCombined);
             ripple1.saveEventsNeuroscope(obj.BasePath)
         end
-        function channel=getBestChannel(obj,LFP, frequencyBand)
+        function channel=getBestChannel(obj,LFP, FrequencyBand)
             %[chan] = bz_GetBestRippleChan(lfp)
             %eventually this will detect which lfp channel has the highest SNR for the
             % ripple componenent of SPWR events....
             
-            data=ft_preproc_bandpassfilter(LFP.data,LFP.sampleRate,frequencyBand);
+            data=ft_preproc_bandpassfilter(LFP.data,LFP.sampleRate,FrequencyBand);
             
             for i=1:length(LFP.channels)
                 pow = fastrms(data(i,:),15);
