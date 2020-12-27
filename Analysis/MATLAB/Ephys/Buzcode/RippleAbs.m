@@ -10,6 +10,7 @@ classdef RippleAbs
         getPeakTimes(obj)
         getStartStopTimes(obj)
         getRipMax(obj)
+        getSwMax(obj)
     end
     methods
 
@@ -132,6 +133,82 @@ classdef RippleAbs
             %   Detailed explanation goes here
             obj.TimeIntervalCombined=ticd;
         end
+        function objnew= plus(obj,newRiple)
+            pt_base=obj.getPeakTimes;
+            rt_base=obj.getStartStopTimes;
+            rp_base=obj.getRipMax;
+            swp_base=obj.getSwMax;
+            pt_new=newRiple.getPeakTimes;
+            rt_new=newRiple.getStartStopTimes;
+            rp_new=newRiple.getRipMax;
+            swp_new=newRiple.getSwMax;
+            rt_count=0;
+            ripple.detectorinfo=obj.DetectorInfo;
+            for irip=1:size(rt_base,1)
+                art_base=rt_base(irip,:);
+                base.start=art_base(1);
+                base.stop=art_base(2);
+                base.peak=pt_base(irip);
+                base.power=rp_base(irip);
+                base.swpower=swp_base(irip);
+                base.duration=base.stop-base.start;
+
+                new_start_is_in_old_ripple=(rt_new(:,1)>base.start & rt_new(:,1)<base.stop);
+                new_stop_is_in_old_ripple=(rt_new(:,2)>base.start & rt_new(:,2)<base.stop);
+                idx=new_start_is_in_old_ripple|new_stop_is_in_old_ripple;
+                if sum(idx)>1 
+                    x=find(idx);
+                    idx1=false(size(idx));
+                    idx1(x(1))=true; 
+                    idx=idx1;
+                end
+                rippleHasNoOverlap=~sum(idx);
+                if rippleHasNoOverlap
+                    rt_count=rt_count+1;
+                    ripple.timestamps(rt_count,1)=base.start;
+                    ripple.peaktimes(rt_count,1)=base.peak;
+                    ripple.timestamps(rt_count,2)=base.stop;
+                    ripple.RipMax(rt_count,1)=base.power;
+                    ripple.SwMax(rt_count,1)=base.swpower;
+                    
+                else
+                    new.start=rt_new(idx,1);
+                    new.stop=rt_new(idx,2);
+                    rt_new(idx,:)=[];
+                    new.peak=pt_new(idx);pt_new(idx)=[];
+                    new.power=rp_new(idx);rp_new(idx)=[];
+                    new.swpower=swp_new(idx);swp_new(idx)=[];
+                    new.duration=new.stop-new.start;
+                    %% Check if one of them is SWR
+                    if new.power<base.power
+                        rt_count=rt_count+1;
+                        ripple.timestamps(rt_count,1)=base.start;
+                        ripple.peaktimes(rt_count,1)=base.peak;
+                        ripple.timestamps(rt_count,2)=base.stop;
+                        ripple.RipMax(rt_count,1)=base.power;
+                        ripple.SwMax(rt_count,1)=base.swpower;
+                    else
+                        rt_count=rt_count+1;
+                        ripple.timestamps(rt_count,1)=new.start;
+                        ripple.peaktimes(rt_count,1)=new.peak;
+                        ripple.timestamps(rt_count,2)=new.stop;
+                        ripple.RipMax(rt_count,1)=new.power;
+                        ripple.SwMax(rt_count,1)=new.swpower;
+                    end
+                end
+            end
+            [ripple.peaktimes, idx]=sort([ripple.peaktimes; pt_new],1);
+            ripple.timestamps=[ripple.timestamps; rt_new];
+            ripple.timestamps=ripple.timestamps(idx,:);
+            ripple.RipMax=[ripple.RipMax; rp_new];
+            ripple.RipMax=ripple.RipMax(idx);
+            ripple.SwMax=[ripple.SwMax; swp_new];
+            ripple.SwMax=ripple.SwMax(idx);
+                        
+            objnew=SWRipple(ripple);
+            objnew=objnew.setTimeIntervalCombined(obj.TimeIntervalCombined);
+        end
+        
     end
 end
 

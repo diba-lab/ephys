@@ -3,4 +3,4 @@ FileTable=readtable(...
     'Delimiter',',');
 filepath=FileTable.Filepath{1};
 bc=BuzcodeFactory.getBuzcode(filepath);
-ripple=bc.calculateSWR
+ripple=bc.calculateSWR;

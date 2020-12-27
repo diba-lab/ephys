@@ -27,6 +27,9 @@ classdef SWRipple < RippleAbs
         function ripmax= getRipMax(obj)
             ripmax=obj.RipMax;
         end
+        function swmax= getSwMax(obj)
+            swmax=obj.SwMax;
+        end
     end
 end
 

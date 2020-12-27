@@ -29,6 +29,9 @@ classdef Ripple < RippleAbs
         function ripmax= getRipMax(obj)
             ripmax=obj.RipplePower;
         end
+        function swmax= getSwMax(obj)
+            swmax=nan(size(obj.RipplePower));
+        end
     end
 end
 

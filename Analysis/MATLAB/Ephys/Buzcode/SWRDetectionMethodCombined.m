@@ -10,22 +10,53 @@ classdef SWRDetectionMethodCombined < SWRDetectionMethod
             obj@SWRDetectionMethod(basepath)
         end
         
-        function ripple1 = execute(obj)
+        function rippleFinalCombined = execute(obj)
             conf=obj.Configuration;
-            basepath=obj.BasePath;
-            shanks=str2double(conf.shanks);
-            for ishank=1:numel(shanks)
-                chansofShank;
-                    method1=SWRDetectionMethodRippleOnly(obj.BasePath,chansofShank);
-                    method2=SWRDetectionMethodSWR(obj.BasePath,chansofShank);
-                    ripple1=ripple1+method1.execute;
-                    ripple2=ripple2+method2.execute;
+            probe=obj.getProbe;
+            
+            methodRip=SWRDetectionMethodRippleOnly(obj.BasePath);
+            shanks_rip=str2double(conf.shanks_ripple);
+            for ishank=1:numel(shanks_rip)
+                ashank_rip=shanks_rip(ishank);
+                chansofShank_rip=probe.getShank(ashank_rip).getActiveChannels;
+                ripple=methodRip.execute(chansofShank_rip);
+                try
+                    rippleCombinedROnly=rippleCombinedROnly+ripple;
+                    display(rippleCombinedROnly)
+                catch ME
+                    rippleCombinedROnly=ripple;
+                end
                 % for each shank calculate the ripples
-                       % (1) by ripple detection
-                       % (2) by detectSWR function
+                % (1) by ripple detection
+                % (2) by detectSWR function
+            end
+            rippleCombinedROnly.saveEventsNeuroscope(obj.BasePath);
+            methodSW=SWRDetectionMethodSWR(obj.BasePath);
+            shanks_sw=str2double(conf.shanks_sw);
+            for ishank=1:numel(shanks_sw)
+                ashank_sw=shanks_sw(ishank);
+                chansofShank_sw=probe.getShank(ashank_sw).getActiveChannels;
+                ripple=methodSW.execute(chansofShank_sw);
+                try
+                    rippleCombinedSW=rippleCombinedSW+ripple;
+                    display(rippleCombinedSW);
+                catch
+                    rippleCombinedSW=ripple;
+                end
+
+            end
+            rippleCombinedSW.saveEventsNeuroscope(obj.BasePath)
+            rippleFinalCombined=rippleCombinedROnly+rippleCombinedSW;
+            rippleFinalCombined.saveEventsNeuroscope(obj.BasePath)
+        end
+        function probe=getProbe(obj)
+            try
+                list=dir(fullfile(obj.BasePath,'*Probe*'));
+                probe=Probe(fullfile(list.folder,list.name));
+            catch
+                fprintf('No Probe File at: %s',obj.BasePath);
             end
             
-            % combine the results into one RippleAbs object
         end
     end
 end

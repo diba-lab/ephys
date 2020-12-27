@@ -10,15 +10,19 @@ classdef SWRDetectionMethodRippleOnly < SWRDetectionMethod
             obj@SWRDetectionMethod(basepath)
         end
         
-        function ripple1 = execute(obj)
+        function ripple1 = execute(obj,varargin)
             conf=obj.Configuration;
             ctd=ChannelTimeData(obj.BasePath);
-            chans=str2double( conf.ripple_channel);
+            if nargin>1
+                chans=varargin{1};
+            else
+                chans=str2double( conf.ripple_channel);
+            end
             LFP=ctd.getChannelsLFP(chans);
             passband=str2double(conf.ripple_passband);
             paramFile=fullfile(obj.BasePath,'Parameters','RippleDetection.xml');
             [folder,~,~]=fileparts(paramFile); if ~isfolder(folder), mkdir(folder);end
-            chasStr=['ch' num2str(chans,'_%d')];
+            chasStr=genvarname(['ch' num2str(chans','_%d')]);
             try
                 Ripple1=readstruct(paramFile);
             catch
@@ -38,8 +42,8 @@ classdef SWRDetectionMethodRippleOnly < SWRDetectionMethod
             writestruct(Ripple1,paramFile);
             
             chan=Ripple1.BestChannel.(chasStr);
-            
             list1=dir(fullfile(obj.BasePath,'*.xml'));
+            conf.chan=chan;
             str=DataHash(conf);
             cacheFileName=fullfile(obj.BasePath,'cacheripple',[str '.mat']);
             [folder,~,~]=fileparts(cacheFileName);if ~isfolder(folder), mkdir(folder); end
@@ -58,8 +62,6 @@ classdef SWRDetectionMethodRippleOnly < SWRDetectionMethod
                 ripple=S.(fnames{1});
             end
             ripple1=Ripple(ripple);
-            ripple1.saveEventsNeuroscope(obj.BasePath)
-            
         end
     end
 end
