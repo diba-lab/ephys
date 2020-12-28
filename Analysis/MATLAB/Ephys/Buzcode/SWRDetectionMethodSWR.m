@@ -18,7 +18,7 @@ classdef SWRDetectionMethodSWR < SWRDetectionMethod
             if nargin>1
                 chans=varargin{1};
             else
-                chans=str2double( conf.ripple_channel);
+                chans=str2double( conf.swr_channnels);
             end
             list1=dir(fullfile(obj.BasePath,'*.xml'));
             conf.chans=chans;

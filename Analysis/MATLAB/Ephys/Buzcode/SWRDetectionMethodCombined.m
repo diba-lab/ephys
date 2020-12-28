@@ -35,7 +35,13 @@ classdef SWRDetectionMethodCombined < SWRDetectionMethod
             shanks_sw=str2double(conf.shanks_sw);
             for ishank=1:numel(shanks_sw)
                 ashank_sw=shanks_sw(ishank);
-                chansofShank_sw=probe.getShank(ashank_sw).getActiveChannels;
+                subfield=['shank' num2str(ashank_sw)];
+                if ~isfield(conf,subfield)
+                    % NEUROSCOPE
+                    chansofShank_sw=probe.getShank(ashank_sw).getActiveChannels-1;
+                else
+                    chansofShank_sw=str2double(conf.(subfield))';
+                end
                 ripple=methodSW.execute(chansofShank_sw);
                 try
                     rippleCombinedSW=rippleCombinedSW+ripple;
