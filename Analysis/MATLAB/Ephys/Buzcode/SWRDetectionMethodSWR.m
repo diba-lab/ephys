@@ -21,6 +21,7 @@ classdef SWRDetectionMethodSWR < SWRDetectionMethod
                 chans=str2double( conf.swr_channnels);
             end
             list1=dir(fullfile(obj.BasePath,'*.xml'));
+            chans=chans+1;% NOT NEUROSCOPE
             conf.chans=chans;
             str=DataHash(conf);
             cacheFileName=fullfile(obj.BasePath,'cache',[str '.mat']);

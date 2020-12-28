@@ -180,7 +180,24 @@ classdef RippleAbs
                     new.swpower=swp_new(idx);swp_new(idx)=[];
                     new.duration=new.stop-new.start;
                     %% Check if one of them is SWR
-                    if new.power<base.power
+                    ripplesAreInSametype=~xor( isnan(base.swpower), isnan(new.swpower));
+                    if ripplesAreInSametype
+                        if new.power<base.power
+                            selectBase=true;
+                        else
+                            selectBase=false;
+                        end
+                    else
+                        baseIsSW=~isnan(base.swpower);
+                        if baseIsSW
+                            selectBase=true;
+                        else
+                            selectBase=false;
+                        end
+                    end
+                    
+                    
+                    if selectBase
                         rt_count=rt_count+1;
                         ripple.timestamps(rt_count,1)=base.start;
                         ripple.peaktimes(rt_count,1)=base.peak;
@@ -195,6 +212,7 @@ classdef RippleAbs
                         ripple.RipMax(rt_count,1)=new.power;
                         ripple.SwMax(rt_count,1)=new.swpower;
                     end
+           
                 end
             end
             [ripple.peaktimes, idx]=sort([ripple.peaktimes; pt_new],1);
@@ -204,11 +222,50 @@ classdef RippleAbs
             ripple.RipMax=ripple.RipMax(idx);
             ripple.SwMax=[ripple.SwMax; swp_new];
             ripple.SwMax=ripple.SwMax(idx);
-                        
+            
             objnew=SWRipple(ripple);
             objnew=objnew.setTimeIntervalCombined(obj.TimeIntervalCombined);
+            objnew=objnew.mergeOverlappingRipples;
         end
         
+        function obj=mergeOverlappingRipples(obj)
+                    
+            firstPass=[obj.PeakTimes.start obj.PeakTimes.stop];
+            secondPassRipple=[];
+            secondPassPeak=[];
+            secondPassPower=[];
+            secondPassSw=[];
+            theRipple = firstPass(1,:);
+            thePower=obj.RipMax(1);
+            thePeakTime=obj.PeakTimes.peak(1);
+            theSw=obj.SwMax(1);
+            for i = 2:size(firstPass,1)
+                if firstPass(i,1) - theRipple(2) < 0
+                    % Merge
+                    theRipple = [theRipple(1) firstPass(i,2)];
+                    if thePower<obj.RipMax(i)
+                        thePower=obj.RipMax(i);
+                        thePeakTime=obj.PeakTimes.peak(i);
+                        theSw=obj.SwMax(i);
+                    end
+                else
+                    secondPassRipple = [secondPassRipple ; theRipple];
+                    secondPassPeak = [secondPassPeak ; thePeakTime];
+                    secondPassPower = [secondPassPower ; thePower];
+                    secondPassSw = [secondPassSw ; theSw];
+                    theRipple = firstPass(i,:);
+                    thePower=obj.RipMax(i);
+                    thePeakTime=obj.PeakTimes.peak(i);
+                    theSw=obj.SwMax(i);
+                end
+            end
+            obj.PeakTimes.start=secondPassRipple(:,1);
+            obj.PeakTimes.stop=secondPassRipple(:,2);
+            obj.PeakTimes.peak=secondPassPeak;
+            obj.RipMax=secondPassPower;
+            obj.SwMax=secondPassSw;
+            
+        end
     end
 end
 
