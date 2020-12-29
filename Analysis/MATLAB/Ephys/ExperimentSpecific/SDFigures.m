@@ -361,12 +361,15 @@ classdef SDFigures <Singleton
             
             runningLeft=zeros(numel(not_running),1);
             runningRight=zeros(numel(not_running),1);
+            runningNo=zeros(numel(not_running),1);
             for iperiod=1:numel(longRunStart_abs)
+                runperiod=longRunStart_abs(iperiod):longRunStop_abs(iperiod);
                 if longRundirectionsLeft(iperiod)
-                    runningLeft(longRunStart_abs(iperiod):longRunStop_abs(iperiod))=1;
+                    runningLeft(runperiod)=1;
                 else
-                    runningRight(longRunStart_abs(iperiod):longRunStop_abs(iperiod))=1;
+                    runningRight(runperiod)=1;
                 end
+                runningNo(runperiod)=iperiod;
             end
             trackLeft=track1;
             trackRight=track1;
