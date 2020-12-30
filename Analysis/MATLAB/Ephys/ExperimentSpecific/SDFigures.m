@@ -478,6 +478,7 @@ classdef SDFigures <Singleton
             fig=FigureFactory.instance;
             fig.save('Run_theta')
             close all
+            colors=linspecer(numel(longRunStart_abs),'sequential');
             for iunit=1:numel(sus)
                 su=sus(iunit);
                 times_phase=phase.getTimeInterval;
@@ -490,28 +491,48 @@ classdef SDFigures <Singleton
                 idx=times_track.getSampleFor(spktimes);
                 locsLeft=trackLocationLeft(idx);
                 locsRight=trackLocationRight(idx);
+                spkRunNo=runningNo(idx);
                 active_idxLeft=~isnan(locsLeft);
                 active_idxRight=~isnan(locsRight);
                 locs_actives{1}=locsLeft(active_idxLeft);
                 locs_actives{2}=locsRight(active_idxRight);
                 idxL=times_phase.getSampleFor(spktimes(active_idxLeft));
                 idxR=times_phase.getSampleFor(spktimes(active_idxRight));
+                runnos{1}=spkRunNo(active_idxLeft);
+                runnos{2}=spkRunNo(active_idxRight);
+                
                 phases_actives{1}=phaseValues(idxL);
                 phases_actives{2}=phaseValues(idxR);
                 titles=["Running to Left","Running to Right"];
                 if numel(idxL)>30||numel(idxR)>30
+%%                  
                     try
                         try close(2);catch, end;f=figure(2);
+                        f.Visible='on';
                         f.Units='normalized';
-                        f.Position=[0 .3 .35 .50];
+                        f.Position=[0 .3 .35 .60];
+                        colormap(colors);
+                        SizeData=30;
+                        Alpha1=.7;
                         for idir=1:2
                             phases_active=phases_actives{idir};
                             locs_active=locs_actives{idir};
+                            run_no=runnos{idir};
+                            colorspks=colors(run_no,:);
                             subplot(4,2,[0 2]+idir);
-                            s=polarscatter(phases_active,locs_active,'filled');
-                            s.SizeData=30;
-                            s.AlphaData=ones(numel(locs_active),1)*.5;
-                            s.MarkerFaceAlpha='flat';
+                            s=polarscatter(phases_active,locs_active,SizeData,colorspks,'filled');
+                            s.MarkerFaceAlpha=Alpha1;
+                            
+                            cb=colorbar;
+                            cb.Location="southoutside";
+                            cb.Ticks=[0 .5 1];
+                            cb.TickLabels={'Early','Middle','Late'};
+                            cb.Label.String='Track Learning Time';
+                            cb.Label.FontWeight='bold';
+                            if idir==2
+                                cb.Visible='off';
+                            end
+                            
                             ax=gca;
                             ax.RLim=[-200 100];
                             ax.RTick=[-100 0 100];
@@ -519,11 +540,10 @@ classdef SDFigures <Singleton
                             r=circ_r(phases_active');
                             [pval, z]=circ_rtest(phases_active');
                             hold on;
-                            zm = r*exp(1i*mu);
                             pp=polarplot([0 mu],[-200 r*300-200]);
                             pp.LineWidth=3;
                             pp.Color='r';
-                            [rho pval1] = circ_corrcl(phases_active, locs_active);
+                            [rho, pval1] = circ_corrcl(phases_active, locs_active);
                             text(0,-200,sprintf('z= %.3f\np= %.3f\n\nrho=%.3f\np=%.3f'...
                                 ,z,pval,rho,pval1),'HorizontalAlignment','center')
                             
@@ -535,6 +555,7 @@ classdef SDFigures <Singleton
                             text(pi/4,120,sprintf('Id= %d, %s, %s\nshank= %d, channel= %d',su.Id,loc,gr,shank,channel),'HorizontalAlignment','left')
                             title1=text(pi/2,150,titles{idir});title1.HorizontalAlignment='center';
                             title1.FontSize=12;title1.FontWeight='bold';
+                            
                             ax1=axes;
                             ax1.Position=ax.Position;
                             ph=polarhistogram(phases_active,12,'Normalization','pdf','DisplayStyle','stairs');
@@ -544,10 +565,8 @@ classdef SDFigures <Singleton
                             ph.EdgeAlpha=.5;ph.EdgeColor='r';
                             
                             subplot(5,2,[6]+idir);
-                            s1=scatter(locs_active,phases_active,'filled');
-                            s1.SizeData=30;
-                            s1.AlphaData=ones(numel(locs_active),1)*.5;
-                            s1.MarkerFaceAlpha='flat';
+                            s1=scatter(locs_active,phases_active,SizeData,colorspks,'filled');
+                            s1.MarkerFaceAlpha=Alpha1;
                             ax=gca;
                             ax.YLim=[-pi pi];
                             ax.XLim=[-100 100];
@@ -558,15 +577,13 @@ classdef SDFigures <Singleton
                             ax_=axes;
                             ax_.Position=ax.Position;
                             ax_.Position(2)=ax_.Position(2)-ax_.Position(4);
-                            s1=scatter(locs_active,phases_active,'filled');
-                            s1.SizeData=30;
-                            s1.AlphaData=ones(numel(locs_active),1)*.5;
-                            s1.MarkerFaceAlpha='flat';
+                            s1=scatter(locs_active,phases_active,SizeData,colorspks,'filled');
+                            s1.MarkerFaceAlpha=Alpha1;
                             ax_.YLim=[-pi pi];
                             ax_.XLim=[-100 100];
                             
                             ax_.Visible='off';
-                           
+                            
                             ax1=axes;
                             ax1.Position=ax.Position;
                             ax1.Position(2)=ax1.Position(2)+ax1.Position(4);
@@ -577,9 +594,10 @@ classdef SDFigures <Singleton
                             ax1.Visible='off';
                             
                         end
+                        drawnow
                         fig.save(['PhasePrecession_' num2str(su.Id)])
                     catch
-                    end
+                    end%%
                 end
             end
         end
