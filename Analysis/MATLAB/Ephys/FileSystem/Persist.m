@@ -6,7 +6,8 @@ classdef (Abstract) Persist
         
     end
     methods (Abstract)
-        saveObject(obj,location)
+        saveObject(obj,location);
+        obj=loadObject(obj,location);
     end
     methods
         function obj = Persist()

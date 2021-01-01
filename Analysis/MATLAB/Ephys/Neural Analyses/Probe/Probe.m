@@ -13,10 +13,13 @@ classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope
         function newobj = Probe(probeFile)
             %PROBE Construct an instance of this class
             %   Detailed explanation goes here
-%             newobj=newobj@Persist(probeFile);
-            T=load(probeFile);
-            fnames=fieldnames(T);
-            lay =T.(fnames{1});
+            if istable( probeFile)
+                lay=probeFile;
+            else
+                T=load(probeFile);
+                fnames=fieldnames(T);
+                lay =T.(fnames{1});
+            end
             if isa(lay, 'Probe')
                 probe=lay;
                 newobj=probe;
