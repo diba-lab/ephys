@@ -45,6 +45,7 @@ classdef (Abstract) SDLoader < Singleton
             workspace=obj.activeWorkspaceFile;
         end
         function oerc=loadOERFiles(obj,files)
+            
             for ifile=1:numel(files)
                 filename=fullfile(files{ifile});
                 oer =OpenEphysRecordFactory.getOpenEphysRecord(filename);
@@ -62,7 +63,8 @@ classdef (Abstract) SDLoader < Singleton
             catch
                 warning('Probe file could not be found for OpenEphysCombined. %s\n',...
                     obj.activeWorkspaceFile)
-            end 
+            end
+            
             obj.activeOpenEphysRecord=oerc;
             
         end

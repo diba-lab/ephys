@@ -72,28 +72,27 @@ classdef OpenEphysRecordsCombined < Timelined
                 anOpenEphysRecord.saveChannels(channels);
             end
         end
-        function fileout=mergeBlocksOfChannels(obj,channels,path)
+        function dataForClustering=mergeBlocksOfChannels(obj,channels,path)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             iter=obj.getIterator();
             first=true;
-            oers=obj.getOpenEphysRecords;
-            strt =oers.get(1).getRecordStartTime;
-            end1 =oers.get(oers.length).getRecordEndTime;
-            fname=sprintf('merged_%s__%s_%s',datestr(strt,'yyyy-mmm-dd'),...
-                datestr(strt,'HH-MM-SS'),datestr(end1,'HH-MM-SS'));
-            fileout=fullfile(path, fname,[fname '.dat']);
-            
+            fname=sprintf('MergedRaw');
+            fileout=fullfile(path, [fname '.dat']);
+            dataForClustering=DataForClustering(fileout);
             [folder,fname,ext]=fileparts(fileout);
             probe=obj.getProbe;
             probe=probe.setActiveChannels(channels);
             probe=probe.renameChannelsByOrder(channels);
-            probe.saveProbeTable( fullfile(folder,[fname '.Probe.mat']));
+            probe.saveProbeTable(fullfile(folder,'Probe.xlsx'));
             ticd=obj.getTimeIntervalCombined;
-            probe.createXMLFile(fullfile(folder,[fname '.xml']),ticd.getSampleRate)
+            dataForClustering=dataForClustering.setTimeIntervalCombined(ticd);
+            probe.createXMLFile(fullfile(folder,strcat(fname, '.xml')),ticd.getSampleRate)
+            dataForClustering=dataForClustering.setProbe(probe);
             
             if ~isfolder(folder), mkdir(folder), end
-            save(fullfile(folder,[fname '.TimeIntervalCombined.mat']),'ticd');
+            filePath=fullfile(folder,strcat(fname, '_TimeIntervalCombined.csv'));
+            ticd.saveTable(filePath);            
             if ~exist(fileout,'file')
                 while(iter.hasNext())
                     anOpenEphysRecord=iter.next();

@@ -16,9 +16,14 @@ classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope
             if istable( probeFile)
                 lay=probeFile;
             else
-                T=load(probeFile);
-                fnames=fieldnames(T);
-                lay =T.(fnames{1});
+                try
+                    T=load(probeFile);
+                    fnames=fieldnames(T);
+                    lay =T.(fnames{1});
+                catch
+                    T=readtable(probeFile);
+                    lay=T;
+                end
             end
             if isa(lay, 'Probe')
                 probe=lay;
@@ -76,9 +81,9 @@ classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope
             set(gca,'FontSize',10,'TickDir','out')
             ax.XDir='reverse';
             ax.YDir='reverse';
-%             ax.YLim=[-100 400];
+            %             ax.YLim=[-100 400];
             lim=axis;
-%             ax.XTickLabel{1}=[ax.XTickLabel{1} '\mu'];
+            %             ax.XTickLabel{1}=[ax.XTickLabel{1} '\mu'];
             axis([lim(1)-50 lim(2)+50 -100 400])
             
         end
@@ -102,10 +107,8 @@ classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope
         function obj=saveProbeTable(obj,filepath)
             siteLayout=obj.SiteSpatialLayout;
             [folder,name,ext]=fileparts(filepath);
-            if ~exist(folder,'dir')
-                mkdir(folder);
-            end
-            save(filepath,'siteLayout');
+            if ~isfolder(folder),mkdir(folder);end
+            writetable(siteLayout,filepath);
         end
         function obj=setActiveChannels(obj,chans)
             siteLayout=obj.SiteSpatialLayout;
@@ -113,7 +116,7 @@ classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope
             try
                 siteLayout.isActive(ismember(siteLayout.ChannelNumberComingOutPreAmp,chans))=1;
             catch
-                siteLayout.isActive(:)=0; 
+                siteLayout.isActive(:)=0;
             end
             obj.SiteSpatialLayout=siteLayout;
         end

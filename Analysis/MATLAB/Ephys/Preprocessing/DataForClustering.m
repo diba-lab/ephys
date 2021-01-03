@@ -3,20 +3,39 @@ classdef DataForClustering
     %   Detailed explanation goes here
     
     properties
-        Property1
+        Probe
+        DataFile
+        TimeIntervalCombined
     end
     
     methods
-        function obj = DataForClustering(inputArg1,inputArg2)
+        function obj = DataForClustering(dataFile)
             %DATAFORCLUSTERING Construct an instance of this class
             %   Detailed explanation goes here
-            obj.Property1 = inputArg1 + inputArg2;
+            obj.DataFile = dataFile;
         end
         
-        function outputArg = method1(obj,inputArg)
+        function obj = setProbe(obj,probe)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            outputArg = obj.Property1 + inputArg;
+            obj.Probe = probe;
+        end
+        function obj = setTimeIntervalCombined(obj,ticd)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            obj.TimeIntervalCombined = ticd;
+        end
+        function SykingCircusOutputFolder = runSpyKingCircus(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            %% TODO 
+            
+        end
+        function SykingCircusOutputFolder = getSpikeOutputfolder(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            %% TODO 
+            
         end
     end
 end

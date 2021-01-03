@@ -44,18 +44,22 @@ classdef ChannelTimeData < BinarySave
                 fnames=fieldnames(s);
                 newObj.TimeIntervalCombined=s.(fnames{1});
             catch
-                numberOfPoints=samples;
-                prompt = {'Start DateTime:','SampleRate:'};
-                dlgtitle = 'Input';
-                dims = [1 35];
-                definput = {'11-Aug-2011 11:11:11','1250'};
-                answer = inputdlg(prompt,dlgtitle,dims,definput);
-                startTime=datetime(answer{1},'InputFormat','dd-MMM-yyyy HH:mm:ss');
-                sampleRate=str2num(answer{2});
-                ti=TimeInterval(startTime, sampleRate, numberOfPoints);
-                ticd=TimeIntervalCombined(ti);
-                ticd.save(folder);
-                newObj.TimeIntervalCombined=ticd;
+                try
+                    newObj.TimeIntervalCombined=TimeIntervalCombined(fullfile(timeFile.folder,timeFile.name));
+                catch
+                    numberOfPoints=samples;
+                    prompt = {'Start DateTime:','SampleRate:'};
+                    dlgtitle = 'Input';
+                    dims = [1 35];
+                    definput = {'11-Aug-2011 11:11:11','1250'};
+                    answer = inputdlg(prompt,dlgtitle,dims,definput);
+                    startTime=datetime(answer{1},'InputFormat','dd-MMM-yyyy HH:mm:ss');
+                    sampleRate=str2num(answer{2});
+                    ti=TimeInterval(startTime, sampleRate, numberOfPoints);
+                    ticd=TimeIntervalCombined(ti);
+                    ticd.save(folder);
+                    newObj.TimeIntervalCombined=ticd;
+                end
             end
             newObj.Filepath=newObj.Data.Filename;
         end
@@ -86,7 +90,7 @@ classdef ChannelTimeData < BinarySave
             LFP.channels=channelList(index);
             LFP.sampleRate=ticd.getSampleRate;
         end
-        function newobj = getDownSampled(obj, newRate, newFolder)
+        function newobj = getDownSampled(obj, newRate, newFileName)
             if nargin>2
             else
                 newFolder=fileparts(obj.Filepath);
@@ -97,16 +101,12 @@ classdef ChannelTimeData < BinarySave
             chans=probe.getActiveChannels;
             numberOfChannels=numel(chans);
             currentFileName=obj.Filepath;
-            [~,name,~]=fileparts(currentFileName);
-            ext='.lfp';
-            newFileName=fullfile(newFolder,...
-                sprintf('%s',name),...
-                sprintf('%s%s',name,ext));
-            [folder1,name,~]=fileparts(newFileName);
+            
+             [folder1,name,~]=fileparts(newFileName);
             if ~exist(folder1,'dir'), mkdir(folder1);end
-            probe.saveProbeTable(fullfile(folder1,[name '.Probe.mat']));
+            probe.saveProbeTable(fullfile(folder1,[name '.Probe.xlsx']));
             ticd=ticd.getDownsampled(currentRate/newRate);
-            save(fullfile(folder1,[name '.TimeIntervalCombined.mat']),'ticd');
+            ticd=ticd.saveTable(fullfile(folder1,[name '.TimeIntervalCombined.csv']));
             probe.createXMLFile(fullfile(folder1,[name '.xml']),newRate);
             if ~exist(newFileName,'file')
                 % preprocess it

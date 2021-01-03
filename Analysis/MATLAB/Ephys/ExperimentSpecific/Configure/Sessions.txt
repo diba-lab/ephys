@@ -3,7 +3,7 @@ AG,1,SD,/data/EphysAnalysis/SleepDeprivationData/RAT_05_AG/Day01_SD/merged_2019-
 AG,2,NSD,/data/EphysAnalysis/SleepDeprivationData/RAT_05_AG/Day02_NSD/merged_2019-Dec-23__05-00-08_18-27-11
 AG,3,SD,/data/EphysAnalysis/SleepDeprivationData/RAT_05_AG/Day03_SD/merged_2019-Dec-26__05-06-16_18-15-09
 AG,4,NSD,/data/EphysAnalysis/SleepDeprivationData/RAT_05_AG/Day04_NSD/merged_2019-Dec-27__04-49-48_20-03-08
-AF,1,SD,/data/EphysAnalysis/SleepDeprivationData/RAT_04_AF/Day01_SD/merged_2019-Nov-24__01-50-23_17-32-51
+AF,1,SD,/data/EphysAnalysis/SleepDeprivationData/AF_2019-11-24_SD
 AF,2,NSD,/data/EphysAnalysis/SleepDeprivationData/RAT_04_AF/Day02_NSD/merged_2019-Dec-04__04-45-16_19-09-45
 AA,1,SD,/data/EphysAnalysis/SleepDeprivationData/RAT_01_AA/Day01_SD/merged_2019-May-30__04-43-12_18-49-59
 AA,2,NSD,/data/EphysAnalysis/SleepDeprivationData/RAT_01_AA/Day02_NSD/merged_2019-May-31__23-54-40_14-11-34

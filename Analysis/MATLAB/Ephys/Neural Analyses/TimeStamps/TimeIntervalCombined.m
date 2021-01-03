@@ -12,11 +12,26 @@ classdef TimeIntervalCombined
             %TIMEINTERVALCOMBINED Construct an instance of this class
             %   Detailed explanation goes here
             timeIntervalList=CellArrayList();
-            for iArgIn=1:nargin
-                theTimeInterval=varargin{iArgIn};
-                assert(isa(theTimeInterval,'TimeInterval'));
-                timeIntervalList.add(theTimeInterval);
-                fprintf('Record addded:');display(theTimeInterval);
+            
+            if nargin>0
+                el=varargin{1};
+                if isstring(el)||ischar(el)
+                    T=readtable(el);
+                    obj=TimeIntervalCombined;
+                    for iti=1:height(T)
+                        tiRow=T(iti,:);
+                        theTimeInterval=TimeInterval(tiRow.StartTime,tiRow.SampleRate,tiRow.NumberOfPoints);
+                        timeIntervalList.add(theTimeInterval);
+                        fprintf('Record addded:');display(theTimeInterval);
+                    end
+                else
+                    for iArgIn=1:nargin
+                        theTimeInterval=varargin{iArgIn};
+                        assert(isa(theTimeInterval,'TimeInterval'));
+                        timeIntervalList.add(theTimeInterval);
+                        fprintf('Record addded:');display(theTimeInterval);
+                    end
+                end
             end
             obj.timeIntervalList=timeIntervalList;
             obj.Format='dd-MMM-uuuu HH:mm:ss.SSS';
@@ -128,14 +143,14 @@ classdef TimeIntervalCombined
                         time=obj.convertStringToDatetime(time);
                     end
                 end
-%                 time.Second=floor(time.Second);
+                %                 time.Second=floor(time.Second);
                 if time<obj.getStartTime
-%                     warning('Given time(%s) is earlier then record start(%s).\n',...
-%                         time,obj.getStartTime);
+                    %                     warning('Given time(%s) is earlier then record start(%s).\n',...
+                    %                         time,obj.getStartTime);
                     time=obj.getStartTime;
                 elseif time>obj.getEndTime
-%                     warning('Given time(%s) is later then record end(%s).\n',...
-%                         time,obj.getEndTime);
+                    %                     warning('Given time(%s) is later then record end(%s).\n',...
+                    %                         time,obj.getEndTime);
                     time=obj.getEndTime;
                 end
                 
@@ -306,7 +321,31 @@ classdef TimeIntervalCombined
             filename=fullfile(folder,'_added_TimeIntervalCombined.mat');
             save(filename,'obj');
         end
-
+        function ticd=saveTable(obj,filePath)
+            iter=obj.timeIntervalList.createIterator;
+            count=1;
+            
+            while(iter.hasNext)
+                ti=iter.next;
+                S(count).StartTime=ti.StartTime;
+                S(count).NumberOfPoints=ti.NumberOfPoints;
+                S(count).SampleRate=ti.SampleRate;
+                count=count+1;
+            end
+            T=struct2table(S);
+            writetable(T,filePath)
+            ticd=TimeIntervalCombined(filePath);
+        end
+        function ticd=readTimeIntervalTable(obj,table)
+            T=readtable(table);
+            ticd=TimeIntervalCombined;
+            for iti=1:height(T)
+                tiRow=T(iti,:);
+                ti=TimeInterval(tiRow.StartTime,tiRow.SampleRate,tiRow.NumberOfPoints);
+                ticd=ticd+ti;
+            end
+        end
+        
     end
     methods
         function dt=convertDurationToDatetime(obj,time)

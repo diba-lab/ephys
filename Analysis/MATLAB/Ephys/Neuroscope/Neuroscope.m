@@ -76,10 +76,8 @@ classdef (Abstract) Neuroscope
             end
             
             [path,name,~]=fileparts(filepath);
-            delete(fullfile(path,[name '.nrs']));
-            struct2xml(s,filepath);
-            type(filepath);
-            
+            try delete(fullfile(path,strcat(name, '.nrs')));catch end
+            struct2xml(s,filepath);            
         end
     end
     methods(Access=private)
