@@ -44,17 +44,14 @@ classdef StateDetectionData
             end
             thefile=dir(fullfile(basepath, '*TimeIntervalCombined*'));
             try
-                S=load(fullfile(thefile(1).folder,thefile(1).name));
+                ticd=TimeIntervalCombined(fullfile(thefile.folder,thefile.name));
             catch
                 warning('I couldn''t find the TimeIntervalCombined file.\n\t%s',thefile);
             end
             
-            
-            fname=fieldnames(S);
-            timeIntervalCombined=S.(fname{1});
-            obj.TimeIntervalCombinedOriginal=timeIntervalCombined;
-            downsampleFactor=timeIntervalCombined.getSampleRate/obj.SleepScoreLFP.sf;
-            timeIntervalCombinedDownsampled=timeIntervalCombined.getDownsampled(downsampleFactor);
+            obj.TimeIntervalCombinedOriginal=ticd;
+            downsampleFactor=ticd.getSampleRate / obj.SleepScoreLFP.sf;
+            timeIntervalCombinedDownsampled=ticd.getDownsampled(downsampleFactor);
             npds=numel(timeIntervalCombinedDownsampled.getTimePointsInSec);
             npss=numel(obj.SleepScoreLFP.t);
             if abs((npds-npss)/npss)<.0001
@@ -65,6 +62,9 @@ classdef StateDetectionData
                     timeIntervalCombinedDownsampled.getNumberOfPoints,...
                     numel(obj.SleepScoreLFP.t));
             end
+            sde=SDExperiment.instance.get;
+            blocksFile=fullfile(basepath, sde.FileLocations.Session.Blocks);
+            T=readtimetable(blocksFile);
             thefile=dir(fullfile(basepath, '*.lfp'));
             [~,name,~]=fileparts(thefile(1).name);
             basename=fullfile(basepath,name);
