@@ -8,41 +8,25 @@ classdef SDBlocks
     %     {duration(13,19,05),duration(15,00,13)})
     
     properties
+        Date
         TimeTable
     end
     
     methods
-        function obj = SDBlocks(date,varargin)
+        function obj = SDBlocks(date,T)
             %EXPERIMENTBLOCKTIMES Construct an instance of this class
             %   Detailed explanation goes here
-            
-            for iblock=1:numel(varargin)
-                duration=varargin{iblock};
-                start(iblock,1)=date+duration{1};
-                end1(iblock,1)=date+duration{2};
+            obj.TimeTable=T;
+            obj.Date=date;
+        end
+        function wind = get(obj,varargin)
+            T=obj.TimeTable;
+            blocks=T.Block;
+            idx=true(size(blocks));
+            if nargin>1
+                idx=ismember(blocks,varargin);
             end
-            name={'PRE';'SD';'TRACK';'POST'};
-            obj.TimeTable = timetable(start,end1,name);
-        end
-        function wind = getPRE(obj)
-            tt=obj.TimeTable;
-            str='PRE';
-            wind=[tt.start(strcmpi(tt.name,str)) tt.end1(strcmpi(tt.name,str))];
-        end
-        function wind = getSD(obj)
-            tt=obj.TimeTable;
-            str='SD';
-            wind=[tt.start(strcmpi(tt.name,str)) tt.end1(strcmpi(tt.name,str))];
-        end
-        function wind = getTRACK(obj)
-            tt=obj.TimeTable;
-            str='TRACK';
-            wind=[tt.start(strcmpi(tt.name,str)) tt.end1(strcmpi(tt.name,str))];
-        end
-        function wind = getPOST(obj)
-            tt=obj.TimeTable;
-            str='POST';
-            wind=[tt.start(strcmpi(tt.name,str)) tt.end1(strcmpi(tt.name,str))];
+            wind=T(idx,:);
         end
     end
 end

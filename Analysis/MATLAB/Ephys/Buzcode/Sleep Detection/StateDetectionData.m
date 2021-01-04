@@ -62,21 +62,9 @@ classdef StateDetectionData
                     timeIntervalCombinedDownsampled.getNumberOfPoints,...
                     numel(obj.SleepScoreLFP.t));
             end
-            sde=SDExperiment.instance.get;
-            blocksFile=fullfile(basepath, sde.FileLocations.Session.Blocks);
-            T=readtimetable(blocksFile);
-            thefile=dir(fullfile(basepath, '*.lfp'));
-            [~,name,~]=fileparts(thefile(1).name);
-            basename=fullfile(basepath,name);
-            obj.BaseName=basename;
-            thefile=dir(fullfile(basepath, '*BlockTimes*'));
-            try
-                S=load(fullfile(thefile(1).folder,thefile(1).name));
-                fname=fieldnames(S);
-                obj.Blocks=S.(fname{1});
-            catch
-                warning('I couldn''t find the BlockTimes file.\n\t%s',basepath);
-            end
+            ses=Session(basepath);
+            obj.Blocks=SDBlocks(ses.SessionInfo.Date,ses.Blocks);
+            
         end
         
         function episodes= joinStates(obj)
@@ -94,8 +82,11 @@ classdef StateDetectionData
             chname=num2str(obj.getThetaChannelID);
             LFP=Channel(chname,ch(1:obj.TimeIntervalCombinedDownSampled.getNumberOfPoints),obj.TimeIntervalCombinedDownSampled);
         end
-        function [LFP]= getThetaChannelID(obj)
-            LFP=obj.SleepScoreLFP.THchanID;
+        function [ch]= getThetaChannelID(obj)
+            ch=obj.SleepScoreLFP.THchanID;
+        end
+        function [ch]= getSWChannelID(obj)
+            ch=obj.SleepScoreLFP.SWchanID;
         end
         function [tps]= getTimePoints(obj,downsample)
             ti=obj.TimeIntervalCombinedOriginal;

@@ -128,7 +128,7 @@ classdef Preprocess
             baseFolder=obj.Session.SessionInfo.baseFolder;
             session=obj.Session;
             
-            toks=tokenize(baseFolder,'/');
+            toks=split(baseFolder,'/');
             name=toks{end};
             ext='.lfp';
             newFileName=fullfile(baseFolder,...
