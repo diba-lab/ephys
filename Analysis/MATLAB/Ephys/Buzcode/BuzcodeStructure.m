@@ -40,9 +40,7 @@ classdef BuzcodeStructure
             end
             try
                 list=dir(fullfile(obj.BasePath,'*TimeInterval*'));
-                S=load(fullfile(list.folder,list.name));
-                fnames=fieldnames(S);
-                obj.TimeIntervalCombined=S.(fnames{1});
+                obj.TimeIntervalCombined=TimeIntervalCombined(fullfile(list.folder,list.name));
             catch
                 fprintf('No TimeIntervalCombined File at: %s',obj.BasePath);
             end
@@ -71,7 +69,20 @@ classdef BuzcodeStructure
         end
         function [] = calculateRipple(obj)
             warning('Depricated! Use calculateSWR() and change configure.conf file. Set detection type=1.')
-        end        
+        end
+        function sdd = detectStates(obj,params)
+            try
+                sdd=StateDetectionData(obj.BasePath);
+            catch
+                
+                if params.Overwrite, overwrite=true; else, overwrite=false;end
+                SleepScoreMaster(baseFolder,...
+                    'SWChannels',params.Channels.SWChannels...
+                    ,'ThetaChannels',params.Channels.ThetaChannels...
+                    ,'overwrite',overwrite);
+                sdd=StateDetectionData(baseFolder);
+            end
+        end
     end
 end
 

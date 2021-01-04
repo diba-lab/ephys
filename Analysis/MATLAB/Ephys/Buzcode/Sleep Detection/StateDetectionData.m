@@ -64,7 +64,9 @@ classdef StateDetectionData
             end
             ses=Session(basepath);
             obj.Blocks=SDBlocks(ses.SessionInfo.Date,ses.Blocks);
-            
+            list=dir(fullfile(basepath, '*.lfp'));
+            [folder,name,~]=fileparts(fullfile(list.folder,list.name));
+            obj.BaseName=strcat(folder,filesep,name);
         end
         
         function episodes= joinStates(obj)
@@ -148,6 +150,7 @@ classdef StateDetectionData
             ax.Color='none';title('');ylabel(chanSelected.getChannelName)
         end
         function [LFP]= getLFP(obj,channel,downsample)
+            warning('Depricated Method. Use ChannelTimeData.getChannel OR .getCahnnelsLFP.')
             tokens=tokenize(obj.BaseName,filesep);
             path=[];
             for i=1:numel(tokens)-1
