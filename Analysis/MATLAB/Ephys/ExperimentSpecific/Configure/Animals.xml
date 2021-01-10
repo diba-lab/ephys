@@ -18,7 +18,7 @@
         <Sex></Sex>
         <Strain></Strain>
         <Species></Species>
-        <ProbeName></ProbeName>
+        <ProbeName>Buzsaki32.Probe</ProbeName>
     </animals>
     <animals>
         <VirusCoordinates></VirusCoordinates>
@@ -38,7 +38,7 @@
         <Sex></Sex>
         <Strain></Strain>
         <Species></Species>
-        <ProbeName></ProbeName>
+        <ProbeName>Probe.masmanides_128K_+6chans</ProbeName>
     </animals>
     <animals>
         <VirusCoordinates></VirusCoordinates>
@@ -98,6 +98,6 @@
         <Sex></Sex>
         <Strain></Strain>
         <Species></Species>
-        <ProbeName>Masmanidis 128 x 2</ProbeName>
+        <ProbeName>Probe.masmanides_128Kx2table_192chans</ProbeName>
     </animals>
 </struct>

@@ -16,7 +16,8 @@ classdef TimeInterval
             obj.SampleRate = sampleRate;
             obj.StartTime=startTime;
             obj.NumberOfPoints=numberOfPoints;
-            obj.Format='dd-MMM-uuuu HH:mm:ss.SSS';
+%             obj.Format='dd-MMM-uuuu HH:mm:ss.SSS';
+            obj.Format='HH:mm:ss.SSS';
         end
         
         function timeInterval=getTimeIntervalForSamples(obj, startSample, endSample)
@@ -28,12 +29,10 @@ classdef TimeInterval
             end
             if endSample > obj.NumberOfPoints
                 endSample=obj.NumberOfPoints;
-                warning('End sample is > number of point is TimeInterval %d, \n\tit is set that.\n', obj.NumberOfPoints)
             end
             if startSample>0 && startSample<=endSample && endSample<=obj.NumberOfPoints
                 timeInterval=TimeInterval(obj.getRealTimeFor(startSample),obj.SampleRate, endSample-startSample+1);
             else
-                warning('Something wrong with the numbers. Please check if correct. \n\tNothing is returned.')
                 timeInterval=[];
             end
         end
@@ -62,14 +61,17 @@ classdef TimeInterval
             end
             time.Format=obj.Format;
         end
-        function sample=getSampleFor(obj,time)
+        function samples=getSampleFor(obj,times)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            if time>=obj.StartTime & time<=obj.getEndTime
-                sample=round(seconds(time-obj.StartTime)*obj.SampleRate)+1;
-            else
-%                 warning('Time is not in the TimeInterval -- should be between\n\t%s -- %s\nReturned ''-1''',obj.StartTime,obj.getEndTime);
-                sample=[];
+            samples=nan(size(times));
+            st=obj.StartTime;
+            en=obj.getEndTime;
+            for i=1:numel(times)
+                time=times(i);
+                if time>=st && time<=en
+                    samples(i)=round(seconds(time-obj.StartTime)*obj.SampleRate)+1;
+                end
             end
         end
         function time=getEndTime(obj)
@@ -118,7 +120,14 @@ classdef TimeInterval
         function arrnew=adjustTimestampsAsIfNotInterrupted(obj,arr)
             arrnew=arr;
         end
-        
+        function ticd=saveTable(obj,filePath)
+            S.StartTime=obj.StartTime;
+            S.NumberOfPoints=obj.NumberOfPoints;
+            S.SampleRate=obj.SampleRate;
+            T=struct2table(S);
+            writetable(T,filePath)
+            ticd=TimeIntervalCombined(filePath);
+        end
     end
     methods (Access=private)
         function ts=getTimeSeries(obj)
@@ -135,6 +144,7 @@ classdef TimeInterval
             ts.TimeInfo.StartDate=obj.StartTime;
             ts.TimeInfo.Format='HH:MM:SS.FFF';
         end
+
     end
 end
 

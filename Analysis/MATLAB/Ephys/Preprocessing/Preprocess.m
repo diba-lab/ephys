@@ -8,6 +8,7 @@ classdef Preprocess
         ClusterParams
         LFPParams
         Bad
+        Parameters
     end
     
     methods
@@ -46,6 +47,9 @@ classdef Preprocess
                 forClu.Shanks.Shank=[1 2 3 4];
                 animal=session.Animal.Code;
                 date=session.SessionInfo.Date;
+                if ~isdatetime(date)
+                    error('Set Date of the session in SessionInfo File.')
+                end
                 cond=session.SessionInfo.Condition;
                 output=sde.FileLocations.Preprocess.OutputFolderForClustering;
                 forClu.OutputFolder=fullfile(output,strcat(animal,'_',datestr(date,29),'_',cond));
@@ -69,13 +73,27 @@ classdef Preprocess
                 bad=readstruct(badFile);
             catch
                 bad.BadChannels.Channel(1)=nan;
-                bad.BadTimes.Time(1).start=datetime('now','Format','HH:mm:ss.SSS');
-                bad.BadTimes.Time(1).stop=datetime('now','Format','HH:mm:ss.SSS')+seconds(5);
-                bad.BadTimes.Time(2).start=datetime('now','Format','HH:mm:ss.SSS');
-                bad.BadTimes.Time(2).stop=datetime('now','Format','HH:mm:ss.SSS')+seconds(5);
+                bad.BadTimes.Time(1).Start=datetime('now','Format','HH:mm:ss.SSS');
+                bad.BadTimes.Time(1).Stop=datetime('now','Format','HH:mm:ss.SSS')+seconds(5);
+                bad.BadTimes.Time(1).Type='Type';
                 writestruct(bad,badFile);
             end
             obj.Bad=bad;
+            
+            paramFile=fullfile(session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Parameters);
+            try
+                param=readstruct(paramFile);
+            catch
+                param.ZScore.Threshold=[-.5 1.5];
+                param.ZScore.MinimumDurationInMs=0;
+                param.ZScore.WindowsBeforeDetectionInMs=250;
+                param.ZScore.WindowsAfterDetectionInMs=350;
+                param.ZScore.MinimumInterArtifactDistanceInMs=500;
+                param.ZScore.Downsample=250;
+                
+                writestruct(param,paramFile);
+            end
+            obj.Parameters=param;
             
             %% Probe File
             probeRaw=fullfile(session.SessionInfo.baseFolder, sde.FileLocations.Session.Probe);
@@ -87,7 +105,7 @@ classdef Preprocess
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             baseFolder=obj.Session.SessionInfo.baseFolder;
-
+            
             outfol=obj.ClusterParams.OutputFolder;
             rawfiles=obj.OpenephysFiles;
             if ~isfolder(outfol), mkdir(outfol);end
@@ -134,36 +152,34 @@ classdef Preprocess
             newFileName=fullfile(baseFolder,...
                 sprintf('%s%s',name,ext));
             %             if ~isfile(newFileName)
-            
-            downsamplerate=obj.LFPParams.DownSampleRate;
-            shanks=obj.LFPParams.Shanks.Shank;
-            
-            rawfiles=obj.OpenephysFiles;
-            
-            cachestr=DataHash(strcat(convertStringsToChars(rawfiles')));
-            oercCacheFile=fullfile(baseFolder,'cache',strcat(cachestr,'.mat'));
-            if ~isfolder(fullfile(baseFolder,'cache')), mkdir(fullfile(baseFolder,'cache'));end
-            try
-                load(oercCacheFile,'oerc');
-            catch
-                for ifile=1:numel(rawfiles)
-                    filename=fullfile(rawfiles{ifile});
-                    oer =OpenEphysRecordFactory.getOpenEphysRecord(filename);
-                    if ~exist('oerc','var')
-                        oerc=OpenEphysRecordsCombined( oer);
-                    else
-                        oerc=oerc+oer;
-                    end
-                end
-                save(oercCacheFile,'oerc');
-            end
-            probe=session.Probe;
-            newprobe=probe.getShank(shanks);
-            
-            channels=newprobe.getActiveChannels;
             if ~isfile(newFileName)
+                rawfiles=obj.OpenephysFiles;
+                cachestr=DataHash(strcat(convertStringsToChars(rawfiles')));
+                oercCacheFile=fullfile(baseFolder,'cache',strcat(cachestr,'.mat'));
+                if ~isfolder(fullfile(baseFolder,'cache')), mkdir(fullfile(baseFolder,'cache'));end
+                try
+                    load(oercCacheFile,'oerc');
+                catch
+                    for ifile=1:numel(rawfiles)
+                        filename=fullfile(rawfiles{ifile});
+                        oer =OpenEphysRecordFactory.getOpenEphysRecord(filename);
+                        if ~exist('oerc','var')
+                            oerc=OpenEphysRecordsCombined( oer);
+                        else
+                            oerc=oerc+oer;
+                        end
+                    end
+                    save(oercCacheFile,'oerc');
+                end
+                probe=session.Probe;
+                shanks=obj.LFPParams.Shanks.Shank;
+                newprobe=probe.getShank(shanks);
+                
+                channels=newprobe.getActiveChannels;
                 mergedData=oerc.mergeBlocksOfChannels(channels,obj.ClusterParams.OutputFolder);
+                
                 chantime=ChannelTimeData(mergedData.DataFile);
+                downsamplerate=obj.LFPParams.DownSampleRate;
                 chantime_ds=chantime.getDownSampled(downsamplerate,newFileName);
                 delete(mergedData.DataFile)
             end
@@ -173,6 +189,95 @@ classdef Preprocess
             list=dir(fullfile(baseFolder,'*TimeIntervalCombined*'));
             ticd=TimeIntervalCombined(fullfile(baseFolder,list.name));
             dataForLFP=dataForLFP.setTimeIntervalCombined(ticd);
+        end
+        function obj=reCalculateArtifacts(obj)
+            params=obj.getParameters;
+            thr=params.ZScore.Threshold;
+            datalfp=obj.getDataForLFP;
+            ctd=datalfp.getChannelTimeData;
+            probe=ctd.getProbe;
+            %             ctd1=ctd.saveKeepTimes(duration({'14:28:00','15:28:03';'17:30:00','17:30:03'}));
+            %             ctd1=ctd.saveKeepTimes(duration({'13:50:00','14:45:00'}));
+            chans=probe.getActiveChannels;
+            ch=ctd.getChannel(chans(1));
+            ch_ds=ch.getDownSampled(params.ZScore.Downsample);
+            %             cfg = [];
+            %             cfg.dataset     = 'Subject01.ds';
+            %             data_meg        = ft_preprocessing(cfg);
+            
+            zs=ch_ds.getZScored;
+            idx=zs<thr(1)|zs>thr(2);
+            idx_edge=diff(idx);
+            idx_edge=[0; idx_edge; 0];
+            t(:,1)=find(idx_edge==1);
+            t(:,2)=find(idx_edge==-1);
+            ticd=ch_ds.getTimeIntervalCombined;
+            addb=seconds(params.ZScore.WindowsBeforeDetectionInMs/1000);
+            adda=seconds(params.ZScore.WindowsAfterDetectionInMs/1000);
+            firstPass(:,1)=ticd.getRealTimeFor(t(:,1))-addb;
+            firstPass(:,2)=ticd.getRealTimeFor(t(:,2))+adda;
+            
+            minInterArtifactDistInSec = params.ZScore.MinimumInterArtifactDistanceInMs/1000;
+            finalTimeTable = [];
+            countsecond=1;
+            theArtifact = firstPass(1,:);
+            for iart=2:size(firstPass,1)
+                
+                if seconds(firstPass(iart, 1) - theArtifact(2)) < minInterArtifactDistInSec
+                    % Merging artifacts
+                    theArtifact = [theArtifact(1), firstPass(iart,2)];
+                else
+                    finalTimeTable(countsecond).Start= theArtifact(1);
+                    finalTimeTable(countsecond).Stop= theArtifact(2);
+                    finalTimeTable(countsecond).Type= 'ZScored';
+                    countsecond=countsecond+1;
+                    theArtifact = firstPass(iart,:);
+                end
+            end
+            bad=obj.getBad;
+            bad.BadTimes.Time=finalTimeTable;
+            obj=obj.setBad(bad);
+            
+            try close(1); catch, end;figure(1);
+            ch_plot=zs.getDownSampled(50);
+            ch_plot.plot;ax=gca;hold on
+            for iart=1:numel(finalTimeTable)
+                art=finalTimeTable(iart);
+                x=[art.Start art.Stop];
+                y=[ax.YLim(2) ax.YLim(2)];
+                p=area(x,y);
+                p.BaseValue=ax.YLim(1);
+                p.FaceAlpha=.5;
+                p.FaceColor='r';
+                p.EdgeColor='none';
+            end
+            yline(thr(1))
+            yline(thr(2))
+        end
+        
+        function bad=getBad(obj)
+            sde=SDExperiment.instance.get;
+            badFile=fullfile(obj.Session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Bad);
+            
+            bad=readstruct(badFile);
+        end
+        function obj=setBad(obj,bad)
+            sde=SDExperiment.instance.get;
+            badFile=fullfile(obj.Session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Bad);
+            writestruct(bad,badFile);
+            obj.Bad=bad;
+            
+        end
+        function param=getParameters(obj)
+            sde=SDExperiment.instance.get;
+            ParamFile=fullfile(obj.Session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Parameters);
+            param=readstruct(ParamFile);
+        end
+        function obj=setParameters(obj,params)
+            sde=SDExperiment.instance.get;
+            paramFile=fullfile(obj.Session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Parameters);
+            writestruct(params,paramFile);
+            obj.Parameters=params;
         end
     end
 end

@@ -5,7 +5,8 @@
             <ExperimentConfig>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Experiment.xml</ExperimentConfig>
             <Sessions>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Sessions.txt</Sessions>
             <Animals>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Animals.xml</Animals>
-            <ProbeTemplate>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/ProbeTemplate.xlsx</ProbeTemplate>
+            <ProbeTemplate>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Probes/ProbeTemplate.xlsx</ProbeTemplate>
+            <ProbeFolder>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Probes</ProbeFolder>
         </General>
         <Session>
             <SessionInfo>Parameters/SessionInfo.xml</SessionInfo>
@@ -21,6 +22,7 @@
             <ForLFP>Preprocess/ForLFP.xml</ForLFP>
             <Bad>Preprocess/Bad.xml</Bad>
             <Probe>Preprocess/Probe.xlsx</Probe>
+            <Parameters>Preprocess/Parameters.xml</Parameters>
         </Preprocess>
     </FileLocations>
     <Blocks>

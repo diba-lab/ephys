@@ -5,6 +5,7 @@ classdef BuzcodeStructure
     properties
         BasePath
         TimeIntervalCombined
+        BadIntervals
         Probe
     end
     
@@ -76,12 +77,40 @@ classdef BuzcodeStructure
             catch
                 
                 if params.Overwrite, overwrite=true; else, overwrite=false;end
-                SleepScoreMaster(baseFolder,...
-                    'SWChannels',params.Channels.SWChannels...
-                    ,'ThetaChannels',params.Channels.ThetaChannels...
-                    ,'overwrite',overwrite);
-                sdd=StateDetectionData(baseFolder);
+                varargin=cell(1,1);
+                try
+                    if ~isempty(params.Channels.BestSW)
+                        varargin={varargin{:}, 'SWChannels', params.Channels.BestSW};
+                    else
+                        varargin={varargin{:}, 'SWChannels', params.Channels.SWChannels};
+                    end
+                catch
+                end
+                try
+                    if ~isempty(params.Channels.BestTheta)
+                        varargin={varargin{:},'ThetaChannels',params.Channels.BestTheta};
+                    else
+                        varargin={varargin{:},'ThetaChannels',params.Channels.ThetaChannels};
+                    end
+                catch
+                end
+                try varargin={varargin{:},'overwrite',overwrite};catch; end
+                try
+                    bad=struct2table( params.bad.Time);
+                    start=obj.TimeIntervalCombined.getSampleFor(bad.Start)';
+                    stop=obj.TimeIntervalCombined.getSampleFor(bad.Stop)';
+                    bad1=[start stop];
+                    varargin={varargin{:},'ignoretime',bad1};
+                catch
+                end
+                varargin1=varargin(2:end);
+                SleepScoreMaster(obj.BasePath,varargin1{:});
+                sdd=StateDetectionData(obj.BasePath);
             end
+        end
+        
+        function obj=setBadIntervals(obj,bad)
+            obj.BadIntervals=bad;
         end
     end
 end

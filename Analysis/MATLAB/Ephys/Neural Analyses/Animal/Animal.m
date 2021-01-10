@@ -13,6 +13,17 @@ classdef Animal <AnimalMeta
             obj=obj@AnimalMeta(struct);
             obj.ProbeMeta=struct.ProbeName;
         end
+        function probe=getProbe(obj)
+            probename=obj.ProbeMeta;
+            sde=SDExperiment.instance.get;
+            probeFolder=sde.FileLocations.General.ProbeFolder;
+            try
+                list=dir(fullfile(probeFolder,strcat('*',probename,'*')));
+                probe=Probe(fullfile(list.folder,list.name));
+            catch
+                probe=[];
+            end
+        end
     end
 end
 

@@ -159,5 +159,24 @@ classdef ChannelTimeData < BinarySave
         function out=getProbe(obj)
             out=obj.Probe;
         end
+        function obj=setTimeIntervalCombined(obj,ticd)
+            obj.TimeIntervalCombined=ticd;
+        end
+        function obj=setProbe(obj,probe)
+            obj.Probe=probe;
+        end
+        function obj=setFile(obj,file)
+            obj.Filepath=file;
+        end
+        function save(obj)
+            [folder,name,~]=fileparts(obj.Filepath);
+            %% Probe, XML
+            pr=obj.Probe;
+            pr.saveProbeTable(fullfile(folder,strcat(name,'_Probe.xlsx')));
+            pr.createXMLFile(fullfile(folder,strcat(name,'.xml')),obj.TimeIntervalCombined.getSampleRate)
+            %% Ticd.
+            ticd=obj.TimeIntervalCombined;
+            ticd.saveTable(fullfile(folder,strcat(name,'TimeIntervalCombined.csv')));
+        end
     end
 end

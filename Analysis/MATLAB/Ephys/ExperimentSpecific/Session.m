@@ -50,16 +50,6 @@ classdef Session
             end
             obj.Blocks=blockstt;
             %% Probe
-            ProbeFile=fullfile(baseFolder,params.FileLocations.Session.Probe);
-            try 
-                probeTable=readtable(ProbeFile);
-            catch
-                probeTemplateFile=params.FileLocations.General.ProbeTemplate;
-                copyfile(probeTemplateFile, ProbeFile);
-                probeTable=readtable(ProbeFile);
-            end
-            
-            obj.Probe=Probe(probeTable);
 
         end
         
@@ -67,6 +57,21 @@ classdef Session
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             obj.Animal = animal;
+        end
+        function obj = setProbe(obj,probe)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            sde=SDExperiment.instance.get;
+            probeFile=fullfile(obj.SessionInfo.baseFolder,sde.FileLocations.Session.Probe);
+            if nargin>1
+                obj.Probe = probe;
+                
+            else
+                % load templateProbe
+                obj.Probe=Probe(sde.FileLocations.General.ProbeTemplate);
+                warning('No Probe File. Template is loaded.');
+            end
+            obj.Probe.saveProbeTable(probeFile);
         end
         function obj = setSessionInfo(obj,sessionInfoStruct)
             %METHOD1 Summary of this method goes here
@@ -91,6 +96,18 @@ classdef Session
                 idx= ismember(blocks.Block,varargin);
             end
             blocks=blocks(idx,:);
+        end
+        function data = getDataLFP(obj,varargin)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            pr=Preprocess(obj);
+            data=pr.getDataForLFP;
+        end
+        function data = getDataClustering(obj,varargin)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            pr=Preprocess(obj);
+            data=pr.getDataForClustering;
         end
         
     end
