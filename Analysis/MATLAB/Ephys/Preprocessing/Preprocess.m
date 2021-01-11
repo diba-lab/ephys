@@ -174,7 +174,9 @@ classdef Preprocess
                 probe=session.Probe;
                 shanks=obj.LFPParams.Shanks.Shank;
                 newprobe=probe.getShank(shanks);
-                
+                if isempty(oerc.getProbe)
+                    oerc=oerc.setProbe(probe);
+                end
                 channels=newprobe.getActiveChannels;
                 mergedData=oerc.mergeBlocksOfChannels(channels,obj.ClusterParams.OutputFolder);
                 
