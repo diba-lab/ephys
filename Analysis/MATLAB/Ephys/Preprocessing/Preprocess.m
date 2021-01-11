@@ -183,7 +183,7 @@ classdef Preprocess
                 chantime=ChannelTimeData(mergedData.DataFile);
                 downsamplerate=obj.LFPParams.DownSampleRate;
                 chantime_ds=chantime.getDownSampled(downsamplerate,newFileName);
-                delete(mergedData.DataFile)
+%                 delete(mergedData.DataFile)
             end
             %             end
             dataForLFP=DataForLFP(newFileName);
