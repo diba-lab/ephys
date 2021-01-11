@@ -113,7 +113,7 @@ classdef RippleAbs
                 end
                 fileN = fileN + 1;
             end
-            tokens=tokenize(pathname,filesep);
+            tokens=split(pathname,filesep);
             filename=tokens{end};
             fid = fopen(sprintf('%s%s%s.R%02d.evt',pathname,filesep,filename,fileN),'w');
             

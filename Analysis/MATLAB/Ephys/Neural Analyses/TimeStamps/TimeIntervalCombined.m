@@ -16,6 +16,7 @@ classdef TimeIntervalCombined
             if nargin>0
                 el=varargin{1};
                 if isstring(el)||ischar(el)
+                    try
                     T=readtable(el);
                     obj=TimeIntervalCombined;
                     for iti=1:height(T)
@@ -23,6 +24,10 @@ classdef TimeIntervalCombined
                         theTimeInterval=TimeInterval(tiRow.StartTime,tiRow.SampleRate,tiRow.NumberOfPoints);
                         timeIntervalList.add(theTimeInterval);
                         fprintf('Record addded:');display(theTimeInterval);
+                    end
+                    catch
+                        S=load(el);
+                        timeIntervalList=S.obj.timeIntervalList;
                     end
                 else
                     for iArgIn=1:nargin
