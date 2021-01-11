@@ -108,10 +108,7 @@ classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope
             siteLayout=obj.SiteSpatialLayout;
             [folder,name,ext]=fileparts(filepath);
             if ~isfolder(folder),mkdir(folder);end
-            if isfile(filepath)
-                delete(filepath);
-            end
-            writetable(siteLayout,filepath);
+            writetable(siteLayout,filepath,'replacefile');
         end
         function obj=setActiveChannels(obj,chans)
             siteLayout=obj.SiteSpatialLayout;
