@@ -104,10 +104,10 @@ classdef ChannelTimeData < BinarySave
             
              [folder1,name,~]=fileparts(newFileName);
             if ~exist(folder1,'dir'), mkdir(folder1);end
-            probe.saveProbeTable(fullfile(folder1,[name '.Probe.xlsx']));
+            probe.saveProbeTable(fullfile(folder1,strcat(name, '.Probe.xlsx')));
             ticd=ticd.getDownsampled(currentRate/newRate);
-            ticd=ticd.saveTable(fullfile(folder1,[name '.TimeIntervalCombined.csv']));
-            probe.createXMLFile(fullfile(folder1,[name '.xml']),newRate);
+            ticd=ticd.saveTable(fullfile(folder1,strcat(name, '.TimeIntervalCombined.csv')));
+            probe.createXMLFile(fullfile(folder1,strcat(name, '.xml')),newRate);
             if ~exist(newFileName,'file')
                 % preprocess it
                 system(sprintf('process_resample -f %d,%d -n %d %s %s',...

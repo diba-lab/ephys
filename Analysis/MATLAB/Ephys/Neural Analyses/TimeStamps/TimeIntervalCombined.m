@@ -318,7 +318,7 @@ classdef TimeIntervalCombined
                 count=count+1;
             end
             T=struct2table(S);
-            writetable(T,filePath)
+            writetable(T,filePath);
             ticd=TimeIntervalCombined(filePath);
         end
         function ticd=readTimeIntervalTable(obj,table)
