@@ -132,6 +132,9 @@ classdef Preprocess
             sde=SDExperiment.instance.get;
             probeFile=fullfile(baseFolder,sde.FileLocations.Preprocess.Probe);
             probe=Probe(probeFile);
+            if isempty(oerc.getProbe)
+                oerc=oerc.setProbe(probe);
+            end
             for ish=1:numel(shanks)
                 aShank=shanks(ish);
                 chans=probe.getShank(aShank).getActiveChannels;
