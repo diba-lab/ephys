@@ -151,7 +151,9 @@ classdef Preprocess
             ext='.lfp';
             newFileName=fullfile(baseFolder,...
                 sprintf('%s%s',name,ext));
-            %             if ~isfile(newFileName)
+            probe=session.Probe;
+            shanks=obj.LFPParams.Shanks.Shank;
+            newprobe=probe.getShank(shanks);
             if ~isfile(newFileName)
                 rawfiles=obj.OpenephysFiles;
                 cachestr=DataHash(strcat(convertStringsToChars(rawfiles')));
@@ -171,9 +173,6 @@ classdef Preprocess
                     end
                     save(oercCacheFile,'oerc');
                 end
-                probe=session.Probe;
-                shanks=obj.LFPParams.Shanks.Shank;
-                newprobe=probe.getShank(shanks);
                 if isempty(oerc.getProbe)
                     oerc=oerc.setProbe(probe);
                 end
@@ -183,7 +182,7 @@ classdef Preprocess
                 chantime=ChannelTimeData(mergedData.DataFile);
                 downsamplerate=obj.LFPParams.DownSampleRate;
                 chantime_ds=chantime.getDownSampled(downsamplerate,newFileName);
-                delete(mergedData.DataFile)
+%                 delete(mergedData.DataFile)
             end
             %             end
             dataForLFP=DataForLFP(newFileName);
