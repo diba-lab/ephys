@@ -70,6 +70,18 @@ classdef StateSeries
             idx=obj.States==state;
             idx=idx';
         end
+        function idx=getStateRatios(obj,slidingWindowSizeInSeconds,slidingWindowLapsInSeconds)
+            states=obj.States;
+            t=obj.TimeIntervalCombined.getTimePointsInSec;
+            statesunique=unique(states);
+            for istates=1:numel(statesunique)
+                thestate=states(istate);
+                idx=states==thestate;
+                tsforthestate=t(idx);
+                edges=1:seconds(slidingWindowSizeInSeconds):numel(states);
+                histcounts(tsforthestate,edges);
+            end
+        end
         function np=getTimeSeries(obj)
             np=timeseries(obj.States,obj.TimeIntervalCombined.getTimePointsInSec);
         end

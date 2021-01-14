@@ -18,7 +18,6 @@ classdef SWRDetectionMethodRippleOnly < SWRDetectionMethod
             else
                 chans=str2double( conf.ripple_channel);
             end
-            LFP=ctd.getChannelsLFP(chans);
             passband=str2double(conf.ripple_passband);
             paramFile=fullfile(obj.BasePath,'Parameters','RippleDetection.xml');
             [folder,~,~]=fileparts(paramFile); if ~isfolder(folder), mkdir(folder);end
@@ -30,8 +29,11 @@ classdef SWRDetectionMethodRippleOnly < SWRDetectionMethod
                 writestruct(Ripple1,paramFile);
                 Ripple1=readstruct(paramFile);
             end
+            if ~isfield(Ripple1.BestChannel, chasStr)||~isnumeric(Ripple1.BestChannel.(chasStr))
+                LFP=ctd.getChannelsLFP(chans);
+            end
             if ~isfield(Ripple1.BestChannel, chasStr)
-                    bestchan=obj.getBestRippleChannel(LFP,passband);
+                bestchan=obj.getBestRippleChannel(LFP,passband);
                     Ripple1.BestChannel.(chasStr)=bestchan;
             else
                 if ~isnumeric(Ripple1.BestChannel.(chasStr))

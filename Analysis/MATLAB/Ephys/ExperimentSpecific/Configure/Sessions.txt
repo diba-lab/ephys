@@ -11,8 +11,8 @@ AF,3,SD,/data/EphysAnalysis/SleepDeprivationData/AF_2019-12-05_SD
 AE,1,NSD,/data/EphysAnalysis/SleepDeprivationData/AE_2019-10-23_NSD
 AE,2,SD,/data/EphysAnalysis/SleepDeprivationData/AE_2019-10-31_SD
 AE,3,NSD,/data/EphysAnalysis/SleepDeprivationData/AE_2019-11-04_NSD
-AD,1,NSD,/data/EphysAnalysis/SleepDeprivationData/AD_2019-07-30_NSD
-AD,2,SD,/data/EphysAnalysis/SleepDeprivationData/AD_2019-08-01_SD
+AD,1,SD,/data/EphysAnalysis/SleepDeprivationData/AD_2019-07-30_SD
+AD,2,NSD,/data/EphysAnalysis/SleepDeprivationData/AD_2019-08-01_NSD
 AD,3,NSD,/data/EphysAnalysis/SleepDeprivationData/AD_2019-08-03_NSD
 AA,1,SD,/data/EphysAnalysis/SleepDeprivationData/AA_2019-05-30_SD
 AA,2,NSD,/data/EphysAnalysis/SleepDeprivationData/AA_2019-05-31_NSD
