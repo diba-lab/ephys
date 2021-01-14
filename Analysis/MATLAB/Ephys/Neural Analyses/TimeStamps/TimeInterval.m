@@ -52,7 +52,7 @@ classdef TimeInterval
         function time=getRealTimeFor(obj,sample)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            if sample>0 && sample<obj.NumberOfPoints
+            if sample>0 & sample<obj.NumberOfPoints
                 time=obj.StartTime+seconds(double((sample-1))/obj.SampleRate);
             else
                 time=datetime('today');
