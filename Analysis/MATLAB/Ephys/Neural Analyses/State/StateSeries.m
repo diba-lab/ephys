@@ -4,7 +4,9 @@ classdef StateSeries
     
     properties
         States
+        Episodes
         TimeIntervalCombined
+        StateNames
     end
     
     methods
@@ -70,17 +72,33 @@ classdef StateSeries
             idx=obj.States==state;
             idx=idx';
         end
-        function idx=getStateRatios(obj,slidingWindowSizeInSeconds,slidingWindowLapsInSeconds)
+        function state=getStateRatios(obj,slidingWindowSizeInSeconds,slidingWindowLapsInSeconds)
             states=obj.States;
             t=obj.TimeIntervalCombined.getTimePointsInSec;
             statesunique=unique(states);
-            for istates=1:numel(statesunique)
-                thestate=states(istate);
-                idx=states==thestate;
-                tsforthestate=t(idx);
-                edges=1:seconds(slidingWindowSizeInSeconds):numel(states);
-                histcounts(tsforthestate,edges);
+            for istate=1:numel(statesunique)
+                thestate=statesunique(istate);
+                if sum(ismember(1:5,thestate))
+                    idx=states==thestate;
+                    tsforthestate=t(idx);
+                    edges=1:seconds(slidingWindowSizeInSeconds):10*60*60;
+                    [state(thestate).N,state(thestate).edges] =histcounts(tsforthestate,edges);
+                    state(thestate).Ratios=state(thestate).N/seconds(slidingWindowSizeInSeconds);
+                    state(thestate).state=thestate;
+                end
             end
+        end
+        function obj=setEpisodes(obj,episodes)
+            obj.Episodes=episodes;
+        end
+        function epi=getEpisodes(obj)
+            epi=obj.Episodes;
+        end
+        function obj=setStateNames(obj,names)
+            obj.StateNames=names;
+        end
+        function name=getStateNames(obj)
+            name=obj.StateNames;
         end
         function np=getTimeSeries(obj)
             np=timeseries(obj.States,obj.TimeIntervalCombined.getTimePointsInSec);

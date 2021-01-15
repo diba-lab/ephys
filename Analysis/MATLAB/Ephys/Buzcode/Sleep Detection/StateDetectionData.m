@@ -62,8 +62,11 @@ classdef StateDetectionData
                     timeIntervalCombinedDownsampled.getNumberOfPoints,...
                     numel(obj.SleepScoreLFP.t));
             end
-            ses=Session(basepath);
-            obj.Blocks=SDBlocks(ses.SessionInfo.Date,ses.Blocks);
+            try
+                ses=Session(basepath);
+                obj.Blocks=SDBlocks(ses.SessionInfo.Date,ses.Blocks);
+            catch
+            end
             list=dir(fullfile(basepath, '*.lfp'));
             [folder,name,~]=fileparts(fullfile(list.folder,list.name));
             obj.BaseName=strcat(folder,filesep,name);
@@ -201,6 +204,9 @@ classdef StateDetectionData
                 states(numel(states)+1)=states(numel(states));
             end
             ss=StateSeries(states,ticd);
+            ss=ss.setEpisodes(obj.SleepState.ints);
+            ss=ss.setStateNames(idx.statenames);
+            
         end
         function probe=getProbe(obj)
             probe=obj.Probe;
