@@ -266,7 +266,11 @@ classdef Preprocess
                 [artifacts_rawLFP]=obj.getArtifacts(ch_ds,params.ZScore.Threshold); 
             end
             bad=obj.getBad;
-            
+            combinedBad=artifacts_rawLFP;
+            for ifreq=1:numel(artifacts_freq)
+                combinedBad=combinedBad+artifacts_freq{ifreq};
+            end
+            table2struct( combinedBad.get())
             %% plot stuff
             try close(1); catch, end;figure(1)
             zs=ch_ds.getZScored;

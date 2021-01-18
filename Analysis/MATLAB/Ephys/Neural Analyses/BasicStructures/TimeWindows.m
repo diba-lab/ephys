@@ -18,6 +18,12 @@ classdef TimeWindows
             obj.TimeTable = timeTable;
             if exist('ticd','var'), obj.TimeIntervalCombined=ticd; end
         end
+        function t = getTimeTable(this)
+            %TIMEWINDOWS Construct an instance of this class
+            %   Time Table should have at least 
+            % two datetime value columns: Start, Stop
+            t=this.TimeTable;
+        end
         function this = SetTimeIntervalCombined(this,ticd)
             %TIMEWINDOWS Construct an instance of this class
             %   Time Table should have at least 
@@ -80,36 +86,41 @@ classdef TimeWindows
             end
         end
         function ax=saveForClusteringSpyKingCircus(obj,ax)
-            T=obj.TimeTable;
-            start=T.Start;
-            stop=T.Stop;
-            if ~exist('ax','var'), ax=gca;end
-            hold on;
-            for iart=1:numel(start)
-                x=[start(iart) stop(iart)];
-                y=[ax.YLim(2) ax.YLim(2)];
-                p=area(ax,x,y);
-                p.BaseValue=ax.YLim(1);
-                p.FaceAlpha=.5;
-                p.FaceColor='r';
-                p.EdgeColor='none';
-            end
         end
-        function ax=saveForNeuroscope(obj,ax)
+        function ax=saveForNeuroscope(obj,pathname)
             T=obj.TimeTable;
             start=T.Start;
             stop=T.Stop;
-            if ~exist('ax','var'), ax=gca;end
-            hold on;
-            for iart=1:numel(start)
-                x=[start(iart) stop(iart)];
-                y=[ax.YLim(2) ax.YLim(2)];
-                p=area(ax,x,y);
-                p.BaseValue=ax.YLim(1);
-                p.FaceAlpha=.5;
-                p.FaceColor='r';
-                p.EdgeColor='none';
+            ctd=ChannelTimeData(pathname);
+            ticd=ctd.getTimeIntervalCombined;
+            files = dir(fullfile(pathname,'*.R*.evt'));
+            if isempty(files)
+                fileN = 1;
+            else
+                %set file index to next available value\
+                pat = '.R[0-9].';
+                fileN = 0;
+                for ii = 1:length(files)
+                    token  = regexp(files(ii).name,pat);
+                    val    = str2double(files(ii).name(token+2:token+4));
+                    fileN  = max([fileN val]);
+                end
+                fileN = fileN + 1;
             end
+            tokens=split(pathname,filesep);
+            filename=tokens{end};
+            fid = fopen(sprintf('%s%s%s.R%02d.evt',pathname,filesep,filename,fileN),'w');
+            
+            % convert detections to milliseconds
+            T= obj.TimeTable;
+            start=seconds(T.Start-ticd.getStartTime)*1000;
+            stop=seconds(T.Stop-ticd.getStartTime)*1000;
+            fprintf(1,'Writing event file ...\n');
+            for ii = 1:size(start,1)
+                fprintf(fid,'%9.1f\tstart\n',start(ii));
+                fprintf(fid,'%9.1f\tstop\n',stop(ii));
+            end
+            fclose(fid);
         end
         function ax=getArrayForBuzcode(obj,ax)
             T=obj.TimeTable;
