@@ -394,7 +394,7 @@ classdef Preprocess
                     theArtifact = firstPass(iart,:);
                 end
             end
-            timeWindows= TimeWindows(finalTimeTable);
+            timeWindows= TimeWindows(finalTimeTable,ticd);
         end
     end
 end
