@@ -48,6 +48,11 @@ classdef (Abstract) TimeFrequencyMap < Topography2D
             %   Detailed explanation goes here
             obj.timeIntervalCombined=ticd;
         end
+        function [ticd] = getTimeintervalCombined(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            ticd=obj.timeIntervalCombined;
+        end
 
     end
 end
