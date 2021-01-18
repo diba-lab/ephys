@@ -257,7 +257,7 @@ classdef Preprocess
                 ch=ctd.getChannel(chans(1)); 
             end
             ch_ds=ch.getDownSampled(params.ZScore.Downsample);
-            
+            ch_ds=ch_ds.setChannelName('RawLFP');
             if ~isnumeric(params.ZScore.Threshold)
                 [artifacts_rawLFP,zscoreThld]=obj.getArtifacts(ch_ds,[],params.ZScore.PlotYLims);
                 params.ZScore.Threshold=zscoreThld;
@@ -265,7 +265,9 @@ classdef Preprocess
             else
                 [artifacts_rawLFP]=obj.getArtifacts(ch_ds,params.ZScore.Threshold); 
             end
+            bad=obj.getBad;
             
+            %% plot stuff
             try close(1); catch, end;figure(1)
             zs=ch_ds.getZScored;
             subplot(1+numel(power),10,10);ax=gca;
@@ -389,7 +391,7 @@ classdef Preprocess
                 else
                     finalTimeTable(countsecond).Start= theArtifact(1);
                     finalTimeTable(countsecond).Stop= theArtifact(2);
-                    finalTimeTable(countsecond).Type= 'ZScored';
+                    finalTimeTable(countsecond).Type= strcat('ZScored_',channel.getChannelName);
                     countsecond=countsecond+1;
                     theArtifact = firstPass(iart,:);
                 end

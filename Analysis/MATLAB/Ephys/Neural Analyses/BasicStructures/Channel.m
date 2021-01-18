@@ -32,6 +32,9 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
         function chan=getChannelName(obj)
             chan=obj.ChannelName;
         end
+        function obj=setChannelName(obj,name)
+            obj.ChannelName=name;
+        end
         function st=getTimeIntervalCombined(obj)
             st=obj.TimeIntervalCombined;
         end
