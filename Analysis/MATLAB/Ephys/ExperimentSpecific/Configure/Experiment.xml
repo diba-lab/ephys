@@ -7,6 +7,7 @@
             <Animals>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Animals.xml</Animals>
             <ProbeTemplate>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Probes/ProbeTemplate.xlsx</ProbeTemplate>
             <ProbeFolder>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Probes</ProbeFolder>
+            <PlotFolder>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines</PlotFolder>
         </General>
         <Session>
             <SessionInfo>Parameters/SessionInfo.xml</SessionInfo>

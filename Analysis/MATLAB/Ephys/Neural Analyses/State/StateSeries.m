@@ -81,7 +81,7 @@ classdef StateSeries
                 if sum(ismember(1:5,thestate))
                     idx=states==thestate;
                     tsforthestate=t(idx);
-                    edges=1:seconds(slidingWindowSizeInSeconds):10*60*60;
+                    edges=1:seconds(slidingWindowSizeInSeconds):max(t);
                     [state(thestate).N,state(thestate).edges] =histcounts(tsforthestate,edges);
                     state(thestate).Ratios=state(thestate).N/seconds(slidingWindowSizeInSeconds);
                     state(thestate).state=thestate;

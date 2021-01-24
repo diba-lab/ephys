@@ -18,6 +18,29 @@ classdef SessionFactory
         function sessions = getSessions(obj,varargin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            if nargin<2
+                t_sub=obj.getSessionsTable();
+            else
+                t_sub=obj.getSessionsTable(varargin);
+            end
+            for ifile=1:height(t_sub)
+                aSession=Session(t_sub.Filepath{ifile});
+                af=AnimalFactory;
+                animal=af.getAnimals(t_sub.animal{ifile});
+                aSession=aSession.setAnimal(animal);
+                aSession=aSession.setCondition(t_sub.Condition{ifile});
+                probe=animal.getProbe;
+                if ~isempty(probe)
+                    aSession=aSession.setProbe(probe);
+                else
+                    aSession=aSession.setProbe();
+                end
+                sessions(ifile)=aSession;
+            end
+        end
+        function t_sub = getSessionsTable(obj,varargin)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
             t=obj.SessionsFile;
             idx_all=true(height(t),1);
             if nargin<2, display(t);
@@ -39,20 +62,6 @@ classdef SessionFactory
                 end
             end
             t_sub=t(idx_all,:);
-            for ifile=1:height(t_sub)
-                aSession=Session(t_sub.Filepath{ifile});
-                af=AnimalFactory;
-                animal=af.getAnimals(t_sub.animal{ifile});
-                aSession=aSession.setAnimal(animal);
-                aSession=aSession.setCondition(t_sub.Condition{ifile});
-                probe=animal.getProbe;
-                if ~isempty(probe)
-                    aSession=aSession.setProbe(probe);
-                else
-                    aSession=aSession.setProbe();
-                end
-                sessions(ifile)=aSession;
-            end
         end
     end
 end

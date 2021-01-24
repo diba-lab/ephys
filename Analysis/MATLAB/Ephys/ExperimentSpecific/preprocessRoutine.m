@@ -12,7 +12,6 @@ for ises=1:numel(sessions)
     datalfp=pr.getDataForLFP;
 %     sdd=datalfp.getStateDetectionData;
     ripples=datalfp.getRippleEvents;
-    ripples.plot
     ss=sdd.getStateSeries;
 %     pr.getDataForClustering
 end

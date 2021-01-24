@@ -99,23 +99,24 @@ classdef RippleAbs
 %             obj.TimeIntervalCombined
         end
         function []= saveEventsNeuroscope(obj,pathname)
-            rippleFiles = dir(fullfile(pathname,'*.R*.evt'));
-            if isempty(rippleFiles)
-                fileN = 1;
-            else
-                %set file index to next available value\
-                pat = '.R[0-9].';
-                fileN = 0;
-                for ii = 1:length(rippleFiles)
-                    token  = regexp(rippleFiles(ii).name,pat);
-                    val    = str2double(rippleFiles(ii).name(token+2:token+4));
-                    fileN  = max([fileN val]);
-                end
-                fileN = fileN + 1;
-            end
+            sde=SDExperiment.instance.get;
+%             rippleFiles = dir(fullfile(pathname,'*.R*.evt'));
+%             if isempty(rippleFiles)
+%                 fileN = 1;
+%             else
+%                 %set file index to next available value\
+%                 pat = '.R[0-9].';
+%                 fileN = 0;
+%                 for ii = 1:length(rippleFiles)
+%                     token  = regexp(rippleFiles(ii).name,pat);
+%                     val    = str2double(rippleFiles(ii).name(token+2:token+4));
+%                     fileN  = max([fileN val]);
+%                 end
+%                 fileN = fileN + 1;
+%             end
             tokens=split(pathname,filesep);
             filename=tokens{end};
-            fid = fopen(sprintf('%s%s%s.R%02d.evt',pathname,filesep,filename,fileN),'w');
+            fid = fopen(sprintf('%s%s%s.R%02d.evt',pathname,filesep,filename,1),'w');
             
             % convert detections to milliseconds
             peakTimes= obj.getPeakTimes*1000;
