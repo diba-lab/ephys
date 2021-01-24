@@ -79,7 +79,7 @@ classdef BuzcodeStructure
                 if params.Overwrite, overwrite=true; else, overwrite=false;end
                 varargin=cell(1,1);
                 try
-                    if ~isempty(params.Channels.BestSW)
+                    if ~(isempty(params.Channels.BestSW)||strcmp(params.Channels.BestSW,""))
                         varargin={varargin{:}, 'SWChannels', params.Channels.BestSW};
                     else
                         varargin={varargin{:}, 'SWChannels', params.Channels.SWChannels};
@@ -87,19 +87,25 @@ classdef BuzcodeStructure
                 catch
                 end
                 try
-                    if ~isempty(params.Channels.BestTheta)
+                    if ~(isempty(params.Channels.BestTheta)||strcmp(params.Channels.BestTheta,""))
                         varargin={varargin{:},'ThetaChannels',params.Channels.BestTheta};
                     else
                         varargin={varargin{:},'ThetaChannels',params.Channels.ThetaChannels};
                     end
                 catch
                 end
+                try
+                    varargin={varargin{:},'EMGChannels',params.Channels.EMGChannel};
+                catch
+                end
                 try varargin={varargin{:},'overwrite',overwrite};catch; end
                 try
                     bad=struct2table( params.bad.Time);
-                    start=obj.TimeIntervalCombined.getSampleFor(bad.Start)';
-                    stop=obj.TimeIntervalCombined.getSampleFor(bad.Stop)';
-                    bad1=[start stop];
+                    sampleRate=obj.TimeIntervalCombined.getSampleRate;
+                    start=obj.TimeIntervalCombined.getSampleFor(bad.Start)/sampleRate;
+                    stop=obj.TimeIntervalCombined.getSampleFor(bad.Stop)/sampleRate;
+                    bad1(:,1)=start;
+                    bad1(:,2)=stop;
                     varargin={varargin{:},'ignoretime',bad1};
                 catch
                 end

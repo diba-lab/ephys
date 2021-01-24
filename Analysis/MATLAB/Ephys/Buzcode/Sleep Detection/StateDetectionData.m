@@ -145,7 +145,7 @@ classdef StateDetectionData
             chanSelected.plot(varargin{:});
             M=nanmean(chanSelected.getVoltageArray);SD=2*nanstd(chanSelected.getVoltageArray);
             ax=gca;
-            ax.YLim=[M-SD M+SD];
+            ax.YLim=[M-5*SD M+5*SD];
             ax.XLim=[obj.TimeIntervalCombinedOriginal.getStartTime obj.TimeIntervalCombinedOriginal.getEndTime];
             ax.Color='none';title('');ylabel(chanSelected.getChannelName)
         end
@@ -214,7 +214,7 @@ classdef StateDetectionData
             else
                 window=[obj.TimeIntervalCombinedDownSampled.getStartTime obj.TimeIntervalCombinedDownSampled.getEndTime];
             end
-            ticd=obj.TimeIntervalCombinedOriginal.getTimeIntervalForTimes(window(1),window(2));
+            ticd=obj.TimeIntervalCombinedOriginal.getTimeIntervalForTimes(window);
             t(1)=obj.TimeIntervalCombinedOriginal.getSampleFor(window(1));
             t(2)=obj.TimeIntervalCombinedOriginal.getSampleFor(window(2));
             
@@ -243,16 +243,16 @@ classdef StateDetectionData
             obj.plotLFP(channel)
             %             obj.plotThetaLFP('Color','k');
             hold on
-            blcks=obj.Blocks.TimeTable;clr=[.3 .3 .3];
+            blcks=obj.Blocks.getTimeTable;clr=[.3 .3 .3];
             for ibl=1:height(blcks)
-                plot([blcks.start(ibl) blcks.end1(ibl)],[0 0],...
+                plot([blcks.t1(ibl) blcks.t2(ibl)],[0 0],...
                     'LineWidth',4,'Color',clr);
-                plot([blcks.start(ibl) blcks.start(ibl)],[raw.YLim(1)/2 raw.YLim(2)/2],...
+                plot([blcks.t1(ibl) blcks.t1(ibl)],[raw.YLim(1)/2 raw.YLim(2)/2],...
                     'LineWidth',3,'Color',clr);
-                plot([blcks.end1(ibl) blcks.end1(ibl)],[raw.YLim(1)/2 raw.YLim(2)/2],...
+                plot([blcks.t2(ibl) blcks.t2(ibl)],[raw.YLim(1)/2 raw.YLim(2)/2],...
                     'LineWidth',3,'Color',clr);
-                text(blcks.start(ibl)+(blcks.end1(ibl)-blcks.start(ibl))/2,...
-                    0,blcks.name{ibl},'Color',clr*2,'FontSize',20,'HorizontalAlignment','center')
+                text(blcks.t1(ibl)+(blcks.t2(ibl)-blcks.t1(ibl))/2,...
+                    0,blcks.Block{ibl},'Color',clr*2,'FontSize',20,'HorizontalAlignment','center')
             end
             plot([ticd.getStartTime ticd.getStartTime ticd.getEndTime ticd.getEndTime ticd.getStartTime],...
                 [raw.YLim(1) raw.YLim(2) raw.YLim(2) raw.YLim(1) raw.YLim(1)],'LineWidth',2,'Color','r');

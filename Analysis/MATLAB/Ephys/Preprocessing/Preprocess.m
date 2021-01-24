@@ -86,25 +86,23 @@ classdef Preprocess
             catch
                 folder=fileparts(paramFile);
                 param.cachefolder=fullfile(folder,'cache');
+                param.Channels.Channel=1;
                 param.ZScore.Threshold=[nan nan];
                 param.ZScore.PlotYLims=[-3 3];
-                param.ZScore.MinimumDurationInMs=0;
-                param.ZScore.WindowsBeforeDetectionInMs=250;
-                param.ZScore.WindowsAfterDetectionInMs=350;
+                param.ZScore.MinimumDurationInMs=500;
+                param.ZScore.WindowsBeforeDetectionInMs=500;
+                param.ZScore.WindowsAfterDetectionInMs=500;
                 param.ZScore.MinimumInterArtifactDistanceInMs=500;
                 param.ZScore.Downsample=250;
-                freqbans=[1 4; 4 12; 20 80; 140 250];
+                freqbans=[1 4; 4 12];
                 ZScoreThresholds=nan(size(freqbans));
-                ZScorePlotYLims=[-.3 .5; -.5 1; -.5 1; -.5 1];
+                ZScorePlotYLims=[-.3 .5; -.5 1];
                 param.Spectogram.FrequencyBands.start=freqbans(:,1);
                 param.Spectogram.FrequencyBands.stop=freqbans(:,2);
                 param.Spectogram.ZScore.Threshold.start=ZScoreThresholds(:,1);
                 param.Spectogram.ZScore.Threshold.stop=ZScoreThresholds(:,2);
                 param.Spectogram.ZScore.PlotYLims.start=ZScorePlotYLims(:,1);
                 param.Spectogram.ZScore.PlotYLims.stop=ZScorePlotYLims(:,2);
-                param.Spectogram.ZScore.WindowsBeforeDetectionInMs=500;
-                param.Spectogram.ZScore.WindowsAfterDetectionInMs=500;
-                param.Spectogram.ZScore.MinimumInterArtifactDistanceInMs=500;
                 param.Spectogram.Method.chronux.WindowSize=2;
                 param.Spectogram.Method.chronux.WindowStep=1;
                 
@@ -211,7 +209,7 @@ classdef Preprocess
             ticd=TimeIntervalCombined(fullfile(baseFolder,list.name));
             dataForLFP=dataForLFP.setTimeIntervalCombined(ticd);
         end
-        function obj=reCalculateArtifacts(obj)
+        function arts=reCalculateArtifacts(obj)
             params=obj.getParameters;
             param_spec=params.Spectogram;
             params_chrx=param_spec.Method.chronux;
@@ -228,7 +226,7 @@ classdef Preprocess
                     ctd=datalfp.getChannelTimeData;
                     probe=ctd.getProbe;
                     chans=probe.getActiveChannels;
-                    ch=ctd.getChannel(chans(1));
+                    ch=ctd.getChannel(chans(params.Channels.Channel));
                     tfmap=ch.getTimeFrequencyMap(tfmethod);
                     powers=tfmap.matrix;
                     meanPower=mean(powers,2);
@@ -254,7 +252,7 @@ classdef Preprocess
                 ctd=datalfp.getChannelTimeData;
                 probe=ctd.getProbe;
                 chans=probe.getActiveChannels;
-                ch=ctd.getChannel(chans(1)); 
+                ch=ctd.getChannel(chans(params.Channels.Channel)); 
             end
             ch_ds=ch.getDownSampled(params.ZScore.Downsample);
             ch_ds=ch_ds.setChannelName('RawLFP');
@@ -270,49 +268,11 @@ classdef Preprocess
             for ifreq=1:numel(artifacts_freq)
                 combinedBad=combinedBad+artifacts_freq{ifreq};
             end
-            table2struct( combinedBad.get())
-            %% plot stuff
-            try close(1); catch, end;figure(1)
-            zs=ch_ds.getZScored;
-            subplot(1+numel(power),10,10);ax=gca;
-            [N,edges]=histcounts(zs.getVoltageArray,40,'BinLimits',params.ZScore.PlotYLims);
-            edges(1)=[];
-            centers=edges-(edges(2)-edges(1))/2;
-            barh(ax,centers,N,'BarWidth',1);
-            ax.YLim=params.ZScore.PlotYLims;
-
-            subplot(1+numel(power),10,1:9);ax=gca;
-            zs.plot;hold on;ax=gca;
-            artifacts_rawLFP.plot(ax)
-            ax.YLim=params.ZScore.PlotYLims;
-            yline( params.ZScore.Threshold(1));
-            yline( params.ZScore.Threshold(2));
-            for ifreq=1:numel(power)
-                thePower=power{ifreq};
-                zs=thePower.getZScored;
-                subplot(1+numel(power),10,(10+ifreq*10));ax=gca;
-                th=[params.Spectogram.ZScore.Threshold.start(ifreq)...
-                    params.Spectogram.ZScore.Threshold.stop(ifreq)];
-                ylim=[params.Spectogram.ZScore.PlotYLims.start(ifreq)...
-                    params.Spectogram.ZScore.PlotYLims.stop(ifreq)];
-                [N,edges]=histcounts(zs.getVoltageArray,40,'BinLimits',ylim);
-                edges(1)=[];
-                centers=edges-(edges(2)-edges(1))/2;
-                barh(ax,centers,N,'BarWidth',1);
-                ax.YLim=ylim;
-                yline( th(1));
-                yline( th(2));         
-                subplot(1+numel(power),10,((1:9)+ifreq*10));ax=gca;
-                zs.plot;hold on;
-                ax.YLim=ylim;
-                yline( th(1));
-                yline( th(2));
-                theartifacts_freq=artifacts_freq{ifreq};
-                theartifacts_freq.plot()
-                ylabel(sprintf('Power (zscored) %d-%d Hz',freqs(ifreq,:)))
-            end
-            
+            bad.BadTimes.Time= table2struct( combinedBad.getTimeTable);
+            obj.setBad(bad);
+            arts=Artifacts(obj,combinedBad,ch_ds,artifacts_freq,power);
         end
+
         
         function bad=getBad(obj)
             sde=SDExperiment.instance.get;
@@ -372,11 +332,11 @@ classdef Preprocess
                 zScoreThreshold(2)=max(ress);
             end
             idx=zs<zScoreThreshold(1)|zs>zScoreThreshold(2);
-            idx(1)=0;
+            idx(1)=0;idx(end)=0;
             idx=[idx' 0];
             idx_edge=diff(idx);
             t(:,1)=find(idx_edge==1);
-            t(:,2)=find(idx_edge==-1);
+            t(:,2)=find(idx_edge==-1)+1;
             ticd=channel.getTimeIntervalCombined;
             addb=seconds(params.ZScore.WindowsBeforeDetectionInMs/1000);
             adda=seconds(params.ZScore.WindowsAfterDetectionInMs/1000);
@@ -391,7 +351,7 @@ classdef Preprocess
                 
                 if seconds(firstPass(iart, 1) - theArtifact(2)) < minInterArtifactDistInSec
                     % Merging artifacts
-                    theArtifact = [theArtifact(1), firstPass(iart,2)];
+                    [theArtifact(1),theArtifact(2)] = bounds([theArtifact(1) theArtifact(2) firstPass(iart,:)]);
                 else
                     finalTimeTable(countsecond).Start= theArtifact(1);
                     finalTimeTable(countsecond).Stop= theArtifact(2);
@@ -400,6 +360,7 @@ classdef Preprocess
                     theArtifact = firstPass(iart,:);
                 end
             end
+            finalTimeTable= struct2table(finalTimeTable);
             timeWindows= TimeWindows(finalTimeTable,ticd);
         end
     end

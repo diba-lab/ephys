@@ -30,6 +30,7 @@ classdef DataForLFP
                 S.StateDetection.Channels.SWChannels=[11    13    15    17    18    20    22    43    45    47    49    50    52    54    75    77    79    81    82    84    86   107   109   111   113   114   116   118]-1;
                 S.StateDetection.Channels.BestTheta=nan;
                 S.StateDetection.Channels.BestSW=nan;
+                S.StateDetection.Channels.EMGChannel=[1 2 3 4];
                 S.StateDetection.Overwrite=0;
                 %% Ripple
                 S.Ripple.RippleOnly.SomeParameters='';
@@ -111,6 +112,12 @@ classdef DataForLFP
             %% TODO
             writestruct(S,obj.AnalysisFile);
             obj.AnalysisParameters=S;
+        end
+        function params = getAnalysisParameters(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            %% TODO
+            params=obj.AnalysisParameters;
         end
     end
 end

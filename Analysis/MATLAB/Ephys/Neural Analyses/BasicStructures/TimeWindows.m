@@ -30,6 +30,28 @@ classdef TimeWindows
             % two datetime value columns: Start, Stop
             this.TimeIntervalCombined=ticd;
         end
+        function obj = mergeOverlaps(obj,minDurationBetweenEvents)
+            T=obj.TimeTable;
+            firstPass=[T.Start T.Stop];
+            firstType=T.Type;
+            secondType=[];
+            secondPass=[];
+            theArt = firstPass(1,:);
+            theType=firstType(1);
+            for i = 2:size(firstPass,1)
+                if firstPass(i,1) - theArt(2) < minDurationBetweenEvents % overlap?
+                    % Merge
+                    [theArt(1), theArt(2)]= bounds([theArt firstPass(i,:)]);
+                else
+                    secondPass = [secondPass ; theArt];
+                    secondType=[secondType; theType];
+                    theArt = firstPass(i,:);
+                    theType=firstType{i};
+                end
+            end
+            tnew=table(secondPass(:,1),secondPass(:,2),secondType,'VariableNames',{'Start','Stop','Type'});
+            obj=TimeWindows(tnew,obj.TimeIntervalCombined);
+        end
         
         function timeWindows = plus(thisTimeWindows,newTimeWindows)
             %METHOD1 Summary of this method goes here
@@ -53,8 +75,8 @@ classdef TimeWindows
                     idx1(x(1))=true; 
                     idx=idx1;
                 end
-                rippleHasNoOverlap=~sum(idx);
-                if rippleHasNoOverlap
+                artifactHasNoOverlap=~sum(idx);
+                if artifactHasNoOverlap
                     art_count=art_count+1;
                     tRes(art_count,:)=art_base;
                 else
@@ -68,20 +90,28 @@ classdef TimeWindows
             tRes=[tRes;t2];
             tRes=sortrows(tRes, 'Start');
             timeWindows=TimeWindows(tRes,thisTimeWindows.TimeIntervalCombined);
+            timeWindows=timeWindows.mergeOverlaps(seconds(.5));
         end
         function ax=plot(obj,ax)
             T=obj.TimeTable;
             start=T.Start;
             stop=T.Stop;
+            type=T.Type;
+            types= {'ZScored_RawLFP','ZScored_Power 1-4 Hz',...
+                'ZScored_Power 4-12 Hz', 'ZScored_Power 20-80 Hz',...
+                'ZScored_Power 140-250 Hz'};
+            colors=linspecer(numel(types));
             if ~exist('ax','var'), ax=gca;end
             hold on;
             for iart=1:numel(start)
                 x=[start(iart) stop(iart)];
                 y=[ax.YLim(2) ax.YLim(2)];
+                text(mean(x),mean(ax.YLim),num2str(iart));
                 p=area(ax,x,y);
                 p.BaseValue=ax.YLim(1);
                 p.FaceAlpha=.5;
-                p.FaceColor='r';
+                colorno=ismember(types,type{iart});
+                p.FaceColor=colors(colorno,:);
                 p.EdgeColor='none';
             end
         end

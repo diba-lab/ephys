@@ -28,6 +28,11 @@ classdef SDBlocks
             end
             wind=T(idx,:);
         end
+        function T = getTimeTable(obj,varargin)
+            T=obj.TimeTable;
+            T.t1=T.t1+obj.Date;
+            T.t2=T.t2+obj.Date;
+        end
     end
 end
 
