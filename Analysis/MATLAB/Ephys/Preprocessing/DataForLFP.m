@@ -88,11 +88,13 @@ classdef DataForLFP
             obj.setAnalysisParameters(S);
             
         end
-        function ripple = getRippleEvents(obj)
+        function ripples = getRippleEvents(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             %% TODO
-            
+            basefolder=fileparts(obj.DataFile);
+            bc=BuzcodeFactory.getBuzcode(basefolder);
+            ripples=bc.calculateSWR;
         end
         function tfmap = getPowerSpectrum(obj)
             %METHOD1 Summary of this method goes here
