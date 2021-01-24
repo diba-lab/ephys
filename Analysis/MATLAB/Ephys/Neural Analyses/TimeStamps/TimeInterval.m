@@ -49,17 +49,19 @@ classdef TimeInterval
             endSample=obj.getSampleFor(endTime);
             timeInterval=obj.getTimeIntervalForSamples(startSample,endSample);
         end
-        function time=getRealTimeFor(obj,sample)
+        function time=getRealTimeFor(obj,samples)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            if sample>0 && sample<obj.NumberOfPoints
-                time=obj.StartTime+seconds(double((sample-1))/obj.SampleRate);
-            else
-                time=datetime('today');
-                time.Format=obj.Format;
-                warning('Sample is not in the TimeInterval -- should be between\n\t%d -- %d\nReturned ''%s''',1,obj.NumberOfPoints,datestr(time));
-            end
+            idx=samples>0 & samples<=obj.NumberOfPoints;
+            
+            validsamples=samples(idx);
+            time=obj.StartTime+seconds(double((validsamples-1))/obj.SampleRate);
             time.Format=obj.Format;
+            
+            if sum(~idx)
+                warning('Sample is not in the TimeInterval -- should be between\n\t%d -- %d\n'...
+                    ,1,obj.NumberOfPoints);
+            end
         end
         function samples=getSampleFor(obj,times)
             %METHOD1 Summary of this method goes here
