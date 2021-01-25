@@ -26,17 +26,16 @@ classdef DataForLFP
             catch
                 %% State
                 % NEUROSCOPE!
-                S.StateDetection.Channels.ThetaChannels=[11    13    15    17    18    20    22    43    45    47    49    50    52    54    75    77    79    81    82    84    86   107   109   111   113   114   116   118]-1;
-                S.StateDetection.Channels.SWChannels=[11    13    15    17    18    20    22    43    45    47    49    50    52    54    75    77    79    81    82    84    86   107   109   111   113   114   116   118]-1;
+                S.StateDetection.Channels.ThetaChannels=[2,7,12,16,20,25,30,32,34,39,44,48,52,57,62,64,66,71,76,80,84,89,94,96,98,103,108,112,116,121,126,128]-1;
+                S.StateDetection.Channels.SWChannels=[2,7,12,16,20,25,30,32,34,39,44,48,52,57,62,64,66,71,76,80,84,89,94,96,98,103,108,112,116,121,126,128]-1;
                 S.StateDetection.Channels.BestTheta=nan;
                 S.StateDetection.Channels.BestSW=nan;
-                S.StateDetection.Channels.EMGChannel=[1 2 3 4];
+                S.StateDetection.Channels.EMGChannel=[0 31 96 127];
                 S.StateDetection.Overwrite=0;
                 %% Ripple
                 S.Ripple.RippleOnly.SomeParameters='';
                 S.Ripple.SWR.SomeParameters='';
                 S.Ripple.Combined.SomeParameters='';
-                
                 %% Power
                 S.Power.Channel='';
                 

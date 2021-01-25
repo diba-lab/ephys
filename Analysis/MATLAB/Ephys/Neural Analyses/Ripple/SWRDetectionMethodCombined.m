@@ -22,7 +22,8 @@ classdef SWRDetectionMethodCombined < SWRDetectionMethod
                 for ishank=1:numel(shanks_rip)
                     ashank_rip=shanks_rip(ishank);
                     chansofShank_rip=probe.getShank(ashank_rip).getActiveChannels;
-                    ripple=methodRip.execute(chansofShank_rip);
+                    chansofShank_rip_sel=unique(round(linspace(min(chansofShank_rip),max(chansofShank_rip),8)));
+                    ripple=methodRip.execute(chansofShank_rip_sel);
                     try
                         rippleCombinedROnly=rippleCombinedROnly+ripple;
                         display(rippleCombinedROnly)

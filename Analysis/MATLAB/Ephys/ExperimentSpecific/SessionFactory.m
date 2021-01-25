@@ -29,11 +29,13 @@ classdef SessionFactory
                 animal=af.getAnimals(t_sub.animal{ifile});
                 aSession=aSession.setAnimal(animal);
                 aSession=aSession.setCondition(t_sub.Condition{ifile});
-                probe=animal.getProbe;
-                if ~isempty(probe)
-                    aSession=aSession.setProbe(probe);
-                else
-                    aSession=aSession.setProbe();
+                if isempty(aSession.Probe)
+                    probe=animal.getProbe;
+                    if ~isempty(probe)
+                        aSession=aSession.setProbe(probe);
+                    else
+                        aSession=aSession.setProbe();
+                    end
                 end
                 sessions(ifile)=aSession;
             end

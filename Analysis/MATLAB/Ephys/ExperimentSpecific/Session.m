@@ -50,6 +50,12 @@ classdef Session
             sdblock= SDBlocks(obj.SessionInfo.Date,blockstt);
             obj.Blocks=sdblock;
             %% Probe
+            try
+                list=dir(fullfile(baseFolder,strcat('*Probe*.xlsx')))
+                probe=Probe(fullfile(list.folder,list.name));
+                obj.Probe=probe;
+            catch
+            end
 
         end
         
