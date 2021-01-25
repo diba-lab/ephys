@@ -44,11 +44,11 @@ classdef Session
                     t2=datetime('now','Format','HH:mm:ss')+hours(3);
                     Block=blocks(iblock);
                     blockstt=[blockstt; timetable(t1, t2, Block)];
-                    
                 end             
                 writetimetable(blockstt,blockFile);
             end
-            obj.Blocks=blockstt;
+            sdblock= SDBlocks(obj.SessionInfo.Date,blockstt);
+            obj.Blocks=sdblock;
             %% Probe
 
         end

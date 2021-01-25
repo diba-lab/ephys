@@ -356,6 +356,10 @@ classdef TimeIntervalCombined
                 end
             end
         end
+        function date=getDate(obj)
+            st=obj.getStartTime;
+            date=datetime( st.Year,st.Month,st.Day);
+        end
 
         
     end

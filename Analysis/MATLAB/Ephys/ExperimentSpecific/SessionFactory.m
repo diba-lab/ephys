@@ -21,7 +21,7 @@ classdef SessionFactory
             if nargin<2
                 t_sub=obj.getSessionsTable();
             else
-                t_sub=obj.getSessionsTable(varargin);
+                t_sub=obj.getSessionsTable(varargin{:});
             end
             for ifile=1:height(t_sub)
                 aSession=Session(t_sub.Filepath{ifile});

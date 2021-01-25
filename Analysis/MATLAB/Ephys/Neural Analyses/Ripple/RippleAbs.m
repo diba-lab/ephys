@@ -76,44 +76,44 @@ classdef RippleAbs
             end
             
         end
-        function obj=getRipplesInWindow(obj,toi)
-%             
-%             ticd=obj.TimeIntervalCombined;
-%             if isduration(toi)
-%                 st=ticd.getStartTime;
-%                 toi1=datetime(st.Year,st.Month,st.Day)+toi;
-%             else
-%                 toi1=toi;
-%             end
-%             samples=ticd.getSampleFor(toi1);
-%             secs=samples/ticd.getSampleRate;
-%             idx=obj.PeakTimes>=secs(1)&obj.PeakTimes<=secs(2);
-%             ticd_new=obj.TimeIntervalCombined.getTimeIntervalForTimes(toi(1),toi(2));
-%             dt=ticd_new.getStartTime-ticd.getStartTime;
-% 
-%             obj.PeakTimes=obj.PeakTimes(idx);
-%             obj.PeakTimes-seconds(dt)
-%             obj.RipMax=obj.RipMax(idx,:);
-%             obj.SwMax=obj.SwMax(idx,:);
-%             obj.TimeStamps=obj.TimeStamps(idx,:);
-%             obj.TimeIntervalCombined
+        function obj=getWindow(obj,window)
+            ticd=obj.TimeIntervalCombined;
+            peaktimes=obj.PeakTimes;
+            start=peaktimes.start;
+            stop=peaktimes.stop;
+            
+            windowdt=window+ticd.getDate;
+            
+            blockInSec=ticd.getSampleFor(windowdt)/ticd.getSampleRate;
+            if isnan(blockInSec(1))
+                blockInSec(1)=1;
+                windowdt(1)=ticd.getStartTime;
+            end
+            if isnan(blockInSec(2))
+                blockInSec(2)=ticd.getNumberOfPoints/ticd.getSampleRate;
+                windowdt(2)=ticd.getEndTime;
+            end
+            ticd_new=ticd.getTimeIntervalForTimes(windowdt);
+            idxstart=start>blockInSec(1)&start<blockInSec(2);
+            idxstop=stop>blockInSec(1)&stop<blockInSec(2);
+            idx=idxstart|idxstop;
+            peaktimes.start=peaktimes.start(idx);
+            peaktimes.stop=peaktimes.stop(idx);
+            peaktimes.peak=peaktimes.peak(idx)-blockInSec(1);
+            if peaktimes.start(1)<blockInSec(1)
+                peaktimes.start(1)=blockInSec(1);
+            end
+            if peaktimes.stop(end)>blockInSec(2)
+                peaktimes.stop(end)=blockInSec(2);
+            end
+            peaktimes.start=peaktimes.start-blockInSec(1);
+            peaktimes.stop=peaktimes.stop-blockInSec(1);
+            obj.PeakTimes=peaktimes;
+            obj.SwMax=obj.SwMax(idx);
+            obj.RipMax=obj.RipMax(idx);
+            obj.TimeIntervalCombined=ticd_new;
         end
         function []= saveEventsNeuroscope(obj,pathname)
-            sde=SDExperiment.instance.get;
-%             rippleFiles = dir(fullfile(pathname,'*.R*.evt'));
-%             if isempty(rippleFiles)
-%                 fileN = 1;
-%             else
-%                 %set file index to next available value\
-%                 pat = '.R[0-9].';
-%                 fileN = 0;
-%                 for ii = 1:length(rippleFiles)
-%                     token  = regexp(rippleFiles(ii).name,pat);
-%                     val    = str2double(rippleFiles(ii).name(token+2:token+4));
-%                     fileN  = max([fileN val]);
-%                 end
-%                 fileN = fileN + 1;
-%             end
             tokens=split(pathname,filesep);
             filename=tokens{end};
             fid = fopen(sprintf('%s%s%s.R%02d.evt',pathname,filesep,filename,1),'w');

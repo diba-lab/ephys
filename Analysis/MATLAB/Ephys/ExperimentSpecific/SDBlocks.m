@@ -26,12 +26,17 @@ classdef SDBlocks
             if nargin>1
                 idx=ismember(blocks,varargin);
             end
-            wind=T(idx,:);
+            block=T(idx,:);
+            wind=[block.t1 block.t2];
         end
         function T = getTimeTable(obj,varargin)
             T=obj.TimeTable;
             T.t1=T.t1+obj.Date;
             T.t2=T.t2+obj.Date;
+        end
+        function names = getBlockNames(obj,varargin)
+            T=obj.TimeTable;
+            names=T.Block;
         end
     end
 end

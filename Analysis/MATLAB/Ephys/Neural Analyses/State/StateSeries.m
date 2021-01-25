@@ -14,6 +14,48 @@ classdef StateSeries
             obj.TimeIntervalCombined=ticd;
             obj.States=states(1:ticd.getNumberOfPoints);
         end
+        function obj = getWindow(obj,window)
+            states=obj.States;
+            ticd=obj.TimeIntervalCombined;
+            episodes=obj.Episodes;
+            
+            winddt=ticd.getDate+window;
+            winsInsec=ticd.getSampleFor(winddt)/ticd.getSampleRate;
+            if isnan(winsInsec(1))
+                winsInsec(1)=1;
+                winddt(1)=ticd.getStartTime;
+            end
+            if isnan(winsInsec(2))
+                winsInsec(2)=numel(states);
+                winddt(2)=ticd.getEndTime;
+            end
+            idx=winsInsec(1):winsInsec(2);
+            states_new=states(idx);
+            ticd_new=ticd.getTimeIntervalForTimes(winddt);
+            fnames=fieldnames(  episodes);
+            for iepi=1:numel(fnames)
+                epi=episodes.(fnames{iepi});
+                start=epi(:,1);
+                stop=epi(:,2);
+                idxstart=start>winsInsec(1)&start<winsInsec(2);
+                idxstop=stop>winsInsec(1)&stop<winsInsec(2);
+                idx=idxstart|idxstop;
+                epinew=epi(idx,:);
+                if ~isempty(epinew)
+                    if epinew(1,1)<winsInsec(1)
+                        epinew(1,1)=winsInsec(1);
+                    end
+                    if epinew(end,2)>winsInsec(2)
+                        epinew(end,2)=winsInsec(2);
+                    end
+                end
+                epinew=epinew-winsInsec(1)+1;
+                episodes.(fnames{iepi})=epinew;
+            end
+            obj.States=states_new;
+            obj.Episodes=episodes;
+            obj.TimeIntervalCombined=ticd_new;
+        end
         function newobj = getResampled(obj,timeIntervalCombined)
             if isa(timeIntervalCombined,'Channel')
                 timeIntervalCombined=timeIntervalCombined.getTimeIntervalCombined;
@@ -74,6 +116,12 @@ classdef StateSeries
         end
         function state=getStateRatios(obj,slidingWindowSizeInSeconds,slidingWindowLapsInSeconds)
             states=obj.States;
+            if isduration( slidingWindowSizeInSeconds)
+                slidingWindowSizeInSeconds=seconds(slidingWindowSizeInSeconds);
+            end
+            if isduration( slidingWindowLapsInSeconds)
+                slidingWindowLapsInSeconds=seconds(slidingWindowLapsInSeconds);
+            end
             t=obj.TimeIntervalCombined.getTimePointsInSec;
             statesunique=unique(states);
             for istate=1:numel(statesunique)
@@ -81,9 +129,9 @@ classdef StateSeries
                 if sum(ismember(1:5,thestate))
                     idx=states==thestate;
                     tsforthestate=t(idx);
-                    edges=1:seconds(slidingWindowSizeInSeconds):max(t);
+                    edges=0:slidingWindowSizeInSeconds:max(t);
                     [state(thestate).N,state(thestate).edges] =histcounts(tsforthestate,edges);
-                    state(thestate).Ratios=state(thestate).N/seconds(slidingWindowSizeInSeconds);
+                    state(thestate).Ratios=state(thestate).N/slidingWindowSizeInSeconds;
                     state(thestate).state=thestate;
                 end
             end
