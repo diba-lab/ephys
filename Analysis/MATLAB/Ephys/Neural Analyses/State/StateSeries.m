@@ -114,7 +114,7 @@ classdef StateSeries
             idx=obj.States==state;
             idx=idx';
         end
-        function state=getStateRatios(obj,slidingWindowSizeInSeconds,slidingWindowLapsInSeconds)
+        function state=getStateRatios(obj,slidingWindowSizeInSeconds,slidingWindowLapsInSeconds,edges)
             states=obj.States;
             if isduration( slidingWindowSizeInSeconds)
                 slidingWindowSizeInSeconds=seconds(slidingWindowSizeInSeconds);
@@ -129,7 +129,6 @@ classdef StateSeries
                 if sum(ismember(1:5,thestate))
                     idx=states==thestate;
                     tsforthestate=t(idx);
-                    edges=0:slidingWindowSizeInSeconds:max(t);
                     [state(thestate).N,state(thestate).edges] =histcounts(tsforthestate,edges);
                     state(thestate).Ratios=state(thestate).N/slidingWindowSizeInSeconds;
                     state(thestate).state=thestate;

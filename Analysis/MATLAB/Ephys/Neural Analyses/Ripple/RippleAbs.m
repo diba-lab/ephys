@@ -100,11 +100,13 @@ classdef RippleAbs
             peaktimes.start=peaktimes.start(idx);
             peaktimes.stop=peaktimes.stop(idx);
             peaktimes.peak=peaktimes.peak(idx)-blockInSec(1);
-            if peaktimes.start(1)<blockInSec(1)
-                peaktimes.start(1)=blockInSec(1);
-            end
-            if peaktimes.stop(end)>blockInSec(2)
-                peaktimes.stop(end)=blockInSec(2);
+            if ~isempty(peaktimes.start)
+                if peaktimes.start(1)<blockInSec(1)
+                    peaktimes.start(1)=blockInSec(1);
+                end
+                if peaktimes.stop(end)>blockInSec(2)
+                    peaktimes.stop(end)=blockInSec(2);
+                end
             end
             peaktimes.start=peaktimes.start-blockInSec(1);
             peaktimes.stop=peaktimes.stop-blockInSec(1);

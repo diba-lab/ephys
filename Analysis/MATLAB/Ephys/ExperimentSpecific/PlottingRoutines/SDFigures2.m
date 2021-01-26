@@ -48,22 +48,26 @@ classdef SDFigures2 <Singleton
     methods
         function plotSWRRate(obj)
             sf=SessionFactory;
-            tses=sf.getSessionsTable('AA',1);
+            selected_ses=[1 2 3 4 5 6 14 15 16];
+            tses=sf.getSessionsTable(selected_ses);
             sde=SDExperiment.instance.get;
             cacheFile=fullfile(sde.FileLocations.General.PlotFolder,'Cache',strcat('PlotSWRRate_',DataHash(tses),'.mat'));
             conditions=unique(tses.Condition);
+            clear Cond
             if ~isfile(cacheFile)
                 
                 for icond=1:numel(conditions)
                     cond=conditions{icond};
-                    tses_cond=sf.getSessions(cond,'AA',1);
+                    filepath=tses.Filepath(  ismember(tses.Condition,cond));
+
+                    tses_cond=sf.getSessions(filepath);
                     
                     clear Ns ts Ns_adj;
                     
                     for isession=1:numel(tses_cond)
                         
                         if numel(tses_cond)>1
-                            ses=tses_cond{isession};
+                            ses=tses_cond(isession);
                         else
                             ses=tses_cond;
                         end
@@ -84,8 +88,9 @@ classdef SDFigures2 <Singleton
                             ss_block=ss.getWindow(timeWindow);
                             slidingWindowSize=minutes(obj.Params.Plot.SlidingWindowSizeInMinutes);
                             slidingWindowLaps=minutes(obj.Params.Plot.SlidingWindowLapsInMinutes);
-                            stateRatiosInTime=ss_block.getStateRatios(seconds(slidingWindowSize)...
-                                ,seconds(slidingWindowLaps));
+                            edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
+                            stateRatiosInTime=ss_block.getStateRatios(...
+                                seconds(slidingWindowSize),[],edges);
                             
                             bc=BuzcodeFactory.getBuzcode(file);
                             ripple=bc.calculateSWR;
@@ -189,15 +194,20 @@ classdef SDFigures2 <Singleton
                 end
                 legend([b(1) b(2) b(3) b(5)],{'A-WAKE','Q-WAKE','SWS','REM'},'Location','bestoutside')
                 title(conditions{icond});
-                for iinj=1:numel(injections)
-                    text(injections(iinj),-.1,'Injection','Rotation',45,'HorizontalAlignment','right');
-                end
                 ax=gca;
                 ax.YColor='k';
-                ax.YLim=[0 1.5];
-                ax.XLim=[0 9.5];
+                ax.YLim=[0 2];
+                ax.XLim=[0 12.35];
+                pre=1:3;sd=(1:5)+pre(end); track=[1/3 2/3 3/3 4/3]+sd(end);post=(1:3)+track(end);
+                ax.XTick=[pre sd  track post];
+                ax.XTickLabel(1:3)={'PRE1','PRE2','PRE3'};
+                ax.XTickLabel(4:8)={'SD1','SD2','SD3','SD4','SD5'};
+                ax.XTickLabel(9:12)={'Tq1','Tq2','Tq3','Tq4'};
+                ax.XTickLabel(13:15)={'POST1','POST2','POST3'};
+                ax.XTick
                 ylabel('SWR rate (#/s)');
-                print(strcat('figures/RipleRate_',conditions{icond}),'-dpng','-r300')
+                ff=FigureFactory.instance;
+                ff.save(strcat('RipleRate_',conditions{icond}));
             end
             
         end

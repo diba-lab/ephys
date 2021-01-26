@@ -36,18 +36,17 @@ classdef TimeInterval
                 timeInterval=[];
             end
         end
-        function timeInterval=getTimeIntervalForTimes(obj,startTime,endTime)
+        function timeInterval=getTimeIntervalForTimes(obj,window)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            if startTime<obj.StartTime
-                startTime=obj.StartTime;
+            if window(1)<obj.getStartTime
+                window(1)=obj.obj.getStartTime;
             end
-            if endTime>obj.getEndTime
-                endTime=obj.getEndTime;
+            if window(2)<obj.getEndTime
+                window(2)=obj.getEndTime;
             end
-            startSample=obj.getSampleFor(startTime);
-            endSample=obj.getSampleFor(endTime);
-            timeInterval=obj.getTimeIntervalForSamples(startSample,endSample);
+            windsample=obj.getSampleFor(window);
+            timeInterval=obj.getTimeIntervalForSamples(windsample(1),windsample(2));
         end
         function time=getRealTimeFor(obj,samples)
             %METHOD1 Summary of this method goes here
@@ -130,6 +129,11 @@ classdef TimeInterval
             writetable(T,filePath)
             ticd=TimeIntervalCombined(filePath);
         end
+        function date=getDate(obj)
+            st=obj.getStartTime;
+            date=datetime( st.Year,st.Month,st.Day);
+        end
+
     end
     methods (Access=private)
         function ts=getTimeSeries(obj)

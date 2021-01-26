@@ -1,5 +1,5 @@
 sf=SessionFactory;
-sessions=sf.getSessions('AF',1:3);
+sessions=sf.getSessions(17);
 % sess={'PRE','SD_NSD','TRACK','POST'};
 % ses=sess{3};
 for ises=1:numel(sessions)
@@ -9,12 +9,12 @@ for ises=1:numel(sessions)
     arts=pr.reCalculateArtifacts;
     %     wind=theses.getBlock(ses);
     %     wind=[wind.t1 wind.t2];
-    %     arts.plot();
+        arts.plot();
     
     datalfp=theses.getDataLFP;
     sdd=datalfp.getStateDetectionData;
     ripples=datalfp.getRippleEvents;
-    
+%     
     %     ss=sdd.getStateSeries;
     %     pr.getDataForClustering
 end
