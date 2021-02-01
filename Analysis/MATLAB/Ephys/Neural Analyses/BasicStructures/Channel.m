@@ -11,11 +11,14 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
         function obj = Channel(channelname, voltageArray, timeIntervalCombined)
             %CHANNEL Construct an instance of this class
             %   Detailed explanation goes here
+            if size(voltageArray,1)>1
+                voltageArray=voltageArray';
+            end
             if numel(voltageArray)>timeIntervalCombined.getNumberOfPoints
                 voltageArray=voltageArray(1:timeIntervalCombined.getNumberOfPoints);
             elseif numel(voltageArray)<timeIntervalCombined.getNumberOfPoints
                 diff1=timeIntervalCombined.getNumberOfPoints-numel(voltageArray);
-                voltageArray=[voltageArray zeros(diff1,1)];
+                voltageArray=[voltageArray zeros(1,diff1)];
             end
             obj@Oscillation(voltageArray,...
                 timeIntervalCombined.getSampleRate);

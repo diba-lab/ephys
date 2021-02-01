@@ -48,7 +48,7 @@ classdef SDFigures2 <Singleton
     methods
         function plotSWRRate(obj)
             sf=SessionFactory;
-            selected_ses=[1 2 3 4 5 6 14 15 16];
+            selected_ses=[1 2 3 4 5 6 14 15 16 17];
             tses=sf.getSessionsTable(selected_ses);
             sde=SDExperiment.instance.get;
             cacheFile=fullfile(sde.FileLocations.General.PlotFolder,'Cache',strcat('PlotSWRRate_',DataHash(tses),'.mat'));
@@ -98,10 +98,6 @@ classdef SDFigures2 <Singleton
                             
                             stateEpisodes=ss_block.getEpisodes;
                             ripplePeaksInSeconds=ripple_block.getPeakTimes;
-                            %                             ticd=ripple_block.TimeIntervalCombined;
-                            %                             peaktimestampsInSamples=ripplePeaksInSeconds*ticd.getSampleRate;%convert to samples
-                            %                             peakTimeStampsAdjustedInSamples=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestampsInSamples);
-                            %                             peakTimesAdjustedInSeconds=peakTimeStampsAdjustedInSamples/ticd.getSampleRate;
                             stateNames=ss_block.getStateNames;
                             clear rippleRates;
                             for istate=1:numel(stateRatiosInTime)
@@ -158,7 +154,7 @@ classdef SDFigures2 <Singleton
                 for iblock=1:size(Conds,2)
                     rcount=Conds(icond,iblock).rCount;
                     scount=Conds(icond,iblock).sCount;
-                    scount(scount<seconds(minutes(2)))=nan;
+                    scount(scount<seconds(minutes(1)))=nan;
                     rrate=rcount./scount;
                     %                 sratio=Conds(icond).sratio;
                     edges=hours(seconds(Conds(icond,iblock).edges(1,:,1)))+lastedge;
@@ -192,19 +188,23 @@ classdef SDFigures2 <Singleton
                         p(iplot).LineWidth=2;
                     end
                 end
-                legend([b(1) b(2) b(3) b(5)],{'A-WAKE','Q-WAKE','SWS','REM'},'Location','bestoutside')
+                legend([b(1) b(2) b(3) b(5)],{'A-WAKE','Q-WAKE','SWS','REM'},'Location','best')
                 title(conditions{icond});
                 ax=gca;
                 ax.YColor='k';
-                ax.YLim=[0 2];
+                ax.YLim=[0 1.6];
                 ax.XLim=[0 12.35];
                 pre=1:3;sd=(1:5)+pre(end); track=[1/3 2/3 3/3 4/3]+sd(end);post=(1:3)+track(end);
-                ax.XTick=[pre sd  track post];
-                ax.XTickLabel(1:3)={'PRE1','PRE2','PRE3'};
-                ax.XTickLabel(4:8)={'SD1','SD2','SD3','SD4','SD5'};
-                ax.XTickLabel(9:12)={'Tq1','Tq2','Tq3','Tq4'};
-                ax.XTickLabel(13:15)={'POST1','POST2','POST3'};
-                ax.XTick
+                ax.XTick=[0 pre sd  track post];
+                ax.XTickLabel='|';
+                XTickLabel(1:3)={'PRE1','PRE2','PRE3'};
+                XTickLabel(4:8)={'SD1','SD2','SD3','SD4','SD5'};
+                XTickLabel(9:12)={'Tq1','Tq2','Tq3','Tq4'};
+                XTickLabel(13:15)={'POST1','POST2','POST3'};
+                for ixtick=1:numel(XTickLabel)
+                    xtick=ax.XTick([ixtick ixtick+1]);
+                    text(mean(xtick),-diff(ax.YLim)*.05,XTickLabel(ixtick),'HorizontalAlignment','center');
+                end
                 ylabel('SWR rate (#/s)');
                 ff=FigureFactory.instance;
                 ff.save(strcat('RipleRate_',conditions{icond}));
