@@ -35,10 +35,10 @@ class trace:
     def run_experiment(self):
         """Basic idea would be to run this AND write the timestamps for everything to a CSV file just in case."""
         ITIactual = []
-        for trial in range(0, nshocks):
+        for trial in range(0, self.nshocks):
             ITIactual.append(self.generate_ITI)
             time.sleep(ITIactual[trial])
-            tone_trace_shock
+            self.tone_trace_shock()
             
     def generate_ITI(self):
         return self.ITI + np.random.random_integers(low=-self.ITI_range, high=self.ITI_range)
