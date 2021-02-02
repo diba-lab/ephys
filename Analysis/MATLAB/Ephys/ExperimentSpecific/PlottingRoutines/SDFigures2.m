@@ -48,10 +48,11 @@ classdef SDFigures2 <Singleton
     methods
         function plotSWRRate(obj)
             sf=SessionFactory;
-            selected_ses=[1 2 3 4 5 6 14 15 16 17];
+            selected_ses=[1 2 3 4 5 6 7 8 9 10 14 15 16 17];
             tses=sf.getSessionsTable(selected_ses);
             sde=SDExperiment.instance.get;
-            cacheFile=fullfile(sde.FileLocations.General.PlotFolder,'Cache',strcat('PlotSWRRate_',DataHash(tses),'.mat'));
+            cacheFile=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
+                ,strcat('PlotSWRRate_',DataHash(tses), DataHash(obj.Params),'.mat'));
             conditions=unique(tses.Condition);
             clear Cond
             if ~isfile(cacheFile)
@@ -59,7 +60,7 @@ classdef SDFigures2 <Singleton
                 for icond=1:numel(conditions)
                     cond=conditions{icond};
                     filepath=tses.Filepath(  ismember(tses.Condition,cond));
-
+                    
                     tses_cond=sf.getSessions(filepath);
                     
                     clear Ns ts Ns_adj;
@@ -80,12 +81,18 @@ classdef SDFigures2 <Singleton
                             timeWindow=blocks.get(block);
                             winDuration=obj.Params.Blocks.(block);
                             if winDuration>0
-                                timeWindow=[timeWindow(1) timeWindow(1)+hours(winDuration)];
+                                timeWindowadj=[timeWindow(1) timeWindow(1)+hours(winDuration)];
+                                if timeWindowadj(2)>timeWindow(2)
+                                    timeWindowadj(2)=timeWindow(2);
+                                end
                             else
-                                timeWindow=[timeWindow(2)+hours(winDuration) timeWindow(2)];
+                                timeWindowadj=[timeWindow(2)+hours(winDuration) timeWindow(2)];
+                                if timeWindowadj(1)<timeWindow(1)
+                                    timeWindowadj(1)=timeWindow(1);
+                                end
                             end
                             ss=sdd.getStateSeries;
-                            ss_block=ss.getWindow(timeWindow);
+                            ss_block=ss.getWindow(timeWindowadj);
                             slidingWindowSize=minutes(obj.Params.Plot.SlidingWindowSizeInMinutes);
                             slidingWindowLaps=minutes(obj.Params.Plot.SlidingWindowLapsInMinutes);
                             edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
@@ -94,7 +101,7 @@ classdef SDFigures2 <Singleton
                             
                             bc=BuzcodeFactory.getBuzcode(file);
                             ripple=bc.calculateSWR;
-                            ripple_block=ripple.getWindow(timeWindow);
+                            ripple_block=ripple.getWindow(timeWindowadj);
                             
                             stateEpisodes=ss_block.getEpisodes;
                             ripplePeaksInSeconds=ripple_block.getPeakTimes;
@@ -124,10 +131,10 @@ classdef SDFigures2 <Singleton
                                 thestate=stateRatiosInTime(istate).state;
                                 
                                 if sum(ismember([1 2 3 5],thestate))
-                                    Cond(icond,iblock).sratio(thestate,:,isession)=stateRatiosInTime(thestate).Ratios;
-                                    Cond(icond,iblock).sCount(thestate,:,isession)=stateRatiosInTime(thestate).N;
-                                    Cond(icond,iblock).rCount(thestate,:,isession)=rippleRates(thestate).N;
-                                    Cond(icond,iblock).edges(thestate,:,isession)=rippleRates(thestate).edges;
+                                    Cond(iblock).sratio(thestate,:,isession,icond)=stateRatiosInTime(thestate).Ratios;
+                                    Cond(iblock).sCount(thestate,:,isession,icond)=stateRatiosInTime(thestate).N;
+                                    Cond(iblock).rCount(thestate,:,isession,icond)=rippleRates(thestate).N;
+                                    Cond(iblock).edges(thestate,:,isession,icond)=rippleRates(thestate).edges;
                                 end
                             end
                         end
@@ -139,45 +146,166 @@ classdef SDFigures2 <Singleton
             else
                 load(cacheFile);
             end
-            obj.plot_RippleRatesInBlocks_StatesSeparated(Cond)
+            obj.plot_RippleRatesInBlocks_CompareConditions(Cond)
+            obj.plot_RippleRatesInBlocks_CompareStates(Cond)
             
         end
-        function plot_RippleRatesInBlocks_StatesSeparated(obj,Conds)
+        function plotFooof(obj)
+            sf=SessionFactory;
+            selected_ses=[1 2 3 4 5 6 7 8 9 10 14 15 16 17];
+            tses=sf.getSessionsTable(selected_ses);
+            sde=SDExperiment.instance.get;
+            cacheFile=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
+                ,strcat('PlotFooof_',DataHash(tses), DataHash(obj.Params),'.mat'));
+            conditions=unique(tses.Condition);
+            clear Cond
+            if ~isfile(cacheFile)
+                
+                for icond=1:numel(conditions)
+                    cond=conditions{icond};
+                    filepath=tses.Filepath(  ismember(tses.Condition,cond));
+                    
+                    tses_cond=sf.getSessions(filepath);
+                    
+                    clear Ns ts Ns_adj;
+                    
+                    for isession=1:numel(tses_cond)
+                        
+                        if numel(tses_cond)>1
+                            ses=tses_cond(isession);
+                        else
+                            ses=tses_cond;
+                        end
+                        file=ses.SessionInfo.baseFolder;
+                        sdd=StateDetectionData(file);
+                        blocks=ses.Blocks;
+                        blocksStr=blocks.getBlockNames;
+                        for iblock=1:numel(blocksStr)
+                            block=blocksStr{iblock};
+                            timeWindow=blocks.get(block);
+                            winDuration=obj.Params.Blocks.(block);
+                            if winDuration>0
+                                timeWindowadj=[timeWindow(1) timeWindow(1)+hours(winDuration)];
+                                if timeWindowadj(2)>timeWindow(2)
+                                    timeWindowadj(2)=timeWindow(2);
+                                end
+                            else
+                                timeWindowadj=[timeWindow(2)+hours(winDuration) timeWindow(2)];
+                                if timeWindowadj(1)<timeWindow(1)
+                                    timeWindowadj(1)=timeWindow(1);
+                                end
+                            end
+                            ss=sdd.getStateSeries;
+                            ss_block=ss.getWindow(timeWindowadj);
+                            slidingWindowSize=minutes(obj.Params.Plot.SlidingWindowSizeInMinutes);
+                            slidingWindowLaps=minutes(obj.Params.Plot.SlidingWindowLapsInMinutes);
+                            edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
+                            stateRatiosInTime=ss_block.getStateRatios(...
+                                seconds(slidingWindowSize),[],edges);
+                            
+                            bc=BuzcodeFactory.getBuzcode(file);
+                            ripple=bc.calculateSWR;
+                            ripple_block=ripple.getWindow(timeWindowadj);
+                            
+                            stateEpisodes=ss_block.getEpisodes;
+                            ripplePeaksInSeconds=ripple_block.getPeakTimes;
+                            stateNames=ss_block.getStateNames;
+                            clear rippleRates;
+                            for istate=1:numel(stateRatiosInTime)
+                                
+                                thestate=stateRatiosInTime(istate).state;
+                                stateRatio=stateRatiosInTime(thestate);
+                                try
+                                    theStateName=stateNames{istate};
+                                    theEpisode=stateEpisodes.(strcat(theStateName,'state'));
+                                    idx_all=false(size(ripplePeaksInSeconds));
+                                    for iepi=1:size(theEpisode,1)
+                                        idx_epi=ripplePeaksInSeconds>theEpisode(iepi,1)...
+                                            & ripplePeaksInSeconds<theEpisode(iepi,2);
+                                        idx_all=idx_all|idx_epi;
+                                    end
+                                    stateRipplePeaksInSeconds=ripplePeaksInSeconds(idx_all);
+                                    [rippleRates(thestate).N,rippleRates(thestate).edges] = histcounts( stateRipplePeaksInSeconds,stateRatio.edges);
+                                    rippleRates(thestate).state=thestate;
+                                catch
+                                end
+                            end
+                            edges=stateRatiosInTime.edges;
+                            for istate=1:numel(stateRatiosInTime)
+                                thestate=stateRatiosInTime(istate).state;
+                                
+                                if sum(ismember([1 2 3 5],thestate))
+                                    Cond(iblock).sratio(thestate,:,isession,icond)=stateRatiosInTime(thestate).Ratios;
+                                    Cond(iblock).sCount(thestate,:,isession,icond)=stateRatiosInTime(thestate).N;
+                                    Cond(iblock).rCount(thestate,:,isession,icond)=rippleRates(thestate).N;
+                                    Cond(iblock).edges(thestate,:,isession,icond)=rippleRates(thestate).edges;
+                                end
+                            end
+                        end
+                    end
+                end
+                folder=fileparts(cacheFile);
+                if ~isfolder(folder), mkdir(folder);end
+                save(cacheFile,'Cond');
+            else
+                load(cacheFile);
+            end
+            obj.plot_RippleRatesInBlocks_CompareConditions(Cond)
+            obj.plot_RippleRatesInBlocks_CompareStates(Cond)
+            
+        end
+        
+    end
+    methods (Access=private)
+        function plot_RippleRatesInBlocks_CompareStates(obj,Conds)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             colorsall=linspecer(10,'sequential');
             colors=colorsall([10 8 1 5 3],:);
             conditions={'NSD','SD'};
-            for icond=1:size(Conds,1)
+            blockstr={'PRE','SD/NSD','TRACK','POST'};
+            states=[1 2 3 5];
+            for icond=1:numel(states)
                 try close(icond);catch;end; f=figure(icond);f.Units='normalized';f.Position=[1.0000    0.4391    1.4    0.2];
                 lastedge=0;
+                centers_all=[];
+                edges_all=[];
+                centers_num=[];
                 for iblock=1:size(Conds,2)
-                    rcount=Conds(icond,iblock).rCount;
-                    scount=Conds(icond,iblock).sCount;
+                    rcount=Conds(iblock).rCount(:,:,:,icond);
+                    scount=Conds(iblock).sCount(:,:,:,icond);
                     scount(scount<seconds(minutes(1)))=nan;
                     rrate=rcount./scount;
-                    %                 sratio=Conds(icond).sratio;
-                    edges=hours(seconds(Conds(icond,iblock).edges(1,:,1)))+lastedge;
+                    numses=size(rcount,3);
+                    
+                    
+                    
+                    
+                    edges=hours(seconds(Conds(iblock).edges(1,:,1,icond)))+lastedge;
                     lastedge=edges(end);
                     centers=edges(2:end)-(edges(2)-edges(1))/2;
-                    
+                    centers_all=[centers_all centers] ;
+                    edges_all=[edges_all edges] ;
+                    centers_num=[centers_num numel(centers)];
                     subplot(10,1,1:9);
-                    scountmean= minutes(seconds(nanmean(scount,3)));
+                    scountSum= minutes(seconds(sum(scount,3,'omitnan')));
+                    scountmean=scountSum./sum(scountSum,1,'omitnan')*obj.Params.Plot.SlidingWindowSizeInMinutes;
                     yyaxis left
                     b=bar(centers, scountmean','stacked','BarWidth',1,'FaceAlpha',.3);
                     ax=gca;
-%                     ax.XTick=edges;
+                    %                     ax.XTick=edges;
                     ax.YLim=[0 obj.Params.Plot.SlidingWindowSizeInMinutes];
                     ylabel('State Duration (min)');
                     xlabel('Time (h)');
                     hold on
                     yyaxis right
                     rratemean=nanmean(rrate,3);
+                    rcountmean=nanmean(rcount,3);
                     rrateErr=nanstd(rrate,[],3)/sqrt(size(rrate,3));
                     centersall=repmat(centers,size(rratemean,1),1);
                     p=errorbar(centersall', rratemean',rrateErr','-','Marker','.','MarkerSize',20);
                     
-                    centershift=([1 2 3 3 4]-4)*.05;
+                    centershift=([1 2 3 3 4]-2.5)*.05;
                     for iplot=1:numel(p)
                         rrateSes=squeeze(rrate(iplot,:,:));
                         thecolor=colors(iplot,:);
@@ -193,26 +321,102 @@ classdef SDFigures2 <Singleton
                 ax=gca;
                 ax.YColor='k';
                 ax.YLim=[0 1.6];
-                ax.XLim=[0 12.35];
-                pre=1:3;sd=(1:5)+pre(end); track=[1/3 2/3 3/3 4/3]+sd(end);post=(1:3)+track(end);
-                ax.XTick=[0 pre sd  track post];
-                ax.XTickLabel='|';
-                XTickLabel(1:3)={'PRE1','PRE2','PRE3'};
-                XTickLabel(4:8)={'SD1','SD2','SD3','SD4','SD5'};
-                XTickLabel(9:12)={'Tq1','Tq2','Tq3','Tq4'};
-                XTickLabel(13:15)={'POST1','POST2','POST3'};
-                for ixtick=1:numel(XTickLabel)
-                    xtick=ax.XTick([ixtick ixtick+1]);
-                    text(mean(xtick),-diff(ax.YLim)*.05,XTickLabel(ixtick),'HorizontalAlignment','center');
+                ax.XLim=[0 edges(end)];
+                ax.XTick=unique(edges_all);
+                it=1;
+                for iblock=1:numel(centers_num)
+                    for i=1:centers_num(iblock)
+                        str=blockstr{iblock};
+                        if strcmp(str,'SD/NSD'), str=conditions{icond};end
+                        text(centers_all(it),-diff(ax.YLim)*.05,strcat(str),'HorizontalAlignment','center');
+                        it=it+1;
+                    end
                 end
                 ylabel('SWR rate (#/s)');
                 ff=FigureFactory.instance;
                 ff.save(strcat('RipleRate_',conditions{icond}));
             end
-            
         end
-        
+        function plot_RippleRatesInBlocks_CompareConditions(obj,Conds)
+            colorsall=linspecer(10,'sequential');
+            colors=colorsall([1 10 1 5 3],:);
+            conditions={'NSD','SD'};
+            blockstr={'PRE','SD/NSD','TRACK','POST'};
+            states=[1 2 3 5];
+            statestr={'A-WAKE','Q-WAKE','SWS','REM'};
+            for thestate=states
+                try close(thestate);catch;end; f=figure(thestate);f.Units='normalized';f.Position=[1.0000    0.4391    1.4    0.2];
+                lastedge=0;
+                centers_all=[];
+                edges_all=[];
+                centers_num=[];
+                for iblock=1:size(Conds,2)
+                    rcount=squeeze(Conds(iblock).rCount(thestate,:,:,:));
+                    scount=squeeze(Conds(iblock).sCount(thestate,:,:,:));
+                    scount(scount<seconds(minutes(1)))=nan;
+                    rrate=rcount./scount;
+                    numses=size(rcount,2);
+                    
+                    
+                    
+                    
+                    edges=hours(seconds(Conds(iblock).edges(thestate,:,1,1)))+lastedge;
+                    if numel(unique(edges))<numel(edges)
+                        edges=hours(seconds(Conds(iblock).edges(thestate,:,1,2)))+lastedge;
+                    end
+                    lastedge=edges(end);
+                    centers=edges(2:end)-(edges(2)-edges(1))/2;
+                    centers_all=[centers_all centers] ;
+                    edges_all=[edges_all edges] ;
+                    centers_num=[centers_num numel(centers)];
+                    subplot(10,1,1:9);
+                    scountmean= squeeze(minutes(seconds(nanmean(scount,2))));
+                    yyaxis left
+                    b=bar(centers, scountmean','stacked','BarWidth',1,'FaceAlpha',.3);
+                    ax=gca;
+                    %                     ax.XTick=edges;
+%                     ax.YLim=[0 obj.Params.Plot.SlidingWindowSizeInMinutes];
+                    ylabel('State Duration (min)');
+                    xlabel('Time (h)');
+                    hold on
+                    yyaxis right
+                    rratemean=squeeze(nanmean(rrate,2));
+                    rcountmean=squeeze(nanmean(rcount,2));
+                    rrateErr=squeeze(nanstd(rrate,[],2))/sqrt(size(rrate,2));
+                    centersall=repmat(centers,size(rratemean,2),1)';
+                    p=errorbar(centersall, rratemean,rrateErr,'-','Marker','.','MarkerSize',20);
+                    
+                    centershift=([0 1]-.5)*.05;
+                    for iplot=1:numel(p)
+                        rrateSes=squeeze(rrate(:,:,iplot));
+                        thecolor=colors(iplot,:);
+                        plot(centers+centershift(iplot),rrateSes,'Color',thecolor,'LineWidth',.2,'Marker','.','MarkerSize',10,'LineStyle','none')
+                        b(iplot).FaceColor=thecolor;
+                        b(iplot).LineWidth=.2;
+                        p(iplot).Color=thecolor;
+                        p(iplot).LineWidth=2;
+                    end
+                end
+                legend([b(1) b(2)],{'NSD','SD'},'Location','best')
+                title(statestr{thestate});
+                ax=gca;
+                ax.YColor='k';
+                ax.YLim=[0 1.6];
+                ax.XLim=[0 edges(end)];
+                ax.XTick=unique(edges_all);
+                it=1;
+                for iblock=1:numel(centers_num)
+                    for i=1:centers_num(iblock)
+                        str=blockstr{iblock};
+                        text(centers_all(it),-diff(ax.YLim)*.05,strcat(str),'HorizontalAlignment','center');
+                        it=it+1;
+                    end
+                end
+                ylabel('SWR rate (#/s)');
+                ff=FigureFactory.instance;
+                ff.save(strcat('RipleRate_',statestr{thestate}));
+            end
+        end
     end
+    
 end
-
-

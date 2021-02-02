@@ -10,7 +10,7 @@ classdef StateSeries
     end
     
     methods
-        function obj = StateSeries(states,ticd)
+        function obj = StateSeries(states, ticd)
             obj.TimeIntervalCombined=ticd;
             obj.States=states(1:ticd.getNumberOfPoints);
         end

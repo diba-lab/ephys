@@ -357,7 +357,7 @@ classdef TimeIntervalCombined
             end
         end
         function date=getDate(obj)
-            st=obj.getStartTime;
+            st=obj.getEndTime;
             date=datetime( st.Year,st.Month,st.Day);
         end
 

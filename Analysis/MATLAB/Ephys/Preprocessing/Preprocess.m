@@ -269,7 +269,7 @@ classdef Preprocess
                 combinedBad=combinedBad+artifacts_freq{ifreq};
             end
             bad.BadTimes.Time= table2struct( combinedBad.getTimeTable);
-            obj.setBad(bad);
+            obj=obj.setBad(bad);
             arts=Artifacts(obj,combinedBad,ch_ds,artifacts_freq,power);
         end
 

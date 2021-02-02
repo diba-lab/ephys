@@ -110,7 +110,11 @@ classdef TimeWindows
                 p=area(ax,x,y);
                 p.BaseValue=ax.YLim(1);
                 p.FaceAlpha=.5;
-                colorno=ismember(types,type{iart});
+                try
+                    colorno=ismember(types,type{iart});
+                catch
+                    colorno=ismember(types,type);
+                end
                 p.FaceColor=colors(colorno,:);
                 p.EdgeColor='none';
             end
