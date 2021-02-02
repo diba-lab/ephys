@@ -62,6 +62,10 @@ def generate_white_noise(duration, fs):
 
     return noise
 
+def play_white_noise(duration, fs=44100, volume=1.0):
+    noise = generate_white_noise(duration, fs)
+    play_tone(noise, fs, volume)
+
 def pitch_to_freq(pitch):
     """Convert pitch from a piano key to the appropriate frequency"""
     return 2**((pitch - 49)/12) * 440
