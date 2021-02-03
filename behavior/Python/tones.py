@@ -33,14 +33,18 @@ def play_tone(samples, fs, volume):
 
     return p
 
+def generate_pure_tone(duration, f):
+    return (np.sin(2*np.pi*np.arange(fs*duration)*f/fs)).astype(np.float32)  # note conversion to float32 array
+
 def play_flat_tone(duration=10.0, f=700.0, volume=1.0, plot=False):
     """Play a flat tone at a certain frequency"""
     # duration = 1.0   # in seconds, may be float
     # f = 700.0        # sine frequency, Hz, may be float
 
-    # generate samples, note conversion to float32 array
-    samples = (np.sin(2*np.pi*np.arange(fs*duration)*f/fs)).astype(np.float32)
+    # generate samples for tone
+    samples = generate_pure_tone(duration, f)
 
+    # play tone
     play_tone(samples, fs, volume)
 
     # plot tone trace and frequency spectrum if specified
@@ -56,14 +60,14 @@ def play_tone_sweep(duration=1.0, freq_start=400, freq_end=700, volume=1.0):
     """Generates a tone sweep. Note that inputs are different than "play_flat_tone"""
     
 
-def generate_white_noise(duration, fs):
+def generate_white_noise(duration):
     """Generate gaussian white noise"""
-    noise = np.random.normal(loc=0, scale=1, size=np.round(duration*fs,0).astype('int'))
+    noise = np.random.normal(loc=0, scale=1, size=np.round(duration*fs,0).astype('int')).astype(np.float32)
 
     return noise
 
 def play_white_noise(duration, fs=44100, volume=1.0):
-    noise = generate_white_noise(duration, fs)
+    noise = generate_white_noise(duration)
     play_tone(noise, fs, volume)
 
 def pitch_to_freq(pitch):
@@ -78,6 +82,8 @@ def freq_to_pitch(freq):
 
 # def play_color():
 
+# Test run when importing to ensure speaker is hooked up!
+print('Playing a quick 400Hz tone - check speaker setup if you don''t hear it!')
 play_flat_tone(duration=0.25, f=400)
 
 # NRK Todo: 1) Make all pure tones and sweeps use pysinewave and same inputs (frequencies)
