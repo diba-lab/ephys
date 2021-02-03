@@ -29,7 +29,20 @@ classdef SDFigures2 <Singleton
                 writestruct(S,configureFileSWRRate)
             end
             structstruct(S);
-            obj.Params=S;
+            configureFileFooof=fullfile(sde.FileLocations.General.PlotFolder...
+                ,filesep, 'Parameters','Fooof.xml');
+            try
+                S=readstruct(configureFileFooof);
+            catch
+                S.Blocks.PRE=-3;
+                S.Blocks.SD=5;
+                S.Blocks.TRACK=1;
+                S.Blocks.POST=3;
+                S.Plot.SlidingWindowSizeInMinutes=30;
+                S.Plot.SlidingWindowLapsInMinutes=30;
+                writestruct(S,configureFileFooof)
+            end
+            structstruct(S);
         end
     end
     methods(Static)
@@ -45,13 +58,25 @@ classdef SDFigures2 <Singleton
         end
     end
     methods
+        function S=getParams(obj)
+            sde=SDExperiment.instance.get;
+            configureFileSWRRate=fullfile(sde.FileLocations.General.PlotFolder...
+                ,filesep, 'Parameters','SWRRate.xml');
+            S.SWRRate=readstruct(configureFileSWRRate);
+            configureFileFooof=fullfile(sde.FileLocations.General.PlotFolder...
+                ,filesep, 'Parameters','SWRRate.xml');
+            S.Fooof=readstruct(configureFileFooof);
+            
+        end
         function plotSWRRate(obj)
             sf=SessionFactory;
+            s=obj.getParams;
+            params=s.SWRRate;
             selected_ses=[1 2 3 4 5 6 7 8 9 10 14 15 16 17];
             tses=sf.getSessionsTable(selected_ses);
             sde=SDExperiment.instance.get;
             cacheFile=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
-                ,strcat('PlotSWRRate_',DataHash(tses), DataHash(obj.Params),'.mat'));
+                ,strcat('PlotSWRRate_',DataHash(tses), DataHash(params),'.mat'));
             conditions=unique(tses.Condition);
             clear Cond
             if ~isfile(cacheFile)
@@ -78,7 +103,7 @@ classdef SDFigures2 <Singleton
                         for iblock=1:numel(blocksStr)
                             block=blocksStr{iblock};
                             timeWindow=blocks.get(block);
-                            winDuration=obj.Params.Blocks.(block);
+                            winDuration=params.Blocks.(block);
                             if winDuration>0
                                 timeWindowadj=[timeWindow(1) timeWindow(1)+hours(winDuration)];
                                 if timeWindowadj(2)>timeWindow(2)
@@ -92,8 +117,8 @@ classdef SDFigures2 <Singleton
                             end
                             ss=sdd.getStateSeries;
                             ss_block=ss.getWindow(timeWindowadj);
-                            slidingWindowSize=minutes(obj.Params.Plot.SlidingWindowSizeInMinutes);
-                            slidingWindowLaps=minutes(obj.Params.Plot.SlidingWindowLapsInMinutes);
+                            slidingWindowSize=minutes(params.Plot.SlidingWindowSizeInMinutes);
+                            slidingWindowLaps=minutes(params.Plot.SlidingWindowLapsInMinutes);
                             edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
                             stateRatiosInTime=ss_block.getStateRatios(...
                                 seconds(slidingWindowSize),[],edges);
@@ -258,12 +283,16 @@ classdef SDFigures2 <Singleton
         function plot_RippleRatesInBlocks_CompareStates(obj,Conds)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            s=obj.getParams;
+            params=s.SWRRate;
             colorsall=linspecer(10,'sequential');
             colors=colorsall([10 8 1 5 3],:);
             conditions={'NSD','SD'};
             blockstr={'PRE','SD/NSD','TRACK','POST'};
             states=[1 2 3 5];
+            
             for icond=1:numel(states)
+                
                 try close(icond);catch;end; f=figure(icond);f.Units='normalized';f.Position=[1.0000    0.4391    1.4    0.2];
                 lastedge=0;
                 centers_all=[];
@@ -287,12 +316,12 @@ classdef SDFigures2 <Singleton
                     centers_num=[centers_num numel(centers)];
                     subplot(10,1,1:9);
                     scountSum= minutes(seconds(sum(scount,3,'omitnan')));
-                    scountmean=scountSum./sum(scountSum,1,'omitnan')*obj.Params.Plot.SlidingWindowSizeInMinutes;
+                    scountmean=scountSum./sum(scountSum,1,'omitnan')*params.Plot.SlidingWindowSizeInMinutes;
                     yyaxis left
                     b=bar(centers, scountmean','stacked','BarWidth',1,'FaceAlpha',.3);
                     ax=gca;
                     %                     ax.XTick=edges;
-                    ax.YLim=[0 obj.Params.Plot.SlidingWindowSizeInMinutes];
+                    ax.YLim=[0 params.Plot.SlidingWindowSizeInMinutes];
                     ylabel('State Duration (min)');
                     xlabel('Time (h)');
                     hold on

@@ -13,7 +13,7 @@ for ises=1:numel(sessions)
 %         arts.plot();
     
     sdd=datalfp.getStateDetectionData;
-    opripples=datalfp.getRippleEvents;
+%     opripples=datalfp.getRippleEvents;
     
     %     ss=sdd.getStateSeries;
     %     pr.getDataForClustering
