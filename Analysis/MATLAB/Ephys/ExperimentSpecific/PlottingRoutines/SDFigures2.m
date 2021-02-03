@@ -4,7 +4,6 @@ classdef SDFigures2 <Singleton
     
     properties
         Sessions
-        Params
     end
     
     methods(Access=private)
@@ -16,10 +15,10 @@ classdef SDFigures2 <Singleton
             sf=SessionFactory;
             obj.Sessions= sf.getSessions();
             sde=SDExperiment.instance.get;
-            configureFile=fullfile(sde.FileLocations.General.PlotFolder...
+            configureFileSWRRate=fullfile(sde.FileLocations.General.PlotFolder...
                 ,filesep, 'Parameters','SWRRate.xml');
             try
-                S=readstruct(configureFile);
+                S=readstruct(configureFileSWRRate);
             catch
                 S.Blocks.PRE=-3;
                 S.Blocks.SD=5;
@@ -27,7 +26,7 @@ classdef SDFigures2 <Singleton
                 S.Blocks.POST=3;
                 S.Plot.SlidingWindowSizeInMinutes=30;
                 S.Plot.SlidingWindowLapsInMinutes=30;
-                writestruct(S,configureFile)
+                writestruct(S,configureFileSWRRate)
             end
             structstruct(S);
             obj.Params=S;
@@ -146,8 +145,8 @@ classdef SDFigures2 <Singleton
             else
                 load(cacheFile);
             end
-            obj.plot_RippleRatesInBlocks_CompareConditions(Cond)
             obj.plot_RippleRatesInBlocks_CompareStates(Cond)
+            obj.plot_RippleRatesInBlocks_CompareConditions(Cond)
             
         end
         function plotFooof(obj)
@@ -252,7 +251,6 @@ classdef SDFigures2 <Singleton
             end
             obj.plot_RippleRatesInBlocks_CompareConditions(Cond)
             obj.plot_RippleRatesInBlocks_CompareStates(Cond)
-            
         end
         
     end

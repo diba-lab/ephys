@@ -1,5 +1,5 @@
 sf=SessionFactory;
-sessions=sf.getSessions('AA',2);
+sessions=sf.getSessions('AA','SD');
 % sess={'PRE','SD_NSD','TRACK','POST'};
 % ses=sess{3};
 for ises=1:numel(sessions)
