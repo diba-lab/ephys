@@ -40,10 +40,13 @@ class trace:
         elif test:  # generate 3 second ITI
             ITIuse = np.ones(self.nshocks)*3
 
+        self.board.digital[self.video_io_pin].write(1)  # start video
+        # NRK TODO: add in initial exploration time!
         for idt, ITIdur in enumerate(ITIuse):
-            print('Starting trial ' + str(idt+1) ' with ' + str(ITIdur) + ' second ITI')
+            print('Starting trial ' + str(idt+1) + ' with ' + str(ITIdur) + ' second ITI')
             time.sleep(ITIdur)
             self.run_trial(test_run=test)
+        self.board.digital[self.video_io_pin].write(0)  # experiment over
         
         if not test:
             self.ITIdata = ITIuse
@@ -67,9 +70,11 @@ class trace:
 
         tones.play_tone(tone_use, fs, volume)
         time.sleep(trace_dur_use)
-        self.board.digital[self.shock_box_pin].write(1)
+        self.board.digital[self.shock_box_pin].write(1)  # signal to shock box
+        self.board.digital[self.shock_io_pin].write(1)  # TTL to Intan or whatever other system you want
         time.sleep(shock_dur_use)
-        self.board.digital[self.shock_box_pin].write(0)
+        self.board.digital[self.shock_box_pin].write(0)  # stop shock signal
+        self.board.digital[self.shock_io_pin].write(0)  # TTL off to Intan or whatever other system you want
 
 
     def initialize_arduino(self, port='COM7', shock_box_pin=2, shock_io_pin=7, video_io_pin=9):
