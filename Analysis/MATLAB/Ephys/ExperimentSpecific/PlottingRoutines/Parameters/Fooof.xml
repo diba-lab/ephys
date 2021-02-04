@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<struct>
+    <Blocks>
+        <PRE>-3</PRE>
+        <SD>5</SD>
+        <NSD>5</NSD>
+        <TRACK>1</TRACK>
+        <POST>3</POST>
+    </Blocks>
+    <Plot>
+        <SlidingWindowSizeInMinutes>30</SlidingWindowSizeInMinutes>
+        <SlidingWindowLapsInMinutes>30</SlidingWindowLapsInMinutes>
+    </Plot>
+    <Fooof>
+        <peak_width_limts>.5</peak_width_limts>
+        <peak_width_limts>8</peak_width_limts>
+        <max_n_peaks>8</max_n_peaks>
+        <min_peak_height>.1</min_peak_height>
+        <peak_threshold>.1</peak_threshold>
+<!--        <aperiodic_mode>knee</aperiodic_mode> -->
+        <f_range>1</f_range>
+        <f_range>250</f_range>
+        
+    </Fooof>
+    
+</struct>

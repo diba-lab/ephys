@@ -56,6 +56,11 @@ classdef (Abstract) Oscillation
             [S,f] = mtspectrumc( obj.voltageArray, params );
             ps=PowerSpectrum(S,f);
         end
+        function ps=getPSpectrumWelch(obj)
+            window=1*obj.getSampleRate;
+            [psd, freqs] = pwelch(obj.voltageArray, window, [], [], obj.getSampleRate);
+            ps=PowerSpectrum(psd,freqs);
+        end
         function specslope=getPSpectrumSlope(obj)
             LFP.data=obj.voltageArray;
             LFP.timestamps=obj.get;

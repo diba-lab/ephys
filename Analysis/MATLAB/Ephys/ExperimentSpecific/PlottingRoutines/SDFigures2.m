@@ -29,6 +29,11 @@ classdef SDFigures2 <Singleton
                 writestruct(S,configureFileSWRRate)
             end
             structstruct(S);
+            try
+                pyenv("ExecutionMode","OutOfProcess");
+            catch
+            end
+
             configureFileFooof=fullfile(sde.FileLocations.General.PlotFolder...
                 ,filesep, 'Parameters','Fooof.xml');
             try
@@ -64,7 +69,7 @@ classdef SDFigures2 <Singleton
                 ,filesep, 'Parameters','SWRRate.xml');
             S.SWRRate=readstruct(configureFileSWRRate);
             configureFileFooof=fullfile(sde.FileLocations.General.PlotFolder...
-                ,filesep, 'Parameters','SWRRate.xml');
+                ,filesep, 'Parameters','Fooof.xml');
             S.Fooof=readstruct(configureFileFooof);
             
         end
@@ -179,8 +184,9 @@ classdef SDFigures2 <Singleton
             selected_ses=[1 2 3 4 5 6 7 8 9 10 14 15 16 17];
             tses=sf.getSessionsTable(selected_ses);
             sde=SDExperiment.instance.get;
+            params=obj.getParams.Fooof;
             cacheFile=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
-                ,strcat('PlotFooof_',DataHash(tses), DataHash(obj.Params),'.mat'));
+                ,strcat('PlotFooof_',DataHash(tses), DataHash(params),'.mat'));
             conditions=unique(tses.Condition);
             clear Cond
             if ~isfile(cacheFile)
@@ -207,7 +213,7 @@ classdef SDFigures2 <Singleton
                         for iblock=1:numel(blocksStr)
                             block=blocksStr{iblock};
                             timeWindow=blocks.get(block);
-                            winDuration=obj.Params.Blocks.(block);
+                            winDuration=params.Blocks.(block);
                             if winDuration>0
                                 timeWindowadj=[timeWindow(1) timeWindow(1)+hours(winDuration)];
                                 if timeWindowadj(2)>timeWindow(2)
@@ -221,18 +227,26 @@ classdef SDFigures2 <Singleton
                             end
                             ss=sdd.getStateSeries;
                             ss_block=ss.getWindow(timeWindowadj);
-                            slidingWindowSize=minutes(obj.Params.Plot.SlidingWindowSizeInMinutes);
-                            slidingWindowLaps=minutes(obj.Params.Plot.SlidingWindowLapsInMinutes);
+                            slidingWindowSize=minutes(params.Plot.SlidingWindowSizeInMinutes);
+                            slidingWindowLaps=minutes(params.Plot.SlidingWindowLapsInMinutes);
                             edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
                             stateRatiosInTime=ss_block.getStateRatios(...
                                 seconds(slidingWindowSize),[],edges);
                             
-                            bc=BuzcodeFactory.getBuzcode(file);
-                            ripple=bc.calculateSWR;
-                            ripple_block=ripple.getWindow(timeWindowadj);
-                            
+                            thId=sdd.getThetaChannelID;
+                            ctd=ChannelTimeData(file);
+                            th=ctd.getChannel(thId);
+                            allBlock=th.getTimeWindowForAbsoluteTime(timeWindowadj);
+                            cacheFilePower=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
+                                ,strcat('PlotFooof_afoof_',DataHash(tses), DataHash(params), DataHash(timeWindowadj),'.mat'));
+                            try
+                                load(cacheFilePower,'fooof');
+                            catch
+                                psd1=allBlock.getPSpectrumWelch;
+                                fooof=psd1.getFooof(params.Fooof,params.Fooof.f_range);
+                                save(cacheFilePower,'fooof')
+                            end
                             stateEpisodes=ss_block.getEpisodes;
-                            ripplePeaksInSeconds=ripple_block.getPeakTimes;
                             stateNames=ss_block.getStateNames;
                             clear rippleRates;
                             for istate=1:numel(stateRatiosInTime)
@@ -242,13 +256,11 @@ classdef SDFigures2 <Singleton
                                 try
                                     theStateName=stateNames{istate};
                                     theEpisode=stateEpisodes.(strcat(theStateName,'state'));
-                                    idx_all=false(size(ripplePeaksInSeconds));
-                                    for iepi=1:size(theEpisode,1)
-                                        idx_epi=ripplePeaksInSeconds>theEpisode(iepi,1)...
-                                            & ripplePeaksInSeconds<theEpisode(iepi,2);
-                                        idx_all=idx_all|idx_epi;
-                                    end
-                                    stateRipplePeaksInSeconds=ripplePeaksInSeconds(idx_all);
+                                    ticdss=ss_block.TimeIntervalCombined;
+                                    theEpisodeAbs=ticdss.getRealTimeFor(theEpisode);
+                                    episode=allBlock.getTimeWindow(theEpisodeAbs);
+                                    epiFooof=episode.getPSpectrumWelch.getFooof(settings,f_range);
+                                    epiFooof.plot
                                     [rippleRates(thestate).N,rippleRates(thestate).edges] = histcounts( stateRipplePeaksInSeconds,stateRatio.edges);
                                     rippleRates(thestate).state=thestate;
                                 catch
@@ -291,7 +303,7 @@ classdef SDFigures2 <Singleton
             blockstr={'PRE','SD/NSD','TRACK','POST'};
             states=[1 2 3 5];
             
-            for icond=1:numel(states)
+            for icond=1:numel(conditions)
                 
                 try close(icond);catch;end; f=figure(icond);f.Units='normalized';f.Position=[1.0000    0.4391    1.4    0.2];
                 lastedge=0;
@@ -365,6 +377,8 @@ classdef SDFigures2 <Singleton
             end
         end
         function plot_RippleRatesInBlocks_CompareConditions(obj,Conds)
+            s=obj.getParams;
+            params=s.SWRRate;
             colorsall=linspecer(10,'sequential');
             colors=colorsall([1 10 1 5 3],:);
             conditions={'NSD','SD'};
