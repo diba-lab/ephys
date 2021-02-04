@@ -11,9 +11,10 @@ fs = 44100
 volume = 1.0
 ITI_range = 20  # +/- this many seconds for each ITI
 
+
 class trace:
     def __init__(self, arduino_port='COM7', tone_type='white', tone_dur=10, trace_dur=20, 
-                 shock_dur=1, ITI=240, tone_freq=None, nshocks=6, volume=1.0):
+                 shock_dur=1, ITI=240, tone_freq=None, nshocks=6, volume=1.0, start_buffer=6*60):
         print('Initializing trace fc class with ' + str(tone_dur) + ' second tone, ' 
         + str(trace_dur) + ' second trace, and ' + str(shock_dur) + ' second shock')
         self.tone_dur = tone_dur
@@ -26,6 +27,7 @@ class trace:
         self.ITI_range = ITI_range
         self.nshocks = nshocks
         self.volume = volume
+        self.start_buffer = start_buffer = 6*60  # seconds before 1st trial.
 
         # First connect to the Arduino - super important
         self.initialize_arduino(self.arduino_port)
@@ -33,14 +35,17 @@ class trace:
         # Next create tone
         self.tone_samples = self.create_tone(tone_type=tone_type, duration=tone_dur, freq=tone_freq)
     
-    def run_experiment(self, test=False):
+    def run_experiment(self, video_start, test=False):
         """Basic idea would be to run this AND write the timestamps for everything to a CSV file just in case."""
         if not test:
             ITIuse = [self.generate_ITI() for _ in range(0, self.nshocks)]
+            if not video_start: # start video if using trace class to trigger experiment start.
+                self.board.digital[self.video_io_pin].write(1)  
+            time.sleep(self.start_buffer)
         elif test:  # generate 3 second ITI
             ITIuse = np.ones(self.nshocks)*3
 
-        self.board.digital[self.video_io_pin].write(1)  # start video
+        
         # NRK TODO: add in initial exploration time!
         for idt, ITIdur in enumerate(ITIuse):
             print('Starting trial ' + str(idt+1) + ' with ' + str(ITIdur) + ' second ITI')
@@ -58,9 +63,14 @@ class trace:
         return self.ITI + np.random.random_integers(low=-self.ITI_range, high=self.ITI_range)
 
     
-    def video_trigger_trial(self):
+    def video_trigger_experiment(self, test_run=False):
         """This needs filling in!"""
-        a = 1
+        
+        started = False
+        while not started:
+            if self.board.digital[self.video_io_pin].read():
+                self.run_experiment(video_start=True, test=test_run)
+
 
     def run_trial(self, test_run):
         
