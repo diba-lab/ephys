@@ -9,11 +9,11 @@ trace_dur_default = 20  # seconds
 shock_dur_default = 1  # seconds at 1mA
 fs = 44100
 volume = 1.0
-ITI_range = 10  # +/- this many seconds for each ITI
+ITI_range = 20  # +/- this many seconds for each ITI
 
 class trace:
     def __init__(self, arduino_port='COM7', tone_type='white', tone_dur=10, trace_dur=20, 
-                 shock_dur=1, ITI=240, tone_freq=None, nshocks=6, volume=1.0):
+                 shock_dur=1, ITI=240, tone_freq=None, nshocks=6, volume=1.0, start_buffer=6*60):
         print('Initializing trace fc class with ' + str(tone_dur) + ' second tone, ' 
         + str(trace_dur) + ' second trace, and ' + str(shock_dur) + ' second shock')
         self.tone_dur = tone_dur
@@ -26,6 +26,7 @@ class trace:
         self.ITI_range = ITI_range
         self.nshocks = nshocks
         self.volume = volume
+        self.start_buffer = start_buffer = 6*60  # seconds before 1st trial.
 
         # First connect to the Arduino - super important
         self.initialize_arduino(self.arduino_port)
@@ -33,17 +34,26 @@ class trace:
         # Next create tone
         self.tone_samples = self.create_tone(tone_type=tone_type, duration=tone_dur, freq=tone_freq)
     
-    def run_experiment(self, test=False):
+    def run_experiment(self, video_start, test=False):
         """Basic idea would be to run this AND write the timestamps for everything to a CSV file just in case."""
+        self.session = 'training'
         if not test:
             ITIuse = [self.generate_ITI() for _ in range(0, self.nshocks)]
+
+            # start video if using trace class to trigger experiment start.
+            if not video_start: 
+                self.board.digital[self.video_io_pin].write(1)  
+            time.sleep(self.start_buffer)
         elif test:  # generate 3 second ITI
             ITIuse = np.ones(self.nshocks)*3
 
+        
+        # NRK TODO: add in initial exploration time!
         for idt, ITIdur in enumerate(ITIuse):
-            print('Starting trial ' + str(idt+1) ' with ' + str(ITIdur) + ' second ITI')
+            print('Starting trial ' + str(idt+1) + ' with ' + str(ITIdur) + ' second ITI')
             time.sleep(ITIdur)
             self.run_trial(test_run=test)
+        self.board.digital[self.video_io_pin].write(0)  # experiment over
         
         if not test:
             self.ITIdata = ITIuse
@@ -53,6 +63,20 @@ class trace:
             
     def generate_ITI(self):
         return self.ITI + np.random.random_integers(low=-self.ITI_range, high=self.ITI_range)
+
+    
+    def video_trigger_experiment(self, session, test_run=False):
+        """This needs filling in!"""
+        self.session = session
+        started = False
+        while not started:
+            if self.board.digital[self.video_io_pin].read():
+                if session == 'training':
+                    self.run_experiment(video_start=True, test=test_run)
+                elif session in ['pre', 'ctx_recall', 'tone_recall']:
+                    tones.play_flat_tone(duration=0.5, f=700.0)  # play tones for synchronization
+
+
 
     def run_trial(self, test_run):
         
@@ -67,15 +91,25 @@ class trace:
 
         tones.play_tone(tone_use, fs, volume)
         time.sleep(trace_dur_use)
-        self.board.digital[self.shock_box_pin].write(1)
+        self.board.digital[self.shock_box_pin].write(1)  # signal to shock box
+        self.board.digital[self.shock_io_pin].write(1)  # TTL to Intan or whatever other system you want. Necessary?
         time.sleep(shock_dur_use)
-        self.board.digital[self.shock_box_pin].write(0)
+        self.board.digital[self.shock_box_pin].write(0)  # stop shock signal
+        self.board.digital[self.shock_io_pin].write(0)  # TTL off to Intan or whatever other system you want. Necessary?
 
 
-    def initialize_arduino(self, port='COM7', shock_box_pin=2, shock_io_pin=7, video_io_pin=9):
-        """20210202: No try/except for now because I want to see an error when setting things up for now!"""
+    def initialize_arduino(self, port='COM7', shock_box_pin=2, shock_io_pin=7, video_io_pin=9, video_start=True):
+        """20210202: No try/except for now because I want to see an error when setting things up for now!
+        Not sure shock_io_pin is entirely necessary - just send shock_box_pin to both shock box and open ephys"""
         # try:
         self.board = pyfirmata.Arduino('COM7')
+        if video_start:
+            # start iterator
+            it = pyfirmata.util.Iterator(self.board)
+            it.start()
+            
+            # set video_io_pin to read mode
+            self.board.digital[9].mode = pyfirmata.INPUT
             
         # except FileNotFoundError:
         #     print('Error connecting to Arduino on ' + port)
