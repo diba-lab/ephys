@@ -57,8 +57,9 @@ classdef (Abstract) Oscillation
             ps=PowerSpectrum(S,f);
         end
         function ps=getPSpectrumWelch(obj)
-            window=1*obj.getSampleRate;
-            [psd, freqs] = pwelch(obj.voltageArray, window, [], [], obj.getSampleRate);
+            window=2*obj.getSampleRate;
+            overlap=window/2;
+            [psd, freqs] = pwelch(obj.voltageArray, window, overlap, [], obj.getSampleRate);
             ps=PowerSpectrum(psd,freqs);
         end
         function specslope=getPSpectrumSlope(obj)

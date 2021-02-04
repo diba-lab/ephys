@@ -33,7 +33,7 @@ classdef SDFigures2 <Singleton
                 pyenv("ExecutionMode","OutOfProcess");
             catch
             end
-
+            
             configureFileFooof=fullfile(sde.FileLocations.General.PlotFolder...
                 ,filesep, 'Parameters','Fooof.xml');
             try
@@ -238,43 +238,52 @@ classdef SDFigures2 <Singleton
                             th=ctd.getChannel(thId);
                             allBlock=th.getTimeWindowForAbsoluteTime(timeWindowadj);
                             cacheFilePower=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
-                                ,strcat('PlotFooof_afoof_',DataHash(tses), DataHash(params), DataHash(timeWindowadj),'.mat'));
+                                ,strcat(sprintf('PlotFooof_afoof_%d_%d_%d_',icond,isession,iblock),DataHash(tses), DataHash(params), DataHash(timeWindowadj),'.mat'));
                             try
                                 load(cacheFilePower,'fooof');
                             catch
-                                psd1=allBlock.getPSpectrumWelch;
-                                fooof=psd1.getFooof(params.Fooof,params.Fooof.f_range);
-                                save(cacheFilePower,'fooof')
+                                try
+                                    psd1=allBlock.getPSpectrumWelch;
+                                    params=obj.getParams.Fooof;
+                                    fooof=psd1.getFooof(params.Fooof,params.Fooof.f_range);
+                                    %                                 fooof.plot
+                                    save(cacheFilePower,'fooof')
+                                catch
+                                    fooof=Fooof();
+                                end
                             end
                             stateEpisodes=ss_block.getEpisodes;
                             stateNames=ss_block.getStateNames;
                             clear rippleRates;
-                            for istate=1:numel(stateRatiosInTime)
-                                
-                                thestate=stateRatiosInTime(istate).state;
-                                stateRatio=stateRatiosInTime(thestate);
-                                try
-                                    theStateName=stateNames{istate};
-                                    theEpisode=stateEpisodes.(strcat(theStateName,'state'));
-                                    ticdss=ss_block.TimeIntervalCombined;
-                                    theEpisodeAbs=ticdss.getRealTimeFor(theEpisode);
-                                    episode=allBlock.getTimeWindow(theEpisodeAbs);
-                                    epiFooof=episode.getPSpectrumWelch.getFooof(settings,f_range);
-                                    epiFooof.plot
-                                    [rippleRates(thestate).N,rippleRates(thestate).edges] = histcounts( stateRipplePeaksInSeconds,stateRatio.edges);
-                                    rippleRates(thestate).state=thestate;
-                                catch
-                                end
-                            end
-                            edges=stateRatiosInTime.edges;
+                            
                             for istate=1:numel(stateRatiosInTime)
                                 thestate=stateRatiosInTime(istate).state;
-                                
                                 if sum(ismember([1 2 3 5],thestate))
+                                    cacheFilePower=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
+                                        ,strcat(sprintf('PlotFooof_afoof_%d_%d_%d_%d_',icond,isession,iblock,istate),DataHash(tses), DataHash(params), DataHash(timeWindowadj),'.mat'));
+                                    try
+                                        load(cacheFilePower,'epiFooof')
+                                    catch
+                                        theStateName=stateNames{istate};
+                                        try
+                                            theEpisode=stateEpisodes.(strcat(theStateName,'state'));
+                                            ticdss=ss_block.TimeIntervalCombined;
+                                            theEpisodeAbs=ticdss.getRealTimeFor(theEpisode);
+                                            episode=allBlock.getTimeWindow(theEpisodeAbs);
+                                            params=obj.getParams.Fooof;
+                                            epiFooof=episode.getPSpectrumWelch.getFooof(params.Fooof,params.Fooof.f_range);
+                                        catch
+                                            epiFooof=Fooof();
+                                        end
+                                        save(cacheFilePower,'epiFooof');
+                                        
+                                    end
                                     Cond(iblock).sratio(thestate,:,isession,icond)=stateRatiosInTime(thestate).Ratios;
                                     Cond(iblock).sCount(thestate,:,isession,icond)=stateRatiosInTime(thestate).N;
-                                    Cond(iblock).rCount(thestate,:,isession,icond)=rippleRates(thestate).N;
-                                    Cond(iblock).edges(thestate,:,isession,icond)=rippleRates(thestate).edges;
+                                    Cond(iblock).edges(thestate,:,isession,icond)=stateRatiosInTime(thestate).edges;
+                                    Cond(iblock).fooof(thestate,isession,icond)=epiFooof;
+                                else
+                                    Cond(iblock).fooof(4,isession,icond)=fooof;
                                 end
                             end
                         end
@@ -416,7 +425,7 @@ classdef SDFigures2 <Singleton
                     b=bar(centers, scountmean','stacked','BarWidth',1,'FaceAlpha',.3);
                     ax=gca;
                     %                     ax.XTick=edges;
-%                     ax.YLim=[0 obj.Params.Plot.SlidingWindowSizeInMinutes];
+                    %                     ax.YLim=[0 obj.Params.Plot.SlidingWindowSizeInMinutes];
                     ylabel('State Duration (min)');
                     xlabel('Time (h)');
                     hold on

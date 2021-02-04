@@ -88,7 +88,7 @@ classdef PowerSpectrum <TimeFrequencyEnhance
                 settings = struct();  % Use defaults
             end
             if ~exist('f_range','var')
-                f_range = [1, 250];
+                f_range = [0, 250];
             end
             fooof_results = fooof(powerSpectrum.Frequency, powerSpectrum.Power, f_range, settings, true);
 
