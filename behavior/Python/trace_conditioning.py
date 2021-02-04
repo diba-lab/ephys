@@ -11,7 +11,6 @@ fs = 44100
 volume = 1.0
 ITI_range = 20  # +/- this many seconds for each ITI
 
-
 class trace:
     def __init__(self, arduino_port='COM7', tone_type='white', tone_dur=10, trace_dur=20, 
                  shock_dur=1, ITI=240, tone_freq=None, nshocks=6, volume=1.0, start_buffer=6*60):
@@ -37,6 +36,7 @@ class trace:
     
     def run_experiment(self, video_start, test=False):
         """Basic idea would be to run this AND write the timestamps for everything to a CSV file just in case."""
+        self.session = 'training'
         if not test:
             ITIuse = [self.generate_ITI() for _ in range(0, self.nshocks)]
 
@@ -65,16 +65,17 @@ class trace:
         return self.ITI + np.random.random_integers(low=-self.ITI_range, high=self.ITI_range)
 
     
-    def video_trigger_experiment(self, test_run=False):
+    def video_trigger_experiment(self, session, test_run=False):
         """This needs filling in!"""
-        
+        self.session = session
         started = False
         while not started:
             if self.board.digital[self.video_io_pin].read():
-                self.run_experiment(video_start=True, test=test_run)
+                if session == 'training':
+                    self.run_experiment(video_start=True, test=test_run)
+                elif session in ['pre', 'ctx_recall', 'tone_recall']:
+                    tones.play_flat_tone(duration=0.5, f=700.0)  # play tones for synchronization
 
-    
-    def run_
 
 
     def run_trial(self, test_run):
