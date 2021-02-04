@@ -39,7 +39,9 @@ class trace:
         """Basic idea would be to run this AND write the timestamps for everything to a CSV file just in case."""
         if not test:
             ITIuse = [self.generate_ITI() for _ in range(0, self.nshocks)]
-            if not video_start: # start video if using trace class to trigger experiment start.
+
+            # start video if using trace class to trigger experiment start.
+            if not video_start: 
                 self.board.digital[self.video_io_pin].write(1)  
             time.sleep(self.start_buffer)
         elif test:  # generate 3 second ITI
@@ -71,6 +73,9 @@ class trace:
             if self.board.digital[self.video_io_pin].read():
                 self.run_experiment(video_start=True, test=test_run)
 
+    
+    def run_
+
 
     def run_trial(self, test_run):
         
@@ -99,11 +104,11 @@ class trace:
         self.board = pyfirmata.Arduino('COM7')
         if video_start:
             # start iterator
-            it = pyfirmata.util.Iterator(board)
+            it = pyfirmata.util.Iterator(self.board)
             it.start()
             
             # set video_io_pin to read mode
-            board.digital[9].mode = pyfirmata.INPUT
+            self.board.digital[9].mode = pyfirmata.INPUT
             
         # except FileNotFoundError:
         #     print('Error connecting to Arduino on ' + port)
