@@ -57,9 +57,14 @@ class trace:
     def generate_ITI(self):
         return self.ITI + np.random.random_integers(low=-self.ITI_range, high=self.ITI_range)
 
+    
+    def video_trigger_trial(self):
+        """This needs filling in!"""
+        a = 1
+
     def run_trial(self, test_run):
         
-        if not test_run:exit
+        if not test_run:
             tone_use = self.tone_samples
             trace_dur_use = self.trace_dur
             shock_dur_use = self.shock_dur
@@ -71,16 +76,24 @@ class trace:
         tones.play_tone(tone_use, fs, volume)
         time.sleep(trace_dur_use)
         self.board.digital[self.shock_box_pin].write(1)  # signal to shock box
-        self.board.digital[self.shock_io_pin].write(1)  # TTL to Intan or whatever other system you want
+        self.board.digital[self.shock_io_pin].write(1)  # TTL to Intan or whatever other system you want. Necessary?
         time.sleep(shock_dur_use)
         self.board.digital[self.shock_box_pin].write(0)  # stop shock signal
-        self.board.digital[self.shock_io_pin].write(0)  # TTL off to Intan or whatever other system you want
+        self.board.digital[self.shock_io_pin].write(0)  # TTL off to Intan or whatever other system you want. Necessary?
 
 
-    def initialize_arduino(self, port='COM7', shock_box_pin=2, shock_io_pin=7, video_io_pin=9):
-        """20210202: No try/except for now because I want to see an error when setting things up for now!"""
+    def initialize_arduino(self, port='COM7', shock_box_pin=2, shock_io_pin=7, video_io_pin=9, video_start=True):
+        """20210202: No try/except for now because I want to see an error when setting things up for now!
+        Not sure shock_io_pin is entirely necessary - just send shock_box_pin to both shock box and open ephys"""
         # try:
         self.board = pyfirmata.Arduino('COM7')
+        if video_start:
+            # start iterator
+            it = pyfirmata.util.Iterator(board)
+            it.start()
+            
+            # set video_io_pin to read mode
+            board.digital[9].mode = pyfirmata.INPUT
             
         # except FileNotFoundError:
         #     print('Error connecting to Arduino on ' + port)
