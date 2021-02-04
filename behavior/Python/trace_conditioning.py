@@ -9,7 +9,7 @@ trace_dur_default = 20  # seconds
 shock_dur_default = 1  # seconds at 1mA
 fs = 44100
 volume = 1.0
-ITI_range = 10  # +/- this many seconds for each ITI
+ITI_range = 20  # +/- this many seconds for each ITI
 
 class trace:
     def __init__(self, arduino_port='COM7', tone_type='white', tone_dur=10, trace_dur=20, 
@@ -59,7 +59,7 @@ class trace:
 
     def run_trial(self, test_run):
         
-        if not test_run:
+        if not test_run:exit
             tone_use = self.tone_samples
             trace_dur_use = self.trace_dur
             shock_dur_use = self.shock_dur
