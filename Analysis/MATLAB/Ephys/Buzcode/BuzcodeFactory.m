@@ -13,7 +13,7 @@ classdef BuzcodeFactory
             elseif isa(filepath,'OpenEphysRecord')
                 [filepath,name,ext]=fileparts(filepath.getFile);
                 buzcodeStructure=BuzcodeStructure(filepath);
-            elseif ischar(filepath)
+            elseif ischar(filepath)||isstring(filepath)
                 buzcodeStructure=BuzcodeStructure(filepath);
             else
                 error('What is this bro?')

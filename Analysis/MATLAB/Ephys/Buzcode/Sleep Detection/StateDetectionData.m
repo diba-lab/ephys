@@ -44,18 +44,15 @@ classdef StateDetectionData
             end
             thefile=dir(fullfile(basepath, '*TimeIntervalCombined*'));
             try
-                S=load(fullfile(thefile(1).folder,thefile(1).name));
+                ticd=TimeIntervalCombined(fullfile(thefile.folder,thefile.name));
             catch
                 warning('I couldn''t find the TimeIntervalCombined file.\n\t%s',thefile);
             end
             
-            
-            fname=fieldnames(S);
-            timeIntervalCombined=S.(fname{1});
-            obj.TimeIntervalCombinedOriginal=timeIntervalCombined;
-            downsampleFactor=timeIntervalCombined.getSampleRate/obj.SleepScoreLFP.sf;
-            timeIntervalCombinedDownsampled=timeIntervalCombined.getDownsampled(downsampleFactor);
-            npds=timeIntervalCombinedDownsampled.getNumberOfPoints;
+            obj.TimeIntervalCombinedOriginal=ticd;
+            downsampleFactor=ticd.getSampleRate / obj.SleepScoreLFP.sf;
+            timeIntervalCombinedDownsampled=ticd.getDownsampled(downsampleFactor);
+            npds=numel(timeIntervalCombinedDownsampled.getTimePointsInSec);
             npss=numel(obj.SleepScoreLFP.t);
             if abs((npds-npss)/npss)<.0001
                 
@@ -65,18 +62,14 @@ classdef StateDetectionData
                     timeIntervalCombinedDownsampled.getNumberOfPoints,...
                     numel(obj.SleepScoreLFP.t));
             end
-            thefile=dir(fullfile(basepath, '*.lfp'));
-            [~,name,~]=fileparts(thefile(1).name);
-            basename=fullfile(basepath,name);
-            obj.BaseName=basename;
-            thefile=dir(fullfile(basepath, '*BlockTimes*'));
             try
-                S=load(fullfile(thefile(1).folder,thefile(1).name));
-                fname=fieldnames(S);
-                obj.Blocks=S.(fname{1});
+                ses=Session(basepath);
+                obj.Blocks=SDBlocks(ses.SessionInfo.Date,ses.Blocks);
             catch
-                warning('I couldn''t find the BlockTimes file.\n\t%s',basepath);
             end
+            list=dir(fullfile(basepath, '*.lfp'));
+            [folder,name,~]=fileparts(fullfile(list.folder,list.name));
+            obj.BaseName=strcat(folder,filesep,name);
         end
         
         function episodes= joinStates(obj)
@@ -94,8 +87,11 @@ classdef StateDetectionData
             chname=num2str(obj.getThetaChannelID);
             LFP=Channel(chname,ch(1:obj.TimeIntervalCombinedDownSampled.getNumberOfPoints),obj.TimeIntervalCombinedDownSampled);
         end
-        function [LFP]= getThetaChannelID(obj)
-            LFP=obj.SleepScoreLFP.THchanID;
+        function [ch]= getThetaChannelID(obj)
+            ch=obj.SleepScoreLFP.THchanID;
+        end
+        function [ch]= getSWChannelID(obj)
+            ch=obj.SleepScoreLFP.SWchanID;
         end
         function [tps]= getTimePoints(obj,downsample)
             ti=obj.TimeIntervalCombinedOriginal;
@@ -152,11 +148,12 @@ classdef StateDetectionData
             chanSelected.plot(varargin{:});
             M=nanmean(chanSelected.getVoltageArray);SD=2*nanstd(chanSelected.getVoltageArray);
             ax=gca;
-            ax.YLim=[M-SD M+SD];
+            ax.YLim=[M-5*SD M+5*SD];
             ax.XLim=[obj.TimeIntervalCombinedOriginal.getStartTime obj.TimeIntervalCombinedOriginal.getEndTime];
             ax.Color='none';title('');ylabel(chanSelected.getChannelName)
         end
         function [LFP]= getLFP(obj,channel,downsample)
+            warning('Depricated Method. Use ChannelTimeData.getChannel OR .getCahnnelsLFP.')
             tokens=tokenize(obj.BaseName,filesep);
             path=[];
             for i=1:numel(tokens)-1
@@ -203,7 +200,13 @@ classdef StateDetectionData
             states=idx.states;
             ticd=obj.TimeIntervalCombinedOriginal.getDownsampled(...
                 obj.TimeIntervalCombinedOriginal.getSampleRate/1);
+            if numel(states)<ticd.getNumberOfPoints
+                states(numel(states)+1)=states(numel(states));
+            end
             ss=StateSeries(states,ticd);
+            ss=ss.setEpisodes(obj.SleepState.ints);
+            ss=ss.setStateNames(idx.statenames);
+            
         end
         function probe=getProbe(obj)
             probe=obj.Probe;
@@ -217,7 +220,7 @@ classdef StateDetectionData
             else
                 window=[obj.TimeIntervalCombinedDownSampled.getStartTime obj.TimeIntervalCombinedDownSampled.getEndTime];
             end
-            ticd=obj.TimeIntervalCombinedOriginal.getTimeIntervalForTimes(window(1),window(2));
+            ticd=obj.TimeIntervalCombinedOriginal.getTimeIntervalForTimes(window);
             t(1)=obj.TimeIntervalCombinedOriginal.getSampleFor(window(1));
             t(2)=obj.TimeIntervalCombinedOriginal.getSampleFor(window(2));
             
@@ -246,16 +249,16 @@ classdef StateDetectionData
             obj.plotLFP(channel)
             %             obj.plotThetaLFP('Color','k');
             hold on
-            blcks=obj.Blocks.TimeTable;clr=[.3 .3 .3];
+            blcks=obj.Blocks.getTimeTable;clr=[.3 .3 .3];
             for ibl=1:height(blcks)
-                plot([blcks.start(ibl) blcks.end1(ibl)],[0 0],...
+                plot([blcks.t1(ibl) blcks.t2(ibl)],[0 0],...
                     'LineWidth',4,'Color',clr);
-                plot([blcks.start(ibl) blcks.start(ibl)],[raw.YLim(1)/2 raw.YLim(2)/2],...
+                plot([blcks.t1(ibl) blcks.t1(ibl)],[raw.YLim(1)/2 raw.YLim(2)/2],...
                     'LineWidth',3,'Color',clr);
-                plot([blcks.end1(ibl) blcks.end1(ibl)],[raw.YLim(1)/2 raw.YLim(2)/2],...
+                plot([blcks.t2(ibl) blcks.t2(ibl)],[raw.YLim(1)/2 raw.YLim(2)/2],...
                     'LineWidth',3,'Color',clr);
-                text(blcks.start(ibl)+(blcks.end1(ibl)-blcks.start(ibl))/2,...
-                    0,blcks.name{ibl},'Color',clr*2,'FontSize',20,'HorizontalAlignment','center')
+                text(blcks.t1(ibl)+(blcks.t2(ibl)-blcks.t1(ibl))/2,...
+                    0,blcks.Block{ibl},'Color',clr*2,'FontSize',20,'HorizontalAlignment','center')
             end
             plot([ticd.getStartTime ticd.getStartTime ticd.getEndTime ticd.getEndTime ticd.getStartTime],...
                 [raw.YLim(1) raw.YLim(2) raw.YLim(2) raw.YLim(1) raw.YLim(1)],'LineWidth',2,'Color','r');

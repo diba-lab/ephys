@@ -7,6 +7,7 @@ classdef (Abstract) TimeFrequencyMap < Topography2D
         timePoints
         frequencyPoints
         clim
+        timeIntervalCombined
     end
     methods (Abstract)
     end
@@ -41,6 +42,16 @@ classdef (Abstract) TimeFrequencyMap < Topography2D
             freq=obj.frequencyPoints;
             freqpoints=(freqRange(1)<freq)&(freqRange(2)>freq);
             meanfreq=mean(mat(:,freqpoints),2);
+        end
+        function [obj] = setTimeintervalCombined(obj,ticd)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            obj.timeIntervalCombined=ticd;
+        end
+        function [ticd] = getTimeintervalCombined(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            ticd=obj.timeIntervalCombined;
         end
 
     end

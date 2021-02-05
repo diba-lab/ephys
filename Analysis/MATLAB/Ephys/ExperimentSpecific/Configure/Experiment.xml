@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<struct>
+    <FileLocations>
+        <General>
+            <ExperimentConfig>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Experiment.xml</ExperimentConfig>
+            <Sessions>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Sessions.txt</Sessions>
+            <Animals>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Animals.xml</Animals>
+            <ProbeTemplate>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Probes/ProbeTemplate.xlsx</ProbeTemplate>
+            <ProbeFolder>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Probes</ProbeFolder>
+            <PlotFolder>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines</PlotFolder>
+        </General>
+        <Session>
+            <SessionInfo>Parameters/SessionInfo.xml</SessionInfo>
+            <RippleDetection>Parameters/RippleDetection.xml</RippleDetection>
+            <Blocks>Parameters/Blocks.csv</Blocks>
+            <Probe>Parameters/Probe.xlsx</Probe>
+            <Analysis>Parameters/Analysis.xml</Analysis>
+        </Session>
+        <Preprocess>
+            <RawFiles>Preprocess/RawFiles.xml</RawFiles>
+            <ForClustering>Preprocess/ForClustering.xml</ForClustering>
+            <OutputFolderForClustering>/data2/gdrive/ephys/clustering</OutputFolderForClustering>
+            <ForLFP>Preprocess/ForLFP.xml</ForLFP>
+            <Bad>Preprocess/Bad.xml</Bad>
+            <Probe>Preprocess/Probe.xlsx</Probe>
+            <Parameters>Preprocess/Parameters.xml</Parameters>
+        </Preprocess>
+    </FileLocations>
+    <Blocks>
+        <Block>PRE</Block>
+        <Block>SD_NSD</Block>
+        <Block>TRACK</Block>
+        <Block>POST</Block>
+    </Blocks>
+</struct>

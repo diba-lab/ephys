@@ -5,6 +5,7 @@ classdef BuzcodeStructure
     properties
         BasePath
         TimeIntervalCombined
+        BadIntervals
         Probe
     end
     
@@ -40,9 +41,7 @@ classdef BuzcodeStructure
             end
             try
                 list=dir(fullfile(obj.BasePath,'*TimeInterval*'));
-                S=load(fullfile(list.folder,list.name));
-                fnames=fieldnames(S);
-                obj.TimeIntervalCombined=S.(fnames{1});
+                obj.TimeIntervalCombined=TimeIntervalCombined(fullfile(list.folder,list.name));
             catch
                 fprintf('No TimeIntervalCombined File at: %s',obj.BasePath);
             end
@@ -56,35 +55,68 @@ classdef BuzcodeStructure
                 end
             end
             conf=readConf(fullfile(list.folder,list.name));
-            chans=str2double( conf.channnels);
-            list1=dir(fullfile(obj.BasePath,'*.xml'));
-            str=DataHash(conf);
-            cacheFileName=fullfile(obj.BasePath,'cache',[str '.mat']);
-            [folder,~,~]=fileparts(cacheFileName);if ~isfolder(folder), mkdir(folder); end
-            if ~exist(cacheFileName,'file')
-                ripple=detect_swr(fullfile(list1.folder,list1.name),chans,[]...
-                    ,'EVENTFILE',str2double( conf.eventfile)...
-                    ,'FIGS',str2double( conf.figs)...
-                    ,'swBP',str2double( conf.swbp)...
-                    ,'ripBP',str2double( conf.ripbp)...
-                    ,'WinSize',str2double( conf.winsize)...
-                    ,'Ns_chk',str2double( conf.ns_chk)...
-                    ,'thresSDswD',str2double( conf.thressdswd)...
-                    ,'thresSDrip',str2double( conf.thressdrip)...
-                    ,'minIsi',str2double( conf.minisi)...
-                    ,'minDurSW',str2double( conf.mindursw)...
-                    ,'maxDurSW',str2double( conf.maxdursw)...
-                    ,'minDurRP',str2double( conf.mindurrp)...
-                    ,'DEBUG',str2double( conf.debug)...
-                    );
-                save(cacheFileName,'ripple');
-            else
-                S=load(cacheFileName);
-                fnames=fieldnames(S);
-                ripple=S.(fnames{1});
+            switch str2double(conf.detectiontype)
+                case 1
+                    method=SWRDetectionMethodRippleOnly(obj.BasePath);
+                case 2
+                    method=SWRDetectionMethodSWR(obj.BasePath);
+                case 3
+                    method=SWRDetectionMethodCombined(obj.BasePath);
+                otherwise
+                    error('Incorrect Detection Type. Should be 1,2, or 3.')
             end
-            ripple1=Ripple(ripple);
+            ripple1=method.execute;
             ripple1=ripple1.setTimeIntervalCombined(obj.TimeIntervalCombined);
+        end
+        function [] = calculateRipple(obj)
+            warning('Depricated! Use calculateSWR() and change configure.conf file. Set detection type=1.')
+        end
+        function sdd = detectStates(obj,params)
+            try
+                sdd=StateDetectionData(obj.BasePath);
+            catch
+                
+                if params.Overwrite, overwrite=true; else, overwrite=false;end
+                varargin=cell(1,1);
+                try
+                    if ~(isempty(params.Channels.BestSW)||strcmp(params.Channels.BestSW,""))
+                        varargin={varargin{:}, 'SWChannels', params.Channels.BestSW};
+                    else
+                        varargin={varargin{:}, 'SWChannels', params.Channels.SWChannels};
+                    end
+                catch
+                end
+                try
+                    if ~(isempty(params.Channels.BestTheta)||strcmp(params.Channels.BestTheta,""))
+                        varargin={varargin{:},'ThetaChannels',params.Channels.BestTheta};
+                    else
+                        varargin={varargin{:},'ThetaChannels',params.Channels.ThetaChannels};
+                    end
+                catch
+                end
+                try
+                    varargin={varargin{:},'EMGChannels',params.Channels.EMGChannel};
+                catch
+                end
+                try varargin={varargin{:},'overwrite',overwrite};catch; end
+                try
+                    bad=struct2table( params.bad.Time);
+                    sampleRate=obj.TimeIntervalCombined.getSampleRate;
+                    start=obj.TimeIntervalCombined.getSampleFor(bad.Start)/sampleRate;
+                    stop=obj.TimeIntervalCombined.getSampleFor(bad.Stop)/sampleRate;
+                    bad1(:,1)=start;
+                    bad1(:,2)=stop;
+                    varargin={varargin{:},'ignoretime',bad1};
+                catch
+                end
+                varargin1=varargin(2:end);
+                SleepScoreMaster(obj.BasePath,varargin1{:});
+                sdd=StateDetectionData(obj.BasePath);
+            end
+        end
+        
+        function obj=setBadIntervals(obj,bad)
+            obj.BadIntervals=bad;
         end
     end
 end

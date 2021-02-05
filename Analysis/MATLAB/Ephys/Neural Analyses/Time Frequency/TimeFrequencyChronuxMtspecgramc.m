@@ -16,6 +16,12 @@ classdef TimeFrequencyChronuxMtspecgramc < TimeFrequencyMethod
                 movingWindow, tapers, pad, err)
             %TIMEFREQUENCYPROPERTIESWAVELET Construct an instance of this class
             %   Detailed explanation goes here
+            %       movingwin         (in the form [window winstep] i.e length of moving
+%                                                 window and step size)
+%                                                 Note that units here have
+%                                                 to be consistent with
+%                                                 units of Fs - required
+
             obj = obj@TimeFrequencyMethod(frequencyInterests);
             obj.fpass=frequencyInterests;
             obj.movingWindow=movingWindow;

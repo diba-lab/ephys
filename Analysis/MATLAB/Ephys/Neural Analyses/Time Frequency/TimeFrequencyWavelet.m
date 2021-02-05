@@ -5,6 +5,7 @@ classdef TimeFrequencyWavelet < TimeFrequencyMethod
     properties
         centralFrequency
         scalingExponent
+        sampleRate
     end
     
     methods
@@ -26,16 +27,16 @@ classdef TimeFrequencyWavelet < TimeFrequencyMethod
         end
         
         function aTimeFrequencyMap = execute(obj,...
-                data, time)
+                data, sampleRate)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             matrix=cmorTransSpec(data,...
-                obj.getSamplingFrequency(time),...
+                sampleRate,...
                 obj.FrequencyInterest,...
                 obj.centralFrequency,...
                 obj.scalingExponent);
             aTimeFrequencyMap=TimeFrequencyMapWavelet(...
-                matrix, time, obj.FrequencyInterest);
+                matrix, (1:numel(data))/sampleRate, obj.FrequencyInterest);
         end
     end
 end

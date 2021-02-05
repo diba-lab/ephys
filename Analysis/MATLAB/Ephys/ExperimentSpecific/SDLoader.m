@@ -44,12 +44,13 @@ classdef (Abstract) SDLoader < Singleton
         function workspace=getActiveWorkspaceFile(obj)
             workspace=obj.activeWorkspaceFile;
         end
-        function obj=loadOERFiles(obj,files)
+        function oerc=loadOERFiles(obj,files)
+            
             for ifile=1:numel(files)
                 filename=fullfile(files{ifile});
                 oer =OpenEphysRecordFactory.getOpenEphysRecord(filename);
                 if ~exist('oerc','var')
-                    oerc=oer;
+                    oerc=OpenEphysRecordsCombined( oer);
                 else
                     oerc=oerc+oer;
                 end
@@ -60,8 +61,10 @@ classdef (Abstract) SDLoader < Singleton
                 oerc=oerc.setProbe(prb);
                 fprintf('Probe file found for OpenEphysCombined.\n')
             catch
-                warning('Probe file could not be found for OpenEphysCombined.\n')
-            end 
+                warning('Probe file could not be found for OpenEphysCombined. %s\n',...
+                    obj.activeWorkspaceFile)
+            end
+            
             obj.activeOpenEphysRecord=oerc;
             
         end
