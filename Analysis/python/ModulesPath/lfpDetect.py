@@ -7,6 +7,7 @@ import numpy.random as rnd
 import os
 import matplotlib.pyplot as plt
 from datetime import datetime
+import seaborn as sns
 
 
 def swr(lfp, sRate, PlotRippleStat=0):
