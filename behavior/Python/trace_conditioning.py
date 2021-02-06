@@ -119,11 +119,9 @@ class trace:
             "tone_recall",
         ]  # Make sure session is properly named
         if not test_run:
-            self.session = session + ".csv"
+            self.session = session
         elif test_run:
-            self.session = session + "_test.csv"
-        self.csv_path = self.base_dir / self.session
-        started = False
+            self.session = session + "_test"
 
         # Print update to screen
         if not force_start:
@@ -132,11 +130,17 @@ class trace:
             print("Force starting experiment")
 
         # Now start once you get TTL to video i/o pin
+        started = False
         while not started:
             if self.board.digital[self.video_io_pin].read() or force_start:
-                print("Experiment triggered by video!")
+                print("Experiment triggered by video (or forced)!")
                 self.start_time = time.time()
                 self.start_datetime = datetime.now()
+                self.csv_path = self.base_dir / (
+                    self.session
+                    + self.start_datetime.strftime("%m_%d_%Y-%H_%M_%S")
+                    + ".csv"
+                )  # Make csv file with start time appended
                 self.write_event("video_start")  # write first line to csv
                 if session == "training":
                     self.run_training_session(test=test_run)
@@ -266,8 +270,14 @@ def write_csv(filename, timestamp, event_id):
     if not filename.exists():
         with open(filename, "w", newline="") as csvfile:
             spamwriter = csv.writer(csvfile, delimiter=",")
+            start_time = datetime.now()
             spamwriter.writerow(
-                ["Start time", datetime.now().strftime("%m/%d/%Y, %H:%M:%S")]
+                [
+                    "Start time",
+                    start_time.strftime("%m/%d/%Y, %H:%M:%S"),
+                    "microseconds",
+                    str(start_time.microsecond),
+                ]
             )
             spamwriter.writerow(["Time (s)", "Event"])
 
