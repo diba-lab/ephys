@@ -18,7 +18,7 @@ def play_tone(samples, fs, volume):
 
     p = pyaudio.PyAudio()
 
-    # for paFloat32 sample values must be in range [-1.0, 1.0]
+    # # for paFloat32 sample values must be in range [-1.0, 1.0]
     stream = p.open(format=pyaudio.paFloat32, channels=1, rate=fs, output=True)
 
     # play. May repeat with different volume values (if done interactively)

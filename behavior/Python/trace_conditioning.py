@@ -287,9 +287,9 @@ def write_csv(filename, timestamp, event_id):
         spamwriter.writerow([timestamp, event_id])
 
 
-# NRK TODO: append timestamp to end of csv file so that you never overwrite things!
-
 # NRK TODO: Figure out why play_tone for 1 second takes waaaay longer than 1 second. Probably need to initialize
+
+# NRK TODO: Figure out why it doesn't work if video_in is on when you start experiment...
 # pyaudio stream first and keep it alive!  make it a better class!
 
 # def test_run():
