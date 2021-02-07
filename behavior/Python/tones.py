@@ -11,12 +11,35 @@ fs = 44100  # sampling rate, Hz, must be integer
 
 
 class tones:
-    def __init__(self):
+    """Class to play tones/noise.  Initializes with a 1 second 400 Hz tone and 10 second white noise ready to go."""
+
+    def __init__(self, tone_duration=1.0, tone_f=400, white_noise_duration=10):
+        self.tone_duration = tone_duration
+        self.tone_f = tone_f
+        self.white_noise_duration = white_noise_duration
+
         self.p, self.stream = initialize_player(channels=1, rate=fs)
 
-    #
-    # def play_tone(self):
-    #     play_tone(self.stream)
+        # self.generate_pure_tone(self.tone_duration, self.tone_f)
+
+    def generate_pure_tone(self):
+        self.pure_tone_samples = generate_pure_tone(self.tone_duration, self.tone_f)
+
+    def generate_white_noise(self):
+        self.white_noise_samples = generate_white_noise(self.white_noise_duration)
+
+    def play_flat_tone(self, volume=1.0):
+        play_flat_tone(
+            stream=self.stream,
+            duration=self.tone_duration,
+            f=self.tone_f,
+            volume=volume,
+        )
+
+    def play_white_noise(self, volume=1.0):
+        play_white_noise(
+            duration=self.white_noise_duration, volume=volume, stream=self.stream
+        )
 
 
 def initialize_player(channels, rate):
@@ -42,8 +65,8 @@ def play_tone(stream, samples, volume):
     # play. May repeat with different volume values (if done interactively)
     stream.write((volume * samples).tobytes())
 
-    stream.stop_stream()
-    stream.close()
+    # stream.stop_stream()
+    # stream.close()
 
     # p.terminate()
     #
@@ -61,17 +84,19 @@ def play_flat_tone(stream=None, duration=10.0, f=700.0, volume=1.0, plot=False):
     # duration = 1.0   # in seconds, may be float
     # f = 700.0        # sine frequency, Hz, may be float
 
+    close_stream = False
     if stream is None:
         p, stream = initialize_player(channels=1, rate=fs)
+        close_stream = True
 
     # generate samples for tone
     samples = generate_pure_tone(duration, f)
 
     # play tone
-    play_tone(stream, samples, fs, volume)
+    play_tone(stream, samples, volume)
 
     # close player if not pre-initialized
-    if stream is None:
+    if close_stream:
         p.terminate()
 
     # plot tone trace and frequency spectrum if specified
@@ -96,9 +121,12 @@ def generate_white_noise(duration):
     return noise
 
 
-def play_white_noise(duration, fs=44100, volume=1.0):
+def play_white_noise(duration, volume=1.0, stream=None):
+    if stream is None:
+        p, stream = initialize_player(channels=1, rate=fs)
+
     noise = generate_white_noise(duration)
-    play_tone(noise, fs, volume)
+    play_tone(stream, noise, volume)
 
 
 def pitch_to_freq(pitch):
