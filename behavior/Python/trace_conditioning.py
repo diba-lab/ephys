@@ -99,10 +99,23 @@ class trace:
         if not test:
             self.ITIdata = ITIuse
 
-        # NRK TODO: save timestamps for all events to a .npy file? or a dict?
+    def run_tone_recall(self, baseline_time=120, CSshort=10, ITI=120, CSlong=300):
+        """Run tone recall session with baseline exploration time, short CS, ITI, and long CS"""
+        self.tone_recall_params = {
+            "baseline_time": baseline_time,
+            "CSshort": CSshort,
+            "ITI": ITI,
+            "CSlong": CSlong,
+        }
 
-        # NRK TODO: Pickle and save entire class as reference data for later.
-        # Best would be to track ALL timestamps for later reference just in case.
+        print("Starting " + str(baseline_time) + " sec baseline exploration period")
+        sleep_timer(baseline_time)
+        print(str(CSshort) + " sec short tone playing now")
+        sleep_timer(CSshort)
+        print(str(ITI) + " sec ITI starting now")
+        sleep_timer(ITI)
+        print(str(CSlong) + " sec long tone playing now")
+        sleep_timer(ITI)
 
     def generate_ITI(self):
         return self.ITI + np.random.random_integers(
@@ -150,9 +163,20 @@ class trace:
                         duration=0.5, f=700.0
                     )  # play tones for synchronization
                     self.write_event("end_sync_tone")
+                    if session == "tone_recall":
+                        self.run_tone_recall()
                 started = True
 
     # NRK TODO: test force_start above!
+
+    # NRK TODO: Pickle and save entire class as reference data for later.
+    # Best would be to track ALL timestamps for later reference just in case.
+
+    # NRK TODO: save info for experiment run in a dict for later! Could initialize with session name or day name?
+
+    # NRK TODO: make sure you list all relevant variables for each experiment in a dict.
+
+    # NRK TODO: Make trace.run_tone_recall() input consistent - keep at top during initialization?
 
     def run_trial(self, test_run):
 
@@ -289,7 +313,7 @@ def write_csv(filename, timestamp, event_id):
 
 # NRK TODO: Figure out why play_tone for 1 second takes waaaay longer than 1 second. Probably need to initialize
 
-# NRK TODO: Figure out why it doesn't work if video_in is on when you start experiment...
+# NRK TODO: Figure out why it doesn't work if video_in is on when you start experiment...git
 # pyaudio stream first and keep it alive!  make it a better class!
 
 # def test_run():
