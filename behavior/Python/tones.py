@@ -10,16 +10,34 @@ import matplotlib.pyplot as plt
 fs = 44100  # sampling rate, Hz, must be integer
 
 
-def play_tone(samples, fs, volume):
-    """Generic function to play tone specified in samples array
-    :param: samples = array to play
-    :param: fs = sampling rate
-    :param: volumne = 0 to 1.0"""
+class tones:
+    def __init__(self):
+        self.p, self.stream = initialize_player(channels=1, rate=fs)
 
+    #
+    # def play_tone(self):
+    #     play_tone(self.stream)
+
+
+def initialize_player(channels, rate):
     p = pyaudio.PyAudio()
 
+    # for paFloat32 sample values must be in range [-1.0, 1.0]
+    stream = p.open(format=pyaudio.paFloat32, channels=channels, rate=rate, output=True)
+
+    return p, stream
+
+
+def play_tone(stream, samples, volume):
+    """Generic function to play tone specified in samples array on pre-defined pyaudio stream
+    :param: samples = array to play
+    :param: fs = sampling rate
+    :param: volume = 0 to 1.0"""
+
+    # p = pyaudio.PyAudio()
+    #
     # # for paFloat32 sample values must be in range [-1.0, 1.0]
-    stream = p.open(format=pyaudio.paFloat32, channels=1, rate=fs, output=True)
+    # stream = p.open(format=pyaudio.paFloat32, channels=1, rate=fs, output=True)
 
     # play. May repeat with different volume values (if done interactively)
     stream.write((volume * samples).tobytes())
@@ -27,9 +45,9 @@ def play_tone(samples, fs, volume):
     stream.stop_stream()
     stream.close()
 
-    p.terminate()
-
-    return p
+    # p.terminate()
+    #
+    # return p
 
 
 def generate_pure_tone(duration, f):
@@ -38,16 +56,23 @@ def generate_pure_tone(duration, f):
     )  # note conversion to float32 array
 
 
-def play_flat_tone(duration=10.0, f=700.0, volume=1.0, plot=False):
+def play_flat_tone(stream=None, duration=10.0, f=700.0, volume=1.0, plot=False):
     """Play a flat tone at a certain frequency"""
     # duration = 1.0   # in seconds, may be float
     # f = 700.0        # sine frequency, Hz, may be float
+
+    if stream is None:
+        p, stream = initialize_player(channels=1, rate=fs)
 
     # generate samples for tone
     samples = generate_pure_tone(duration, f)
 
     # play tone
-    play_tone(samples, fs, volume)
+    play_tone(stream, samples, fs, volume)
+
+    # close player if not pre-initialized
+    if stream is None:
+        p.terminate()
 
     # plot tone trace and frequency spectrum if specified
     if plot:
