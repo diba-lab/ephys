@@ -79,7 +79,7 @@ def generate_pure_tone(duration, f):
     )  # note conversion to float32 array
 
 
-def play_flat_tone(stream=None, duration=10.0, f=700.0, volume=1.0, plot=False):
+def play_flat_tone(duration=10.0, f=700.0, volume=1.0, stream=None, plot=False):
     """Play a flat tone at a certain frequency"""
     # duration = 1.0   # in seconds, may be float
     # f = 700.0        # sine frequency, Hz, may be float
@@ -145,7 +145,7 @@ def freq_to_pitch(freq):
 
 # Test run when importing to ensure speaker is hooked up!
 print("Playing a quick 400Hz tone - check speaker setup if you don" "t hear it!")
-play_flat_tone(duration=0.25, f=400)
+play_flat_tone(duration=0.5, f=400)
 
 # NRK Todo: 1) Make all pure tones and sweeps use pysinewave and same inputs (frequencies)
 # 2) Create white-noise generator - base it off of the pysinesave architecture if possible

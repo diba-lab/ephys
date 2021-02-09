@@ -59,6 +59,7 @@ class trace:
         self.start_buffer = start_buffer  # seconds before 1st trial.
         self.base_dir = base_dir
         self.p, self.stream = tones.initialize_player(channels=1, rate=20100)
+        self.csv_path = None
 
         # First connect to the Arduino - super important
         self.initialize_arduino(self.arduino_port)
@@ -110,14 +111,13 @@ class trace:
             "CSlong": CSlong,
         }
 
-
         CStone_short = self.create_tone(
-                tone_type=self.tone_type, duration=CSshort, freq=self.tone_freq
-            )
+            tone_type=self.tone_type, duration=CSshort, freq=self.tone_freq
+        )
 
         CStone_long = self.create_tone(
-                tone_type=self.tone_type, duration=CSlong, freq=self.tone_freq
-            )
+            tone_type=self.tone_type, duration=CSlong, freq=self.tone_freq
+        )
 
         print("Starting " + str(baseline_time) + " sec baseline exploration period")
         self.write_event("baseline_start")
@@ -137,12 +137,10 @@ class trace:
         tones.play_tone(self.stream, CStone_long, volume)
         self.write_event("CSlong_end")
 
-        print('Final 1 minute exploration period starting now')
-        self.write_event('final_explore_start')
+        print("Final 1 minute exploration period starting now")
+        self.write_event("final_explore_start")
         sleep_timer(60)
-        self.write_event('final_explore_end')
-        
-
+        self.write_event("final_explore_end")
 
     def generate_ITI(self):
         return self.ITI + np.random.random_integers(
@@ -186,22 +184,26 @@ class trace:
 
                 # play tones for synchronization
                 self.write_event("start_sync_tone")
-                tones.play_flat_tone(
-                    duration=0.5, f=1000.0
-                )  
+                tones.play_flat_tone(duration=0.5, f=1000.0)
                 self.write_event("end_sync_tone")
 
                 self.write_event("video_start")  # write first line to csv
                 if session == "training":
                     self.run_training_session(test=test_run)
-                elif session in ["pre", "habituation", "post", "ctx_recall", "tone_recall"]:
+                elif session in [
+                    "pre",
+                    "habituation",
+                    "post",
+                    "ctx_recall",
+                    "tone_recall",
+                ]:
                     if session == "tone_recall":
                         self.run_tone_recall()
-                    elif session == 'ctx_recall':
-                        print('Starting context recall session')
-                        self.write_event('ctx_explore_start')
-                        sleep_timer(60*10)
-                        self.write_event('ctx_explore_end')
+                    elif session == "ctx_recall":
+                        print("Starting context recall session")
+                        self.write_event("ctx_explore_start")
+                        sleep_timer(60 * 10)
+                        self.write_event("ctx_explore_end")
 
                 started = True
 
@@ -282,11 +284,11 @@ class trace:
         20210202: Only white noise working. freq input needs to be a float or list of floats for tone sweep"""
         if tone_type == "white":
             tone_samples = tones.generate_white_noise(duration)
-        elif tone_type == 'pure_tone':
+        elif tone_type == "pure_tone":
             tone_samples = tones.generate_pure_tone(duration, self.tone_freq)
         else:
             tone_samples = None
-        
+
         #     tone_samples = None
         # elif tone_type == 'tone_sweep':
         #     tone_samples = None
@@ -310,6 +312,12 @@ class trace:
 
     def write_event(self, event_id):
         """Writes event and its timestamp to csv file"""
+        if self.csv_path is None:
+            self.start_time = time.time()
+            self.start_datetime = datetime.now()
+            self.csv_path = self.base_dir / (
+                "test" + self.start_datetime.strftime("%m_%d_%Y-%H_%M_%S") + ".csv"
+            )
         write_csv(self.csv_path, time.time() - self.start_time, event_id)
 
 
@@ -358,5 +366,3 @@ def write_csv(filename, timestamp, event_id):
 #     """Run this to quickly check that all components are working.
 #     20210202: should hear tone and see shock lights turn on.
 #     Future: will need to add in verification that TTL outs to acquisition system are working too."""
-
-
