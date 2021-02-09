@@ -7,13 +7,13 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # Keep this up top for now, can easily put into a function later if it seems like I need to do so...
-fs = 44100  # sampling rate, Hz, must be integer
+fs = 20100  # sampling rate, Hz, must be integer
 
 
 class tones:
     """Class to play tones/noise.  Initializes with a 1 second 400 Hz tone and 10 second white noise ready to go."""
 
-    def __init__(self, tone_duration=1.0, tone_f=400, white_noise_duration=10):
+    def __init__(self, tone_duration=1.0, tone_f=1200, white_noise_duration=10):
         self.tone_duration = tone_duration
         self.tone_f = tone_f
         self.white_noise_duration = white_noise_duration

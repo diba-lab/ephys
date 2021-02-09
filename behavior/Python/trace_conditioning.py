@@ -1,9 +1,10 @@
 """Class and functions for trace fear conditioning.
 General order of events:
-0) Run trace.start_experiment()
+0) Run trace.trace()
 1) Start USV recorder
 2) Start webcam
-3) Start Optitrack (Make sure TTL_out connected to video_io_pin on arduino!)"""
+3) run trace.start_experiment()
+4) Start Optitrack (Make sure TTL_out connected to video_io_pin on arduino!)"""
 import time
 import tones
 import pyfirmata
@@ -57,6 +58,7 @@ class trace:
         self.volume = volume
         self.start_buffer = start_buffer  # seconds before 1st trial.
         self.base_dir = base_dir
+        self.p, self.stream = tones.initialize_player(channels=1, rate=20100)
 
         # First connect to the Arduino - super important
         self.initialize_arduino(self.arduino_port)
@@ -111,11 +113,15 @@ class trace:
         print("Starting " + str(baseline_time) + " sec baseline exploration period")
         sleep_timer(baseline_time)
         print(str(CSshort) + " sec short tone playing now")
-        sleep_timer(CSshort)
+        # Add in CSshort tone here!
+        # sleep_timer(CSshort)
         print(str(ITI) + " sec ITI starting now")
         sleep_timer(ITI)
         print(str(CSlong) + " sec long tone playing now")
-        sleep_timer(ITI)
+        # Add in CS long tone here!
+        sleep_timer(CSlong)
+
+        # NRK TODO: Add in tones for CSshort and CSlong!!!
 
     def generate_ITI(self):
         return self.ITI + np.random.random_integers(
@@ -127,6 +133,8 @@ class trace:
         param: force_start: set to True if Optitrack crashes and you need to start manually"""
         assert session in [
             "pre",
+            "post",
+            "habituation",
             "training",
             "ctx_recall",
             "tone_recall",
@@ -154,15 +162,18 @@ class trace:
                     + self.start_datetime.strftime("%m_%d_%Y-%H_%M_%S")
                     + ".csv"
                 )  # Make csv file with start time appended
+
+                # play tones for synchronization
+                self.write_event("start_sync_tone")
+                tones.play_flat_tone(
+                    duration=0.5, f=1000.0
+                )  
+                self.write_event("end_sync_tone")
+
                 self.write_event("video_start")  # write first line to csv
                 if session == "training":
                     self.run_training_session(test=test_run)
-                elif session in ["pre", "ctx_recall", "tone_recall"]:
-                    self.write_event("start_sync_tone")
-                    tones.play_flat_tone(
-                        duration=0.5, f=700.0
-                    )  # play tones for synchronization
-                    self.write_event("end_sync_tone")
+                elif session in ["pre", "habituation", "post", "ctx_recall", "tone_recall"]:
                     if session == "tone_recall":
                         self.run_tone_recall()
                 started = True
@@ -195,7 +206,7 @@ class trace:
 
         # play tone
         self.write_event("tone_start")
-        tones.play_tone(tone_use, fs, volume)
+        tones.play_tone(self.stream, tone_use, volume)
         self.write_event("tone_end")
 
         # start trace period
@@ -320,3 +331,5 @@ def write_csv(filename, timestamp, event_id):
 #     """Run this to quickly check that all components are working.
 #     20210202: should hear tone and see shock lights turn on.
 #     Future: will need to add in verification that TTL outs to acquisition system are working too."""
+
+
