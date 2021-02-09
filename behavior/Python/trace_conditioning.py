@@ -120,16 +120,29 @@ class trace:
             )
 
         print("Starting " + str(baseline_time) + " sec baseline exploration period")
+        self.write_event("baseline_start")
         sleep_timer(baseline_time)
+        self.write_event("baseline_end")
+
         print(str(CSshort) + " sec short tone playing now")
+        self.write_event("CSshort_start")
         tones.play_tone(self.stream, CStone_short, volume)
+        self.write_event("CSshort_end")
+
         print(str(ITI) + " sec ITI starting now")
         sleep_timer(ITI)
-        print(str(CSlong) + " sec long tone playing now")
-        tones.play_tone(self.stream, CStone_long, volume)
-        sleep_timer(CSlong)
 
-        # NRK TODO: Add in tones for CSshort and CSlong!!!
+        print(str(CSlong) + " sec long tone playing now")
+        self.write_event("CSlong_start")
+        tones.play_tone(self.stream, CStone_long, volume)
+        self.write_event("CSlong_end")
+
+        print('Final 1 minute exploration period starting now')
+        self.write_event('final_explore_start')
+        sleep_timer(60)
+        self.write_event('final_explore_end')
+        
+
 
     def generate_ITI(self):
         return self.ITI + np.random.random_integers(
@@ -184,9 +197,13 @@ class trace:
                 elif session in ["pre", "habituation", "post", "ctx_recall", "tone_recall"]:
                     if session == "tone_recall":
                         self.run_tone_recall()
-                started = True
+                    elif session == 'ctx_recall':
+                        print('Starting context recall session')
+                        self.write_event('ctx_explore_start')
+                        sleep_timer(60*10)
+                        self.write_event('ctx_explore_end')
 
-    # NRK TODO: test force_start above!
+                started = True
 
     # NRK TODO: Pickle and save entire class as reference data for later.
     # Best would be to track ALL timestamps for later reference just in case.
@@ -265,9 +282,11 @@ class trace:
         20210202: Only white noise working. freq input needs to be a float or list of floats for tone sweep"""
         if tone_type == "white":
             tone_samples = tones.generate_white_noise(duration)
+        elif tone_type == 'pure_tone':
+            tone_samples = tones.generate_pure_tone(duration, self.tone_freq)
         else:
             tone_samples = None
-        # elif tone_type == 'pure_tone':
+        
         #     tone_samples = None
         # elif tone_type == 'tone_sweep':
         #     tone_samples = None
