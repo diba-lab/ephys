@@ -110,15 +110,23 @@ class trace:
             "CSlong": CSlong,
         }
 
+
+        CStone_short = self.create_tone(
+                tone_type=self.tone_type, duration=CSshort, freq=self.tone_freq
+            )
+
+        CStone_long = self.create_tone(
+                tone_type=self.tone_type, duration=CSlong, freq=self.tone_freq
+            )
+
         print("Starting " + str(baseline_time) + " sec baseline exploration period")
         sleep_timer(baseline_time)
         print(str(CSshort) + " sec short tone playing now")
-        # Add in CSshort tone here!
-        # sleep_timer(CSshort)
+        tones.play_tone(self.stream, CStone_short, volume)
         print(str(ITI) + " sec ITI starting now")
         sleep_timer(ITI)
         print(str(CSlong) + " sec long tone playing now")
-        # Add in CS long tone here!
+        tones.play_tone(self.stream, CStone_long, volume)
         sleep_timer(CSlong)
 
         # NRK TODO: Add in tones for CSshort and CSlong!!!
