@@ -210,11 +210,11 @@ class trace:
                         self.write_event("ctx_explore_end")
 
                 started = True
-            elif KeyboardInterrupt:
-                print("Interrupted by keyboard - closing arduino")
-                self.board.exit()
-                print("Trying to re-initialize arduino")
-                self.initialize_arduino()
+            # elif KeyboardInterrupt:
+            #     print("Interrupted by keyboard - closing arduino")
+            #     self.board.exit()
+            #     print("Trying to re-initialize arduino")
+            #     self.initialize_arduino()
 
             # maybe this helps prevent arduino stop reading inputs on Windows after awhile?
             time.sleep(0.01)
@@ -336,6 +336,7 @@ class trace:
 def shutdown_arduino(board):
     """cleanup function to shutdown arduino in case of suddent exit"""
     if isinstance(board, pyfirmata.Arduino):
+        print('Shutting down arduino')
         board.exit()
 
 
