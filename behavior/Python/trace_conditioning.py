@@ -71,7 +71,7 @@ class trace:
         )
 
         # initialize cleanup function
-        atexit.register(self.board)
+        atexit.register(shutdown_arduino, self.board)
 
     def run_training_session(self, test=False):
         """Runs training session."""
