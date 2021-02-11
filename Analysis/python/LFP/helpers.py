@@ -1,4 +1,4 @@
-# helper functions
+# helper funct
 import numpy as np
 import datetime
 import math
