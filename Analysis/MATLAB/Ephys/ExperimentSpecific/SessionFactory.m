@@ -7,12 +7,15 @@ classdef SessionFactory
     end
     
     methods
-        function obj = SessionFactory()
+        function obj = SessionFactory(varargin)
             %SESIONFACTORY Construct an instance of this class
             %   Detailed explanation goes here
-            
-            S=SDExperiment.instance.get();
-            T=readtable(S.FileLocations.General.Sessions,'Delimiter',',');
+            if nargin==0
+                S=SDExperiment.instance.get();
+                T=readtable(S.FileLocations.General.Sessions,'Delimiter',',');
+            else
+                
+            end
             obj.SessionsFile=T;
         end
         function sessions = getSessions(obj,varargin)

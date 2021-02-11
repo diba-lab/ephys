@@ -19,7 +19,11 @@ classdef StateSeries
             ticd=obj.TimeIntervalCombined;
             episodes=obj.Episodes;
             
-            winddt=ticd.getDate+window;
+            if ~isdatetime(window)
+                winddt=ticd.getDate+window;
+            else
+                winddt=window;
+            end
             winsInsec=ticd.getSampleFor(winddt)/ticd.getSampleRate;
             if isnan(winsInsec(1))
                 winsInsec(1)=1;
@@ -149,6 +153,9 @@ classdef StateSeries
         end
         function np=getTimeSeries(obj)
             np=timeseries(obj.States,obj.TimeIntervalCombined.getTimePointsInSec);
+        end
+        function st=getStartTime(obj)
+            st=obj.TimeIntervalCombined.getStartTime;
         end
     end
 end
