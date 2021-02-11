@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<struct>
+    <KilosortFolder>/data/Matlab/Kilosort</KilosortFolder>
+    <npy-matlabFolder>/data/Matlab/npy-matlab</npy-matlabFolder>
+    <SSDFolder>/data/EphysAnalysis</SSDFolder>
+</struct>
