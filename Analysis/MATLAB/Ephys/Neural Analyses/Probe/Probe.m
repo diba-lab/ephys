@@ -90,8 +90,13 @@ classdef Probe < NeuroscopeLayout & SpykingCircusLayout & Neuroscope
     end
     %% GETTER & SETTERS
     methods
-        function siteLayout=getSiteSpatialLayout(obj)
-            siteLayout=obj.SiteSpatialLayout;
+        function siteLayout=getSiteSpatialLayout(obj,chans)
+            if ~exist('chans','var')
+                siteLayout=obj.SiteSpatialLayout;
+            else
+                idx=ismember(obj.SiteSpatialLayout.ChannelNumberComingOutPreAmp,chans);
+                siteLayout=obj.SiteSpatialLayout(idx,:);
+            end
         end
         function siteLayout=getActiveChannels(obj)
             siteLayout=obj.SiteSpatialLayout;
