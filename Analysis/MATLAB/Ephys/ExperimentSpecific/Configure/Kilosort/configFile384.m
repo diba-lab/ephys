@@ -1,14 +1,14 @@
 % frequency for high pass filtering (150)
-ops.fshigh = 300;   
+ops.fshigh = 150;   
 
 % threshold on projections (like in Kilosort1, can be different for last pass like [10 4])
-ops.Th = [9 9];  
+ops.Th = [10 4];  
 
 % how important is the amplitude penalty (like in Kilosort1, 0 means not used, 10 is average, 50 is a lot) 
-ops.lam = 20;  
+ops.lam = 10;  
 
 % splitting a cluster at the end requires at least this much isolation for each sub-cluster (max = 1)
-ops.AUCsplit = 0.8; 
+ops.AUCsplit = 0.9; 
 
 % minimum spike rate (Hz), if a cluster falls below this for too long it gets removed
 ops.minFR = 1/50; 
