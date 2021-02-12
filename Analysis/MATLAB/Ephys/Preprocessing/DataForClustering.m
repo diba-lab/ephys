@@ -3,8 +3,8 @@ classdef DataForClustering
     %   Detailed explanation goes here
     
     properties
-        Probe
         DataFile
+        Probe
         TimeIntervalCombined
     end
     
@@ -12,7 +12,19 @@ classdef DataForClustering
         function obj = DataForClustering(dataFile)
             %DATAFORCLUSTERING Construct an instance of this class
             %   Detailed explanation goes here
-            obj.DataFile = dataFile;
+            
+            ef=EphysFolder(dataFile);
+            obj.DataFile=ef.Data;
+            try
+                obj.Probe=Probe(ef.Channel);
+            catch
+                error(sprintf('No Probe File'))
+            end
+            try
+                obj.TimeIntervalCombined=TimeIntervalCombined(ef.Time);
+            catch
+                error(sprintf('No Time File'))
+            end        
         end
         
         function obj = setProbe(obj,probe)
@@ -50,8 +62,7 @@ classdef DataForClustering
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             %% TODO
-            sde=SDExperiment.instance.get;
-            folder=sde.FileLocations.General.ClusteringFolder;
+            folder='C:\MatlabUtku\DibaLabEphys\Analysis\MATLAB\Ephys\ExperimentSpecific\Configure\Kilosort';
             S=readstruct(fullfile(folder,'Kilosort.xml'));
             probe=obj.getProbe;
             dataFile=obj.getDataFile;
