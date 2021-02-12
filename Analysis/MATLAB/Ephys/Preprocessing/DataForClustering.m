@@ -73,7 +73,7 @@ classdef DataForClustering
             ops.NchanTOT  = numel(probe.getActiveChannels); % total number of channels in your recording
             
             ops.fproc   = fullfile(rootH, 'temp_wh.dat'); % proc file on a fast SSD
-            ops.chanMap = chanMapFile;
+            ops.chanMap = char( chanMapFile);
             % sample rate
             ops.fs =ticd.getSampleRate;  
             %% this block runs all the steps of the algorithm

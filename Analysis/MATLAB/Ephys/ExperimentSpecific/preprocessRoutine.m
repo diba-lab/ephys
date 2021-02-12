@@ -7,7 +7,9 @@ for ises=1:numel(sessions)
     pr=Preprocess(theses);
     %     datalfp=theses.getDataLFP;
     dataclu=pr.getDataForClustering;
-    dataclu.runKilosort3
+    for iclu=dataclu
+        iclu.runKilosort3
+    end
     %
     %     arts=pr.reCalculateArtifacts;
     %     wind=theses.getBlock(ses);
