@@ -1,14 +1,7 @@
 PATH,SLEEP,INJECTION
-/run/media/mdalam/data2/lost+found/cAMP-project/Sleep scoring/RatN/RatNSDRS/RatNd1ROLSDRS, SD, ROL
-/run/media/mdalam/data2/lost+found/cAMP-project/Sleep scoring/RatA14/RatA14SDRS/RatA14OCTSDRS, SD, OCT
-/run/media/mdalam/data2/lost+found/cAMP-project/Sleep scoring/RatA14/RatA14SDRS/RatA14PBSSDRS, SD, CTRL
-/run/media/mdalam/data2/lost+found/cAMP-project/Sleep scoring/RatA14/RatA14SDRS/RatA14ROLSDRS, SD, ROL
-/run/media/mdalam/data2/lost+found/cAMP-project/Sleep scoring/RatA13/RatA13SDRS/RatA13OCTSDRS, SD, OCT
-/run/media/mdalam/data2/lost+found/cAMP-project/Sleep scoring/RatA13/RatA13SDRS/RatA13PBSSDRS, SD, CTRL
-/run/media/mdalam/data2/lost+found/cAMP-project/Sleep scoring/RatA10/RatA10SDRS/RatA10OCTSDRS, SD, OCT
-/run/media/mdalam/data2/lost+found/cAMP-project/Sleep scoring/RatA10/RatA10SDRS/RatA10PBSSDRS, SD, CTRL
-/run/media/mdalam/data2/lost+found/cAMP-project/Sleep scoring/RatA14/RatA14SDRS/RatA14OCTNSD, NSD, OCT
-/run/media/mdalam/data2/lost+found/cAMP-project/Sleep scoring/RatA10/RatA10SDRS/RatA10OCTNSD, NSD, OCT
-/run/media/mdalam/data2/lost+found/cAMP-project/Sleep scoring/RatA11/RatA11SDRS/RatA11OCTSDRS, SD, OCT
-/run/media/mdalam/data2/lost+found/cAMP-project/Sleep scoring/RatA11/RatA11SDRS/RatA11PBSSDRS, SD, CTRL
-/run/media/mdalam/data2/lost+found/cAMP-project/Sleep scoring/RatA11/RatA11SDRS/RatA11ROLSDRS, SD, ROL
+/data/RDE20049/BG_2019-10-19_SDROL, SD, ROL
+/data/RDE20049/BG_2019-10-21_SDSAL, SD, SAL
+/data/RDE20049/A11_2019-11-30_SDOCT, SD, OCT
+/data/RDE20049/A11_2019-12-02_SDPBS, SD, PBS
+/data/RDE20049/A13_2020-01-12_SDPBS, SD, PBS
+/data/RDE20049/A13_2020-01-14_SDOCT, SD, OCT
