@@ -12,9 +12,12 @@ classdef DataForClustering
         function obj = DataForClustering(dataFile)
             %DATAFORCLUSTERING Construct an instance of this class
             %   Detailed explanation goes here
-            
-            ef=EphysFolder(dataFile);
-            obj.DataFile=ef.Data;
+            try
+                ef=EphysFolder(dataFile);
+                obj.DataFile=ef.Data;
+            catch
+                obj.DataFile=dataFile;
+            end
             try
                 obj.Probe=Probe(ef.Channel);
             catch
