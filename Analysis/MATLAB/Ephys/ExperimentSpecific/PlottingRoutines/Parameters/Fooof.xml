@@ -9,6 +9,7 @@
     </Blocks>
     <Plot>
         <SlidingWindowSizeInMinutes>30</SlidingWindowSizeInMinutes>
+        <MinDurationInSubBlockMinutes>2</MinDurationInSubBlockMinutes>
         <SlidingWindowLapsInMinutes>30</SlidingWindowLapsInMinutes>
     </Plot>
     <Fooof>
