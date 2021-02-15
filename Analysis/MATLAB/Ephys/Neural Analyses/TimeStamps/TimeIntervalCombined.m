@@ -23,7 +23,7 @@ classdef TimeIntervalCombined
                         tiRow=T(iti,:);
                         theTimeInterval=TimeInterval(tiRow.StartTime,tiRow.SampleRate,tiRow.NumberOfPoints);
                         timeIntervalList.add(theTimeInterval);
-                        fprintf('Record addded:');display(theTimeInterval);
+                        fprintf('\nRecord addded:\n');theTimeInterval.print;
                     end
                     catch
                         S=load(el);
@@ -34,7 +34,7 @@ classdef TimeIntervalCombined
                         theTimeInterval=varargin{iArgIn};
                         assert(isa(theTimeInterval,'TimeInterval'));
                         timeIntervalList.add(theTimeInterval);
-                        fprintf('Record addded:');theTimeInterval.print;
+                        fprintf('\nRecord addded:\n');theTimeInterval.print;
                     end
                 end
             end
@@ -198,7 +198,7 @@ classdef TimeIntervalCombined
                     try
                         assert(isa(theTimeInterval,'TimeInterval'));
                         obj.timeIntervalList.add(theTimeInterval);
-                        fprintf('Record addded:');display(theTimeInterval);
+                        fprintf('\nRecord addded:\n');theTimeInterval.print;
                     catch
                         assert(isa(theTimeInterval,'TimeIntervalCombined'));
                         til=theTimeInterval.timeIntervalList.createIterator;

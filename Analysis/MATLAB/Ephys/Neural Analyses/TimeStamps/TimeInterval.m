@@ -33,7 +33,7 @@ classdef TimeInterval
             jf=java.text.DecimalFormat; % comma for thousands, three decimal places
             np1= char(jf.format(np)); % omit "char" if you want a string out
             
-            fprintf('%s <%s> \n%s %s,   <%s (%dHz)> \n',st,dur1,en,date,np1,sf);
+            fprintf('\n\t%s <%s> <%s (%dHz)> \n\t%s %s\n',st,dur1,np1,sf,en,date);
         end
         function timeInterval=getTimeIntervalForSamples(obj, startSample, endSample)
             %METHOD1 Summary of this method goes here
