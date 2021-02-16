@@ -148,6 +148,3 @@ print("Playing a quick 400Hz tone - check speaker setup if you don" "t hear it!"
 play_flat_tone(duration=0.5, f=400)
 
 # NRK Todo: 1) Make all pure tones and sweeps use pysinewave and same inputs (frequencies)
-# 2) Create white-noise generator - base it off of the pysinesave architecture if possible
-# 3) Create shock-box class: start/stop shock box. Maybe this is a more general arduino class?
-# 4) Create parent class to coordinate timing.

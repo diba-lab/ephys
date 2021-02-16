@@ -5,15 +5,19 @@ sessions=sf.getSessions('AA','SD');
 for ises=1:numel(sessions)
     theses=sessions(ises);
     pr=Preprocess(theses);
-    datalfp=theses.getDataLFP;
-    
-    arts=pr.reCalculateArtifacts;
+    %     datalfp=theses.getDataLFP;
+    dataclu=pr.getDataForClustering;
+    for iclu=dataclu
+        iclu.runKilosort3
+    end
+    %
+    %     arts=pr.reCalculateArtifacts;
     %     wind=theses.getBlock(ses);
     %     wind=[wind.t1 wind.t2];
-%         arts.plot();
+    %         arts.plot();
     
-    sdd=datalfp.getStateDetectionData;
-%     opripples=datalfp.getRippleEvents;
+%     sdd=datalfp.getStateDetectionData;
+    %     opripples=datalfp.getRippleEvents;
     
     %     ss=sdd.getStateSeries;
     %     pr.getDataForClustering
