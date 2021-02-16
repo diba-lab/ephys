@@ -20,6 +20,21 @@ classdef TimeInterval
             obj.Format='HH:mm:ss.SSS';
         end
         
+        function []=print(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            date=datestr(obj.getDate,1);
+            st=datestr( obj.getStartTime,13);
+            en=datestr(obj.getEndTime,13);
+            dur=obj.getEndTime-obj.getStartTime;
+            dur1=datestr(dur,13);
+            sf=obj.getSampleRate;
+            np=obj.getNumberOfPoints;
+            jf=java.text.DecimalFormat; % comma for thousands, three decimal places
+            np1= char(jf.format(np)); % omit "char" if you want a string out
+            
+            fprintf('\n\t%s <%s> <%s (%dHz)> \n\t%s %s\n',st,dur1,np1,sf,en,date);
+        end
         function timeInterval=getTimeIntervalForSamples(obj, startSample, endSample)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -36,24 +51,32 @@ classdef TimeInterval
                 timeInterval=[];
             end
         end
-        function timeInterval=getTimeIntervalForTimes(obj,window)
+        function timeIntervals=getTimeIntervalForTimes(obj,windows)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            if window(1)<obj.getStartTime
-                window(1)=obj.obj.getStartTime;
+            for iwind=1:size(windows,1)
+                window=windows(iwind,:);
+                if window(1)<obj.getStartTime
+                    window(1)=obj.obj.getStartTime;
+                end
+                if window(2)>obj.getEndTime
+                    window(2)=obj.getEndTime;
+                end
+                windsample=obj.getSampleFor(window);
+                try
+                    timeIntervals=timeIntervals+obj.getTimeIntervalForSamples(windsample(1),windsample(2));
+                catch
+                    timeIntervals=obj.getTimeIntervalForSamples(windsample(1),windsample(2));
+                end
             end
-            if window(2)<obj.getEndTime
-                window(2)=obj.getEndTime;
-            end
-            windsample=obj.getSampleFor(window);
-            timeInterval=obj.getTimeIntervalForSamples(windsample(1),windsample(2));
         end
         function time=getRealTimeFor(obj,samples)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             idx=samples>0 & samples<=obj.NumberOfPoints;
-            
-            validsamples=samples(idx);
+            for icol=1:size(idx,2)
+                validsamples(:,icol)=samples(idx(:,icol),icol);
+            end
             time=obj.StartTime+seconds(double((validsamples-1))/obj.SampleRate);
             time.Format=obj.Format;
             

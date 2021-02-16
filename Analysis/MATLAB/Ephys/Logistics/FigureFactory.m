@@ -13,7 +13,7 @@ classdef FigureFactory < Singleton
         function obj = FigureFactory()
             %FIGUREFACTORY Construct an instance of this class
             %   Detailed explanation goes here
-            obj.DefaultPath = '/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout';
+            obj.DefaultPath = '/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooofJA';
             obj.figtypes={'-dpng'};%,'-depsc'
             obj.ext={'.png'};%,'.eps'
             obj.resolution='-r300';

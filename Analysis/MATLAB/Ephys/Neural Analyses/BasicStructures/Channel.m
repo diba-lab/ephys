@@ -50,8 +50,7 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
         
         function obj=getTimeWindowForAbsoluteTime(obj,window)
             ticd=obj.TimeIntervalCombined;
-            [h,m,s]=hms(ticd.getStartTime);
-            basetime=ticd.getStartTime-hours(h)-minutes(m)-seconds(s);
+            basetime=ticd.getDate;
             if isstring(window)
                 window1=datetime(window,'Format','HH:mm');
                 add1(1)=hours(window1(1).Hour)+minutes(window1(1).Minute);
@@ -68,8 +67,38 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
             end
             sample.start=ticd.getSampleFor(time.start);
             sample.end=ticd.getSampleFor(time.end);
-            ticd1=ticd.getTimeIntervalForTimes(time.start,time.end);
+            ticd1=ticd.getTimeIntervalForTimes([time.start,time.end]);
             obj.voltageArray=obj.voltageArray(sample.start:sample.end);
+            obj.TimeIntervalCombined=ticd1;
+        end
+        function obj=getTimeWindow(obj,windows)
+            ticd=obj.TimeIntervalCombined;
+            basetime=ticd.getDate;
+            for iwind=1:size(windows,1)
+                window=windows(iwind,:);
+                if isstring(window)
+                    window1=datetime(window,'Format','HH:mm');
+                    add1(1)=hours(window1(1).Hour)+minutes(window1(1).Minute);
+                    add1(2)=hours(window1(2).Hour)+minutes(window1(2).Minute);
+                    time(iwind,1)=basetime+add1(1);
+                    time(iwind,2)=basetime+add1(2);
+                elseif isduration(window)
+                    add1=window;
+                    time(iwind,1)=basetime+add1(1);
+                    time(iwind,2)=basetime+add1(2);
+                elseif isdatetime(window)
+                    time(iwind,1)=window(1);
+                    time(iwind,2)=window(2);
+                end
+            end
+            sample=ticd.getSampleFor(time);
+            ticd1=ticd.getTimeIntervalForTimes(time);
+            samples=[];
+            for iwind=1:size(sample,1)
+                thesamples=sample(iwind,1):sample(iwind,2);
+                samples=horzcat(samples,thesamples);
+            end
+            obj.voltageArray=obj.voltageArray(samples);
             obj.TimeIntervalCombined=ticd1;
         end
         

@@ -81,6 +81,19 @@ classdef PowerSpectrum <TimeFrequencyEnhance
             str=sprintf('%d, %s\n',obj.InfoNum, obj.InfoName);
             
         end
+        function fooofr=getFooof(powerSpectrum,settings,f_range)
+            
+            % FOOOF settings
+            if ~exist('settings','var')
+                settings = struct();  % Use defaults
+            end
+            if ~exist('f_range','var')
+                f_range = [0, 250];
+            end
+            fooof_results = fooof(powerSpectrum.Frequency, powerSpectrum.Power, f_range, settings, true);
+
+            fooofr=Fooof(fooof_results);
+        end
     end
 end
 
