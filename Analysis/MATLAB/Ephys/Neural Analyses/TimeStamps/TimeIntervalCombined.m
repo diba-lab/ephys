@@ -23,7 +23,7 @@ classdef TimeIntervalCombined
                         tiRow=T(iti,:);
                         theTimeInterval=TimeInterval(tiRow.StartTime,tiRow.SampleRate,tiRow.NumberOfPoints);
                         timeIntervalList.add(theTimeInterval);
-                        fprintf('Record addded:');display(theTimeInterval);
+                        fprintf('\nRecord addded:\n');theTimeInterval.print;
                     end
                     catch
                         S=load(el);
@@ -34,7 +34,7 @@ classdef TimeIntervalCombined
                         theTimeInterval=varargin{iArgIn};
                         assert(isa(theTimeInterval,'TimeInterval'));
                         timeIntervalList.add(theTimeInterval);
-                        fprintf('Record addded:');display(theTimeInterval);
+                        fprintf('\nRecord addded:\n');theTimeInterval.print;
                     end
                 end
             end
@@ -43,6 +43,17 @@ classdef TimeIntervalCombined
             obj.Format='HH:mm:ss.SSS';
         end
         
+        function []=print(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+          
+                til=obj.timeIntervalList;
+                for iInt=1:til.length
+                    theTimeInterval=til.get(iInt);
+                    theTimeInterval.print
+                end
+           
+        end
         function new_timeIntervalCombined=getTimeIntervalForSamples(obj, times)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -187,7 +198,7 @@ classdef TimeIntervalCombined
                     try
                         assert(isa(theTimeInterval,'TimeInterval'));
                         obj.timeIntervalList.add(theTimeInterval);
-                        fprintf('Record addded:');display(theTimeInterval);
+                        fprintf('\nRecord addded:\n');theTimeInterval.print;
                     catch
                         assert(isa(theTimeInterval,'TimeIntervalCombined'));
                         til=theTimeInterval.timeIntervalList.createIterator;

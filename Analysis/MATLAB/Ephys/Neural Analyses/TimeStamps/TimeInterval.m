@@ -20,6 +20,21 @@ classdef TimeInterval
             obj.Format='HH:mm:ss.SSS';
         end
         
+        function []=print(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            date=datestr(obj.getDate,1);
+            st=datestr( obj.getStartTime,13);
+            en=datestr(obj.getEndTime,13);
+            dur=obj.getEndTime-obj.getStartTime;
+            dur1=datestr(dur,13);
+            sf=obj.getSampleRate;
+            np=obj.getNumberOfPoints;
+            jf=java.text.DecimalFormat; % comma for thousands, three decimal places
+            np1= char(jf.format(np)); % omit "char" if you want a string out
+            
+            fprintf('\n\t%s <%s> <%s (%dHz)> \n\t%s %s\n',st,dur1,np1,sf,en,date);
+        end
         function timeInterval=getTimeIntervalForSamples(obj, startSample, endSample)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
