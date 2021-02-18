@@ -84,16 +84,11 @@ classdef FileLoaderOpenEphys < FileLoaderMethod
             samples=file.bytes/2/numel(channels);
             Data=memmapfile(newlfpfileName,'Format',{'int16'...
                 [numel(channels) samples] 'mapped'});
-            info.header.SettingsAtXMLFile=S.SETTINGS;
-            info.header.StartTime=starttime+seconds(timestamps(1));
-            
-            openEphysRecord.Header=info.header;
+
+            openEphysRecord.Channels=1:numel(channels);
             openEphysRecord.Data=Data;
-            timestamps=timestamps-timestamps(1);
-            ts=timeseries(nan(numel(timestamps),1),timestamps);
-            ts.TimeInfo.Format='dd-mmm-yyyy HH:MM:SS.FFF';
-            ts.TimeInfo.StartDate=starttime;
-            openEphysRecord.Timestamps=ts;
+            sr=str2double(oefile.EXPERIMENT.RECORDING.Attributes.samplerate);
+            openEphysRecord.TimeInterval=TimeInterval(starttime,sr,samples);
             openEphysRecord.DataFile=newlfpfileName;
             
         end
