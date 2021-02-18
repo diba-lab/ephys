@@ -210,8 +210,12 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
         end
         
         function chans=getChannelNames(obj)
-            hdr=obj.Header;
-            chans=hdr.getChannels;
+            try
+                pr=obj.Probe;
+                chans=pr.getActiveChannels;
+            catch
+                chans=obj.Channels;
+            end
         end
         function probe=getProbe(obj)
             probe=obj.Probe;
