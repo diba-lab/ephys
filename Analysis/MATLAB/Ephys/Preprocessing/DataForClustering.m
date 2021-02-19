@@ -21,12 +21,12 @@ classdef DataForClustering
             try
                 obj.Probe=Probe(ef.Channel);
             catch
-                error(sprintf('No Probe File'))
+                warning(sprintf('No Probe File'))
             end
             try
                 obj.TimeIntervalCombined=TimeIntervalCombined(ef.Time);
             catch
-                error(sprintf('No Time File'))
+                warning(sprintf('No Time File'))
             end        
         end
         

@@ -5,7 +5,7 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
     properties (Access = protected)
         Data
         TimeInterval
-        Header
+        Channels % Array hold only channel numbers like [1 2 3 ...]
         FileLoaderMethod
         Events
         Probe
@@ -80,8 +80,8 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
             % List recording time and propetrites
             % additionalrecording properties can be listed here.
             file=obj.Data.Filename;
-            h=obj.Header;
-            fprintf('%s\n   %d channels @ %d Hz\n',file,numel(h.getChannels),h.getSampleRate)
+            ti=obj.getTimeInterval;
+%             fprintf('%s\n   %d channels @ %d Hz\n',file,numel(obj.getChannelNames),ti.ge)
             
         end
     end
@@ -205,13 +205,17 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
         function h=getHeader(obj)
             h=obj.Header;
         end
-        function obj=setHeader(obj,h)
-            obj.Header=h;
+        function obj=setChannels(obj,chans)
+            obj.Channels=chans;
         end
         
         function chans=getChannelNames(obj)
-            hdr=obj.Header;
-            chans=hdr.getChannels;
+            try
+                pr=obj.Probe;
+                chans=pr.getActiveChannels;
+            catch
+                chans=obj.Channels;
+            end
         end
         function probe=getProbe(obj)
             probe=obj.Probe;
@@ -295,12 +299,12 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
     
     methods (Access=private)
         function probe=loadProbeFile(obj,filepath)
-            list=dir(fullfile(filepath,'..','..','*Probe*.mat'));
+            list=dir(fullfile(filepath,'..','..','*Probe*.xlsx'));
             if numel(list)>0
                 probe=Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
                 printf('Probe file: \n\t%s',fullfile(list(1).folder,list(1).name));
             else
-                list=dir(fullfile(filepath,'*Probe*.mat'));
+                list=dir(fullfile(filepath,'*Probe*.xlsx'));
                 if numel(list)>0
                     probe=Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
                     printf('Probe file: \n\t%s',fullfile(list(1).folder,list(1).name));
