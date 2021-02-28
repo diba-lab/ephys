@@ -76,28 +76,26 @@ classdef StateSeries
             t=seconds(ticd.getTimePointsInSec)+ticd.getStartTime;
             hold on;
             num=1;
-            if exist('colorMap','var')
-                for ikey=colorMap.keys
-                    statesarr=states1;
-                    key=ikey{1};
-                    statesarr(states1~=key)=nan;
-                    statesarr(states1==key)=num;num=num+1;
-                    p1=plot(t,statesarr);
-                    p1.Color=colorMap(key);
-                    p1.LineWidth=10;
-                    
-                end
-            else
-                states=unique(states1);
-                for istate=1:numel(states)
-                    statesarr=states1;
-                    state=states(istate);
-                    statesarr(states1~=state)=nan;
-                    statesarr(states1==state)=num;num=num+1;
-                    p1=plot(t,statesarr);
-                    p1.LineWidth=10;
-                end
+            if ~exist('colorMap','var')
+                sde=SDExperiment.instance;
+                colorMap=sde.getStateColors;
             end
+            for ikey=colorMap.keys
+                statesarr=states1;
+                state=ikey{1};
+                statesarr(states1~=state)=nan;
+                statesarr(states1==state)=num;num=num+1;
+                p1=plot(t,statesarr);
+                try
+                    p1.Color=colorMap(state);
+                catch
+                    p1.Color=sde.getStateColors(state);
+                end
+                p1.LineWidth=10;
+                
+            end
+            
+                
             ax=gca;
             ax.XLim=[t(1) t(end)];
             ax.YLim=[0 num];

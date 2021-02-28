@@ -1,19 +1,19 @@
-classdef (Abstract) Oscillation
+classdef Oscillation
     %OSCILLATION Summary of this class goes here
     %   Detailed explanation goes here
     properties (Access=protected)
-        voltageArray
-        sampleRate
+        Values
+        SampleRate
     end
     methods
-        function obj = Oscillation(voltageArray, sampleRate)
+        function obj = Oscillation(values, sampleRate)
             %OSCILLATION Construct an instance of this class
             %   Detailed explanation goes here
-            obj.sampleRate=sampleRate;
-            if ~isa(voltageArray,'double')
-                obj.voltageArray=double(voltageArray);
+            obj.SampleRate=sampleRate;
+            if ~isa(values,'double')
+                obj.Values=double(values);
             else
-                obj.voltageArray=voltageArray;
+                obj.Values=values;
             end
         end
         function timeFrequencyMap = getTimeFrequencyMap(obj,...
@@ -22,30 +22,38 @@ classdef (Abstract) Oscillation
             %   Detailed explanation goes here
             try
                 [ticd1, res]=obj.getTimeIntervalCombined.getDownsampled(...
-                obj.getTimeIntervalCombined.getSampleRate/...
-                timeFrequencyMethod.movingWindow(2));
-            obj.voltageArray(res)=[];
+                    obj.getTimeIntervalCombined.getSampleRate/...
+                    timeFrequencyMethod.movingWindow(2));
+                obj.Values(res)=[];
             catch
                 ticd1=obj.getTimeIntervalCombined;
             end
             timeFrequencyMap=timeFrequencyMethod.execute(...
-                obj.voltageArray, obj.getSampleRate);
+                obj.Values, obj.getSampleRate);
             timeFrequencyMap=timeFrequencyMap.setTimeintervalCombined(ticd1);
         end
         function p1=plot(obj,varargin)
-            p1=plot(obj.time,obj.voltageArray,varargin{:});
+            ts=obj.getTimeStamps;
+            vals=obj.getValues;
+            p1=plot(ts,vals,varargin{:});
             ax=gca;
-            ax.XLim=[obj.time(1) obj.time(end)];
+            ax.XLim=[ts(1) ts(end)];
         end
 
         function obj=getDownSampled(obj,newRate)
-            rate=obj.sampleRate/newRate;
-            obj.voltageArray=downsample(obj.getVoltageArray,rate);
-            obj.sampleRate=newRate;
+            rate=obj.SampleRate/newRate;
+            obj.Values=downsample(obj.getValues,rate);
+            obj.SampleRate=newRate;
             obj=obj.setTimeInterval(obj.getTimeInterval.getDownsampled(rate));
         end
+        function ets=getReSampled(obj,ts1)    
+            ts=timeseries(obj.getValues,obj.getTimeStamps);
+            tsr=ts.resample(ts1);
+            sr=1/((ts1(end)-ts1(1))/numel(ts1));
+            ets=EphysTimeSeries(squeeze(tsr.Data),sr);
+        end
         function ps=getPSpectrum(obj)
-            [pxx,f] = pspectrum(double(obj.voltageArray),obj.getSampleRate,...
+            [pxx,f] = pspectrum(double(obj.Values),obj.getSampleRate,...
                 'FrequencyLimits',[1 250]);
             ps=PowerSpectrum(pxx,f);
         end
@@ -53,111 +61,131 @@ classdef (Abstract) Oscillation
 %             params.tapers=[3 5];
             params.Fs=obj.getSampleRate;
             params.fpass=[1 250];
-            [S,f] = mtspectrumc( obj.voltageArray, params );
+            [S,f] = mtspectrumc( obj.Values, params );
             ps=PowerSpectrum(S,f);
         end
-        function ps=getPSpectrumWelch(obj)
-            window=2*obj.getSampleRate;
+        function ps=getPSpectrumWelch(osc)
+            window=2*osc.getSampleRate;
             overlap=window/2;
-            [psd, freqs] = pwelch(obj.voltageArray, window, overlap, [], obj.getSampleRate);
+            [psd, freqs] = pwelch(osc.Values, window, overlap, [], osc.getSampleRate);
             ps=PowerSpectrum(psd,freqs);
         end
-        function specslope=getPSpectrumSlope(obj)
-            LFP.data=obj.voltageArray;
-            LFP.timestamps=obj.get;
-            LFP.samplingRate=obj.getSampleRate;
+        function specslope=getPSpectrumSlope(osc)
+            LFP.data=osc.Values;
+            LFP.timestamps=osc.getTimeStamps;
+            LFP.samplingRate=osc.getSampleRate;
             [specslope,~] = bz_PowerSpectrumSlope(LFP,3,1,...
                 'frange',[4 250],'nfreqs',250,'showfig',false);
         end
+        function np=getNumberOfPoints(osc)
+            np=numel(osc.Values);
+        end
+        function ts=getTimeStamps(osc)
+            ts=linspace(0, osc.getNumberOfPoints/osc.getSampleRate, osc.getNumberOfPoints);
+        end
         function obj=getWhitened_Obsolete(obj, fraquencyRange)
-            Fs=obj.samplingRate;
-            x=obj.voltageArray;
+            Fs=obj.SampleRate;
+            x=obj.Values;
             x_detrended=detrend(x);
             if nargin>1
                 x_whitened = whitening(x_detrended', Fs, 'freq', fraquencyRange);
             else
                 x_whitened = whitening(x_detrended', Fs);
             end
-            obj.voltageArray=x_whitened';
+            obj.Values=x_whitened';
         end
         function obj=getWhitened(obj)
-            obj.voltageArray = reshape(WhitenSignal(obj.voltageArray,[],1),size(obj.voltageArray));
+            obj.Values = reshape(WhitenSignal(obj.Values,[],1),size(obj.Values));
         end
         function obj=getLowpassFiltered(obj,filterFreq)
-            obj.voltageArray=ft_preproc_lowpassfilter(...
-                obj.voltageArray',obj.sampleRate,filterFreq);
+            obj.Values=ft_preproc_lowpassfilter(...
+                obj.Values',obj.SampleRate,filterFreq);
         end
         function obj=getHighpassFiltered(obj,filterFreqBand)
-            obj.voltageArray=ft_preproc_highpassfilter(...
-                obj.voltageArray',obj.sampleRate,filterFreqBand,[],[],[]);
+            obj.Values=ft_preproc_highpassfilter(...
+                obj.Values',obj.SampleRate,filterFreqBand,[],[],[]);
         end
         function obj=getBandpassFiltered(obj,filterFreqBand)
-            obj.voltageArray=ft_preproc_bandpassfilter(...
-                obj.voltageArray',obj.sampleRate,filterFreqBand,[],[],[]);
+            obj.Values=ft_preproc_bandpassfilter(...
+                obj.Values',obj.SampleRate,filterFreqBand,[],[],[]);
         end
-        function obj=getMedianFiltered(obj,windowInSeconds)
-            obj.voltageArray=medfilt1(obj.voltageArray',...
-                obj.getSampleRate*windowInSeconds);
+        function obj=getMedianFiltered(obj,windowInSeconds,varargin)
+            obj.Values=medfilt1(obj.Values',...
+                obj.getSampleRate*windowInSeconds,varargin{:});
         end
         function obj=getMeanFiltered(obj,windowInSeconds)
-            obj.voltageArray=smoothdata(obj.voltageArray',...
+            obj.Values=smoothdata(obj.Values',...
                 'movmean', obj.getSampleRate*windowInSeconds);
         end
         function obj=getZScored(obj)
-            obj.voltageArray=zscore(obj.voltageArray');
+            obj.Values=zscore(obj.Values');
         end
-        function time=getVoltageArray(obj)
-            time = obj.voltageArray;
+        function vals=getValues(obj)
+            vals = obj.Values;
+            if 1~=size(vals,1)
+                vals=vals';
+            end
         end
-        function obj=setVoltageArray(obj,va)
-            obj.voltageArray=va;
+        function obj=setValues(obj,va)
+            obj.Values=va;
         end
         function time=getSampleRate(obj)
-            time = obj.sampleRate;
+            time = obj.SampleRate;
         end
         function obj=getIdxPoints(obj,idx)
-            va = obj.voltageArray;
-            obj.voltageArray=va(idx);
+            va = obj.Values;
+            obj.Values=va(idx);
         end
         function obj=setSampleRate(obj,newrate)
-            obj.sampleRate=newrate;
+            obj.SampleRate=newrate;
         end
         function obj=rdivide(obj,num)
-            obj=obj.setVoltageArray(obj.getVoltageArray./num);
+            obj=obj.setValues(obj.getValues./num);
         end
         function obj=plus(obj,num)
-            obj=obj.setVoltageArray(obj.getVoltageArray+num);
+            obj=obj.setValues(obj.getValues+num);
         end
         function obj=minus(obj,num)
-            obj=obj.setVoltageArray(obj.getVoltageArray-num);
+            obj=obj.setValues(obj.getValues-num);
         end
         function obj=times(obj,num)
-            obj=obj.setVoltageArray(obj.getVoltageArray.*num);
+            obj=obj.setValues(obj.getValues.*num);
         end
         function idx=lt(obj,num)
-            idx=obj.getVoltageArray<num;
+            idx=obj.getValues<num;
         end
         function idx=gt(obj,num)
-            idx=obj.getVoltageArray>num;
+            idx=obj.getValues>num;
         end
         function obj=subsasgn(obj,s,n)
-            va=obj.getVoltageArray;
+            va=obj.getValues;
             va(s.subs{:})=n;
-            obj=obj.setVoltageArray(va );
+            obj=obj.setValues(va );
         end
         function samples=subsindex(obj,s)
+            error('This function is changed. Make sure it is working properly, then move.')
             idx=s.subs{:};
-            if numel(idx)>1
-                for iidx=1:numel(idx)
-                    id=idx(iidx);
-                    samples(iidx)=obj(id);
-                end
-            else
+            vals=obj.Values;
+            if isdatetime(s)
                 ti=obj.getTimeInterval;
-                ti.getSampleFor(idx);
+                idx=ti.getSampleFor(idx);
             end
-            
+            for iidx=1:numel(idx)
+                id=idx(iidx);
+                samples(iidx)=vals(id);
+            end
         end
+    end
+    methods
+        function va=getVoltageArray(obj)
+            warning('Obsolete. Use getValues()')
+            va = obj.Values;
+        end
+        function obj=setVoltageArray(obj,va)
+            warning('Obsolete. Use setValues()')
+            obj.Values=va;
+        end
+        
     end
 end
 

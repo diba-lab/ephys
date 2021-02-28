@@ -5,10 +5,6 @@ classdef PowerSpectrum <TimeFrequencyEnhance
     properties
         Frequency
         Power
-        InfoNum
-        InfoName
-        SignalLenght
-        Slope
     end
     
     methods
@@ -66,21 +62,6 @@ classdef PowerSpectrum <TimeFrequencyEnhance
             ylabel('Power Spectrum (dB)')
             title('Default Frequency Resolution')
         end
-        function obj=setInfoNumAndName(obj,num,name)
-            obj.InfoNum=num;
-            obj.InfoName=name;
-        end
-        function obj=setSignalLength(obj,proportion)
-            obj.SignalLenght=proportion;
-        end
-        function obj=addPowerSpectrumSlope(obj,powerSpectrumSlope)
-            obj.Slope=powerSpectrumSlope;
-        end
-        function [str]=print(obj)
-            fprintf('%d, %s\n',obj.InfoNum, obj.InfoName);
-            str=sprintf('%d, %s\n',obj.InfoNum, obj.InfoName);
-            
-        end
         function fooofr=getFooof(powerSpectrum,settings,f_range)
             
             % FOOOF settings
@@ -93,6 +74,14 @@ classdef PowerSpectrum <TimeFrequencyEnhance
             fooof_results = fooof(powerSpectrum.Frequency, powerSpectrum.Power, f_range, settings, true);
 
             fooofr=Fooof(fooof_results);
+        end
+        function freq=getPeak(powerSpectrum,f_range)
+            [~,idx(1)]=min(abs(powerSpectrum.Frequency-f_range(1)));
+            [~,idx(2)]=min(abs(powerSpectrum.Frequency-f_range(2)));
+            idx=idx(1):idx(2);
+            power=powerSpectrum.Power(idx);
+            [pks,locs] = findpeaks(power,'SortStr','descend');
+            freq=powerSpectrum.Frequency(locs(1));
         end
     end
 end

@@ -22,15 +22,32 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
             end
             obj@Oscillation(voltageArray,...
                 timeIntervalCombined.getSampleRate);
-            obj.ChannelName=channelname;
-            obj.TimeIntervalCombined=timeIntervalCombined;
-            
+            try
+                obj.ChannelName=channelname;
+            catch
+            end
+            try
+                obj.TimeIntervalCombined=timeIntervalCombined;
+            catch
+            end
             fprintf(...
                 'New Channel %s, lenght %d, %s -- %s, %dHz\n',...
-                num2str(obj.ChannelName),numel(obj.getVoltageArray),...
+                num2str(obj.ChannelName),numel(obj.getValues),...
                 datestr(timeIntervalCombined.getStartTime),...
                 datestr(timeIntervalCombined.getEndTime),...
-                obj.sampleRate);
+                obj.SampleRate);
+        end
+        function st=getStartTime(obj)
+            ti=obj.getTimeInterval;
+            st=ti.getStartTime;
+        end
+        function en=getEndTime(obj)
+            ti=obj.getTimeInterval;
+            en=ti.getEndTime;
+        end
+        function len=getLength(obj)
+            ti=obj.getTimeInterval;
+            len=seconds(ti.getNumberOfPoints/ti.getSampleRate);
         end
         function chan=getChannelName(obj)
             chan=obj.ChannelName;
@@ -45,7 +62,7 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
             st=obj.TimeIntervalCombined;
         end
         function ch=setTimeInterval(obj,ti)
-            ch=Channel(obj.ChannelName,obj.voltageArray,ti);
+            ch=Channel(obj.ChannelName,obj.Values,ti);
         end
         
         function obj=getTimeWindowForAbsoluteTime(obj,window)
@@ -68,7 +85,7 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
             sample.start=ticd.getSampleFor(time.start);
             sample.end=ticd.getSampleFor(time.end);
             ticd1=ticd.getTimeIntervalForTimes([time.start,time.end]);
-            obj.voltageArray=obj.voltageArray(sample.start:sample.end);
+            obj.Values=obj.Values(sample.start:sample.end);
             obj.TimeIntervalCombined=ticd1;
         end
         function obj=getTimeWindow(obj,windows)
@@ -98,12 +115,12 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
                 thesamples=sample(iwind,1):sample(iwind,2);
                 samples=horzcat(samples,thesamples);
             end
-            obj.voltageArray=obj.voltageArray(samples);
+            obj.Values=obj.Values(samples);
             obj.TimeIntervalCombined=ticd1;
         end
         
         function p=plot(obj,varargin)
-            va=obj.getVoltageArray;
+            va=obj.getValues;
             t=obj.TimeIntervalCombined;
             t_s=t.getTimePointsInSec;
             diff1=numel(t_s)-numel(va);
@@ -114,6 +131,9 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
         function obj=plus(obj,aChan)
             obj.TimeIntervalCombined=obj.TimeIntervalCombined+aChan.getTimeInterval;
             obj.voltageArray=[obj.getVoltageArray ;aChan.voltageArray];
+        end
+        function ets=getTimeSeries(obj)
+            ets=EphysTimeSeries(obj.getValues,obj.getSampleRate,obj.ChannelName);
         end
         
     end

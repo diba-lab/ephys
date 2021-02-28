@@ -1,4 +1,4 @@
-classdef TimeInterval
+classdef TimeInterval < TimeIntervalAbstract
     %INTERVAL Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -6,7 +6,6 @@ classdef TimeInterval
         SampleRate
         StartTime
         NumberOfPoints
-        Format
     end
     
     methods
@@ -143,6 +142,7 @@ classdef TimeInterval
         end
         function arrnew=adjustTimestampsAsIfNotInterrupted(obj,arr)
             arrnew=arr;
+            error('Make sure if you really need this function?');
         end
         function ticd=saveTable(obj,filePath)
             S.StartTime=obj.StartTime;
@@ -152,28 +152,6 @@ classdef TimeInterval
             writetable(T,filePath)
             ticd=TimeIntervalCombined(filePath);
         end
-        function date=getDate(obj)
-            st=obj.getEndTime;
-            date=datetime( st.Year,st.Month,st.Day);
-        end
-
-    end
-    methods (Access=private)
-        function ts=getTimeSeries(obj)
-            ts=timeseries(ones(obj.NumberOfPoints,1));
-            ts.TimeInfo.Units='seconds';
-            ts=ts.setuniformtime('StartTime', 0,'Interval',1/obj.SampleRate);
-            ts.TimeInfo.StartDate=obj.StartTime;
-            ts.TimeInfo.Format='HH:MM:SS.FFF';
-        end
-        function ts=getTimeSeriesDownsampled(obj,downsampleFactor)
-            ts=timeseries(ones(round(obj.NumberOfPoints/downsampleFactor),1));
-            ts.TimeInfo.Units='seconds';
-            ts=ts.setuniformtime('StartTime', 0,'Interval',1/obj.SampleRate*downsampleFactor);
-            ts.TimeInfo.StartDate=obj.StartTime;
-            ts.TimeInfo.Format='HH:MM:SS.FFF';
-        end
-
     end
 end
 

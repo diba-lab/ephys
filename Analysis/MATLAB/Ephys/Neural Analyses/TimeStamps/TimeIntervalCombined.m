@@ -1,10 +1,9 @@
-classdef TimeIntervalCombined
+classdef TimeIntervalCombined < TimeIntervalAbstract
     %TIMEINTERVALCOMBINED Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
         timeIntervalList
-        Format
     end
     
     methods
@@ -82,8 +81,6 @@ classdef TimeIntervalCombined
                         end
                     end
                     lastSample=lastSample+theTimeInterval.NumberOfPoints;
-                    
-                    
                 end
             end
         end
@@ -136,48 +133,6 @@ classdef TimeIntervalCombined
                 samples(idx)=theTimeInterval.getSampleFor(times(idx))+lastSample;
                 lastSample=lastSample+theTimeInterval.NumberOfPoints;         
             end
-%             for itime=1:numel(times)
-%                 time=times(itime);
-%                 
-%                 lastSample=0;
-%                 if ~isdatetime(times)
-%                     if isduration(time)
-%                         time=obj.convertDurationToDatetime(time);
-%                     elseif isstring(time{1})||ischar(time{1})
-%                         time=obj.convertStringToDatetime(time);
-%                     end
-%                 end
-%                 %                 time.Second=floor(time.Second);
-%                 if time<obj.getStartTime
-%                     %                     warning('Given time(%s) is earlier then record start(%s).\n',...
-%                     %                         time,obj.getStartTime);
-%                     time=obj.getStartTime;
-%                 elseif time>obj.getEndTime
-%                     %                     warning('Given time(%s) is later then record end(%s).\n',...
-%                     %                         time,obj.getEndTime);
-%                     time=obj.getEndTime;
-%                 end
-%                 
-%                 
-%                 til= obj.timeIntervalList;
-%                 found=0;
-%                 for iInt=1:til.length
-%                     if ~found
-%                         if time>=theTimeInterval.StartTime
-%                             if time<=theTimeInterval.getEndTime
-%                                 sample=theTimeInterval.getSampleFor(time)+lastSample;
-%                                 found=1;
-%                             end
-%                         else
-%                             sample=1+lastSample;
-%                             found=1;
-%                         end
-%                         
-%                         lastSample=lastSample+theTimeInterval.NumberOfPoints;
-%                     end
-%                 end
-%                 samples(itime)=sample;
-%             end
         end
         
         function time=getEndTime(obj)
@@ -349,28 +304,6 @@ classdef TimeIntervalCombined
         
     end
     methods
-        function dt=convertDurationToDatetime(obj,time)
-            st=obj.getStartTime;
-            dt=datetime(st.Year,st.Month,st.Day)+time;
-        end
-        function dt=convertStringToDatetime(obj,time)
-            st=obj.getStartTime;
-            dt1=datetime(time,'Format','HH:mm');
-            dt=datetime(st.Year,st.Month,st.Day)+hours(dt1.Hour)+minutes(dt1.Minute);
-        end
-        function times=getDatetime(obj,times)
-            if ~isdatetime(times)
-                if isduration(times)
-                    times=obj.convertDurationToDatetime(times);
-                elseif isstring(times{1})||ischar(times{1})
-                    times=obj.convertStringToDatetime(times);
-                end
-            end
-        end
-        function date=getDate(obj)
-            st=obj.getEndTime;
-            date=datetime( st.Year,st.Month,st.Day);
-        end
 
         
     end
