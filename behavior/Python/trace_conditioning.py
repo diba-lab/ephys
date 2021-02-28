@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 import csv
 from datetime import datetime
+import atexit
 
 tone_dur_default = 10  # seconds
 trace_dur_default = 20  # seconds
@@ -68,6 +69,9 @@ class trace:
         self.tone_samples = self.create_tone(
             tone_type=tone_type, duration=tone_dur, freq=tone_freq
         )
+
+        # initialize cleanup function
+        atexit.register(shutdown_arduino, self.board)
 
     def run_training_session(self, test=False):
         """Runs training session."""
@@ -206,6 +210,14 @@ class trace:
                         self.write_event("ctx_explore_end")
 
                 started = True
+            # elif KeyboardInterrupt:
+            #     print("Interrupted by keyboard - closing arduino")
+            #     self.board.exit()
+            #     print("Trying to re-initialize arduino")
+            #     self.initialize_arduino()
+
+            # maybe this helps prevent arduino stop reading inputs on Windows after awhile?
+            time.sleep(0.01)
 
     # NRK TODO: Pickle and save entire class as reference data for later.
     # Best would be to track ALL timestamps for later reference just in case.
@@ -319,6 +331,13 @@ class trace:
                 "test" + self.start_datetime.strftime("%m_%d_%Y-%H_%M_%S") + ".csv"
             )
         write_csv(self.csv_path, time.time() - self.start_time, event_id)
+
+
+def shutdown_arduino(board):
+    """cleanup function to shutdown arduino in case of suddent exit"""
+    if isinstance(board, pyfirmata.Arduino):
+        print("Shutting down arduino")
+        board.exit()
 
 
 def sleep_timer(duration):

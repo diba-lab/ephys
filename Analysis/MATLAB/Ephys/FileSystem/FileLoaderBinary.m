@@ -72,6 +72,7 @@ classdef FileLoaderBinary < FileLoaderMethod
             
             
             openEphysRecord.Header=hdr;
+            openEphysRecord.Channels=1:hdr.num_channels;
             openEphysRecord.Data=D.Data;
 
             file=dir(D.Data.Filename);
