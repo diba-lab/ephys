@@ -106,11 +106,12 @@ classdef StateDetectionData
             ti=obj.TimeIntervalCombinedDownSampled;
             tps=ti.getTimePointsInSec;
         end
-        function ch=getEMG(obj)
+        function cht=getEMG(obj)
             ts1= obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.EMG;
             ticd=obj.TimeIntervalCombinedDownSampled.getDownsampled(...
                 obj.TimeIntervalCombinedDownSampled.getSampleRate);
             ch=Channel('EMG',ts1,ticd);
+            cht=ChannelsThreshold(ch,obj.getEMGThreshold,obj.isEMGSticky);
         end
         function ts=getEMGThreshold(obj)
             ssm=obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.histsandthreshs;
@@ -120,11 +121,12 @@ classdef StateDetectionData
             ssm=obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.histsandthreshs;
             ts=ssm.stickyEMG;
         end
-        function ch=getThetaRatio(obj)
+        function cht=getThetaRatio(obj)
             ts1= obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.thratio;
             ticd=obj.TimeIntervalCombinedDownSampled.getDownsampled(...
                 obj.TimeIntervalCombinedDownSampled.getSampleRate);
             ch=Channel('TH',ts1,ticd);
+            cht=ChannelsThreshold(ch,obj.getThetaRatioThreshold,obj.isThetaSticky);
         end
         function ts=getThetaRatioThreshold(obj)
             ssm=obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.histsandthreshs;
@@ -135,6 +137,7 @@ classdef StateDetectionData
             ts=ssm.stickyTH;
         end
         function ts=plotThetaLFP(obj,varargin)
+            warning('Obsolete. Use plot function in Channnel');
             chanSelected=obj.getThetaLFP;
             chanSelected.plot(varargin{:});
             M=nanmean(chanSelected.getVoltageArray);SD=3*nanstd(chanSelected.getVoltageArray);
@@ -143,7 +146,8 @@ classdef StateDetectionData
             ax.XLim=[obj.TimeIntervalCombinedOriginal.getStartTime obj.TimeIntervalCombinedOriginal.getEndTime];
             ax.Color='none';title('');ylabel(chanSelected.getChannelName)
         end
-        function ts=plotLFP(obj,channel,varargin)
+        function []=plotLFP(obj,channel,varargin)
+            warning('Obsolete. Use plot function in Channnel');
             chanSelected=obj.getLFP(channel,50);
             chanSelected.plot(varargin{:});
             M=nanmean(chanSelected.getVoltageArray);SD=2*nanstd(chanSelected.getVoltageArray);
@@ -152,7 +156,7 @@ classdef StateDetectionData
             ax.XLim=[obj.TimeIntervalCombinedOriginal.getStartTime obj.TimeIntervalCombinedOriginal.getEndTime];
             ax.Color='none';title('');ylabel(chanSelected.getChannelName)
         end
-        function [LFP]= getLFP(obj,channel,downsample)
+        function [LFP]= getLFP(obj,channel,downsamplerate)
             warning('Depricated Method. Use ChannelTimeData.getChannel OR .getCahnnelsLFP.')
             tokens=tokenize(obj.BaseName,filesep);
             path=[];
@@ -160,9 +164,9 @@ classdef StateDetectionData
                 path=[path tokens{i} filesep];
             end
             curr=cd(path);
-            filename=[obj.BaseName '.lfp.ch' num2str(channel) '.' num2str(downsample) '.mat'];
+            filename=[obj.BaseName '.lfp.ch' num2str(channel) '.' num2str(downsamplerate) '.mat'];
             if ~exist(filename,'file')
-                LFP=bz_GetLFP(channel,'downsample',downsample);
+                LFP=bz_GetLFP(channel,'downsample',downsamplerate);
                 save(filename,'LFP')
             else
                 S=load(filename);
@@ -170,7 +174,7 @@ classdef StateDetectionData
             end
             cd(curr)
             ch=double(LFP.data);
-            t=obj.getTimePoints(downsample);
+            t=obj.getTimePoints(downsamplerate);
             if numel(ch)>=numel(t)
                 ch=ch(1:numel(t));
             else
@@ -179,13 +183,14 @@ classdef StateDetectionData
                 warning('Number of points in array adjusted\n\t%d-->%d',numel(ch),numel(t))
             end
             chname=num2str(channel);
-            LFP=Channel(chname,ch,obj.TimeIntervalCombinedOriginal.getDownsampled(downsample));
+            LFP=Channel(chname,ch,obj.TimeIntervalCombinedOriginal.getDownsampled(downsamplerate));
         end
-        function ch=getSW(obj)
+        function cht=getSW(obj)
             ts1= obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.broadbandSlowWave;
             ticd=obj.TimeIntervalCombinedDownSampled.getDownsampled(...
                 obj.TimeIntervalCombinedDownSampled.getSampleRate);
             ch=Channel('SW',ts1,ticd);
+            cht=ChannelsThreshold(ch,obj.getSWThreshold,obj.isSWSticky);
         end
         function ts=getSWThreshold(obj)
             ssm=obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.histsandthreshs;

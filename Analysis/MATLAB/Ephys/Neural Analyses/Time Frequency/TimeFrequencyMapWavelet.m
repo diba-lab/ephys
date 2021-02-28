@@ -12,16 +12,24 @@ classdef TimeFrequencyMapWavelet < TimeFrequencyMap
             %TIMEFREQUENCYMAPWAVELET Construct an instance of this class
             %   Detailed explanation goes here
             obj@TimeFrequencyMap(matrix, timePoints,frequencyPoints)
-            obj.clim=[0 150];
+%             obj.clim=[0 1];
         end
         
         function imsc = plot(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-    
-                imsc=imagesc(seconds(obj.timePoints-obj.timePoints(1)),...
-                    obj.frequencyPoints,abs(obj.matrix),obj.clim);
-                obj.addTimeAxis()
+            mat=abs(obj.matrix);
+            imsc=imagesc(obj.timePoints-obj.timePoints(1),...
+                obj.frequencyPoints,mat);
+            ax=gca;
+            ax.YScale='log';
+            tickpoints=round(linspace(1,numel(obj.frequencyPoints),10));
+            ax.YTick=unique(round(obj.frequencyPoints(tickpoints)));
+            ax.YDir='normal';
+            ax.XLim=[0 max(obj.timePoints-obj.timePoints(1))];
+            min(min(mat))
+            ax.YLim=[obj.frequencyPoints(1) obj.frequencyPoints(end)];
+            ax.CLim=[1 8];
         end
         function phase = getPhase(obj,freq)
             %METHOD1 Summary of this method goes here

@@ -45,6 +45,7 @@ classdef SDFigures2 <Singleton
                 writestruct(S,configureFileFooof)
             end
             structstruct(S);
+            initPmtk3;
         end
     end
     methods(Static)
@@ -60,7 +61,7 @@ classdef SDFigures2 <Singleton
         end
     end
     methods
-        function S=getParams(obj)
+        function S=getParams(~)
             sde=SDExperiment.instance.get;
             configureFileSWRRate=fullfile(sde.FileLocations.General.PlotFolder...
                 ,filesep, 'Parameters','SWRRate.xml');
@@ -120,7 +121,6 @@ classdef SDFigures2 <Singleton
                             ss=sdd.getStateSeries;
                             ss_block=ss.getWindow(timeWindowadj);
                             slidingWindowSize=minutes(params.Plot.SlidingWindowSizeInMinutes);
-                            slidingWindowLaps=minutes(params.Plot.SlidingWindowLapsInMinutes);
                             edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
                             stateRatiosInTime=ss_block.getStateRatios(...
                                 seconds(slidingWindowSize),[],edges);
@@ -147,12 +147,11 @@ classdef SDFigures2 <Singleton
                                         idx_all=idx_all|idx_epi;
                                     end
                                     stateRipplePeaksInSeconds=ripplePeaksInSeconds(idx_all);
-                                    [rippleRates(thestate).N,rippleRates(thestate).edges] = histcounts( stateRipplePeaksInSeconds,stateRatio.edges);
-                                    rippleRates(thestate).state=thestate;
+                                    [rippleRates(thestate).N,rippleRates(thestate).edges] = histcounts( stateRipplePeaksInSeconds,stateRatio.edges); %#ok<AGROW>
+                                    rippleRates(thestate).state=thestate; %#ok<AGROW>
                                 catch
                                 end
                             end
-                            edges=stateRatiosInTime.edges;
                             for istate=1:numel(stateRatiosInTime)
                                 thestate=stateRatiosInTime(istate).state;
                                 
@@ -170,7 +169,7 @@ classdef SDFigures2 <Singleton
                 if ~isfolder(folder), mkdir(folder);end
                 save(cacheFile,'Cond');
             else
-                load(cacheFile);
+                load(cacheFile,'Cond');
             end
             obj.plot_RippleRatesInBlocks_CompareConditions(Cond)
             obj.plot_RippleRatesInBlocks_CompareStates(Cond)
@@ -178,11 +177,13 @@ classdef SDFigures2 <Singleton
         end
         function plotFooof(obj)
             sf=SessionFactory;
+            ff=FigureFactory.instance;
             selected_ses=[1 2 3 4 5 6 7 8 9 10 14 15 16 17];
             tses=sf.getSessionsTable(selected_ses);
-            sde=SDExperiment.instance.get;
-            params=obj.getParams.Fooof;
-            cacheFile=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
+            sde=SDExperiment.instance;
+            sdeparams=sde.get;
+            params=obj.getParams;
+            cacheFile=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache'...
                 ,strcat('PlotFooof_',DataHash(tses), DataHash(params),'.mat'));
             conditions=unique(tses.Condition);
             clear Cond
@@ -204,9 +205,16 @@ classdef SDFigures2 <Singleton
                             ses=tses_cond;
                         end
                         file=ses.SessionInfo.baseFolder;
+                        cf=ChannelFactory(file);
+                        EMG=cf.getChannel('StateSeries');
                         sdd=StateDetectionData(file);
+                        ss=sdd.getStateSeries;
+                        EMG=sdd.getEMG;
+                        thId=sdd.getThetaChannelID;
                         blocks=ses.Blocks;
-                        blocksStr=blocks.getBlockNames;
+                        blocksStr1=blocks.getBlockNames;
+                        blocksStr= string(blocksStr1{2});
+%                         blocksStr= blocksStr1;
                         for iblock=1:numel(blocksStr)
                             block=blocksStr{iblock};
                             timeWindow=blocks.get(block);
@@ -222,19 +230,15 @@ classdef SDFigures2 <Singleton
                                     timeWindowadj(1)=timeWindow(1);
                                 end
                             end
-                            ss=sdd.getStateSeries;
                             ss_block=ss.getWindow(timeWindowadj);
                             slidingWindowSize=minutes(params.Plot.SlidingWindowSizeInMinutes);
-                            slidingWindowLaps=minutes(params.Plot.SlidingWindowLapsInMinutes);
                             edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
                             stateRatiosInTime=ss_block.getStateRatios(...
                                 seconds(slidingWindowSize),[],edges);
                             subblocks=ss_block.getStartTime+seconds(edges);
-                            thId=sdd.getThetaChannelID;
                             ctd=ChannelTimeData(file);
                             th=ctd.getChannel(thId);
-                            allBlock=th.getTimeWindowForAbsoluteTime(timeWindowadj);
-                            cacheFilePower=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
+                            cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache'...
                                 ,strcat(sprintf('PlotFooof_afoof_%d_%d_%d_',icond,isession,iblock),DataHash(tses), DataHash(params), DataHash(timeWindowadj),'.mat'));
                             try
                                 load(cacheFilePower,'fooof');
@@ -250,22 +254,21 @@ classdef SDFigures2 <Singleton
                                     fooof=Fooof();
                                 end
                             end
-                            stateEpisodes=ss_block.getEpisodes;
-                            stateNames=ss_block.getStateNames;
                             clear rippleRates;
                             
                             for istate=1:numel(stateRatiosInTime)
                                 thestate=stateRatiosInTime(istate).state;
                                 if sum(ismember([1 2 3 5],thestate))
-                                    cacheFilePower=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
+                                    cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache'...
                                         ,strcat(sprintf('PlotFooof_afoof_%d_%d_%d_%d_',icond,isession,iblock,istate),DataHash(tses), DataHash(params), DataHash(timeWindowadj),'.mat'));
                                     try
                                         load(cacheFilePower,'epiFooof')
                                     catch
+                                        clear tfms
                                         for isublock=1:(numel(subblocks)-1)
                                             try
                                                 subblock=subblocks([isublock isublock+1]);
-                                                subBlock=th.getTimeWindowForAbsoluteTime(subblock);
+%                                                 subBlock=th.getTimeWindowForAbsoluteTime(subblock);
                                                 ss_subBlock=ss_block.getWindow(subblock);
                                                 stateEpisodes=ss_subBlock.getEpisodes;
                                                 stateNames=ss_block.getStateNames;
@@ -273,12 +276,149 @@ classdef SDFigures2 <Singleton
                                                 theEpisode=stateEpisodes.(strcat(theStateName,'state'));
                                                 ticdss=ss_subBlock.TimeIntervalCombined;
                                                 theEpisodeAbs=ticdss.getRealTimeFor(theEpisode);
-                                                episode=subBlock.getTimeWindow(theEpisodeAbs);
-                                                params=obj.getParams.Fooof;
-                                                epiFooof(isublock)=episode.getPSpectrumWelch.getFooof(params.Fooof,params.Fooof.f_range);
+                                                episode=th.getTimeWindow(theEpisodeAbs);
+                                                if episode.getLength>minutes(params.Plot.MinDurationInSubBlockMinutes)
+                                                    epiFooof(isublock)=episode.getPSpectrumWelch.getFooof(params.Fooof,params.Fooof.f_range);
+                                                else
+                                                    theEpisode=[];
+                                                    error('Short State');
+                                                end
                                             catch
                                                 epiFooof(isublock)=Fooof();
+                                                if isempty(theEpisode)
+                                                    continue
+                                                end
                                             end
+                                            fooof=epiFooof(isublock);
+                                            %
+                                            thetaFreq=params.BandFrequencies.theta;
+                                            episode1=episode.getDownSampled(50);
+                                            tfm1=episode1.getWhitened.getTimeFrequencyMap(...
+                                                TimeFrequencyWavelet(logspace(log10(thetaFreq(1)),log10(thetaFreq(2)),50)));
+                                            cachefilethpk=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache',...
+                                                strcat(sprintf('PlotFooof_afoof_%d_%d_%d_%d_%d',icond,isession,iblock,istate,isublock),...
+                                                DataHash(tses), DataHash(params), DataHash(timeWindowadj)));
+                                            try
+                                                load(cachefilethpk,'thpk');
+                                            catch
+                                                mat=tfm1.matrix;
+                                                freq=tfm1.frequencyPoints;
+                                                thpk=nan(1,size(mat,2));
+                                                for it=1:size(mat,2)
+                                                    psd1=PowerSpectrum( abs(mat(:,it)),freq);
+                                                    try
+                                                        pk=psd1.getPeak(thetaFreq);
+                                                        if ~isempty(pk)
+                                                            thpk(it)=pk;
+                                                        end
+                                                    catch
+                                                    end
+                                                end
+                                                thpk=EphysTimeSeries(thpk,episode1.getSampleRate);
+                                                save(cachefilethpk,'thpk');
+                                            end
+                                            %% plot
+                                            try close(1); catch, end
+                                            f=figure(1);f.Position=[2361,1727,2800,900];
+                                            subplot(3,4,[1:3 5:7]);ax=gca;
+                                            frange=params.Fooof.f_range;
+                                            tfm=episode.getWhitened.getTimeFrequencyMap(...
+                                                TimeFrequencyWavelet(logspace(log10(frange(1)),log10(frange(2)),100)));
+                                            tfm.plot;hold on
+                                            ti=episode1.getTimeIntervalCombined;
+                                            t=ti.getTimePointsInSamples/ti.getSampleRate;
+                                            thpk.plot('Color','r');
+                                            thpk_fd=thpk.getMedianFiltered(1,'omitnan','truncate').getMeanFiltered(1);
+                                            thpk_fd.plot('Color','k','LineWidth',1.5)
+                                            
+                                            yl=ylabel(strcat(cond,'-',num2str(isublock),'-',theStateName));
+                                            yl.Color=sde.getStateColors(istate);
+                                            durations1=cumsum(seconds(theEpisodeAbs(:,2)-theEpisodeAbs(:,1)))';
+                                            durations2=[0 durations1];
+                                            durations=durations2(1:(numel(durations2)-1))+diff(durations2)/2;
+                                            for il=1:numel(durations1)
+                                                l=vline(durations1(il),'w-');
+                                                l.LineWidth=2;
+                                                t1=text(durations(il),ax.YLim(2),num2str(il));
+                                                t1.HorizontalAlignment='center';
+                                                t1.VerticalAlignment='bottom';
+                                                t1.Color=sde.getStateColors(istate);
+                                            end
+                                            bands=params.BandFrequencies;
+                                            bwths=params.BandWidthThreshold;
+                                            bandsstr=fieldnames(bands);
+                                            for iband=1:numel(bandsstr)
+                                                bandFreq=bands.(bandsstr{iband});
+                                                try
+                                                    bwth=bwths.(bandsstr{iband});
+                                                catch
+                                                    bwth=[];
+                                                end
+                                                try
+                                                    peaks1=fooof.getPeaks(bandFreq,[],bwth);
+                                                    for ipeak=1:numel(peaks1)
+                                                        peak1=peaks1(ipeak);
+                                                        l=yline(peak1.cf);
+                                                        l.LineStyle='-';
+                                                        l.Color='r';
+                                                        yline(peak1.cf-peak1.bw/2,'k-');
+                                                        yline(peak1.cf+peak1.bw/2,'k-');
+                                                    end
+                                                catch
+                                                end
+                                            end
+                                            subplot(6,4,17:19);hold on
+                                            thpk.plot('Color','r')
+                                            thpk_fd.plot('Color','k','LineWidth',1.5)
+                                            bandFreq=bands.theta;
+                                            
+                                            try
+                                                peaks1=fooof.getPeaks(bandFreq);
+                                                for ipeak=1:numel(peaks1)
+                                                    peak1=peaks1(ipeak);
+                                                    l=yline(peak1.cf);
+                                                    l.LineStyle='-';
+                                                    l.Color='r';
+                                                    if ipeak==1
+                                                        l.LineWidth=2;
+                                                    end
+                                                    yline(peak1.cf-peak1.bw/2,'k-');
+                                                    yline(peak1.cf+peak1.bw/2,'k-');
+                                                end
+                                            catch
+                                            end
+%                                             hmm=HMMModel(thpk_fd);
+%                                             hmm.run
+%                                             vals=thpk_fd.getValues;
+                                            
+                                            ax=gca;
+                                            ax.YLim=thetaFreq;
+                                            ax.XLim=[0 t(end)];
+                                            ax.Visible='on';ax.XTick=[];ax.Box='off';
+                                            subplot(6,4,21:23);ax=gca;
+                                            epiEMG1=EMG.getTimeWindow([theEpisodeAbs(:,1) theEpisodeAbs(:,2)-seconds(1)]);
+                                            epiEMG=epiEMG1.getReSampled(thpk.getTimeStamps);
+                                            l=epiEMG.plot;hold on;l.LineWidth=1.5;
+                                            l=yline(epiEMG1.getThreshold);
+                                            ax.YLim=[0 1];
+                                            ax.Visible='on';ax.XTick=[];ax.Box='off';
+                                            
+                                            title(ses.SessionInfo.baseFolder, 'interpreter', 'none');
+                                            subplot(3,4,[4 8]);
+                                            fooof.plot
+                                            
+                                            
+                                            axn=axes;p=ax.Position;
+                                            axn.Position=[p(1) 1-p(4)/3 p(3) p(4)/3];axn.YTick=[];
+                                            ss_subBlock.plot
+                                            for ib=1:size(theEpisodeAbs,1)
+                                                theEpisodeAbsCenters=mean(theEpisodeAbs,2);
+                                                t1=text(theEpisodeAbsCenters(ib),mean(axn.YLim),num2str(ib));
+                                                t1.HorizontalAlignment='center';
+                                            end
+                                            fname=strcat(sprintf('PlotFooof_afoof_%d_%d_%d_%d_%d',icond,isession,iblock,istate,isublock),DataHash(tses), DataHash(params), DataHash(timeWindowadj));
+                                            ff.save(fname);
+                                            %%Plot end
                                         end
                                         save(cacheFilePower,'epiFooof');
                                     end
@@ -302,7 +442,7 @@ classdef SDFigures2 <Singleton
                 if ~isfolder(folder), mkdir(folder);end
                 save(cacheFile,'Cond');
             else
-                load(cacheFile);
+                load(cacheFile,'Cond');
             end
             obj.plot_FooofInBlocks_CompareConditions(Cond)
         end
@@ -340,9 +480,9 @@ classdef SDFigures2 <Singleton
                     edges=hours(seconds(Conds(iblock).edges(1,:,1,icond)))+lastedge;
                     lastedge=edges(end);
                     centers=edges(2:end)-(edges(2)-edges(1))/2;
-                    centers_all=[centers_all centers] ;
-                    edges_all=[edges_all edges] ;
-                    centers_num=[centers_num numel(centers)];
+%                     centers_all=[centers_all centers] ;
+%                     edges_all=[edges_all edges] ;
+%                     centers_num=[centers_num numel(centers)];
                     subplot(10,1,1:9);
                     scountSum= minutes(seconds(sum(scount,3,'omitnan')));
                     scountmean=scountSum./sum(scountSum,1,'omitnan')*params.Plot.SlidingWindowSizeInMinutes;
@@ -572,8 +712,8 @@ classdef SDFigures2 <Singleton
                             end
                         end
                     end
-                    var=sub_ses_cond.thetaPeak.cf;
-%                     var=sub_ses_cond.thetaPeak.power;
+%                     var=sub_ses_cond.thetaPeak.cf;
+                    var=sub_ses_cond.thetaPeak.power;
 %                     var=sub_ses_cond.aperiodic.f;
 %                     var=sub_ses_cond.aperiodic.offset;
                     meanval=squeeze(nanmean(var,2));
@@ -597,8 +737,8 @@ classdef SDFigures2 <Singleton
                 title(statestr{thestate});
                 ax=gca;
                 ax.YColor='k';
-                ax.YLim=[5 9];%CF
-%                 ax.YLim=[.1 1.4];%power
+%                 ax.YLim=[5 9];%CF
+                ax.YLim=[.1 1.4];%power
 %                 ax.YLim=[1 2.5];%slope
 %                 ax.YLim=[4.5 7.5];%offset
                 ax.XLim=[0 edges(end)];
@@ -611,13 +751,13 @@ classdef SDFigures2 <Singleton
                         it=it+1;
                     end
                 end
-                ylabel('Center Frequency (Hz)');
-%                 ylabel('Relative Power');
+%                 ylabel('Center Frequency (Hz)');
+                ylabel('Relative Power');
 %                 ylabel('F');
 %                 ylabel('Offset');
                 ff=FigureFactory.instance;
-                ff.save(strcat('Center Frequency_',statestr{thestate}));
-%                 ff.save(strcat('Power_',statestr{thestate}));
+%                 ff.save(strcat('Center Frequency_',statestr{thestate}));
+                ff.save(strcat('Power_',statestr{thestate}));
 %                 ff.save(strcat('f_',statestr{thestate}));
 %                 ff.save(strcat('Offset_',statestr{thestate}));
             end

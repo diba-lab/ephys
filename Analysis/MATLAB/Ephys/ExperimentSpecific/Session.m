@@ -43,7 +43,7 @@ classdef Session
                     t1=datetime('now','Format','HH:mm:ss');
                     t2=datetime('now','Format','HH:mm:ss')+hours(3);
                     Block=blocks(iblock);
-                    blockstt=[blockstt; timetable(t1, t2, Block)];
+                    blockstt=[blockstt; timetable(t1, t2, Block)]; %#ok<AGROW>
                 end             
                 writetimetable(blockstt,blockFile);
             end
@@ -51,7 +51,7 @@ classdef Session
             obj.Blocks=sdblock;
             %% Probe
             try
-                list=dir(fullfile(baseFolder,strcat('*Probe*.xlsx')))
+                list=dir(fullfile(baseFolder,strcat('*Probe*.xlsx')));
                 probe=Probe(fullfile(list.folder,list.name));
                 obj.Probe=probe;
             catch
@@ -74,7 +74,7 @@ classdef Session
                 
             else
                 % load templateProbe
-                obj.Probe=Probe(sde.FileLocations.General.ProbeTemplate);
+                obj.Probe=Probe(sde.FileLocations.General.ProbeTemplate); %#ok<CPROPLC>
                 warning('No Probe File. Template is loaded.');
             end
             obj.Probe.saveProbeTable(probeFile);

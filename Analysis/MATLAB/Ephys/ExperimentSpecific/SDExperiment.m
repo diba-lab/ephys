@@ -41,6 +41,25 @@ classdef SDExperiment < Singleton
         function S = get(obj)
             S=readstruct(obj.XMLFile);
         end
+        function color = getStateColors(obj,state)
+            S=readstruct(obj.XMLFile);
+            statestr=fieldnames(S.Colors);
+            for ist=1:numel(statestr)
+                statecodes(ist)=S.StateCodes.(statestr{ist});
+            end
+            for ist=1:numel(statestr)
+                colors{ist}=S.Colors.(statestr{ist})/255;
+            end
+            color=containers.Map(statecodes, colors);
+            if exist('state','var')
+                if isnumeric( state)
+                    statecode=state;
+                else
+                    statecode=S.StateCodes.(state);
+                end
+                color=color(statecode);
+            end
+        end
         function S = set(obj,S)
             writestruct(S,obj.XMLFile);
             S=obj.get;

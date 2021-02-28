@@ -33,4 +33,24 @@
         <Block>TRACK</Block>
         <Block>POST</Block>
     </Blocks>
+    <Colors>
+        <AWAKE>255</AWAKE>
+        <AWAKE>0</AWAKE>
+        <AWAKE>0</AWAKE>
+        <QWAKE>204</QWAKE>
+        <QWAKE>153</QWAKE>
+        <QWAKE>255</QWAKE>
+        <SWS>51</SWS>
+        <SWS>102</SWS>
+        <SWS>255</SWS>
+        <REM>255</REM>
+        <REM>153</REM>
+        <REM>51</REM>
+    </Colors>
+    <StateCodes>
+        <AWAKE>1</AWAKE>
+        <QWAKE>2</QWAKE>
+        <SWS>3</SWS>
+        <REM>5</REM>
+    </StateCodes>
 </struct>
