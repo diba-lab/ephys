@@ -39,6 +39,19 @@ classdef SpikeArray < SpikeNeuroscope
             end
             tbl=array2table(horzcat(spikeIDs,spikecounts'),'VariableNames',{'ID','count'});
         end
+        function fr=getFireRate(obj)
+            sus=obj.getSpikeUnits;
+            for isu=1:numel(sus)
+                su=sus(isu);
+                frs=su.getFireRate;
+                try
+                    vals(isu,:)=frs.getValues;
+                catch
+                end
+            end
+            val_m=mean(vals,1);
+            fr=Channel('Mean Over Units',val_m,frs.getTimeInterval);
+        end
         function []=plot(obj,tfm)
 
             angles1=angle(tfm.matrix);

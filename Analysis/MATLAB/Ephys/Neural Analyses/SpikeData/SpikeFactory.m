@@ -36,19 +36,18 @@ classdef SpikeFactory < SpikeNeuroscope
                 foldername = uigetdir(defaultloc,title);
             end
             try
-                theFile=dir(fullfile(foldername,'..',['*TimeIntervalCombined*' '.mat']));
+                theFile=dir(fullfile(foldername,'..',['*TimeIntervalCombined*' '.csv']));
                 if isempty(theFile)
-                    theFile=dir(fullfile(foldername,'..','..',['*TimeIntervalCombined*' '.mat']));
+                    theFile=dir(fullfile(foldername,'..','..',['*TimeIntervalCombined*' '.csv']));
                 end
-                S=load(fullfile(theFile.folder, theFile.name));
-                fnames=fieldnames(S);
-                ticd=S.(fnames{1});
-                fprintf('TimeIntervalCobined is loaded.\n')
+                ticd=TimeIntervalCombined(fullfile(theFile.folder, theFile.name));
             catch
                 warning('TimeIntervalCobined is not loaded.\n')
             end
+            try
             cluster_info=SpikeFactory.getTSVClusterInfoFileintoTable(fullfile(foldername,'cluster_info.tsv'));
-            
+            catch
+            end
             theFile=dir(fullfile(foldername,['spike_clusters' '.npy']));
             spikeclusters=readNPY(fullfile(theFile.folder, theFile.name));
             interestedFiles={'amplitudes';...
@@ -58,33 +57,57 @@ classdef SpikeFactory < SpikeNeuroscope
                 theFile=dir(fullfile(foldername,[aFile '.npy']));
                 temps{ifile}=readNPY(fullfile(theFile.folder, theFile.name));
             end
-            groups={'good','mua'};
-            for igroup=1:numel(groups)
-                group=groups{igroup};
-                ClusterIds=cluster_info.id(ismember(cluster_info.group,group));
-                idx=ismember(spikeclusters, ClusterIds);
-                for ifile=1:numel(interestedFiles)
-                    aFile=interestedFiles{ifile};
-                    temp=temps{ifile};
-                    data.(aFile)=temp(idx);
+            paramfile='UnitGroups.xml';
+            params=readstruct(paramfile);
+            try
+                idx=true(size(cluster_info.group));
+                idx_ex=idx;
+                exclude=params.exclude;
+                filename1='ex_';
+                for iex=1:numel(exclude)
+                    theex=exclude(iex);
+                    idx_ex=idx_ex & ismember(cluster_info.group,theex);
+                    filename1=strcat(filename1,theex,'_');
                 end
-                data.spike_clusters=spikeclusters(idx);
-                
-                sa=SpikeArray(data.spike_clusters,data.spike_times);
-                sa=sa.setTimeIntervalCombined(ticd);
-                
-                sa=sa.setClusterInfo(cluster_info(ismember(cluster_info.id,ClusterIds),:));
-                ts=tokenize(theFile.folder,filesep);
-                try 
-                    sanew=sanew+sa;
+                idx=idx & ~idx_ex;
+            catch
+                try
+                    idx=false(size(cluster_info.group));
+                    idx_in=idx;
+                    include=params.include;
+                    filename1='in_';
+                    for iin=1:numel(include)
+                        thein=include(iin);
+                        idx_in=idx_in | ismember(cluster_info.group,thein);
+                    filename1=strcat(filename1,thein,'_');
+                    end
+                    idx=idx | idx_in;
                 catch
-                    sanew=sa;
                 end
-                filename=fullfile(theFile.folder,'..','..',ts{numel(ts)-1});
-                obj.saveCluFile([filename '.' group '.clu.0'],sa.SpikeTable.SpikeCluster);
-                obj.saveResFile([filename '.' group '.res.0'],sa.SpikeTable.SpikeTimes);
+                
             end
+            ClusterIds=cluster_info.id(idx);
+            idx=ismember(spikeclusters, ClusterIds);
+            for ifile=1:numel(interestedFiles)
+                aFile=interestedFiles{ifile};
+                temp=temps{ifile};
+                data.(aFile)=temp(idx);
+            end
+            data.spike_clusters=spikeclusters(idx);
             
+            sa=SpikeArray(data.spike_clusters,data.spike_times);
+            sa=sa.setTimeIntervalCombined(ticd);
+            
+            sa=sa.setClusterInfo(cluster_info(ismember(cluster_info.id,ClusterIds),:));
+            ts=tokenize(theFile.folder,filesep);
+            try
+                sanew=sanew+sa;
+            catch
+                sanew=sa;
+            end
+            filename=fullfile(theFile.folder,'..','..',ts{numel(ts)-1});
+            obj.saveCluFile(strcat(filename, '.clu.0'),sa.SpikeTable.SpikeCluster);
+            obj.saveResFile(strcat(filename, '.res.0'),sa.SpikeTable.SpikeTimes);
         end
     end
     

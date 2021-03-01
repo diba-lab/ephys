@@ -18,10 +18,17 @@ classdef OpenEphysRecordHeader
                 try
                     obj.SampleRate=h.sample_rate;
                 catch
-                    obj.SampleRate=h.samplingFrequency;
-
+                    try
+                        obj.SampleRate=h.samplingFrequency;
+                    catch
+                        obj.SampleRate=h.TimeInterval.getSampleRate;
+                    end
                 end
-                obj.ChannelsTable=h.channels;
+                try
+                    obj.ChannelsTable=h.channels;
+                catch
+                    obj.ChannelsTable=h.Header.SettingsAtXMLFile.SIGNALCHA
+                end
                 obj.ActiveChannels=true(1,numel(obj.ChannelsTable));
             catch
                 obj.SampleRate=h.sampleRate;

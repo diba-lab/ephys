@@ -97,7 +97,7 @@ classdef TimeIntervalCombined < TimeIntervalAbstract
         function times=getRealTimeFor(obj,samples)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            if numel(samples)>2
+            if numel(samples)>1e5
                 tps=obj.getTimePointsInAbsoluteTimes;
                 times=tps(samples);
             else
