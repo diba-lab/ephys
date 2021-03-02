@@ -42,20 +42,12 @@ classdef SpikeUnit
             timesInSamples=obj.Times;
             ticd=obj.TimeIntervalCombined;
             endtimeinsec=seconds(ticd.getEndTime-ticd.getStartTime);
-            sr=ticd.getSampleRate;
             TimeBinsInSec=60;
-            resamplerate=10;
             timesInSamples_adj=ticd.adjustTimestampsAsIfNotInterrupted(timesInSamples);
             timesInSec_adj=double(timesInSamples_adj)/ticd.getSampleRate;
-            [N,edges]=histcounts(timesInSec_adj,0:TimeBinsInSec:endtimeinsec);
-%             t_center=hours(seconds((edges(1:(numel(edges)-1))+TimeBinsInSec/2)));
-%             t1=linspace(min(t_center),max(t_center),numel(t_center)*resamplerate);
-%             N=interp1(t_center,N,t1,'spline','extrap');
+            N=histcounts(timesInSec_adj,0:TimeBinsInSec:endtimeinsec)/TimeBinsInSec;
             ticdnew=TimeInterval(ticd.getStartTime+seconds(TimeBinsInSec/2),1/(TimeBinsInSec),numel(N));
-            fireRate=Channel(num2str(obj.Id),N,ticdnew);
-%             fireRate.plot
-%             p2=plot(t1,N,'LineWidth',1);
-%             [N,edges]=histcounts(peakTimesAdjusted,1:TimeBinsInSec:max(peakTimesAdjusted));
+            fireRate=Channel(num2str(obj.Id),N,ticdnew); %#ok<CPROP>
         end
         function [] = plotOnTimeTrack(obj,track,speedthreshold)
             %METHOD1 Summary of this method goes here

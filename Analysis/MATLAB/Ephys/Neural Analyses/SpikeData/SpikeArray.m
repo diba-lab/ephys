@@ -39,7 +39,7 @@ classdef SpikeArray < SpikeNeuroscope
             end
             tbl=array2table(horzcat(spikeIDs,spikecounts'),'VariableNames',{'ID','count'});
         end
-        function fr=getFireRate(obj)
+        function fr=getMeanFireRate(obj)
             sus=obj.getSpikeUnits;
             for isu=1:numel(sus)
                 su=sus(isu);
@@ -51,6 +51,31 @@ classdef SpikeArray < SpikeNeuroscope
             end
             val_m=mean(vals,1);
             fr=Channel('Mean Over Units',val_m,frs.getTimeInterval);
+        end
+        function [frm, fre]=getMeanFireRateQuintiles(obj,nquintiles)
+            sus=obj.getSpikeUnits;
+            for isu=1:numel(sus)
+                su=sus(isu);
+                frs=su.getFireRate;
+                try
+                    vals1(isu,:)=frs.getValues;
+                catch
+                end
+            end
+            vals=sort(vals1,1);
+            nunit=size(vals,1);
+            qus=[round(quantile(1:nunit,nquintiles-1)) nunit];
+            pre=1;
+            for iquint=1:nquintiles
+                idx=pre:qus(iquint);pre=qus(iquint)+1;
+                thequint=vals(idx,:);
+                themeanquint=mean(thequint,1);
+                thesterrquint=std(thequint,1)/sqrt(size(thequint,1));
+                frm{iquint}=Channel(sprintf('Mean Over Units Quint, %d',iquint),...
+                    themeanquint,frs.getTimeInterval);
+                fre{iquint}=Channel(sprintf('Mean Over Units Quint, %d',iquint),...
+                    thesterrquint,frs.getTimeInterval);
+            end
         end
         function []=plot(obj,tfm)
 
