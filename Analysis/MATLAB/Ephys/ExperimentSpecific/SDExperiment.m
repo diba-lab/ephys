@@ -12,7 +12,7 @@ classdef SDExperiment < Singleton
         function newObj = SDExperiment()
             % Initialise your custom properties.
             newObj.XMLFile = ...
-                '/home/mdalam/Downloads/Analysis_code/jahangir-analysis/Configure_Jahangir/Experiment.xml';
+                '/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Experiment.xml';
             try
                 S=readstruct(newObj.XMLFile);
             catch
@@ -58,6 +58,23 @@ classdef SDExperiment < Singleton
                     statecode=S.StateCodes.(state);
                 end
                 color=color(statecode);
+            end
+        end
+        function state1 = getStateCode(obj,state)
+            S=readstruct(obj.XMLFile);
+            sc=fieldnames(   S.StateCodes);
+            for ist=1:numel(sc)
+                statecodes(ist)=S.StateCodes.(sc{ist}); %#ok<AGROW>
+            end
+            states=containers.Map(statecodes, sc);
+           
+            if exist('state','var')
+                if isnumeric( state)
+                    state1=states(state);
+                    
+                else
+                    state1=S.StateCodes.(state);
+                end
             end
         end
         function S = set(obj,S)

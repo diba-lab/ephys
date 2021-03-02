@@ -20,11 +20,11 @@
         <peak_threshold>.1</peak_threshold>
         <aperiodic_mode>knee</aperiodic_mode> <!-- knee,fixed -->
         <f_range>1</f_range>
-        <f_range>300</f_range>
+        <f_range>235</f_range>
     </Fooof>
     <BandFrequencies>
         <theta>5</theta>
-        <theta>12</theta>
+        <theta>10</theta>
         <gamma>25</gamma> 
         <gamma>150</gamma>
         <ripple>150</ripple>

@@ -98,9 +98,9 @@ classdef StateSeries
                 
             ax=gca;
             ax.XLim=[t(1) t(end)];
-            ax.YLim=[0 num];
+            ax.YLim=[0 num-1];
             ax.Color='none';
-            ax.Visible='off';
+%             ax.Visible='off';
             ax.YDir='reverse';
         end
         function np=getNumberOfPoints(obj)
@@ -136,6 +136,14 @@ classdef StateSeries
                     state(thestate).state=thestate;
                 end
             end
+        end
+        function theEpisodeAbs=getState(obj,state)
+            stateEpisodes=obj.getEpisodes;
+            stateNames=obj.getStateNames;
+            theStateName=stateNames{state};
+            theEpisode=stateEpisodes.(strcat(theStateName,'state'));
+            ticdss=obj.TimeIntervalCombined;
+            theEpisodeAbs=ticdss.getRealTimeFor(theEpisode);
         end
         function obj=setEpisodes(obj,episodes)
             obj.Episodes=episodes;

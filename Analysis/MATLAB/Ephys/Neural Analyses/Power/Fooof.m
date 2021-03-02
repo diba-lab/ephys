@@ -61,7 +61,7 @@ classdef Fooof
                 t.Rotation=90;
             end
         end
-        function peakres=getPeak(obj,freqs)
+        function peakres=getPeak(obj,freqs,powers,bandwidth)
             peaks=obj.fooof_results.peak_params;
             idxall=true([size(peaks,1) 1]);
             try
@@ -115,7 +115,7 @@ classdef Fooof
             end
             idxall=idxall & idxfreq & idxpow & idxbw;
             peaks1=peaks(idxall,:);
-            peaksorted=sort(peaks1,1,'descend');%sort by power
+            peaksorted=sortrows(peaks1,2,'descend');%sort by power
             for ipeak=1:(size(peaksorted,1))
                 peaks2=peaksorted(ipeak,:);
                 try

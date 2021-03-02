@@ -30,6 +30,15 @@ classdef EphysTimeSeries < Oscillation
             %   Detailed explanation goes here
                 ets.Name=name;
         end
+        function hist = plotHistogram(ets)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            histogram(ets.getValues);
+            ax=gca;
+            ax.XLim=[5 10];
+            xlabel('Frequency (Hz)');
+            ylabel('Count');
+        end
     end
 end
 
