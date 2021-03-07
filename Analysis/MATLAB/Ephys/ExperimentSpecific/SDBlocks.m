@@ -38,6 +38,9 @@ classdef SDBlocks
             T=obj.TimeTable;
             names=T.Block;
         end
+        function date = getDate(obj)
+            date=obj.Date;
+        end
     end
 end
 

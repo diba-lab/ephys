@@ -26,13 +26,35 @@ classdef StateSeries
             end
             winsInsec=ticd.getSampleFor(winddt)/ticd.getSampleRate;
             if isnan(winsInsec(1))
-                winsInsec(1)=1;
-                winddt(1)=ticd.getStartTime;
+                try
+                    til=ticd.timeIntervalList;
+                    %get closest start time
+                    for il=1:til.length
+                        ti=til.get(il);
+                        sttimes(il)=ti.getStartTime; %#ok<AGROW>
+                    end
+                    [~,idx]=min(abs(sttimes-window(1)));
+                    winddt(1)=sttimes(idx);
+                catch
+                    winddt(1)=ticd.getStartTime;
+                end
             end
             if isnan(winsInsec(2))
-                winsInsec(2)=numel(states);
-                winddt(2)=ticd.getEndTime;
+                try
+                    til=ticd.timeIntervalList;
+                    %get closest end time
+                    for il=1:til.length
+                        ti=til.get(il);
+                        endtimes(il)=ti.getEndTime; %#ok<AGROW>
+                    end
+                    [~,idx]=min(abs(endtimes-window(2)));
+                    winddt(2)=endtimes(idx);
+                catch
+                    winddt(2)=ticd.getEndTime;
+                end
             end
+            winsInsec=ticd.getSampleFor(winddt)/ticd.getSampleRate;
+
             idx=winsInsec(1):winsInsec(2);
             states_new=states(idx);
             ticd_new=ticd.getTimeIntervalForTimes(winddt);
@@ -91,7 +113,7 @@ classdef StateSeries
                 catch
                     p1.Color=sde.getStateColors(state);
                 end
-                p1.LineWidth=10;
+                p1.LineWidth=5;
                 
             end
             

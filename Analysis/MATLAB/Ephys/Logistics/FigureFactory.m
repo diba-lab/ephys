@@ -10,20 +10,26 @@ classdef FigureFactory < Singleton
     end
     
     methods(Access=private)
-        function obj = FigureFactory()
+        function obj = FigureFactory(defpath)
             %FIGUREFACTORY Construct an instance of this class
             %   Detailed explanation goes here
-            obj.DefaultPath = '/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof';
+            if exist('defpath','var')
+                if isfolder(defpath)
+                    obj.DefaultPath =defpath;
+                end
+            else
+                obj.DefaultPath = '.';
+            end
             obj.figtypes={'-dpng'};%,'-depsc'
             obj.ext={'.png'};%,'.eps'
             obj.resolution='-r300';
         end
     end
     methods (Static)
-        function obj = instance()
+        function obj = instance(defpath)
             persistent uniqueInstance
             if isempty(uniqueInstance)
-                obj = FigureFactory();
+                obj = FigureFactory(defpath);
                 uniqueInstance = obj;
             else
                 obj = uniqueInstance;
