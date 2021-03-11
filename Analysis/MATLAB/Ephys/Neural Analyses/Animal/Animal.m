@@ -28,7 +28,6 @@ classdef Animal
         function obj = Animal(struct)
             %ANIMAL Construct an instance of this class
             %   Detailed explanation goes here
-            obj.ProbeMeta=struct.ProbeName;
             obj.Age=struct.Age;
             obj.Analgesics=struct.Analgesics;
             obj.Anesthesia=struct.Analgesics;

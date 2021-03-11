@@ -13,6 +13,7 @@ classdef ChannelsThreshold < Channel
             %   Detailed explanation goes here
             obj=obj@Channel(channel.getChannelName,channel.getValues,channel.getTimeInterval);
             obj.Threshold=threshold;
+            obj.Info=channel.Info;
             try
                 obj.Sticky=sticky;
             catch

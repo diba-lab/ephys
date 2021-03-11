@@ -4,6 +4,7 @@ classdef Fooof
     
     properties
         fooof_results
+        Info
     end
     
     methods
@@ -15,6 +16,20 @@ classdef Fooof
             end
         end
         
+        function fooofr=rerun(obj,settings,f_range)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            % FOOOF settings
+            if ~exist('settings','var')
+                settings = struct();  % Use defaults
+            end
+            if ~exist('f_range','var')
+                f_range = [0, 250];
+            end
+            fooof_results = fooof(obj.fooof_results.freqs, obj.fooof_results.power_spectrum, f_range, settings, true);
+
+            fooofr=Fooof(fooof_results);
+        end
         function plot(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here

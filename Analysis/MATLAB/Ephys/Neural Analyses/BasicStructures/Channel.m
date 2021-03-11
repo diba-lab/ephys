@@ -6,6 +6,9 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
         ChannelName
         TimeIntervalCombined
     end
+    properties
+        Info
+    end
     
     methods
         function obj = Channel(channelname, voltageArray, timeIntervalCombined)
@@ -54,6 +57,9 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
         end
         function obj=setChannelName(obj,name)
             obj.ChannelName=name;
+        end
+        function obj=setInfo(obj,info)
+            obj.Info=info;
         end
         function st=getTimeIntervalCombined(obj)
             st=obj.TimeIntervalCombined;
@@ -108,14 +114,20 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
                     time(iwind,2)=window(2);
                 end
             end
-            sample=ticd.getSampleFor(time);
             ticd1=ticd.getTimeIntervalForTimes(time);
+            try
+            sample=ticd.getSampleFor([ticd1.getStartTime ticd1.getEndTime]);
+            catch
+            end
             samples=[];
             for iwind=1:size(sample,1)
                 thesamples=sample(iwind,1):sample(iwind,2);
                 samples=horzcat(samples,thesamples);
             end
+            try
             obj.Values=obj.Values(samples);
+            catch
+            end
             obj.TimeIntervalCombined=ticd1;
         end
         

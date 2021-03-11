@@ -158,6 +158,7 @@ classdef StateSeries
                     state(thestate).state=thestate;
                 end
             end
+            state=StateRatios(state);
         end
         function theEpisodeAbs=getState(obj,state)
             stateEpisodes=obj.getEpisodes;

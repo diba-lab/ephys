@@ -15,6 +15,7 @@ classdef StateDetectionData
         TimeIntervalCombinedDownSampled
         TimeIntervalCombinedOriginal
         BaseName
+        Info
     end
     
     methods
@@ -86,6 +87,7 @@ classdef StateDetectionData
             ch=double(obj.SleepScoreLFP.thLFP);
             chname=num2str(obj.getThetaChannelID);
             LFP=Channel(chname,ch(1:obj.TimeIntervalCombinedDownSampled.getNumberOfPoints),obj.TimeIntervalCombinedDownSampled);
+            LFP=LFP.setInfo(obj.Info);
         end
         function [ch]= getThetaChannelID(obj)
             ch=obj.SleepScoreLFP.THchanID;
@@ -111,6 +113,7 @@ classdef StateDetectionData
             ticd=obj.TimeIntervalCombinedDownSampled.getDownsampled(...
                 obj.TimeIntervalCombinedDownSampled.getSampleRate);
             ch=Channel('EMG',ts1,ticd);
+            ch=ch.setInfo(obj.Info);
             cht=ChannelsThreshold(ch,obj.getEMGThreshold,obj.isEMGSticky);
         end
         function ts=getEMGThreshold(obj)
@@ -126,6 +129,7 @@ classdef StateDetectionData
             ticd=obj.TimeIntervalCombinedDownSampled.getDownsampled(...
                 obj.TimeIntervalCombinedDownSampled.getSampleRate);
             ch=Channel('TH',ts1,ticd);
+            ch=ch.setInfo(obj.Info);
             cht=ChannelsThreshold(ch,obj.getThetaRatioThreshold,obj.isThetaSticky);
         end
         function ts=getThetaRatioThreshold(obj)
@@ -184,12 +188,14 @@ classdef StateDetectionData
             end
             chname=num2str(channel);
             LFP=Channel(chname,ch,obj.TimeIntervalCombinedOriginal.getDownsampled(downsamplerate));
+            LFP=LFP.setInfo(obj.Info);
         end
         function cht=getSW(obj)
             ts1= obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.broadbandSlowWave;
             ticd=obj.TimeIntervalCombinedDownSampled.getDownsampled(...
                 obj.TimeIntervalCombinedDownSampled.getSampleRate);
             ch=Channel('SW',ts1,ticd);
+            ch=ch.setInfo(obj.Info);
             cht=ChannelsThreshold(ch,obj.getSWThreshold,obj.isSWSticky);
         end
         function ts=getSWThreshold(obj)
