@@ -96,11 +96,18 @@ classdef BlockOfChannels
         end
         function [episode, theEpisodeAbs]=getState(obj,state)
             ss=obj.getHypnogram;
+            try
             theEpisodeAbs=ss.getState(state);
-            ch=obj.getChannel(1);
-            episode=ch.getTimeWindow(theEpisodeAbs);
-            obj.Info.State=state;
-            episode=episode.setInfo(obj.Info);
+            catch
+            end
+            if ~isempty(theEpisodeAbs)
+                ch=obj.getChannel(1);
+                episode=ch.getTimeWindow(theEpisodeAbs);
+                obj.Info.State=state;
+                episode=episode.setInfo(obj.Info);
+            else
+                episode=[];
+            end
         end
         function dt=getDate(obj)
             dt=obj.Channels.get(1).getTimeInterval.getDate;

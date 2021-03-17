@@ -223,6 +223,9 @@ classdef SDFigures2 <Singleton
                             boc=BlockOfChannels();
                             boc.Info.Condition=cond;
                             boc.Info.Session=theses;
+                            boc.Info.SessionInfo=ses.SessionInfo;
+                            boc.Info.Animal=ses.Animal;
+                            boc.Info.Probe=ses.Probe;
                             block=blocksStr(iblock);
                             boc.Info.Block=block;
                             timeWindow=blocks.get(char(block));
@@ -238,40 +241,45 @@ classdef SDFigures2 <Singleton
                                     timeWindowadj(1)=timeWindow(1);
                                 end
                             end
-                            allBlock=th.getTimeWindowForAbsoluteTime(timeWindowadj);
+                            allBlock=th.getTimeWindow(timeWindowadj);
                             boc=boc.addChannel(allBlock);
-%                             emg=EMG.getTimeWindowForAbsoluteTime(timeWindowadj);
-%                             boc=boc.addChannel(emg);
+                            try
+                                emg=EMG.getTimeWindow(timeWindowadj);
+                            catch
+                            end
+                            boc=boc.addChannel(emg);
                             ss_block=ss.getWindow(timeWindowadj);
                             boc=boc.addHypnogram(ss_block);
                             slidingWindowSize=minutes(params.Plot.SlidingWindowSizeInMinutes);
                             edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
-%                             cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache', DataHash(params)...
-%                                 ,strcat(sprintf('PlotFooof_afoof_%s_%d_%s_',cond,isession,block),'.mat'));
-%                             try
-%                                 load(cacheFilePower,'fooof');
-%                             catch
-%                                 try
-%                                     psd1=allBlock.getPSpectrumWelch;
-%                                     fooof=psd1.getFooof(params.Fooof(1),params.Fooof(1).f_range);
-%                                     %                                     fooof.plot
-%                                     folder=fileparts(cacheFilePower);if ~isfolder(folder), mkdir(folder); end
-%                                     save(cacheFilePower,'fooof')
-%                                 catch
-%                                     fooof=Fooof();
-%                                 end
-%                             end
+                            %                             cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache', DataHash(params)...
+                            %                                 ,strcat(sprintf('PlotFooof_afoof_%s_%d_%s_',cond,isession,block),'.mat'));
+                            %                             try
+                            %                                 load(cacheFilePower,'fooof');
+                            %                             catch
+                            %                                 try
+                            %                                     psd1=allBlock.getPSpectrumWelch;
+                            %                                     fooof=psd1.getFooof(params.Fooof(1),params.Fooof(1).f_range);
+                            %                                     %                                     fooof.plot
+                            %                                     folder=fileparts(cacheFilePower);if ~isfolder(folder), mkdir(folder); end
+                            %                                     save(cacheFilePower,'fooof')
+                            %                                 catch
+                            %                                     fooof=Fooof();
+                            %                                 end
+                            %                             end
                             stateRatiosInTime=boc.getStateRatios(...
                                 seconds(slidingWindowSize),[],edges);
                             statelist=categorical(stateRatiosInTime.getStateList,[1 2 3 5],{'AWAKE','QWAKE','SWS','REM'});
+                            statelistnum=stateRatiosInTime.getStateList;
                             for istate=1:numel(statelist)
                                 thestate=statelist(istate);
+                                thestateNum=statelistnum(istate);
                                 cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache', DataHash(params)...
                                     ,strcat(sprintf('PlotFooof_afoof_%s_%d_%s_%s_',cond,isession,block,thestate),'.mat'));
                                 try
-                                    load(cacheFilePower,'epiFooof')
+                                    load(cacheFilePower,'thpks','epiFooof')
                                 catch
-                                    clear tfms
+                                    clear tfms thpks epiFooof
                                     subblocks=boc.getStartTime+seconds(edges);
                                     for isublock=1:(numel(subblocks)-1)
                                         subblock=subblocks([isublock isublock+1]);
@@ -280,48 +288,63 @@ classdef SDFigures2 <Singleton
                                         catch
                                             boc_sub=[];
                                         end
-                                        boc_sub.Info.SubBlock=categorical(isublock,1:(numel(subblocks)-1));
-                                        try
-                                            [episode, theEpisodeAbs]=boc_sub.getState(thestate);
-                                            if episode.getLength>minutes(params.Plot.MinDurationInSubBlockMinutes)
+                                        fooof=Fooof();
+                                        thpk=ThetaPeak();
+                                        if ~isempty(boc_sub)
+                                            boc_sub.Info.SubBlock=categorical(isublock,1:(numel(subblocks)-1));
+                                            try
+                                                episode=boc_sub.getState(thestateNum);
+                                            catch
+                                            end
+                                            if ~isempty(episode) && (episode.getLength>minutes(params.Plot.MinDurationInSubBlockMinutes))
                                                 fooof=episode.getPSpectrumWelch.getFooof(params.Fooof(2),params.Fooof(2).f_range);
                                                 fooof.Info=episode.Info;
+                                                
+                                                thetaFreq=params.BandFrequencies.theta;
+                                                episode1=episode.getDownSampled(50);
+                                                thpk=episode1.getFrequencyBandPeak(thetaFreq);
+                                                thpk=thpk.addFooof(fooof);
                                             end
-                                        catch
-                                            fooof=Fooof();
                                         end
                                         epiFooof(isublock)=fooof; %#ok<AGROW>
+                                        try
+                                            thpks=thpks+thpk;
+                                        catch
+                                            thpks=thpk;
+                                        end
                                         
+                                        %                                         try
+                                        %                                             try close; catch, end
+                                        %                                             f=figure('Visible','on');f.Position=[1441,200,2800,1100];
+                                        %
+                                        %                                             obj.plotEpisode(boc_sub,params,statelist(1));%awake
+                                        %
+                                        %                                             fname=strcat(sprintf('/home/ukaya/Desktop/theta-cf/%s/%s/%s/PlotFooof_afoof_%d_%d_%s',block,sde.getStateCode(thestate),cond,isession,isublock),DataHash(params));
+                                        %                                             ff.save(fname);
+                                        %                                             %Plot end
+                                        %                                         catch
+                                        %                                         end
                                     end
                                     folder=fileparts(cacheFilePower);
                                     if ~isfolder(folder), mkdir(folder); end
-                                    save(cacheFilePower,'epiFooof');
+                                    save(cacheFilePower,'thpks','epiFooof');
                                 end
-                                % plot
-%                                 try
-%                                     try close; catch, end
-%                                     f=figure('Visible','on');f.Position=[1441,200,2800,1100];
-%                                     
-%                                     obj.plotEpisode(boc,params,statelist(1));%awake
-%                                     
-%                                     fname=strcat(sprintf('/home/ukaya/Desktop/theta-cf/%s/%s/%s/PlotFooof_afoof_%d_%d_%s',block,sde.getStateCode(thestate),cond,isession,isublock),DataHash(params));
-%                                     ff.save(fname);
-%                                     %%Plot end
-%                                 catch
-%                                 end
+                                %                                     thpks.plotCF
+                                %                                     thpks.plotPW
+                                stt=stateRatiosInTime.State(istate).state;
                                 try
-                                    Cond(iblock).sratio(istate,:,isession,icond)=stateRatiosInTime.State(istate).Ratios; %#ok<AGROW>
-                                    Cond(iblock).sCount(istate,:,isession,icond)=stateRatiosInTime.State(istate).N; %#ok<AGROW>
-                                    Cond(iblock).edges(istate,:,isession,icond)=stateRatiosInTime.State(istate).edges; %#ok<AGROW>
+                                    Cond(iblock).sratio(stt,:,isession,icond)=stateRatiosInTime.State(istate).Ratios; %#ok<AGROW>
+                                    Cond(iblock).sCount(stt,:,isession,icond)=stateRatiosInTime.State(istate).N; %#ok<AGROW>
+                                    Cond(iblock).edges(stt,:,isession,icond)=stateRatiosInTime.State(istate).edges; %#ok<AGROW>
                                 catch
-                                    Cond(iblock).sratio(istate,:,isession,icond)=nan; %#ok<AGROW>
-                                    Cond(iblock).sCount(istate,:,isession,icond)=nan; %#ok<AGROW>
-                                    Cond(iblock).edges(istate,:,isession,icond)=nan; %#ok<AGROW>
+                                    Cond(iblock).sratio(stt,:,isession,icond)=nan; %#ok<AGROW>
+                                    Cond(iblock).sCount(stt,:,isession,icond)=nan; %#ok<AGROW>
+                                    Cond(iblock).edges(stt,:,isession,icond)=nan; %#ok<AGROW>
                                 end
                                 try
-                                    Cond(iblock).fooof(istate,:,isession,icond)=epiFooof; %#ok<AGROW>
+                                    Cond(iblock).fooof(stt,:,isession,icond)=epiFooof; %#ok<AGROW>
                                 catch
-                                    
+                                    Cond(iblock).fooof(stt,:,isession,icond)=Fooof(); %#ok<AGROW>
                                 end
                                 clear epiFooof;
                             end
@@ -336,7 +359,60 @@ classdef SDFigures2 <Singleton
             end
             obj.plot_FooofInBlocks_CompareConditions(Cond,plotwh)
         end
-        
+        function plotDist(obj)
+            sde=SDExperiment.instance;
+            sdeparams=sde.get;
+            params=obj.getParams.Fooof;
+            
+            ff=FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof');
+            
+            statelist=categorical({'AWAKE','QWAKE','SWS','REM'});
+            condlist=categorical({'NSD','SD'});
+            blocklist=categorical({'PRE','NSD','SD','TRACK','POST'});
+            
+            conds=condlist(1:2);
+            blocks=blocklist(2:3);
+            sesnos=1:8;
+            states=statelist(1);
+            try close(10); catch, end;
+            for icond=1:numel(conds)
+                cond=conds(icond);
+                try close(double(cond)+6); catch, end; f=figure(double(cond)+6);f.Position=[1,2,700,1200];
+                for isession=1:numel(sesnos)
+                    session=sesnos(isession);
+                    for iblock=1:numel(blocks)
+                        block=blocks(iblock);
+                        for istate=1:numel(states)
+                            state=states(istate);
+                            cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache', DataHash(params)...
+                                ,strcat(sprintf('PlotFooof_afoof_%s_%d_%s_%s_',cond,session,block,state),'.mat'));
+                            if isfile(cacheFilePower)
+                                load(cacheFilePower,'thpks','epiFooof')
+                                thpks.plotCF(numel(sesnos),isession);
+                                if exist('thpksm','var')
+                                    thpksm=thpksm.merge(thpks);
+                                else
+                                    thpksm=thpks;
+                                end
+                                clear thpks
+                            end
+                            
+                        end
+                    end
+                end
+                txt=sprintf('ThetaPeak_dist_%s_%s_%s_',cond,block,state);
+                ff.save(txt)
+                f=figure(10);f.Position=[2096,1844,900,200];
+                if exist('axs','var')
+                    axs=thpksm.plotCF(axs);
+                else
+                    axs=thpksm.plotCF();
+                end
+                clear thpksm
+            end
+            txt=sprintf('ThetaPeak_dist_Comparison_%s_%s_',block,state);
+            ff.save(txt);
+        end
     end
     methods (Access=private)
         function plot_RippleRatesInBlocks_CompareStates(obj,Conds)
@@ -352,7 +428,7 @@ classdef SDFigures2 <Singleton
             
             for icond=1:numel(conditions)
                 
-                try close(icond);catch;end; f=figure(icond);f.Units='normalized';f.Position=[1.0000    0.4391    1.4    0.2];
+                try close(icond);catch;end; f=figure(icond);f.Units='normalized';f.Position=[1.0000    0.4391    .7    0.2];
                 lastedge=0;
                 centers_all=[];
                 edges_all=[];
@@ -500,19 +576,20 @@ classdef SDFigures2 <Singleton
         end
         function plot_FooofInBlocks_CompareConditions(obj,Conds,plotwh)
             s=obj.getParams.Fooof;
-            peaksCF=s.BandFrequencies.theta;
-%             bwth=s.BandWidthThreshold.ripple;
+            peaksCF=[5 9];%s.BandFrequencies.theta;%
+            %             bwth=s.BandWidthThreshold.ripple;
             bwth=[];
-            plotwhat={'cf','power','f','offset'};
+            plotwhat={'cf','power','f','offset','k'};
             
             colors1=linspecer(2,'qualitative');
             colors={colors1(1,:);colors1(2,:)};
             conditions={'NSD','SD'};
             blockstr={'PRE','SD-NSD','TRACK','POST'};
-            states=[1 2 3 5];
-            statestr={'A-WAKE','Q-WAKE','SWS','all','REM'};
-            for thestate=states
-                try close(thestate);catch;end; f=figure(thestate);f.Units='normalized';f.Position=[1.0000    0.4391    .2    0.2];
+            statelist1=categorical([1 2 3 5],[1 2 3 5],{'AWAKE','QWAKE','SWS','REM'});
+            statelist=[1 2 3 5];
+            for istate=1:numel(statelist)
+                thestate=statelist(istate);
+                try close(istate);catch;end; f=figure(istate);f.Units='normalized';f.Position=[1.0000    0.4391    .2    0.2];
                 lastedge=0;
                 centers_all=[];
                 edges_all=[];
@@ -522,10 +599,10 @@ classdef SDFigures2 <Singleton
                     scount(scount<seconds(minutes(1)))=nan;
                     edgesall=squeeze(hours(seconds(Conds(iblock).edges(:,:,:,:))));
                     edgesf=0;
-                    for istate=1:size(edgesall,1)
+                    for istate1=1:size(edgesall,1)
                         for ises=1:size(edgesall,3)
                             for icond=1:size(edgesall,4)
-                                edges1=edgesall(istate,:,ises,icond);
+                                edges1=edgesall(istate1,:,ises,icond);
                                 if numel(unique(edges1))>numel(edgesf)
                                     edgesf=edges1;
                                 end
@@ -583,15 +660,14 @@ classdef SDFigures2 <Singleton
                                     sub_ses_cond.aperiodic.k(isub,ises,icond)=fooof.fooof_results.aperiodic_params(2);
                                 catch
                                     sub_ses_cond.aperiodic.k(isub,ises,icond)=nan;
-                                end
-                                
+                                end                                
                             end
                         end
                     end
                     switch plotwh
                         case {1, 2} %CF power
                             var=sub_ses_cond.periodic.(plotwhat{plotwh});
-                        case {3, 4} %slope offset
+                        case {3, 4,5} %slope offset
                             var=sub_ses_cond.aperiodic.(plotwhat{plotwh});
                     end
                     
@@ -621,7 +697,7 @@ classdef SDFigures2 <Singleton
                     end
                 end
                 legend([b(1) b(2)],conditions,'Location','best')
-                title(statestr{thestate});
+                title(statelist1(istate));
                 ax=gca;
                 ax.YColor='k';
                 ax.XLim=[0 edges(end)];
@@ -639,51 +715,56 @@ classdef SDFigures2 <Singleton
                     case 1 %CF
                         ax.YLim=peaksCF;
                         ylabel('Center Frequency (Hz)');
-                        ff.save(strcat('Center Frequency_',statestr{thestate}));
+                        ff.save(strcat('Center Frequency_',char(statelist1(istate))));
                     case 2 %power
-                        ax.YLim=[0 0.4];
+                        ax.YLim=[0 1.2];
                         ylabel('Relative Power');
-                        ff.save(strcat('Power_',statestr{thestate}));
+                        ff.save(strcat('Power_',char(statelist1(istate))));
                     case 3 %slope
-                        ax.YLim=[1.8 4];
+                        ax.YLim=[1 3];
                         ylabel('F');
-                        ff.save(strcat('f_',statestr{thestate}));
+                        ff.save(strcat('f_',char(statelist1(istate))));
                     case 4 %offset
                         ax.YLim=[4.5 7.5];
                         ylabel('Offset');
-                        ff.save(strcat('Offset_',statestr{thestate}));
+                        ff.save(strcat('Offset_',char(statelist1(istate))));
+                    case 5 %offset
+%                         ax.YLim=[4.5 7.5];
+                        ylabel('Knee');
+                        ff.save(strcat('Knee_',char(statelist1(istate))));
                 end
             end
         end
-        function axs=plotEpisode(obj,boc,params,state)
+        function axs=plotEpisode(obj,boc,params,thestate)
+            sde=SDExperiment.instance;
+            info=boc.Info;
             subplot(3,4,[1:3 5:7]);ax=gca;
             frange=params.Fooof.f_range;
-            [episode, theEpisodeAbs]=boc.getState(state);
-
+            [episode, theEpisodeAbs]=boc.getState(thestate);
+            thetaFreq=params.BandFrequencies.theta;
             
-            tfm=episode.getWhitened.getTimeFrequencyMap(...
-                TimeFrequencyWavelet(logspace(log10(frange(1)),log10(frange(2)),100)));
+            episode1=episode.getDownSampled(50);
+            tfm=episode1.getWhitened.getTimeFrequencyMap(...
+                TimeFrequencyWavelet(logspace(log10(thetaFreq(1)),log10(thetaFreq(2)),100)));
             tfm.plot;hold on
-            ti=episode.getTimeIntervalCombined;
+            ti=episode1.getTimeIntervalCombined;
             t=ti.getTimePointsInSamples/ti.getSampleRate;
             
             %  calculate ThetaPeak change
             clear thpk
-            thetaFreq=params.BandFrequencies.theta;
-            episode1=episode.getDownSampled(50);
-            tfm1=episode1.getWhitened.getTimeFrequencyMap(...
-                TimeFrequencyWavelet(logspace(log10(thetaFreq(1)),log10(thetaFreq(2)),50)));
-            thpk=tfm1.getFrequencyBandPeak(thetaFreq);
+            %             episode1=episode.getDownSampled(50);
+            %             tfm1=episode1.getWhitened.getTimeFrequencyMap(...
+            %                 TimeFrequencyWavelet(logspace(log10(thetaFreq(1)),log10(thetaFreq(2)),50)));
+            [thpkcf,thpkpw]=tfm.getFrequencyBandPeak(thetaFreq);
             %                                             thpk.plot('Color','r');
-            thpk_fd=thpk.getMedianFiltered(1,'omitnan','truncate').getMeanFiltered(1);
-            thpk_fd.plot('Color','k','LineWidth',1.5)
-            
+            thpkcf_fd=thpkcf.getMedianFiltered(1,'omitnan','truncate').getMeanFiltered(1);
+            thpkcf_fd.plot('Color','k','LineWidth',1.5)
             ylabel('Frequency (Hz)');
             xlabel('Time (s)');
-            try text(-diff(ax.XLim)*.1,diff(ax.YLim)*2,  strcat(cond,'-',num2str(isublock)));
-            catch,end   
-            try t1=text(-diff(ax.XLim)*.125,diff(ax.YLim)*.05,  strcat(sde.getStateCode(thestate)));
-                t1.Color=sde.getStateColors(istate);
+            try text(-diff(ax.XLim)*.1,diff(ax.YLim)*2,  strcat(char(info.Condition),'-',char(info.SubBlock)));
+            catch,end
+            try t1=text(-diff(ax.XLim)*.125,diff(ax.YLim)*.05,  strcat(sde.getStateCode(double(thestate))));
+                t1.Color=sde.getStateColors(double(thestate));
             catch
             end
             durations1=cumsum(seconds(theEpisodeAbs(:,2)-theEpisodeAbs(:,1)))';
@@ -695,8 +776,17 @@ classdef SDFigures2 <Singleton
                 t1=text(durations(il),ax.YLim(2),num2str(il));
                 t1.HorizontalAlignment='center';
                 t1.VerticalAlignment='bottom';
-                t1.Color=sde.getStateColors(istate);
+                t1.Color=sde.getStateColors(double(thestate));
             end
+            
+            if episode.getLength>minutes(params.Plot.MinDurationInSubBlockMinutes)
+                fooof=episode.getPSpectrumWelch.getFooof(params.Fooof(2),params.Fooof(2).f_range);
+                fooof.Info=episode.Info;
+            else
+                fooof=Fooof();
+            end
+            
+            
             bands=params.BandFrequencies;
             bwths=params.BandWidthThreshold;
             bandsstr=fieldnames(bands);
@@ -730,8 +820,18 @@ classdef SDFigures2 <Singleton
             end
             axs(1)=ax;
             subplot(6,4,17:19);hold on;ax=gca;
-            thpk.plot('Color','r')
-            thpk_fd.plot('Color','k','LineWidth',1.5)
+            thpkcf.plot('Color','r')
+            thpkcf_fd.plot('Color','k','LineWidth',1.5)
+            
+            %             yyaxis right
+            %             thpkpw_fd=thpkpw.getMedianFiltered(1,'omitnan','truncate').getMeanFiltered(1);
+            %             thpkpw_fd.plot('Color','k','LineWidth',1.5)
+            %             ylabel('Power');
+            %             xlabel('Time (s)');
+            %             ax=gca;ax.YScale='log';
+            %             hold on;
+            %             yline(mean(thpkpw_fd.getValues))
+            
             bandFreq=bands.theta;
             try
                 p1=plot([diff(ax.XLim) diff(ax.XLim)]*1,bandFreq);p1.LineWidth=10;p1.Color=colors(1,:);
@@ -759,7 +859,7 @@ classdef SDFigures2 <Singleton
             catch
             end
             try
-                hyp=boc_sub.getHypnogram;
+                hyp=boc.getHypnogram;
                 axn=axes;p=ax.Position;
                 axn.Position=[p(1) 1-p(4)/3 p(3) p(4)/3];axn.YTick=[];
                 hyp.plot
@@ -772,8 +872,9 @@ classdef SDFigures2 <Singleton
             end
             try
                 subplot(6,4,21:23);ax=gca;
+                EMG=boc.getChannel(2);
                 epiEMG1=EMG.getTimeWindow([theEpisodeAbs(:,1) theEpisodeAbs(:,2)-seconds(1)]);
-                epiEMG=epiEMG1.getReSampled(thpk.getTimeStamps);
+                epiEMG=epiEMG1.getReSampled(thpkcf.getTimeStamps);
                 l=epiEMG.plot;hold on;l.LineWidth=2.5;l.Color=colors(3,:);
                 l=yline(epiEMG1.getThreshold);
                 ax.YLim=[0 1];
@@ -781,7 +882,7 @@ classdef SDFigures2 <Singleton
                 ylabel('EMG');
             catch
             end
-            str=sprintf('%s, %s, %s, ch%d',ses.Animal.Code,ses.SessionInfo.Date,ses.SessionInfo.Condition,thId);
+            str=sprintf('%s, %s, %s, ch%d',info.Animal.Code,info.SessionInfo.Date,info.SessionInfo.Condition,episode.getChannelName);
             annotation('textbox',[0 .65 .3 .3],'String',str,'FitBoxToText','on');
             try
                 subplot(3,4,[4 8]);ax=gca;
@@ -790,7 +891,7 @@ classdef SDFigures2 <Singleton
             end
             try
                 subplot(3,4,12);ax=gca;
-                thpk_fd.plotHistogram;
+                thpkcf_fd.plotHistogram;
                 bandFreq=bands.theta;
                 try
                     peaks1=fooof.getPeaks(bandFreq);
@@ -808,12 +909,13 @@ classdef SDFigures2 <Singleton
                 end
             catch
             end
+            
             try
                 axn=axes;p=ax.Position;
                 axn.Position=[.2 0 .5 .25];
-                pr1=ses.Probe;
-                pr=pr1.setActiveChannels(thId);
-                pr.plotProbeLayout(thId);
+                pr1=info.Probe;
+                pr=pr1.setActiveChannels(episode.getChannelName);
+                pr.plotProbeLayout(episode.getChannelName);
                 axn.Visible='off';
             catch
             end

@@ -3,10 +3,10 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
     %   Detailed explanation goes here
     
     properties (Access=protected)
-        ChannelName
         TimeIntervalCombined
     end
     properties
+        ChannelName
         Info
     end
     
@@ -33,12 +33,15 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
                 obj.TimeIntervalCombined=timeIntervalCombined;
             catch
             end
+            obj.print;
+        end
+        function print(obj)
             fprintf(...
-                'New Channel %s, lenght %d, %s -- %s, %dHz\n',...
+                'Channel %s, lenght %d, %s -- %s, %dHz\n',...
                 num2str(obj.ChannelName),numel(obj.getValues),...
-                datestr(timeIntervalCombined.getStartTime),...
-                datestr(timeIntervalCombined.getEndTime),...
-                obj.SampleRate);
+                datestr(obj.TimeIntervalCombined.getStartTime),...
+                datestr(obj.TimeIntervalCombined.getEndTime),...
+                obj.SampleRate);        
         end
         function st=getStartTime(obj)
             ti=obj.getTimeInterval;
@@ -55,6 +58,9 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
         function chan=getChannelName(obj)
             chan=obj.ChannelName;
         end
+        function info=getInfo(obj)
+            info=obj.Info;
+        end
         function obj=setChannelName(obj,name)
             obj.ChannelName=name;
         end
@@ -69,30 +75,14 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
         end
         function ch=setTimeInterval(obj,ti)
             ch=Channel(obj.ChannelName,obj.Values,ti);
+            ch=ch.setInfo(obj.Info);
         end
-        
+        function ets=getEphysTimeSeries(obj)
+            ets=EphysTimeSeries(obj.getValues,obj.getSampleRate,obj.getChannelName);
+            ets=ets.setInfo(obj.Info);
+        end
         function obj=getTimeWindowForAbsoluteTime(obj,window)
-            ticd=obj.TimeIntervalCombined;
-            basetime=ticd.getDate;
-            if isstring(window)
-                window1=datetime(window,'Format','HH:mm');
-                add1(1)=hours(window1(1).Hour)+minutes(window1(1).Minute);
-                add1(2)=hours(window1(2).Hour)+minutes(window1(2).Minute);
-                time.start=basetime+add1(1);
-                time.end=basetime+add1(2);
-            elseif isduration(window)
-                add1=window;
-                time.start=basetime+add1(1);
-                time.end=basetime+add1(2);
-            elseif isdatetime(window)
-                time.start=window(1);
-                time.end=window(2);
-            end
-            sample.start=ticd.getSampleFor(time.start);
-            sample.end=ticd.getSampleFor(time.end);
-            ticd1=ticd.getTimeIntervalForTimes([time.start,time.end]);
-            obj.Values=obj.Values(sample.start:sample.end);
-            obj.TimeIntervalCombined=ticd1;
+            error('Obsolete. Use getTimeWindow instead.')
         end
         function obj=getTimeWindow(obj,windows)
             ticd=obj.TimeIntervalCombined;
@@ -115,19 +105,13 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
                 end
             end
             ticd1=ticd.getTimeIntervalForTimes(time);
-            try
             sample=ticd.getSampleFor([ticd1.getStartTime ticd1.getEndTime]);
-            catch
-            end
             samples=[];
             for iwind=1:size(sample,1)
                 thesamples=sample(iwind,1):sample(iwind,2);
                 samples=horzcat(samples,thesamples);
             end
-            try
             obj.Values=obj.Values(samples);
-            catch
-            end
             obj.TimeIntervalCombined=ticd1;
         end
         
@@ -146,6 +130,17 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
         end
         function ets=getTimeSeries(obj)
             ets=EphysTimeSeries(obj.getValues,obj.getSampleRate,obj.ChannelName);
+        end
+        function thpk=getFrequencyBandPeak(obj,freq)
+            tfm=obj.getWhitened.getTimeFrequencyMap(...
+                TimeFrequencyWavelet(logspace(log10(freq(1)),log10(freq(2)),diff(freq)*5)));
+            [thpkcf1,thpkpw1]=tfm.getFrequencyBandPeak(freq);
+            thpkcf=Channel('CF',thpkcf1.getValues,obj.TimeIntervalCombined);
+            thpkcf=thpkcf.setInfo(obj.Info);
+            thpkpw=Channel('Power',thpkpw1.getValues,obj.TimeIntervalCombined);
+            thpkpw=thpkpw.setInfo(obj.Info);
+            thpk=ThetaPeak(thpkcf,thpkpw);
+            thpk=thpk.addSignal(obj);
         end
         
     end

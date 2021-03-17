@@ -96,7 +96,7 @@ classdef Fooof
             end
             idxall=idxall & idxfreq & idxpow & idxbw;
             peaks1=peaks(idxall,:);
-            peaksorted=sort(peaks1,1,'descend');%sort by power
+            peaksorted=sortrows(peaks1,2,'descend');%sort by power
             for ipeak=1:1
                 peaks2=peaksorted(ipeak,:);
                 try

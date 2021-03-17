@@ -4,6 +4,7 @@ classdef EphysTimeSeries < Oscillation
     
     properties (Access=private)
         Name
+        Info
     end
     
     methods
@@ -25,12 +26,36 @@ classdef EphysTimeSeries < Oscillation
             %   Detailed explanation goes here
                 ets.Name=name;
         end
-        function ets = getName(ets,name)
+        function name = getName(ets)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-                ets.Name=name;
+                name=ets.Name;
         end
-        function hist = plotHistogram(ets)
+        function ets = setInfo(ets,info)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+                ets.Info=info;
+        end
+        function info = getInfo(ets)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+                info=ets.Info;
+        end
+        function ets = getEphysTimeSeries(ets)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+        end
+        
+        function ets = plus(ets,etsnew)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            if ets.getSampleRate==etsnew.getSampleRate
+                ets.Values=horzcat(ets.getValues, etsnew.getValues);
+            else
+                error('Sample Rates...')
+            end
+        end
+        function plotHistogram(ets)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             histogram(ets.getValues);

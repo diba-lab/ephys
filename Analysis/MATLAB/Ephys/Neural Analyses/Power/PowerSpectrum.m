@@ -75,13 +75,19 @@ classdef PowerSpectrum
 
             fooofr=Fooof(fooof_results);
         end
-        function freq=getPeak(powerSpectrum,f_range)
+        function [freq, pwr]=getPeak(powerSpectrum,f_range)
             [~,idx(1)]=min(abs(powerSpectrum.Frequency-f_range(1)));
             [~,idx(2)]=min(abs(powerSpectrum.Frequency-f_range(2)));
             idx=idx(1):idx(2);
             power=powerSpectrum.Power(idx);
             [pks,locs] = findpeaks(power,'SortStr','descend');
-            freq=powerSpectrum.Frequency(locs(1));
+            if ~isempty(pks)
+                freq=powerSpectrum.Frequency(locs(1));
+                pwr=pks(1);
+            else
+                freq=[];
+                pwr=[];
+            end
         end
     end
 end

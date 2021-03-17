@@ -64,23 +64,27 @@ classdef TimeIntervalCombined < TimeIntervalAbstract
                 if timeint(2) > obj.getNumberOfPoints
                     timeint(2)=obj.getNumberOfPoints;
                 end
-                til=obj.timeIntervalList;
-                lastSample=0;
-                for iInt=1:til.length
-                    theTimeInterval=til.get(iInt);
-                    upstart=timeint(1)-lastSample;
-                    upend=timeint(2)-lastSample;
-                    if upend>0
-                        newti=theTimeInterval.getTimeIntervalForSamples(upstart,upend);
-                        if ~isempty(newti)
-                            try
-                                new_timeIntervalCombined=new_timeIntervalCombined+newti;
-                            catch
-                                new_timeIntervalCombined=newti;
+                if(times(1)>times(2))
+                    new_timeIntervalCombined=[];
+                else
+                    til=obj.timeIntervalList;
+                    lastSample=0;
+                    for iInt=1:til.length
+                        theTimeInterval=til.get(iInt);
+                        upstart=timeint(1)-lastSample;
+                        upend=timeint(2)-lastSample;
+                        if upend>0
+                            newti=theTimeInterval.getTimeIntervalForSamples(upstart,upend);
+                            if ~isempty(newti)
+                                try
+                                    new_timeIntervalCombined=new_timeIntervalCombined+newti;
+                                catch
+                                    new_timeIntervalCombined=newti;
+                                end
                             end
                         end
+                        lastSample=lastSample+theTimeInterval.NumberOfPoints;
                     end
-                    lastSample=lastSample+theTimeInterval.NumberOfPoints;
                 end
             end
         end
@@ -90,8 +94,8 @@ classdef TimeIntervalCombined < TimeIntervalAbstract
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             times=obj.getDatetime(times);
-            times=obj.getSampleFor(times);
-            timeIntervalCombined=obj.getTimeIntervalForSamples(times);
+            timess=obj.getSampleForClosest(times);
+            timeIntervalCombined=obj.getTimeIntervalForSamples(timess);
         end
         
         function times=getRealTimeFor(obj,samples)
@@ -133,6 +137,32 @@ classdef TimeIntervalCombined < TimeIntervalAbstract
                 samples(idx)=theTimeInterval.getSampleFor(times(idx))+lastSample;
                 lastSample=lastSample+theTimeInterval.NumberOfPoints;         
             end
+        end
+        function samples=getSampleForClosest(obj,times)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            times=obj.getDatetime(times);
+            
+            samples=nan(size(times));
+            til= obj.timeIntervalList;
+                lastSample=0;
+                ends=datetime.empty([0 til.length]);
+            for iInt=1:til.length
+                theTimeInterval=til.get(iInt);
+                ends((iInt-1)*2+1)=theTimeInterval.getStartTime;
+                ends(iInt*2)=theTimeInterval.getEndTime;
+                idx=times>=theTimeInterval.StartTime & times<=theTimeInterval.getEndTime;
+                samples(idx)=theTimeInterval.getSampleFor(times(idx))+lastSample;
+                lastSample=lastSample+theTimeInterval.NumberOfPoints;         
+            end
+            for it=1:numel(samples)
+                if isnan(samples(it))
+                    time=times(it);
+                    [~,I]=min(abs(time-ends));
+                    times(it)=ends(I);
+                end
+            end
+            samples=obj.getSampleFor(times);
         end
         
         function time=getEndTime(obj)

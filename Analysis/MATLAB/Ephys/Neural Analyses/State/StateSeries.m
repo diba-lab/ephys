@@ -164,9 +164,16 @@ classdef StateSeries
             stateEpisodes=obj.getEpisodes;
             stateNames=obj.getStateNames;
             theStateName=stateNames{state};
-            theEpisode=stateEpisodes.(strcat(theStateName,'state'));
-            ticdss=obj.TimeIntervalCombined;
-            theEpisodeAbs=ticdss.getRealTimeFor(theEpisode);
+            try
+                theEpisode=stateEpisodes.(strcat(theStateName,'state'));
+            catch
+            end
+            if ~isempty(theEpisode)
+                ticdss=obj.TimeIntervalCombined;
+                theEpisodeAbs=ticdss.getRealTimeFor(theEpisode);
+            else
+                theEpisodeAbs=[];
+            end
         end
         function obj=setEpisodes(obj,episodes)
             obj.Episodes=episodes;
@@ -185,6 +192,9 @@ classdef StateSeries
         end
         function st=getStartTime(obj)
             st=obj.TimeIntervalCombined.getStartTime;
+        end
+        function st=getEndTime(obj)
+            st=obj.TimeIntervalCombined.getEndTime;
         end
     end
 end

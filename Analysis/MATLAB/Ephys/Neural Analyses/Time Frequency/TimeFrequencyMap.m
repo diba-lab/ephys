@@ -43,21 +43,22 @@ classdef (Abstract) TimeFrequencyMap < Topography2D
             freqpoints=(freqRange(1)<freq)&(freqRange(2)>freq);
             meanfreq=mean(mat(:,freqpoints),2);
         end
-        function [thpk] = getFrequencyBandPeak(obj,freqRange)
+        function [thpkfreq, thpkpower ] = getFrequencyBandPeak(obj,freqRange)
             mat=obj.matrix;
             freq=obj.frequencyPoints;
-            thpk=nan(1,size(mat,2));
+            thpkfreq=nan(1,size(mat,2));
+            thpkpower=nan(1,size(mat,2));
             for it=1:size(mat,2)
                 psd1=PowerSpectrum( abs(mat(:,it)),freq);
-                try
-                    pk=psd1.getPeak(freqRange);
-                    if ~isempty(pk)
-                        thpk(it)=pk;
-                    end
-                catch
+                [pk,pwr]=psd1.getPeak(freqRange);
+                if ~isempty(pk)
+                    thpkfreq(it)=pk;
+                    thpkpower(it)=pwr;
                 end
+                
             end
-            thpk=EphysTimeSeries(thpk,obj.getSampleRate);
+            thpkfreq=EphysTimeSeries(thpkfreq,obj.getSampleRate);
+            thpkpower=EphysTimeSeries(thpkpower,obj.getSampleRate);
         end
         function [obj] = setTimeintervalCombined(obj,ticd)
             %METHOD1 Summary of this method goes here

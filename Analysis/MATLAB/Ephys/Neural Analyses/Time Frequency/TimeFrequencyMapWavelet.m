@@ -29,7 +29,7 @@ classdef TimeFrequencyMapWavelet < TimeFrequencyMap
             ax.XLim=[0 max(obj.timePoints-obj.timePoints(1))];
             min(min(mat))
             ax.YLim=[obj.frequencyPoints(1) obj.frequencyPoints(end)];
-            ax.CLim=[1 8];
+            ax.CLim=[1 250];
         end
         function phase = getPhase(obj,freq)
             %METHOD1 Summary of this method goes here
