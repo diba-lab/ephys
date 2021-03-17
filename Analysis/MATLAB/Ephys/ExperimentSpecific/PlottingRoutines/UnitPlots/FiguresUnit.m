@@ -37,10 +37,12 @@ classdef FiguresUnit
                             spikeArray=sf.getSpykingCircusOutputFolder(sfFolder);
                         end
                     end
-                    save(cachefile,'spikeArray');
-                    clear spikeArray
+%                     save(cachefile,'spikeArray');
+%                     clear spikeArray
                 end
                 SpikeArrays(ises)=spikeArray;
+                save(cachefile,'spikeArray');
+                clear spikeArray
             end
             obj.SpikeArrays=SpikeArrays;
             obj.Injections=[1 2.5];
@@ -77,8 +79,8 @@ classdef FiguresUnit
                 end
                 axp.YScale='log';
                 axp.YLim=[10e-4 10];
-%                 xlim=[bocs{1}.getStartTime bocs{4}.getEndTime]; %ALL BLOCKS
-                xlim=duration({'3:30','18:30'},'InputFormat','hh:mm')+bocs{1}.getDate; %ALL BLOCKS FIXED
+                xlim=[bocs{1}.getStartTime bocs{4}.getEndTime]; %ALL BLOCKS
+%                 xlim=duration({'3:30','18:30'},'InputFormat','hh:mm')+bocs{1}.getDate; %ALL BLOCKS FIXED
 %                 xlim=[bocs{1}.getStartTime bocs{1}.getEndTime];%INTERESTED BLOCKS
                 axp.XLim=xlim;
                 axh.XLim=xlim;
