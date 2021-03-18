@@ -22,7 +22,7 @@ fs = 44100
 volume = 1.0
 ITI_range = 20  # +/- this many seconds for each ITI
 
-# Define dictionary for tone_recall params
+# Define dictionaries for experimental parameters
 # Keep the original params from Gilmartin2013 here for reference - used a different scheme (CSshort and CSlong) vs CS1, CS2 ...
 params_archive = {
     "Gilmartin2013": {
@@ -197,9 +197,9 @@ class trace:
             zip(tones_use, recall_params["CStimes"], ITIuse)
         ):
             print("Starting trial " + str(idt + 1))
-            print(str(CStime) + "sec tone playing now")
+            print(str(CStime) + " sec tone playing now")
             self.write_event("CS" + str(idt + 1) + "_start")
-            tones.play_tone(self.stream, CStime, volume)
+            tones.play_tone(self.stream, tone, volume)
             self.write_event("CS" + str(idt + 1) + "_end")
 
             print(str(ITIdur) + " sec ITI starting now")
@@ -209,7 +209,7 @@ class trace:
         self, baseline_time=120, CSshort=10, ITI=120, CSlong=300
     ):
         """Run tone recall session with baseline exploration time, short CS, ITI, and long CS - legacy from first version
-        of class for Pilot1/Gilmartin2013 only"""
+        of class for Pilot1(Gilmartin2013) only"""
         self.tone_recall_params = {
             "baseline_time": baseline_time,
             "CSshort": CSshort,
@@ -355,6 +355,7 @@ class trace:
         self.write_event("trace" + str(trial) + "_end")
 
         # administer shock
+        print("Shock!")
         self.write_event("shock" + str(trial) + "_start")
         self.board.digital[self.shock_box_pin].write(1)  # signal to shock box
         self.board.digital[self.shock_io_pin].write(1)  # TTL to Intan. Necessary?

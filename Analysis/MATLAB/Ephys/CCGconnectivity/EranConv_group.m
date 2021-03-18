@@ -7,6 +7,10 @@ function [ExcPairs,InhPairs,GapPairs,Rzero] = EranConv_group(spiket,spikeind,Cel
 % synchrony and spits out excitatory and inhibitory connections 
 % (peaks or troughs in CCG from 0.5 to 3.0ms) and "gap" connections
 % (peak in CCG < 0.5ms).
+%
+% IMPORTANT NOTE: this code uses the CCG function from 
+% www.github.com/buzsakilab/buzcode.git repository. You MUST have
+% the buzcode/analysis/spikes/correlation folder on your path!
 % 
 %
 % INPUTS
