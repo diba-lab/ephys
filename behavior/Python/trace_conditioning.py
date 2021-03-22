@@ -100,13 +100,8 @@ class trace:
         assert paradigm in ["Pilot1", "Pilot2"]
         self.params = params[paradigm]
         print(
-            "Initializing trace fc class with "
-            + str(params[paradigm]["training_params"]["tone_dur"])
-            + " second tone, "
-            + str(params[paradigm]["training_params"]["trace_dur"])
-            + " second trace, and "
-            + str(params[paradigm]["training_params"]["shock_dur"])
-            + " second shock"
+            "Initializing trace fc class with " + 
+            str(self.params["alias"]) + " parameters"
         )
         self.tone_freq = tone_freq
         self.arduino_port = arduino_port
@@ -199,7 +194,7 @@ class trace:
             print("Starting trial " + str(idt + 1))
             print(str(CStime) + "sec tone playing now")
             self.write_event("CS" + str(idt + 1) + "_start")
-            tones.play_tone(self.stream, CStime, volume)
+            tones.play_tone(tone, tone, volume)
             self.write_event("CS" + str(idt + 1) + "_end")
 
             print(str(ITIdur) + " sec ITI starting now")
