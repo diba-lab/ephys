@@ -22,7 +22,7 @@ fs = 44100
 volume = 1.0
 ITI_range = 20  # +/- this many seconds for each ITI
 
-# Define dictionary for tone_recall params
+# Define dictionaries for experimental parameters
 # Keep the original params from Gilmartin2013 here for reference - used a different scheme (CSshort and CSlong) vs CS1, CS2 ...
 params_archive = {
     "Gilmartin2013": {
@@ -86,6 +86,11 @@ params = {
     },
 }
 
+default_port = {
+    "linux": "/dev/ttyACM0",
+    "windows": "COM7",
+}
+
 
 class trace:
     def __init__(
@@ -111,8 +116,8 @@ class trace:
         self.p, self.stream = tones.initialize_player(channels=1, rate=20100)
         self.csv_path = None
 
-        # First connect to the Arduino - super important
-        self.initialize_arduino(self.arduino_port)
+        # # First connect to the Arduino - super important
+        # self.initialize_arduino(self.arduino_port)
 
         # Next create tone for training
         self.tone_samples = self.create_tone(
@@ -120,9 +125,6 @@ class trace:
             duration=params[paradigm]["training_params"]["tone_dur"],
             freq=tone_freq,
         )
-
-        # initialize cleanup function
-        atexit.register(shutdown_arduino, self.board)
 
     def run_training_session(self, test=False):
         """Runs training session."""
@@ -192,9 +194,10 @@ class trace:
             zip(tones_use, recall_params["CStimes"], ITIuse)
         ):
             print("Starting trial " + str(idt + 1))
-            print(str(CStime) + "sec tone playing now")
+            print(str(CStime) + " sec tone playing now")
             self.write_event("CS" + str(idt + 1) + "_start")
-            tones.play_tone(tone, tone, volume)
+
+            tones.play_tone(self.stream, tone, volume)
             self.write_event("CS" + str(idt + 1) + "_end")
 
             print(str(ITIdur) + " sec ITI starting now")
@@ -204,7 +207,7 @@ class trace:
         self, baseline_time=120, CSshort=10, ITI=120, CSlong=300
     ):
         """Run tone recall session with baseline exploration time, short CS, ITI, and long CS - legacy from first version
-        of class for Pilot1/Gilmartin2013 only"""
+        of class for Pilot1(Gilmartin2013) only"""
         self.tone_recall_params = {
             "baseline_time": baseline_time,
             "CSshort": CSshort,
@@ -262,13 +265,17 @@ class trace:
         elif test_run:
             self.session = session + "_test"
 
+        # First connect to the Arduino - super important
+        print("Initializing arduino")
+        self.initialize_arduino(self.arduino_port)
+
         # Print update to screen
         if not force_start:
             print("Experiment initialized. Waiting for video triggering")
         else:
             print("Force starting experiment")
 
-        # Now start once you get TTL to video i/o pin
+        # Now set up while loop to start once you get TTL to video i/o pin
         started = False
         while not started:
             if self.board.digital[self.video_io_pin].read() or force_start:
@@ -304,7 +311,7 @@ class trace:
                         sleep_timer(60 * 10)
                         self.write_event("ctx_explore_end")
 
-                started = True
+                started = True  # exit while loop after this!
             # elif KeyboardInterrupt:
             #     print("Interrupted by keyboard - closing arduino")
             #     self.board.exit()
@@ -313,6 +320,9 @@ class trace:
 
             # maybe this helps prevent arduino stop reading inputs on Windows after awhile?
             time.sleep(0.01)
+
+        # close down arduino to prevent Iterator error on Windows machines.
+        shutdown_arduino(self.board)
 
     # NRK TODO: Pickle and save entire class as reference data for later.
     # Best would be to track ALL timestamps for later reference just in case.
@@ -350,6 +360,7 @@ class trace:
         self.write_event("trace" + str(trial) + "_end")
 
         # administer shock
+        print("Shock!")
         self.write_event("shock" + str(trial) + "_start")
         self.board.digital[self.shock_box_pin].write(1)  # signal to shock box
         self.board.digital[self.shock_io_pin].write(1)  # TTL to Intan. Necessary?
@@ -385,6 +396,9 @@ class trace:
         self.shock_box_pin = shock_box_pin
         self.shock_io_pin = shock_io_pin
         self.video_io_pin = video_io_pin
+
+        # initialize cleanup function
+        atexit.register(shutdown_arduino, self.board)
 
     def create_tone(self, tone_type="white", duration=1.0, freq=None):
         """Create a pure tone, tone_sweep, or noise.
