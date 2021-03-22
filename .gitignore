@@ -94,7 +94,7 @@ ModulesPath/__pycache__
 *.pdf
 *.evt
 oscillations/.ipynb_checkpoints/theta_periods-checkpoint.ipynb
-
+**/progressbar*.txt
 
 # Directories #
 ###############
