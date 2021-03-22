@@ -86,6 +86,11 @@ params = {
     },
 }
 
+default_port = {
+    "linux": "/dev/ttyACM0",
+    "windows": "COM7",
+}
+
 
 class trace:
     def __init__(
@@ -116,8 +121,8 @@ class trace:
         self.p, self.stream = tones.initialize_player(channels=1, rate=20100)
         self.csv_path = None
 
-        # First connect to the Arduino - super important
-        self.initialize_arduino(self.arduino_port)
+        # # First connect to the Arduino - super important
+        # self.initialize_arduino(self.arduino_port)
 
         # Next create tone for training
         self.tone_samples = self.create_tone(
@@ -125,9 +130,6 @@ class trace:
             duration=params[paradigm]["training_params"]["tone_dur"],
             freq=tone_freq,
         )
-
-        # initialize cleanup function
-        atexit.register(shutdown_arduino, self.board)
 
     def run_training_session(self, test=False):
         """Runs training session."""
@@ -267,13 +269,17 @@ class trace:
         elif test_run:
             self.session = session + "_test"
 
+        # First connect to the Arduino - super important
+        print("Initializing arduino")
+        self.initialize_arduino(self.arduino_port)
+
         # Print update to screen
         if not force_start:
             print("Experiment initialized. Waiting for video triggering")
         else:
             print("Force starting experiment")
 
-        # Now start once you get TTL to video i/o pin
+        # Now set up while loop to start once you get TTL to video i/o pin
         started = False
         while not started:
             if self.board.digital[self.video_io_pin].read() or force_start:
@@ -309,7 +315,7 @@ class trace:
                         sleep_timer(60 * 10)
                         self.write_event("ctx_explore_end")
 
-                started = True
+                started = True  # exit while loop after this!
             # elif KeyboardInterrupt:
             #     print("Interrupted by keyboard - closing arduino")
             #     self.board.exit()
@@ -318,6 +324,9 @@ class trace:
 
             # maybe this helps prevent arduino stop reading inputs on Windows after awhile?
             time.sleep(0.01)
+
+        # close down arduino to prevent Iterator error on Windows machines.
+        shutdown_arduino(self.board)
 
     # NRK TODO: Pickle and save entire class as reference data for later.
     # Best would be to track ALL timestamps for later reference just in case.
@@ -391,6 +400,9 @@ class trace:
         self.shock_box_pin = shock_box_pin
         self.shock_io_pin = shock_io_pin
         self.video_io_pin = video_io_pin
+
+        # initialize cleanup function
+        atexit.register(shutdown_arduino, self.board)
 
     def create_tone(self, tone_type="white", duration=1.0, freq=None):
         """Create a pure tone, tone_sweep, or noise.
