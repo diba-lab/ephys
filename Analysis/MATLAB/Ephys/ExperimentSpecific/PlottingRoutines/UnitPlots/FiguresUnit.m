@@ -69,11 +69,11 @@ classdef FiguresUnit
                 clear axp axh
                 for ibl=1:numel(blnames)
                     aBlockBOC=obj.getBlockOfChannels(sesno,blnames{ibl});
-                    subplot(numel(sessions),1,ises);
                     if ~exist('axp','var')
-                        [axp,axh,ps]=aBlockBOC.plot;hold on;
+                        subplot(numel(sessions),1,ises);
+                        [axp,axh,ps]=aBlockBOC.plot([],[],1:2:10);hold on;
                     else
-                        [axp,axh,ps]=aBlockBOC.plot(axp,axh);hold on;
+                        [axp,axh,ps]=aBlockBOC.plot(axp,axh,1:2:10);hold on;
                     end
                     bocs{ibl}=aBlockBOC;
                 end
@@ -161,6 +161,8 @@ classdef FiguresUnit
             sesidx=ismember(sessionNos,sessionNo);
             spikeArraysPerSession=obj.SpikeArrays;
             sa=spikeArraysPerSession(sesidx);
+            good=ismember(sa.ClusterInfo.group,'good');
+            sa_good=sa.getSpikeUnits(good);
             [fireRatem, fireRatee]=sa.getMeanFireRateQuintiles(5);
             bt=obj.getBlockTimes(sessionNo);
             nameidx=ismember(bt.BlockNames,blockName);
@@ -175,6 +177,7 @@ classdef FiguresUnit
                 aBlockfreq=freq.getTimeWindow(blocktime);
                 boc=boc.addChannel(aBlockfreq);
             end
+            sa.getSpikeUnits([510 511 1147])
             ss1=StateDetectionData(obj.getLFPFolder(sessionNo)).getStateSeries;
             ss=ss1.getWindow(blocktime);
             boc=boc.addHypnogram(ss);

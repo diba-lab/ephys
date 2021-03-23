@@ -79,7 +79,7 @@ classdef SpikeFactory < SpikeNeuroscope
                     for iin=1:numel(include)
                         thein=include(iin);
                         idx_in=idx_in | ismember(cluster_info.group,thein);
-                    filename1=strcat(filename1,thein,'_');
+                        filename1=strcat(filename1,thein,'_');
                     end
                     idx=idx | idx_in;
                 catch

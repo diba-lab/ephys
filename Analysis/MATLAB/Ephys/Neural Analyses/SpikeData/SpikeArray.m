@@ -181,12 +181,17 @@ classdef SpikeArray < SpikeNeuroscope
             tbl((tbl.SpikeTimes<s(1))|(tbl.SpikeTimes>=s(2)),:)=[];
             obj.SpikeTable=tbl;
         end
-        function spikeUnits=getSpikeUnits(obj)
-            spikeIDs=unique(obj.SpikeTable.SpikeCluster);
+        function spikeUnits=getSpikeUnits(obj,idx)
             tbl=obj.SpikeTable;
             ci=obj.ClusterInfo;
-            for isid=1:numel(spikeIDs)
-                spikeId=spikeIDs(isid);
+            if exist('idx','var') && ~isempty(idx)
+                ci_sub=ci(idx,:);
+            else
+                ci_sub=ci;
+            end
+                num=find(idx);
+            for isid=1:height(ci_sub)
+                numInlist=num(isid);
                 aci=ci(ci.id==spikeId,:);
                 spktimes=tbl.SpikeTimes(tbl.SpikeCluster==spikeId);
                 spikeUnits(isid)=SpikeUnit(spikeId,spktimes,obj.TimeIntervalCombined,...
@@ -194,12 +199,7 @@ classdef SpikeArray < SpikeNeuroscope
             end
         end
         function spikeUnit=getSpikeUnit(obj,spikeId)
-            tbl=obj.SpikeTable;
-            ci=obj.ClusterInfo;
-            aci=ci(ci.id==spikeId,:);
-            spktimes=tbl.SpikeTimes(tbl.SpikeCluster==spikeId);
-            spikeUnit=SpikeUnit(spikeId,spktimes,obj.TimeIntervalCombined,...
-                aci.amp,aci.ch,aci.fr,aci.group,aci.n_spikes,aci.purity);
+            error('Use getSpikeUnits(obj,spikeId)');
         end
         function []=saveNeuroscopeFiles(obj,folder,filename)
             if ~exist('filename','var')
