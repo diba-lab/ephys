@@ -80,7 +80,7 @@ alpha_orig = alpha; jscale_orig = jscale;
         jscale_use = [1 5];
     end
     for js = 1:length(jscale_use)
-        if ~exist('pairs','var')
+        if ~exist('pairs','var')  % the logic in the if/else statement is terrible.
             load(fullfile(data_dir,[session_name '_jscale' num2str(jscale_use(js)) '_alpha' ...
                 num2str(round(alpha*100)) '_pairs']), 'pairs', 'jscale', 'alpha')
         elseif strcmp(screen_type,'two_prong') && js >= 2
