@@ -22,13 +22,14 @@ Gij = [ones(sum(sp_bool{1}), 1); 2*ones(sum(sp_bool{2}), 1)];
     'duration', duration, 'Fs', 1/SampleRate);
 
 %% Calculate time to closest spike for all spikes in first train to second
+% This takes FOREVER! Need to optimize somehow...parfor maybe?
 t1 = Tij(Gij == 1); t2 = Tij(Gij == 2);
 tclosest = nan(length(t1),1);
 tic; 
-print('Calculating time to closest spike in second train to each spike in first spike train')
-p = ProgressBar(length(t1)/1); 
+disp('Calculating time to closest spike in second train to each spike in first spike train')
+p = ProgressBar(100/1); 
+update_inc = round(length(t1)/(100/1));
 for i = 1:length(t1)
-    update_inc = round(length(t1)/(100/1)); 
     tclosest(i) = t2(findclosest(t1(i), t2)); 
     if round(i/update_inc) == (i/update_inc)
         p.progress; 
