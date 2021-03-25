@@ -45,7 +45,7 @@ classdef SpikeFactory < SpikeNeuroscope
                 warning('TimeIntervalCobined is not loaded.\n')
             end
             try
-            cluster_info=SpikeFactory.getTSVClusterInfoFileintoTable(fullfile(foldername,'cluster_info.tsv'));
+                cluster_info=SpikeFactory.getTSVClusterInfoFileintoTable(fullfile(foldername,'cluster_info.tsv'));
             catch
             end
             theFile=dir(fullfile(foldername,['spike_clusters' '.npy']));
