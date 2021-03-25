@@ -37,11 +37,9 @@ classdef FiguresUnit
                             spikeArray=sf.getSpykingCircusOutputFolder(sfFolder);
                         end
                     end
-%                     save(cachefile,'spikeArray');
-%                     clear spikeArray
+                    save(cachefile,'spikeArray');
                 end
                 SpikeArrays(ises)=spikeArray;
-                save(cachefile,'spikeArray');
                 clear spikeArray
             end
             obj.SpikeArrays=SpikeArrays;
