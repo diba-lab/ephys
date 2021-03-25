@@ -67,7 +67,9 @@ classdef BlockOfChannels
             else
                 idx=1:chs.length;
             end
-            colors=linspecer(numel(idx),'sequential');
+            colors=hsv2rgb([50/360*ones(1,5);linspace(0.5,1,5);linspace(0.5,1,5)]');
+            mua_int=linspecer(2);
+            colors=[colors;mua_int];
             if exist('axplot','var')&&~isempty(axplot), axes(axplot);end
             i=1;
             for ich=idx
