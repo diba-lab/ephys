@@ -71,16 +71,16 @@ classdef FiguresUnit
                     aBlockBOC=obj.getBlockOfChannels(sesno,blnames{ibl});
                     if ~exist('axp','var')
                         subplot(numel(sessions),1,ises);
-                        [axp,axh,ps]=aBlockBOC.plot([],[],1:2:10);hold on;
+                        [axp,axh,ps]=aBlockBOC.plot([],[],1:2:14);hold on;
                     else
-                        [axp,axh,ps]=aBlockBOC.plot(axp,axh,1:2:10);hold on;
+                        [axp,axh,ps]=aBlockBOC.plot(axp,axh,1:2:14);hold on;
                     end
                     bocs{ibl}=aBlockBOC;
                 end
                 axp.YScale='log';
-                axp.YLim=[10e-4 10];
-                xlim=[bocs{1}.getStartTime bocs{4}.getEndTime]; %ALL BLOCKS
-%                 xlim=duration({'3:30','18:30'},'InputFormat','hh:mm')+bocs{1}.getDate; %ALL BLOCKS FIXED
+                axp.YLim=[1e-4 1e2];
+%                 xlim=[bocs{1}.getStartTime bocs{4}.getEndTime]; %ALL BLOCKS
+                xlim=duration({'3:30','18:30'},'InputFormat','hh:mm')+bocs{1}.getDate; %ALL BLOCKS FIXED
 %                 xlim=[bocs{1}.getStartTime bocs{1}.getEndTime];%INTERESTED BLOCKS
                 axp.XLim=xlim;
                 axh.XLim=xlim;
@@ -89,7 +89,7 @@ classdef FiguresUnit
                 obj.addInjections(sesnos(ises));
                 ylabel('Firing Rate (Hz)');
                 title(legendstr{ises})
-                legend(ps,{'q1','q2','q3','q4','q5'});
+                legend(ps,{'q1','q2','q3','q4','q5','mua','int'});
             end
             ylabel('Fire Rate (Hz)');
 %             ff.save(strcat('allblocks_',blnames{ibl}));%INTERESTED BLOCKS
@@ -113,9 +113,9 @@ classdef FiguresUnit
                     subplot(numel(sess),2,(ises-1)*2+iinj);
                     it=its(iinj);
                     bi=sd.getWindow(it+beforeInj1);
-                    [axplot,axhyp]=bi.plot();
+                    [axplot,axhyp]=bi.plot([],[],1:2:14);
                     ai=sd.getWindow(it+afterInj1);
-                    [axplot,axhyp,ps]=ai.plot(axplot,axhyp);
+                    [axplot,axhyp,ps]=ai.plot(axplot,axhyp,1:2:14);
                     axplot.YScale='log';
                     axplot.XLim=[bi.getStartTime ai.getEndTime];
                     axhyp.XLim=[bi.getStartTime ai.getEndTime];
@@ -123,7 +123,7 @@ classdef FiguresUnit
                     obj.addInjections(sesno,iinj)
                     if ises==1
                         ylabel('Firing Rate (Hz)');
-                        legend(ps,{'q1','q2','q3','q4','q5'});
+                        legend(ps,{'q1','q2','q3','q4','q5','mua','int'});
                     end
                 end
             end
@@ -161,9 +161,8 @@ classdef FiguresUnit
             sesidx=ismember(sessionNos,sessionNo);
             spikeArraysPerSession=obj.SpikeArrays;
             sa=spikeArraysPerSession(sesidx);
-            good=ismember(sa.ClusterInfo.group,'good');
-            sa_good=sa.getSpikeUnits(good);
-            [fireRatem, fireRatee]=sa.getMeanFireRateQuintiles(5);
+            sa_good=sa.getSub(ismember(sa.ClusterInfo.group,'good'));
+            [fireRatem, fireRatee]=sa_good.getMeanFireRateQuintiles(5);
             bt=obj.getBlockTimes(sessionNo);
             nameidx=ismember(bt.BlockNames,blockName);
             blocktimes=bt.blockTimes';
@@ -177,7 +176,14 @@ classdef FiguresUnit
                 aBlockfreq=freq.getTimeWindow(blocktime);
                 boc=boc.addChannel(aBlockfreq);
             end
-            sa.getSpikeUnits([510 511 1147])
+            sa_mua=sa.getSub(ismember(sa.ClusterInfo.group,'mua'));
+            [fireRatem, fireRatee]=sa_mua.getMeanFireRate();
+            boc=boc.addChannel(fireRatem.getTimeWindow(blocktime));
+            boc=boc.addChannel(fireRatee.getTimeWindow(blocktime));
+            sa_undefined=sa.getSub(~ismember(sa.ClusterInfo.group,{'mua','good','unsorted'}));
+            [fireRatem, fireRatee]=sa_undefined.getMeanFireRate();
+            boc=boc.addChannel(fireRatem.getTimeWindow(blocktime));
+            boc=boc.addChannel(fireRatee.getTimeWindow(blocktime));
             ss1=StateDetectionData(obj.getLFPFolder(sessionNo)).getStateSeries;
             ss=ss1.getWindow(blocktime);
             boc=boc.addHypnogram(ss);

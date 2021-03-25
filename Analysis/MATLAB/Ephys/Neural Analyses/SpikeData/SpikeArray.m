@@ -39,19 +39,19 @@ classdef SpikeArray < SpikeNeuroscope
             end
             tbl=array2table(horzcat(spikeIDs,spikecounts'),'VariableNames',{'ID','count'});
         end
-        function fr=getMeanFireRate(obj)
-            sus=obj.getSpikeUnits;
-            for isu=1:numel(sus)
-                su=sus(isu);
-                frs=su.getFireRate;
-                try
-                    vals(isu,:)=frs.getValues;
-                catch
-                end
-            end
-            val_m=mean(vals,1);
-            fr=Channel('Mean Over Units',val_m,frs.getTimeInterval);
-        end
+%         function fr=getMeanFireRate(obj)
+%             sus=obj.getSpikeUnits;
+%             for isu=1:numel(sus)
+%                 su=sus(isu);
+%                 frs=su.getFireRate;
+%                 try
+%                     vals(isu,:)=frs.getValues;
+%                 catch
+%                 end
+%             end
+%             val_m=mean(vals,1);
+%             fr=Channel('Mean Over Units',val_m,frs.getTimeInterval);
+%         end
         function [frm, fre]=getMeanFireRateQuintiles(obj,nquintiles)
             sus=obj.getSpikeUnits;
             for isu=1:numel(sus)
@@ -76,6 +76,24 @@ classdef SpikeArray < SpikeNeuroscope
                 fre{iquint}=Channel(sprintf('Mean Over Units Quint, %d',iquint),...
                     thesterrquint,frs.getTimeInterval);
             end
+        end
+        function [frm, fre]=getMeanFireRate(obj)
+            sus=obj.getSpikeUnits;
+            for isu=1:numel(sus)
+                su=sus(isu);
+                frs=su.getFireRate;
+                try
+                    vals(isu,:)=frs.getValues;
+                catch
+                end
+            end
+            themeanquint=mean(vals,1);
+            thesterrquint=std(vals,1)/sqrt(size(vals,1));
+            frm=Channel(sprintf('Mean Over Units'),...
+                themeanquint,frs.getTimeInterval);
+            fre=Channel(sprintf('Mean Over Units'),...
+                thesterrquint,frs.getTimeInterval);
+            
         end
         function []=plot(obj,tfm)
 
@@ -189,14 +207,17 @@ classdef SpikeArray < SpikeNeuroscope
             else
                 ci_sub=ci;
             end
-                num=find(idx);
             for isid=1:height(ci_sub)
-                numInlist=num(isid);
-                aci=ci(ci.id==spikeId,:);
-                spktimes=tbl.SpikeTimes(tbl.SpikeCluster==spikeId);
-                spikeUnits(isid)=SpikeUnit(spikeId,spktimes,obj.TimeIntervalCombined,...
+                aci=ci_sub(isid,:);
+                spktimes=tbl.SpikeTimes(tbl.SpikeCluster==aci.id);
+                spikeUnits(isid)=SpikeUnit(aci.id,spktimes,obj.TimeIntervalCombined,...
                     aci.amp,aci.ch,aci.fr,aci.group,aci.n_spikes,aci.purity);
             end
+        end
+        function obj=getSub(obj,idx)
+            tbl=obj.SpikeTable;
+            obj.ClusterInfo=obj.ClusterInfo(idx,:);
+            obj.SpikeTable=tbl(ismember(tbl.SpikeCluster,obj.ClusterInfo.id),:);
         end
         function spikeUnit=getSpikeUnit(obj,spikeId)
             error('Use getSpikeUnits(obj,spikeId)');
