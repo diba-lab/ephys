@@ -1,10 +1,12 @@
 %% Example script to analyze USV data.
 % Steps to run after analyzing a session in DeepSqueak and screening the
 % calls.
+close all
+clear all
 %% Step 0: Specify parameters for file to plot
-full_path_to_file = 'C:\Users\nkinsky\Documents\Working\Trace_FC\Pilot1\Rat705\2021_03_09_habituation\sleepbox\Detections\T0000003 Mar-29-2021 12_35 PM.mat';
+full_path_to_file = 'C:\Users\nkinsky\Documents\Working\Trace_FC\Pilot1\Rat705\2021_03_10_training\shockbox\Detections\T0000003 Apr-01-2021  2_29 PM.mat';
 rat_name = '705';
-session = 'Habituation - pre';
+session = 'Training - shockbox';
 
 %% Step 0.5: Load data in
 load(full_path_to_file, 'Calls');
