@@ -1,5 +1,5 @@
 function [calls_sep, high_bool] = separate_calls(mean_freq, times, threshold)
-% calls_sep = separate_calls(mean_freq, times, threshold)
+% [calls_sep, high_bool] = separate_calls(mean_freq, times, threshold)
 %   Takes USV call mean frequencies and times and splits them into low vs.
 %   high calls based on the designated threshold.
 %
