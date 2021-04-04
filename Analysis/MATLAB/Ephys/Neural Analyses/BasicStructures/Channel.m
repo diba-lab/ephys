@@ -105,7 +105,10 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
                 end
             end
             ticd1=ticd.getTimeIntervalForTimes(time);
-            sample=ticd.getSampleFor([ticd1.getStartTime ticd1.getEndTime]);
+            for iwind=1:size(time,1)
+                int=time(iwind,:);
+                sample(iwind,:)=ticd.getSampleFor(int);
+            end
             samples=[];
             for iwind=1:size(sample,1)
                 thesamples=sample(iwind,1):sample(iwind,2);
@@ -118,11 +121,25 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
         function p=plot(obj,varargin)
             va=obj.getValues;
             t=obj.TimeIntervalCombined;
-            t_s=t.getTimePointsInSec;
-            diff1=numel(t_s)-numel(va);
-            va((numel(va)+1):(numel(va)+diff1))=zeros(diff1,1);
-            t_s=t.getStartTime+seconds(t_s);
-            p=plot(t_s,va(1:numel(t_s)),varargin{:});
+            if isa(t,'TimeIntervalCombined')
+                hold on
+                tis=t.timeIntervalList;
+                index_va=1;
+                for iti=1:tis.length
+                    ati=tis.get(iti);
+                    t_s=ati.getTimePointsInSec;
+                    ava=va(index_va:(index_va+ati.getNumberOfPoints-1));
+                    index_va=index_va+ati.getNumberOfPoints;
+                    t_s=ati.getStartTime+seconds(t_s);
+                    p(iti)=plot(t_s,ava(1:numel(t_s)),varargin{:});
+                end
+            else
+                t_s=t.getTimePointsInSec;
+                t_s=t.getStartTime+seconds(t_s);
+                diff1=numel(t_s)-numel(va);
+                va((numel(va)+1):(numel(va)+diff1))=zeros(diff1,1);
+                p=plot(t_s,va(1:numel(t_s)),varargin{:});
+            end
         end
         function obj=plus(obj,aChan)
             obj.TimeIntervalCombined=obj.TimeIntervalCombined+aChan.getTimeInterval;

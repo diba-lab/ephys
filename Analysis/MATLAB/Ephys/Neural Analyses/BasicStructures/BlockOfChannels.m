@@ -58,7 +58,7 @@ classdef BlockOfChannels
             end
             newboc.Info=obj.Info;
         end
-        function [axplot,axhyp,ps] = plot(obj,axplot,axhyp,ch)
+        function [axplot,axhyp,ps] = plot(obj,axplot,axhyp,ch,smoothfactor)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             chs=obj.Channels;
@@ -74,13 +74,56 @@ classdef BlockOfChannels
             i=1;
             for ich=idx
                 ch=chs.get(ich);
-                ch=ch.getMedianFiltered(seconds(minutes(1)));
-                ch=ch.getMeanFiltered(seconds(minutes(1)));
+                ch=ch.getMedianFiltered(1/ch.getSampleRate*smoothfactor);
+                ch=ch.getMeanFiltered(1/ch.getSampleRate*smoothfactor);
                 p1=ch.plot();hold on;
                 p1.Color=colors(i,:);
                 p1.LineWidth=2;
                 ps(i)=p1; %#ok<AGROW>
                 i=i+1;
+            end
+            hyp=obj.getHypnogram;
+            if ~exist('axhyp','var')||isempty(axhyp)
+                axplot=gca;
+                axhyp=axes;
+                axhyp.Position=[axplot.Position(1) axplot.Position(2)+axplot.Position(4) axplot.Position(3) axplot.Position(4)/10];
+            else
+                axes(axhyp);hold on;
+            end
+            hyp.plot;
+        end
+        function [axplot,axhyp,ps] = plotStatewise(obj,axplot,axhyp,chx,smoothfactor)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            states=[1 2 3 5];
+            for istate=1:numel(states)
+                thestate=states(istate);
+                boc_state=obj.getState1(thestate);
+                
+                chs=boc_state.Channels;
+                if ~isempty(chs)
+                    if exist('chx','var')&&~isempty(chx)
+                        idx=chx;
+                    else
+                        idx=1:chs.length;
+                    end
+                    colors=hsv2rgb([50/360*ones(1,5);linspace(0.5,1,5);linspace(0.5,1,5)]');
+                    mua_int=linspecer(2);
+                    colors=[colors;mua_int];
+                    sde=SDExperiment.instance;
+                    if exist('axplot','var')&&~isempty(axplot), axes(axplot);end
+                    i=1;
+                    for ich=idx
+                        ch=chs.get(ich);
+                        ch=ch.getMedianFiltered(1/ch.getSampleRate*smoothfactor);
+
+                        ch=ch.getMeanFiltered(1/ch.getSampleRate*smoothfactor);
+                        %                         p1=ch.plot('Color',colors(i,:),'LineWidth',2);hold on;
+                        px=ch.plot('Color',sde.getStateColors(thestate),'LineWidth',1);hold on;
+                        ps{i}=px; %#ok<AGROW>
+                        i=i+1;
+                    end
+                end
             end
             hyp=obj.getHypnogram;
             if ~exist('axhyp','var')||isempty(axhyp)
@@ -98,10 +141,7 @@ classdef BlockOfChannels
         end
         function [episode, theEpisodeAbs]=getState(obj,state)
             ss=obj.getHypnogram;
-            try
             theEpisodeAbs=ss.getState(state);
-            catch
-            end
             if ~isempty(theEpisodeAbs)
                 ch=obj.getChannel(1);
                 episode=ch.getTimeWindow(theEpisodeAbs);
@@ -109,6 +149,21 @@ classdef BlockOfChannels
                 episode=episode.setInfo(obj.Info);
             else
                 episode=[];
+            end
+        end
+        function [newboc, theEpisodeAbs]=getState1(obj,state)
+            ss=obj.getHypnogram;
+            theEpisodeAbs=ss.getState(state);
+            newboc=BlockOfChannels;
+            newboc=newboc.addHypnogram(ss);
+            newboc.Info=obj.Info;
+            if ~isempty(theEpisodeAbs)
+                for ichan=1:obj.Channels.length
+                    ch=obj.getChannel(ichan);
+                    ch_state=ch.getTimeWindow(theEpisodeAbs);
+                    ch_state=ch_state.setInfo(obj.Info);
+                    newboc=newboc.addChannel(ch_state);
+                end
             end
         end
         function dt=getDate(obj)

@@ -36,13 +36,13 @@ classdef SpikeUnit
             ticd=obj.TimeIntervalCombined;
             timesnew=ticd.getRealTimeFor(double(obj.Times));
         end
-        function fireRate = getFireRate(obj)
+        function fireRate = getFireRate(obj,timebin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             timesInSamples=obj.Times;
             ticd=obj.TimeIntervalCombined;
             endtimeinsec=seconds(ticd.getEndTime-ticd.getStartTime);
-            TimeBinsInSec=60;
+            TimeBinsInSec=timebin;
             timesInSamples_adj=ticd.adjustTimestampsAsIfNotInterrupted(timesInSamples);
             timesInSec_adj=double(timesInSamples_adj)/ticd.getSampleRate;
             N=histcounts(timesInSec_adj,0:TimeBinsInSec:endtimeinsec)/TimeBinsInSec;

@@ -50,6 +50,11 @@ classdef FiguresUnit
         function plotFireRate(obj)
             ff=FigureFactory.instance('/home/mdalam/Downloads/Analysis_code/diba-ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
             sessions=obj.SpikeArrays;
+            fireratechannels=1:2:10;
+%             fireratechannels=11:2:14;
+            names={'q1','q2','q3','q4','q5'};
+%             names={'mua','int'};
+            smoothfactor=obj.getParameters.fireRatePlotSmoothingFactor;
             list=readtable(obj.UnitListFile,'Delimiter',',');
             sessionsNos=obj.getSessionNos;
             for ises=1:numel(sessionsNos)
@@ -63,23 +68,25 @@ classdef FiguresUnit
             for ises=1:numel(sessions)
                 sesno=sessionsNos(ises);
                 blnames=obj.getBlock(sesno).getBlockNames;
-%                 blint=4;blnames=blnames(blint);%ALL BLOCKS
+                %                 blint=4;blnames=blnames(blint);%ALL BLOCKS
                 clear axp axh
                 for ibl=1:numel(blnames)
                     aBlockBOC=obj.getBlockOfChannels(sesno,blnames{ibl});
                     if ~exist('axp','var')
                         subplot(numel(sessions),1,ises);
-                        [axp,axh,ps]=aBlockBOC.plot([],[],1:2:14);hold on;
+                        [axp,axh,ps]=aBlockBOC.plot([],[],fireratechannels,smoothfactor);hold on;
+                        aBlockBOC.plotStatewise(axp,axh,fireratechannels,smoothfactor);hold on;
                     else
-                        [axp,axh,ps]=aBlockBOC.plot(axp,axh,1:2:14);hold on;
+                        [axp,axh,ps]=aBlockBOC.plot(axp,axh,fireratechannels,smoothfactor);hold on;
+                        aBlockBOC.plotStatewise(axp,axh,fireratechannels,smoothfactor);hold on;
                     end
                     bocs{ibl}=aBlockBOC;
                 end
                 axp.YScale='log';
                 axp.YLim=[1e-4 1e2];
-%                 xlim=[bocs{1}.getStartTime bocs{4}.getEndTime]; %ALL BLOCKS
+                %                 xlim=[bocs{1}.getStartTime bocs{4}.getEndTime]; %ALL BLOCKS
                 xlim=duration({'3:30','18:30'},'InputFormat','hh:mm')+bocs{1}.getDate; %ALL BLOCKS FIXED
-%                 xlim=[bocs{1}.getStartTime bocs{1}.getEndTime];%INTERESTED BLOCKS
+                %                 xlim=[bocs{1}.getStartTime bocs{1}.getEndTime];%INTERESTED BLOCKS
                 axp.XLim=xlim;
                 axh.XLim=xlim;
                 sesnos=obj.getSessionNos;
@@ -87,16 +94,21 @@ classdef FiguresUnit
                 obj.addInjections(sesnos(ises));
                 ylabel('Firing Rate (Hz)');
                 title(legendstr{ises})
-                legend(ps,{'q1','q2','q3','q4','q5','mua','int'});
+                legend(ps,names);
             end
             ylabel('Fire Rate (Hz)');
-%             ff.save(strcat('allblocks_',blnames{ibl}));%INTERESTED BLOCKS
+            %             ff.save(strcat('allblocks_',blnames{ibl}));%INTERESTED BLOCKS
             ff.save('allblocks');%ALL BLOCKS
-%             ff.save('allblocksfixed');%ALL BLOCKS
+            %             ff.save('allblocksfixed');%ALL BLOCKS
         end
         function plotFireRateAroundInjection(obj)
-            ff=FigureFactory.instance('/home/mdalam/Downloads/Analysis_code/diba-ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures'); 
+            ff=FigureFactory.instance('/home/mdalam/Downloads/Analysis_code/diba-ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
             params=obj.getParameters;
+            smoothfactor=params.fireRatePlotSmoothingFactor;
+            fireratechannels=1:2:10;
+%             fireratechannels=11:2:14;
+            names={'q1','q2','q3','q4','q5'};
+%             names={'mua','int'};
             a=params.interestInMin.before;
             beforeInj1=minutes(a);
             a=params.interestInMin.after;
@@ -111,9 +123,11 @@ classdef FiguresUnit
                     subplot(numel(sess),2,(ises-1)*2+iinj);
                     it=its(iinj);
                     bi=sd.getWindow(it+beforeInj1);
-                    [axplot,axhyp]=bi.plot([],[],1:2:14);
+                    [axplot,axhyp]=bi.plot([],[],fireratechannels,smoothfactor);
+                    bi.plotStatewise(axplot,axhyp,fireratechannels,smoothfactor)
                     ai=sd.getWindow(it+afterInj1);
-                    [axplot,axhyp,ps]=ai.plot(axplot,axhyp,1:2:14);
+                    [axplot,axhyp,ps]=ai.plot(axplot,axhyp,fireratechannels,smoothfactor);
+                    ai.plotStatewise(axplot,axhyp,fireratechannels,smoothfactor)
                     axplot.YScale='log';
                     axplot.XLim=[bi.getStartTime ai.getEndTime];
                     axhyp.XLim=[bi.getStartTime ai.getEndTime];
@@ -121,13 +135,29 @@ classdef FiguresUnit
                     obj.addInjections(sesno,iinj)
                     if ises==1
                         ylabel('Firing Rate (Hz)');
-                        legend(ps,{'q1','q2','q3','q4','q5','mua','int'});
+                        legend(ps,names);
                     end
                 end
             end
             ff.save('injection')
         end
+        
+        function plotFireRateStatewise(obj)
+            ff=FigureFactory.instance('/home/mdalam/Downloads/Analysis_code/diba-ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
+            params=obj.getParameters;
+            smoothfactor=params.fireRatePlotSmoothingFactor;
+            sess=obj.getSessionNos;
+            try close(3); catch, end; f=figure(3);f.Position=[1,1,2560/2,1348];
+            for ises=1:numel(sess)
+                sesno=sess(ises);
+                sd=obj.getBlockOfChannels(sesno,'SD');
+                sd.plotStatewise([],[],1:2:10,smoothfactor)
+                AW=sd.getState1(1);
+            end
+            ff.save('injection')
+        end
     end
+    
     methods (Access=private)
         function addInjections(obj,sesno,injnum)
             inj1=obj.getInjectionTimes(sesno);
@@ -144,23 +174,24 @@ classdef FiguresUnit
             end
         end
         function bl=getBlock(obj,ses)
-            ses_block=readtable(obj.Session_Block,'Delimiter',',');     
+            ses_block=readtable(obj.Session_Block,'Delimiter',',');
             tbl=readtable(ses_block(ses_block.Session==ses,:).BlockFile{:});
             bl=SDBlocks(datetime(date),tbl);
         end
         function LFPFolder=getLFPFolder(obj,ses)
-            ses_block=readtable(obj.Session_Block,'Delimiter',',');     
+            ses_block=readtable(obj.Session_Block,'Delimiter',',');
             filefolder=fileparts( ses_block(ses_block.Session==ses,:).BlockFile{:});
             f=split(filefolder,'/');
             LFPFolder=['/',fullfile(f{1:(end-1)})];
         end
         function boc=getBlockOfChannels(obj,sessionNo,blockName)
+            timebin=obj.getParameters.timeBinsForFireRateInSeconds;
             sessionNos=obj.getSessionNos;
             sesidx=ismember(sessionNos,sessionNo);
             spikeArraysPerSession=obj.SpikeArrays;
             sa=spikeArraysPerSession(sesidx);
             sa_good=sa.getSub(ismember(sa.ClusterInfo.group,'good'));
-            [fireRatem, fireRatee]=sa_good.getMeanFireRateQuintiles(5);
+            [fireRatem, fireRatee]=sa_good.getMeanFireRateQuintiles(5,timebin);
             bt=obj.getBlockTimes(sessionNo);
             nameidx=ismember(bt.BlockNames,blockName);
             blocktimes=bt.blockTimes';
@@ -175,11 +206,11 @@ classdef FiguresUnit
                 boc=boc.addChannel(aBlockfreq);
             end
             sa_mua=sa.getSub(ismember(sa.ClusterInfo.group,'mua'));
-            [fireRatem, fireRatee]=sa_mua.getMeanFireRate();
+            [fireRatem, fireRatee]=sa_mua.getMeanFireRate(timebin);
             boc=boc.addChannel(fireRatem.getTimeWindow(blocktime));
             boc=boc.addChannel(fireRatee.getTimeWindow(blocktime));
             sa_undefined=sa.getSub(~ismember(sa.ClusterInfo.group,{'mua','good','unsorted'}));
-            [fireRatem, fireRatee]=sa_undefined.getMeanFireRate();
+            [fireRatem, fireRatee]=sa_undefined.getMeanFireRate(timebin);
             boc=boc.addChannel(fireRatem.getTimeWindow(blocktime));
             boc=boc.addChannel(fireRatee.getTimeWindow(blocktime));
             ss1=StateDetectionData(obj.getLFPFolder(sessionNo)).getStateSeries;
