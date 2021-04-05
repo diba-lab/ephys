@@ -58,6 +58,18 @@ boxplot(call_durations)
 % label stuff
 set(gca, 'XTickLabels', '')
 
+%% Step 6: Look at calls before/after shock in shock session
+baseline_time = 10*60;
+before_shock_bool = times(:,1) < baseline_time;
+
+before_shock_freq = freq_mean(before_shock_bool);
+after_shock_freq = freq_mean(~before_shock_bool);
+
+% Super rough way to plot frequencies before/after shock
+figure; boxplot(before_shock_freq)
+% need to label stuff here!
+figure; boxplot(after_shock_freq)
+% need to label stuff here!
 
 %% Other things to do
 % A) align to video tracking data to see behavior when calls occur
