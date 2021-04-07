@@ -159,8 +159,8 @@ classdef BlockOfChannels
             newboc.Info=obj.Info;
             if ~isempty(theEpisodeAbs)
                 for ichan=1:obj.Channels.length
-                    ch=obj.getChannel(ichan);
-                    ch_state=ch.getTimeWindow(theEpisodeAbs);
+                    ch=obj.getChannel(ichan);                   
+                    ch_state=ch.getTimeWindow(theEpisodeAbs);          
                     ch_state=ch_state.setInfo(obj.Info);
                     newboc=newboc.addChannel(ch_state);
                 end

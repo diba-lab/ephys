@@ -114,7 +114,10 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
                 thesamples=sample(iwind,1):sample(iwind,2);
                 samples=horzcat(samples,thesamples);
             end
+%             try
             obj.Values=obj.Values(samples);
+%             catch
+%             end
             obj.TimeIntervalCombined=ticd1;
         end
         

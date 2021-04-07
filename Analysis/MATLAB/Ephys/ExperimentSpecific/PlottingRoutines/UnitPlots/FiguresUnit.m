@@ -98,7 +98,7 @@ classdef FiguresUnit
             end
             ylabel('Fire Rate (Hz)');
             %             ff.save(strcat('allblocks_',blnames{ibl}));%INTERESTED BLOCKS
-            ff.save('allblocks');%ALL BLOCKS
+            ff.save('allblocksstatewise');%ALL BLOCKS
             %             ff.save('allblocksfixed');%ALL BLOCKS
         end
         function plotFireRateAroundInjection(obj)

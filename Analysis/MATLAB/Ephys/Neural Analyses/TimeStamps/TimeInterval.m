@@ -56,7 +56,7 @@ classdef TimeInterval < TimeIntervalAbstract
             for iwind=1:size(windows,1)
                 window=windows(iwind,:);
                 if window(1)<obj.getStartTime
-                    window(1)=obj.obj.getStartTime;
+                    window(1)=obj.getStartTime;
                 end
                 if window(2)>obj.getEndTime
                     window(2)=obj.getEndTime;

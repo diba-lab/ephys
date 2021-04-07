@@ -33,7 +33,7 @@ classdef StateSeries
                         ti=til.get(il);
                         sttimes(il)=ti.getStartTime; %#ok<AGROW>
                     end
-                    [~,idx]=min(abs(sttimes-window(1)));
+                    [~,idx]=min(abs(sttimes-winddt(1)));
                     winddt(1)=sttimes(idx);
                 catch
                     winddt(1)=ticd.getStartTime;
@@ -47,7 +47,7 @@ classdef StateSeries
                         ti=til.get(il);
                         endtimes(il)=ti.getEndTime; %#ok<AGROW>
                     end
-                    [~,idx]=min(abs(endtimes-window(2)));
+                    [~,idx]=min(abs(endtimes-winddt(2)));
                     winddt(2)=endtimes(idx);
                 catch
                     winddt(2)=ticd.getEndTime;
