@@ -185,17 +185,23 @@ classdef FiguresUnit
             LFPFolder=['/',fullfile(f{1:(end-1)})];
         end
         function boc=getBlockOfChannels(obj,sessionNo,blockName)
+            bt=obj.getBlockTimes(sessionNo);
+            nameidx=ismember(bt.BlockNames,blockName);
+            blocktimes=bt.blockTimes';
+            blocktime=blocktimes(nameidx,:);
+            
             timebin=obj.getParameters.timeBinsForFireRateInSeconds;
             sessionNos=obj.getSessionNos;
             sesidx=ismember(sessionNos,sessionNo);
             spikeArraysPerSession=obj.SpikeArrays;
             sa=spikeArraysPerSession(sesidx);
             sa_good=sa.getSub(ismember(sa.ClusterInfo.group,'good'));
-            [fireRatem, fireRatee]=sa_good.getMeanFireRateQuintiles(5,timebin);
-            bt=obj.getBlockTimes(sessionNo);
-            nameidx=ismember(bt.BlockNames,blockName);
-            blocktimes=bt.blockTimes';
-            blocktime=blocktimes(nameidx,:);
+            frs=sa_good.getFireRates(10);
+            
+            blocktime_sd=blocktimes(2,:);%% run
+            block=frs.getWindow(blocktime_sd);
+            [B,order]=sort(mean(block.Data'));
+            [fireRatem, fireRatee]=sa_good.getMeanFireRateQuintiles(5,timebin,order);
             boc=BlockOfChannels();
             for iq=1:numel(fireRatem)
                 frmq=fireRatem{iq};
@@ -216,6 +222,9 @@ classdef FiguresUnit
             ss1=StateDetectionData(obj.getLFPFolder(sessionNo)).getStateSeries;
             ss=ss1.getWindow(blocktime);
             boc=boc.addHypnogram(ss);
+            info.SessionNo=sessionNo;
+            info.BlockName=blockName;
+            boc=boc.setInfo(info);
         end
         function it=getInjectionTimes(obj,sesno)
             bt=obj.getBlockTimes(sesno);

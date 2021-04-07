@@ -52,7 +52,7 @@ classdef SpikeArray < SpikeNeuroscope
 %             val_m=mean(vals,1);
 %             fr=Channel('Mean Over Units',val_m,frs.getTimeInterval);
 %         end
-        function [frm, fre]=getMeanFireRateQuintiles(obj,nquintiles,timebin)
+        function [frm, fre]=getMeanFireRateQuintiles(obj,nquintiles,timebin,order)
             sus=obj.getSpikeUnits;
             for isu=1:numel(sus)
                 su=sus(isu);
@@ -62,7 +62,11 @@ classdef SpikeArray < SpikeNeuroscope
                 catch
                 end
             end
-            vals=sort(vals1,1);
+            if isempty(order)
+                vals=sort(vals1,1);
+            else
+                vals=vals1(order,:);
+            end
             nunit=size(vals,1);
             qus=[round(quantile(1:nunit,nquintiles-1)) nunit];
             pre=1;
@@ -94,6 +98,18 @@ classdef SpikeArray < SpikeNeuroscope
             fre=Channel(sprintf('Mean Over Units'),...
                 thesterrquint,frs.getTimeInterval);
             
+        end
+        function ct=getFireRates(obj,timebin)
+            sus=obj.getSpikeUnits;
+            for isu=1:numel(sus)
+                su=sus(isu);
+                frs=su.getFireRate(timebin);
+                try
+                    vals(isu,:)=frs.getValues;
+                catch
+                end
+            end
+            ct=ChannelTime(vals,[sus.Id],obj.TimeIntervalCombined.getStartTime+seconds(frs.getTimeStamps));
         end
         function []=plot(obj,tfm)
 

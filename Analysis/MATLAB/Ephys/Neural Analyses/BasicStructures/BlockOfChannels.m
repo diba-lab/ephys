@@ -30,6 +30,11 @@ classdef BlockOfChannels
             channels.add(chan);
             obj.Channels=channels;
         end
+        function obj = setInfo(obj,info)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            obj.Info=info;
+        end
         function obj = addHypnogram(obj,hyp)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -133,7 +138,7 @@ classdef BlockOfChannels
             else
                 axes(axhyp);hold on;
             end
-            hyp.plot;
+%             hyp.plot;
         end
         function sr=getStateRatios(obj,winsize,a,edges)
             ss=obj.getHypnogram;

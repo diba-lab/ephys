@@ -119,7 +119,7 @@ classdef StateSeries
             
                 
             ax=gca;
-            ax.XLim=[t(1) t(end)];
+%             ax.XLim=[t(1) t(end)];
             ax.YLim=[0 num-1];
             ax.Color='none';
 %             ax.Visible='off';
@@ -170,7 +170,9 @@ classdef StateSeries
             end
             if ~isempty(theEpisode)
                 ticdss=obj.TimeIntervalCombined;
-                theEpisodeAbs=ticdss.getRealTimeFor(theEpisode);
+                for irow=1:size(theEpisode,1)
+                    theEpisodeAbs(irow,:)=ticdss.getRealTimeFor(theEpisode(irow,:));
+                end
             else
                 theEpisodeAbs=[];
             end
