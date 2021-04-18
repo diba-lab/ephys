@@ -15,14 +15,16 @@ classdef FiguresUnit
         function obj = FiguresUnit()
             %FIGURESUNIT Construct an instance of this class
             %   Detailed explanation goes here
-            obj.UnitListFile='/home/mdalam/Downloads/Analysis_code/diba-ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/UnitList.txt';
-            obj.Session_Block='/home/mdalam/Downloads/Analysis_code/diba-ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/Ses_Block.txt';
+            obj.UnitListFile='/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/UnitList.txt';
+            obj.Session_Block='/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/Ses_Block.txt';
+            cachefolder='/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/cache';
+            if ~isfolder(cachefolder), mkdir(cachefolder); end
             sf=SpikeFactory.instance;
             list=readtable(obj.UnitListFile,'Delimiter',',');
             sessions=obj.getSessionNos;
             for ises=1:numel(sessions)
                 ses=sessions(ises);
-                cachefile=fullfile('/home/mdalam/Downloads/Analysis_code/diba-ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/cache',strcat('unitarray_ses',num2str(ses)));
+                cachefile=fullfile(cachefolder,strcat('unitarray_ses',num2str(ses)));
                 try
                     load(cachefile,'spikeArray')
                 catch
@@ -31,10 +33,12 @@ classdef FiguresUnit
                     for is=1:height(seslist)
                         afolder=seslist(is,:);
                         sfFolder=afolder.PATH{:};
+                        sa=sf.getSpykingCircusOutputFolder(sfFolder);
+                        sa=sa.setShank(afolder.SHANKNO);
                         try
-                            spikeArray=spikeArray+sf.getSpykingCircusOutputFolder(sfFolder);
+                            spikeArray=spikeArray+sa;
                         catch
-                            spikeArray=sf.getSpykingCircusOutputFolder(sfFolder);
+                            spikeArray=sa;
                         end
                     end
                     save(cachefile,'spikeArray');
@@ -48,7 +52,9 @@ classdef FiguresUnit
         end
         
         function plotFireRate(obj)
-            ff=FigureFactory.instance('/home/mdalam/Downloads/Analysis_code/diba-ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
+            figureFolder='/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures';
+            if ~isfolder(figureFolder), mkdir(figureFolder);end
+            ff=FigureFactory.instance(figureFolder);
             sessions=obj.SpikeArrays;
             fireratechannels=1:2:10;
 %             fireratechannels=11:2:14;
@@ -59,10 +65,10 @@ classdef FiguresUnit
             sessionsNos=obj.getSessionNos;
             for ises=1:numel(sessionsNos)
                 sublist=list(list.SESSIONNO==sessionsNos(ises),:);
-                inj=unique(sublist.INJECTION);
+%                 inj=unique(sublist.INJECTION);
                 ani=unique(sublist.ANIMAL);
-                sessionsstr(ises)=inj; %#ok<AGROW>
-                legendstr(ises)=strcat(ani,'__',inj); %#ok<AGROW>
+%                 sessionsstr(ises)=inj; %#ok<AGROW>
+                legendstr(ises)=strcat(ani,'__',unique(sublist.SLEEP)); %#ok<AGROW>
             end
             try close(1); catch, end; f=figure(1);f.Position=[1,1,2560/2,1348];
             for ises=1:numel(sessions)
@@ -75,6 +81,8 @@ classdef FiguresUnit
                     if ~exist('axp','var')
                         subplot(numel(sessions),1,ises);
                         [axp,axh,ps]=aBlockBOC.plot([],[],fireratechannels,smoothfactor);hold on;
+                        axes(axp);
+                        grid on
                         aBlockBOC.plotStatewise(axp,axh,fireratechannels,smoothfactor);hold on;
                     else
                         [axp,axh,ps]=aBlockBOC.plot(axp,axh,fireratechannels,smoothfactor);hold on;
@@ -85,13 +93,13 @@ classdef FiguresUnit
                 axp.YScale='log';
                 axp.YLim=[1e-4 1e2];
                 %                 xlim=[bocs{1}.getStartTime bocs{4}.getEndTime]; %ALL BLOCKS
-                xlim=duration({'3:30','18:30'},'InputFormat','hh:mm')+bocs{1}.getDate; %ALL BLOCKS FIXED
+                xlim=duration({'5:00','18:00'},'InputFormat','hh:mm')+bocs{1}.getDate; %ALL BLOCKS FIXED
                 %                 xlim=[bocs{1}.getStartTime bocs{1}.getEndTime];%INTERESTED BLOCKS
                 axp.XLim=xlim;
                 axh.XLim=xlim;
                 sesnos=obj.getSessionNos;
                 axes(axp);
-                obj.addInjections(sesnos(ises));
+%                 obj.addInjections(sesnos(ises));
                 ylabel('Firing Rate (Hz)');
                 title(legendstr{ises})
                 legend(ps,names);
@@ -102,7 +110,7 @@ classdef FiguresUnit
             %             ff.save('allblocksfixed');%ALL BLOCKS
         end
         function plotFireRateAroundInjection(obj)
-            ff=FigureFactory.instance('/home/mdalam/Downloads/Analysis_code/diba-ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
+            ff=FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
             params=obj.getParameters;
             smoothfactor=params.fireRatePlotSmoothingFactor;
             fireratechannels=1:2:10;
@@ -143,7 +151,7 @@ classdef FiguresUnit
         end
         
         function plotFireRateStatewise(obj)
-            ff=FigureFactory.instance('/home/mdalam/Downloads/Analysis_code/diba-ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
+            ff=FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
             params=obj.getParameters;
             smoothfactor=params.fireRatePlotSmoothingFactor;
             sess=obj.getSessionNos;
@@ -198,14 +206,18 @@ classdef FiguresUnit
             sa_good=sa.getSub(ismember(sa.ClusterInfo.group,'good'));
             frs=sa_good.getFireRates(10);
             
-            blocktime_sd=blocktimes(2,:);%% run
-            block=frs.getWindow(blocktime_sd);
-            [B,order]=sort(mean(block.Data'));
+            blocktime_sd=blocktimes(3,:);%% run
+            blocktime_all=[blocktimes(1,1) blocktimes(4,2)];%% all
+            block=frs.getWindow(blocktime_all);
+            [B,order]=sort(mean(block.Data,2));
             [fireRatem, fireRatee]=sa_good.getMeanFireRateQuintiles(5,timebin,order);
             boc=BlockOfChannels();
             for iq=1:numel(fireRatem)
                 frmq=fireRatem{iq};
-                aBlockfrmq=frmq.getTimeWindow(blocktime);
+                try
+                    aBlockfrmq=frmq.getTimeWindow(blocktime);
+                catch
+                end
                 boc=boc.addChannel(aBlockfrmq);
                 freq=fireRatee{iq};
                 aBlockfreq=freq.getTimeWindow(blocktime);
@@ -215,10 +227,10 @@ classdef FiguresUnit
             [fireRatem, fireRatee]=sa_mua.getMeanFireRate(timebin);
             boc=boc.addChannel(fireRatem.getTimeWindow(blocktime));
             boc=boc.addChannel(fireRatee.getTimeWindow(blocktime));
-            sa_undefined=sa.getSub(~ismember(sa.ClusterInfo.group,{'mua','good','unsorted'}));
-            [fireRatem, fireRatee]=sa_undefined.getMeanFireRate(timebin);
-            boc=boc.addChannel(fireRatem.getTimeWindow(blocktime));
-            boc=boc.addChannel(fireRatee.getTimeWindow(blocktime));
+%             sa_undefined=sa.getSub(~ismember(sa.ClusterInfo.group,{'mua','good','unsorted'}));
+%             [fireRatem, fireRatee]=sa_undefined.getMeanFireRate(timebin);
+%             boc=boc.addChannel(fireRatem.getTimeWindow(blocktime));
+%             boc=boc.addChannel(fireRatee.getTimeWindow(blocktime));
             ss1=StateDetectionData(obj.getLFPFolder(sessionNo)).getStateSeries;
             ss=ss1.getWindow(blocktime);
             boc=boc.addHypnogram(ss);
@@ -232,10 +244,10 @@ classdef FiguresUnit
             it=sdtime+hours(obj.Injections);
         end
         function params=getParameters(obj)
-            params=readstruct('/home/mdalam/Downloads/Analysis_code/diba-ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/FigureUnit.xml');
+            params=readstruct('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/FigureUnit.xml');
         end
         function bl=getBlockTimes(obj,sesno)
-            sessionInterests=[-hours(3) minutes(45) hours(4.5) hours(4)];
+            sessionInterests=[-hours(3) hours(5) hours(1.5) hours(3)];
             block=obj.getBlock(sesno);
             sess=block.getBlockNames;
             for iblock=1:numel(sess)

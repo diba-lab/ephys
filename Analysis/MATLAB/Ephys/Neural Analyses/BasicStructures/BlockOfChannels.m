@@ -120,9 +120,9 @@ classdef BlockOfChannels
                     i=1;
                     for ich=idx
                         ch=chs.get(ich);
-                        ch=ch.getMedianFiltered(1/ch.getSampleRate*smoothfactor);
+%                         ch=ch.getMedianFiltered(1/ch.getSampleRate*smoothfactor);
 
-                        ch=ch.getMeanFiltered(1/ch.getSampleRate*smoothfactor);
+%                         ch=ch.getMeanFiltered(1/ch.getSampleRate*smoothfactor);
                         %                         p1=ch.plot('Color',colors(i,:),'LineWidth',2);hold on;
                         px=ch.plot('Color',sde.getStateColors(thestate),'LineWidth',1);hold on;
                         ps{i}=px; %#ok<AGROW>

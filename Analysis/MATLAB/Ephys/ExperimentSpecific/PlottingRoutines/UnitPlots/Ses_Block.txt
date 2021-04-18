@@ -1,13 +1,6 @@
 Session, BlockFile
-1,/run/media/mdalam/data2/lost+found/cAMP-project/LFP_Analysis/BG_2019-10-21_SDSAL/Parameters/Blocks.csv
-2,/run/media/mdalam/data2/lost+found/cAMP-project/LFP_Analysis/A10_2019-11-04_SDPBS/Parameters/Blocks.csv
-3,/run/media/mdalam/data2/lost+found/cAMP-project/LFP_Analysis/A11_2019-12-02_SDPBS/Parameters/Blocks.csv
-4,/run/media/mdalam/data2/lost+found/cAMP-project/LFP_Analysis/A14_2020-02-23_SDPBS/Parameters/Blocks.csv
+1,/data/EphysAnalysis/SleepDeprivationData/AG_2019-12-22_SD/Parameters/Blocks.csv
+2,/data/EphysAnalysis/SleepDeprivationData/AG_2019-12-26_SD/Parameters/Blocks.csv
 
-11,/run/media/mdalam/data2/lost+found/cAMP-project/LFP_Analysis/BG_2019-10-19_SDROL/Parameters/Blocks.csv
-12,/run/media/mdalam/data2/lost+found/cAMP-project/LFP_Analysis/A11_2019-12-12_SDROL/Parameters/Blocks.csv
-13,/run/media/mdalam/data2/lost+found/cAMP-project/LFP_Analysis/A14_2020-02-26_SDROL/Parameters/Blocks.csv
-
-21,/run/media/mdalam/data2/lost+found/cAMP-project/LFP_Analysis/A10_2019-11-02_SDOCT/Parameters/Blocks.csv
-22,/run/media/mdalam/data2/lost+found/cAMP-project/LFP_Analysis/A11_2019-11-30_SDOCT/Parameters/Blocks.csv
-23,/run/media/mdalam/data2/lost+found/cAMP-project/LFP_Analysis/A14_2020-02-21_SDOCT/Parameters/Blocks.csv
+11,/data/EphysAnalysis/SleepDeprivationData/AG_2019-12-23_NSD/Parameters/Blocks.csv
+12,/data/EphysAnalysis/SleepDeprivationData/AG_2019-12-27_NSD/Parameters/Blocks.csv

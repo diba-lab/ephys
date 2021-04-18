@@ -97,6 +97,29 @@ classdef TimeInterval < TimeIntervalAbstract
                 end
             end
         end
+        function samples=getSampleForClosest(obj,times)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            times=obj.getDatetime(times);
+            
+            samples=nan(size(times));
+            
+            theTimeInterval=obj;
+            ends(1)=theTimeInterval.getStartTime;
+            ends(2)=theTimeInterval.getEndTime;
+            idx=times>=theTimeInterval.StartTime & times<=theTimeInterval.getEndTime;
+            samples(idx)=theTimeInterval.getSampleFor(times(idx));
+            
+            for it=1:numel(samples)
+                if isnan(samples(it))
+                    time=times(it);
+                    [~,I]=min(abs(time-ends));
+                    times(it)=ends(I);
+                end
+            end
+            samples=obj.getSampleFor(times);
+        end
+        
         function time=getEndTime(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here

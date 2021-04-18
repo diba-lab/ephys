@@ -107,7 +107,7 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
             ticd1=ticd.getTimeIntervalForTimes(time);
             for iwind=1:size(time,1)
                 int=time(iwind,:);
-                sample(iwind,:)=ticd.getSampleFor(int);
+                sample(iwind,:)=ticd.getSampleForClosest(int);
             end
             samples=[];
             for iwind=1:size(sample,1)

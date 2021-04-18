@@ -39,6 +39,9 @@ classdef SpikeFactory < SpikeNeuroscope
                 theFile=dir(fullfile(foldername,'..',['*TimeIntervalCombined*' '.csv']));
                 if isempty(theFile)
                     theFile=dir(fullfile(foldername,'..','..',['*TimeIntervalCombined*' '.csv']));
+                    if isempty(theFile)
+                        theFile=dir(fullfile(foldername,'..','..','..',['*TimeIntervalCombined*' '.csv']));
+                    end
                 end
                 ticd=TimeIntervalCombined(fullfile(theFile.folder, theFile.name));
             catch
@@ -99,7 +102,7 @@ classdef SpikeFactory < SpikeNeuroscope
             sa=sa.setTimeIntervalCombined(ticd);
             
             sa=sa.setClusterInfo(cluster_info(ismember(cluster_info.id,ClusterIds),:));
-            ts=tokenize(theFile.folder,filesep);
+            ts=split(theFile.folder,filesep);
             try
                 sanew=sanew+sa;
             catch

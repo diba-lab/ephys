@@ -31,8 +31,11 @@ classdef FigureFactory < Singleton
             if isempty(uniqueInstance)
                 try obj = FigureFactory(defpath);catch, obj = FigureFactory();end
                 uniqueInstance = obj;
-            else
+            elseif ~strcmp( uniqueInstance.DefaultPath, defpath)
+                uniqueInstance.DefaultPath=defpath;
                 obj = uniqueInstance;
+            else
+                obj = uniqueInstance;                
             end
         end
     end
