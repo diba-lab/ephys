@@ -1,7 +1,6 @@
 classdef FiguresUnit
     %FIGURESUNIT Summary of this class goes here
     %   Detailed explanation goes here
-    
     properties
         Parameters
         UnitListFile
@@ -13,12 +12,12 @@ classdef FiguresUnit
     
     methods
         function obj = FiguresUnit()
-            
+            import NeuralAnalyses.SpikeData.*
             %FIGURESUNIT Construct an instance of this class
             %   Detailed explanation goes here
-            obj.UnitListFile='/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/UnitList.txt';
-            obj.Session_Block='/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/Ses_Block.txt';
-            cachefolder='/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/cache';
+            obj.UnitListFile='./ExperimentSpecific/PlottingRoutines/UnitPlots/UnitList.txt';
+            obj.Session_Block='./ExperimentSpecific/PlottingRoutines/UnitPlots/Ses_Block.txt';
+            cachefolder='./ExperimentSpecific/PlottingRoutines/UnitPlots/cache';
             if ~isfolder(cachefolder), mkdir(cachefolder); end
             sf=SpikeFactory.instance;
             list=readtable(obj.UnitListFile,'Delimiter',',');
@@ -53,7 +52,7 @@ classdef FiguresUnit
         end
         
         function plotFireRate(obj)
-            figureFolder='/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures';
+            figureFolder='./ExperimentSpecific/PlottingRoutines/UnitPlots/figures';
             if ~isfolder(figureFolder), mkdir(figureFolder);end
             ff=FigureFactory.instance(figureFolder);
             sessions=obj.SpikeArrays;
@@ -117,7 +116,7 @@ classdef FiguresUnit
             %             ff.save('allblocksfixed');%ALL BLOCKS
         end
         function plotFireRateAroundInjection(obj)
-            ff=FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
+            ff=FigureFactory.instance('./ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
             params=obj.getParameters;
             smoothfactor=params.fireRatePlotSmoothingFactor;
             fireratechannels=1:2:10;
@@ -158,7 +157,7 @@ classdef FiguresUnit
         end
         
         function plotFireRateStatewise(obj)
-            ff=FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
+            ff=FigureFactory.instance('./ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
             params=obj.getParameters;
             smoothfactor=params.fireRatePlotSmoothingFactor;
             sess=obj.getSessionNos;
@@ -251,7 +250,7 @@ classdef FiguresUnit
             it=sdtime+hours(obj.Injections);
         end
         function params=getParameters(obj)
-            params=readstruct('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/FigureUnit.xml');
+            params=readstruct('./ExperimentSpecific/PlottingRoutines/UnitPlots/FigureUnit.xml');
         end
         function bl=getBlockTimes(obj,sesno)
             sessionInterests=[-hours(3) hours(5) hours(1.5) hours(3)];
