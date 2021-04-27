@@ -12,7 +12,7 @@ classdef SDExperiment < Singleton
         function newObj = SDExperiment()
             % Initialise your custom properties.
             newObj.XMLFile = ...
-                '/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Experiment.xml';
+                './ExperimentSpecific/Configure/Experiment.xml';
             try
                 S=readstruct(newObj.XMLFile);
             catch
@@ -26,6 +26,7 @@ classdef SDExperiment < Singleton
     methods(Static)
         % Concrete implementation.  See Singleton superclass.
         function obj = instance()
+            import ExperimentSpecific.*
             persistent uniqueInstance
             if isempty(uniqueInstance)
                 obj = SDExperiment();
