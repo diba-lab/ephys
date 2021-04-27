@@ -26,7 +26,7 @@ classdef SDExperiment < Singleton
     methods(Static)
         % Concrete implementation.  See Singleton superclass.
         function obj = instance()
-            import ExperimentSpecific.*
+            import ExperimentSpecific.SDExperiment
             persistent uniqueInstance
             if isempty(uniqueInstance)
                 obj = SDExperiment();

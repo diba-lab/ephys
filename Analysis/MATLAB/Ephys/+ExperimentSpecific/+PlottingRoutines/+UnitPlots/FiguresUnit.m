@@ -13,6 +13,7 @@ classdef FiguresUnit
     
     methods
         function obj = FiguresUnit()
+            
             %FIGURESUNIT Construct an instance of this class
             %   Detailed explanation goes here
             obj.UnitListFile='/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/UnitList.txt';
