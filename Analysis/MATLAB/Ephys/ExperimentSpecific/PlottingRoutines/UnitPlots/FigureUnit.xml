@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<struct>
+    <interestInMin>
+        <before>-20</before>
+        <before>0</before>
+        <after>0</after>
+        <after>60</after>
+    </interestInMin>
+    <interestInMin>
+        <before>-20</before>
+        <before>0</before>
+        <after>0</after>
+        <after>90</after>
+    </interestInMin>
+    <timeBinsForFireRateInSeconds>10</timeBinsForFireRateInSeconds>
+    <fireRatePlotSmoothingFactor>3</fireRatePlotSmoothingFactor>
+</struct>
