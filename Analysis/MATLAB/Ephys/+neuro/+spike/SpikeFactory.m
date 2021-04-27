@@ -1,4 +1,4 @@
-classdef SpikeFactory < NeuralAnalyses.SpikeData.SpikeNeuroscope
+classdef SpikeFactory < neuro.spike.SpikeNeuroscope
     %SPIKEFACTORY Summary of this class goes here
     %   Detailed explanation goes here
     properties
@@ -18,7 +18,7 @@ classdef SpikeFactory < NeuralAnalyses.SpikeData.SpikeNeuroscope
         function obj = instance()
             persistent uniqueInstance
             if isempty(uniqueInstance)
-                obj = SpikeFactory();
+                obj = neuro.spike.SpikeFactory();
                 uniqueInstance = obj;
             else
                 obj = uniqueInstance;
@@ -28,6 +28,8 @@ classdef SpikeFactory < NeuralAnalyses.SpikeData.SpikeNeuroscope
     
     methods
         function [sanew, foldername]= getSpykingCircusOutputFolder(obj,foldername)
+            
+            import neuro.*
             defaultloc='/data/EphysAnalysis/cluster';
             title='Select folder for spike data';
             if ~exist('foldername','var')

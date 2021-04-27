@@ -12,7 +12,7 @@ classdef FiguresUnit
     
     methods
         function obj = FiguresUnit()
-            import NeuralAnalyses.SpikeData.*
+            import neuro.spike.*
             %FIGURESUNIT Construct an instance of this class
             %   Detailed explanation goes here
             obj.UnitListFile='./ExperimentSpecific/PlottingRoutines/UnitPlots/UnitList.txt';
