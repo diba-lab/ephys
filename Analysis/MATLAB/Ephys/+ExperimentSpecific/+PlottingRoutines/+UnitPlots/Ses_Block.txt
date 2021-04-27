@@ -1,0 +1,6 @@
+Session, BlockFile
+1,/data/EphysAnalysis/SleepDeprivationData/AG_2019-12-22_SD/Parameters/Blocks.csv
+2,/data/EphysAnalysis/SleepDeprivationData/AG_2019-12-26_SD/Parameters/Blocks.csv
+
+11,/data/EphysAnalysis/SleepDeprivationData/AG_2019-12-23_NSD/Parameters/Blocks.csv
+12,/data/EphysAnalysis/SleepDeprivationData/AG_2019-12-27_NSD/Parameters/Blocks.csv
