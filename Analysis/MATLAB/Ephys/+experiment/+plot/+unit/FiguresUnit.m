@@ -15,8 +15,8 @@ classdef FiguresUnit
             import neuro.spike.*
             %FIGURESUNIT Construct an instance of this class
             %   Detailed explanation goes here
-            obj.UnitListFile='./ExperimentSpecific/PlottingRoutines/UnitPlots/UnitList.txt';
-            obj.Session_Block='./ExperimentSpecific/PlottingRoutines/UnitPlots/Ses_Block.txt';
+            obj.UnitListFile='./ExperimentSpecific/PlottingRoutines/UnitPlots/UnitList.csv';
+            obj.Session_Block='./ExperimentSpecific/PlottingRoutines/UnitPlots/Ses_Block.csv';
             cachefolder='./ExperimentSpecific/PlottingRoutines/UnitPlots/cache';
             if ~isfolder(cachefolder), mkdir(cachefolder); end
             sf=SpikeFactory.instance;
