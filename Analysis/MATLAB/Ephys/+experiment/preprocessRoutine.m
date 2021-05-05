@@ -1,10 +1,10 @@
-sf=SessionFactory;
-sessions=sf.getSessions('AG',4);
+sf=experiment.SessionFactory
+sessions=sf.getSessions('AG',5);
 % sess={'PRE','SD_NSD','TRACK','POST'};
 % ses=sess{3};
 for ises=1:numel(sessions)
     theses=sessions(ises);
-    pr=Preprocess(theses);
+    pr=preprocessing.Preprocess(theses);
     %     datalfp=theses.getDataLFP;
     dataclu=pr.getDataForClustering;
     for iclu=dataclu

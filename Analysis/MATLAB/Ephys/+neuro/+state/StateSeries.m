@@ -92,14 +92,14 @@ classdef StateSeries
             states1=ts1.Data;
             newobj=StateSeries(states1,timeIntervalCombined);
         end
-        function [] = plot(obj,colorMap)
+        function [ps] = plot(obj,colorMap)
             states1=obj.States;
             ticd=obj.TimeIntervalCombined;
             t=seconds(ticd.getTimePointsInSec)+ticd.getStartTime;
             hold on;
             num=1;
             if ~exist('colorMap','var')
-                sde=SDExperiment.instance;
+                sde=experiment.SDExperiment.instance;
                 colorMap=sde.getStateColors;
             end
             for ikey=colorMap.keys
@@ -114,7 +114,7 @@ classdef StateSeries
                     p1.Color=sde.getStateColors(state);
                 end
                 p1.LineWidth=5;
-                
+                ps(state)=p1;
             end
             
                 

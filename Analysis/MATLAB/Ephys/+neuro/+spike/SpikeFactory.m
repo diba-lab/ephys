@@ -27,9 +27,10 @@ classdef SpikeFactory < neuro.spike.SpikeNeuroscope
     end
     
     methods
-        function [sanew, foldername]= getSpykingCircusOutputFolder(obj,foldername)
-            
-            import neuro.*
+        function [sa, foldername]= getPhyOutputFolder(obj,foldername)
+            logger=logging.Logger.getLogger;
+            import neuro.time.*
+            import neuro.spike.*
             defaultloc='/data/EphysAnalysis/cluster';
             title='Select folder for spike data';
             if ~exist('foldername','var')
@@ -37,21 +38,25 @@ classdef SpikeFactory < neuro.spike.SpikeNeuroscope
             elseif ~isfolder(foldername)
                 foldername = uigetdir(defaultloc,title);
             end
-            try
-                theFile=dir(fullfile(foldername,'..',['*TimeIntervalCombined*' '.csv']));
+
+            theFile=dir(fullfile(foldername,'..',['*TimeIntervalCombined*' '.csv']));
+            if isempty(theFile)
+                theFile=dir(fullfile(foldername,'..','..',['*TimeIntervalCombined*' '.csv']));
                 if isempty(theFile)
-                    theFile=dir(fullfile(foldername,'..','..',['*TimeIntervalCombined*' '.csv']));
-                    if isempty(theFile)
-                        theFile=dir(fullfile(foldername,'..','..','..',['*TimeIntervalCombined*' '.csv']));
-                    end
+                    theFile=dir(fullfile(foldername,'..','..','..',['*TimeIntervalCombined*' '.csv']));
+                else
+                    logger.warning(strcat('TimeIntervalCobined is not loaded. \n\tLocation:\t',foldername,'\n'));
                 end
-                ticd=TimeIntervalCombined(fullfile(theFile.folder, theFile.name));
-            catch
-                warning('TimeIntervalCobined is not loaded.\n')
             end
+            ticd=TimeIntervalCombined(fullfile(theFile.folder, theFile.name));
+            logger.info(['time is loaded.' ticd.tostring])
+           
             try
-                cluster_info=SpikeFactory.getTSVClusterInfoFileintoTable(fullfile(foldername,'cluster_info.tsv'));
+                tsvfile=fullfile(foldername,'cluster_info.tsv');
+                cluster_info=SpikeFactory.getTSVCluster(tsvfile);
+                logger.info('cluster_info.tsv loaded');
             catch
+                logger.error(strcat(fullfile(foldername,'cluster_info.tsv')))
             end
             theFile=dir(fullfile(foldername,['spike_clusters' '.npy']));
             spikeclusters=readNPY(fullfile(theFile.folder, theFile.name));
@@ -61,13 +66,15 @@ classdef SpikeFactory < neuro.spike.SpikeNeuroscope
                 aFile=interestedFiles{ifile};
                 theFile=dir(fullfile(foldername,[aFile '.npy']));
                 temps{ifile}=readNPY(fullfile(theFile.folder, theFile.name));
+                logger.info([aFile '.npy is loaded'])
             end
-            paramfile='UnitGroups.xml';
+            paramfile='./ExperimentSpecific/PlottingRoutines/UnitPlots/UnitGroups.xml';
             params=readstruct(paramfile);
-            try
+            if isfield(params,'exclude')
                 idx=true(size(cluster_info.group));
                 idx_ex=idx;
                 exclude=params.exclude;
+                logger.info(strjoin([strjoin(params.exclude,', '), 'is being excluded.'],' '))
                 filename1='ex_';
                 for iex=1:numel(exclude)
                     theex=exclude(iex);
@@ -75,11 +82,11 @@ classdef SpikeFactory < neuro.spike.SpikeNeuroscope
                     filename1=strcat(filename1,theex,'_');
                 end
                 idx=idx & ~idx_ex;
-            catch
-                try
+            elseif isfield(params,'include')
                     idx=false(size(cluster_info.group));
                     idx_in=idx;
                     include=params.include;
+                    logger.info(strjoin([strjoin(params.include,', '), 'is being include.'],' '))
                     filename1='in_';
                     for iin=1:numel(include)
                         thein=include(iin);
@@ -87,40 +94,34 @@ classdef SpikeFactory < neuro.spike.SpikeNeuroscope
                         filename1=strcat(filename1,thein,'_');
                     end
                     idx=idx | idx_in;
-                catch
-                end
-                
+            else
+                logger.error(strcat(paramfile,' is incorrect. It should either include or exclude noise, good, mua, unsorted.'))
             end
-            try
-            ClusterIds=cluster_info.id(idx);
-            catch
-            end
-            idx=ismember(spikeclusters, ClusterIds);
+            cluster_info_sel=cluster_info(idx,:);
+            ClusterIds=cluster_info_sel.id;
+            
+            idx1=ismember(spikeclusters, ClusterIds);
             for ifile=1:numel(interestedFiles)
                 aFile=interestedFiles{ifile};
                 temp=temps{ifile};
-                data.(aFile)=temp(idx);
+                data.(aFile)=temp(idx1);
             end
-            data.spike_clusters=spikeclusters(idx);
-            
+            data.spike_clusters=spikeclusters(idx1);
             sa=SpikeArray(data.spike_clusters,data.spike_times);
             sa=sa.setTimeIntervalCombined(ticd);
-            
-            sa=sa.setClusterInfo(cluster_info(ismember(cluster_info.id,ClusterIds),:));
+            sa=sa.setClusterInfo(cluster_info_sel);
+            sastr=sa.tostring('group','ch');
+            logger.info(['Phy output folder loaded. ' sastr{:}])
             ts=split(theFile.folder,filesep);
-            try
-                sanew=sanew+sa;
-            catch
-                sanew=sa;
-            end
-            filename=fullfile(theFile.folder,'..','..',ts{numel(ts)-1});
+            filename=fullfile(theFile.folder,ts{numel(ts)-1});
             obj.saveCluFile(strcat(filename, '.clu.0'),sa.SpikeTable.SpikeCluster);
             obj.saveResFile(strcat(filename, '.res.0'),sa.SpikeTable.SpikeTimes);
+            logger.info(['.clu and .res files saved. ' theFile.folder])
         end
     end
     
     methods (Static, Access=private)
-        function clustergroup=getTSVGroupFileintoTable(filepath)
+        function clustergroup=getTSVGroup(filepath)
             %% Setup the Import Options and import the data
             opts = delimitedTextImportOptions("NumVariables", 2);
             
@@ -142,7 +143,7 @@ classdef SpikeFactory < neuro.spike.SpikeNeuroscope
             % Import the data
             clustergroup = readtable(filepath, opts);
         end
-        function clustergroup=getTSVClusterInfoFileintoTable(filepath)
+        function clustergroup=getTSVCluster(filepath)
             %% Setup the Import Options and import the data
             opts = delimitedTextImportOptions("NumVariables", 9);
             

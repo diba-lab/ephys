@@ -22,6 +22,7 @@ classdef StateDetectionData
         function obj = StateDetectionData(basepath)
             %STATEDETECTIONDATA Construct an instance of this class
             %   Detailed explanation goes here
+            logger=logging.Logger.getLogger;
             if ~exist('basepath','var')
                 defpath='/data/EphysAnalysis/SleepDeprivationData/';
                 defpath1={'*.eeg;*.lfp','Downsampled Files (*.eeg,*.lfp)';...
@@ -39,15 +40,17 @@ classdef StateDetectionData
             end
             thefile=dir(fullfile(basepath, '*Probe*'));
             try
-                obj.Probe=Probe(fullfile(thefile(1).folder,thefile(1).name));
+                obj.Probe=neuro.probe.Probe(fullfile(thefile(1).folder,thefile(1).name));
+                logger.info('Probe is loaded.');
             catch
-                warning('I couldn''t find the Probe file.\n\t%s',thefile);
+                logger.error(sprintf('I couldn''t find the Probe file.\n\t%s',thefile));
             end
             thefile=dir(fullfile(basepath, '*TimeIntervalCombined*'));
             try
-                ticd=TimeIntervalCombined(fullfile(thefile.folder,thefile.name));
+                ticd=neuro.time.TimeIntervalCombined(fullfile(thefile.folder,thefile.name));
+                logger.info('Time is loaded.');
             catch
-                warning('I couldn''t find the TimeIntervalCombined file.\n\t%s',thefile);
+                logger.error(sprintf('I couldn''t find the TimeIntervalCombined file.\n\t%s',thefile));
             end
             
             obj.TimeIntervalCombinedOriginal=ticd;
@@ -214,7 +217,7 @@ classdef StateDetectionData
             if numel(states)<ticd.getNumberOfPoints
                 states(numel(states)+1)=states(numel(states));
             end
-            ss=StateSeries(states,ticd);
+            ss=neuro.state.StateSeries(states,ticd);
             ss=ss.setEpisodes(obj.SleepState.ints);
             ss=ss.setStateNames(idx.statenames);
             

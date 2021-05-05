@@ -11,7 +11,7 @@ classdef AnimalFactory
             %SESIONFACTORY Construct an instance of this class
             %   Detailed explanation goes here
             
-            Sde=SDExperiment.instance.get();
+            Sde=experiment.SDExperiment.instance.get();
             try
                 S1=readstruct(Sde.FileLocations.General.Animals);
             catch
@@ -65,7 +65,7 @@ classdef AnimalFactory
             end
             animalstruct=animalstruct(idx_all);
             for ianimal=1:numel(animalstruct)
-                animals(ianimal)=Animal(animalstruct(ianimal));
+                animals(ianimal)=neuro.animal.Animal(animalstruct(ianimal));
             end
         end
     end

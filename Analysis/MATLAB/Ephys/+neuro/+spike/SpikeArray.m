@@ -1,4 +1,4 @@
-classdef SpikeArray < SpikeNeuroscope
+classdef SpikeArray < neuro.spike.SpikeNeuroscope
     %SPIKEARRAY Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -6,6 +6,7 @@ classdef SpikeArray < SpikeNeuroscope
         SpikeTable
         TimeIntervalCombined
         ClusterInfo
+        Info
     end
     
     methods
@@ -24,6 +25,49 @@ classdef SpikeArray < SpikeNeuroscope
             ticd=obj.TimeIntervalCombined;
             adjustedspiketimessample=ticd.adjustTimestampsAsIfNotInterrupted(spiketimessample);
             obj.SpikeTable.SpikeTimes=adjustedspiketimessample;
+        end
+        function print(obj,varargin)
+            logger=logging.Logger.getLogger;
+            colstrings=obj.tostring(varargin{:});
+            for icountgroup=1:numel(colstrings)
+                colstring=colstrings{icountgroup};
+                logger.info(colstring);
+            end
+        end
+        function colstrings=tostring(obj,varargin)
+            logger=logging.Logger.getLogger;
+            tbl=obj.ClusterInfo;
+            if nargin>1
+                idx=ismember(varargin,tbl.Properties.VariableNames);
+                if ~all(idx)
+                    logger.warning([varargin{~idx} ' is not a column in the table.' strjoin(tbl.Properties.VariableNames,', ')]);
+                end
+                countGroup=varargin(idx);
+            else
+                countGroup={'group','ch'};
+            end
+            colstrings=cell.empty(numel(countGroup),0);
+            for icountgroup=1:numel(countGroup)
+                countgroup=countGroup{icountgroup};
+                col=unique(tbl.(countgroup));
+                colStr=cell.empty(numel(col),0);
+                for icol=1:numel(col)
+                    uniqueelement=col(icol);
+                    idx=ismember(tbl.(countgroup),uniqueelement);
+                    if iscategorical(uniqueelement)
+                        uniqueelementstr=char(uniqueelement);
+                    elseif isnumeric(uniqueelement)
+                        uniqueelementstr=num2str(uniqueelement);
+                    elseif isstring(uniqueelement)
+                        uniqueelementstr=char(uniqueelement);
+                    else
+                        uniqueelementstr=uniqueelement;
+                    end
+                    colStr{icol}=[uniqueelementstr '(' num2str(sum(idx)) ')'];
+                end
+                colstring=strcat(countgroup,': ',strjoin(colStr,', '));
+                colstrings{icountgroup}=colstring;
+            end
         end
         function obj=setTimeIntervalCombined(obj,ticd)
             obj.TimeIntervalCombined=ticd;
@@ -93,23 +137,25 @@ classdef SpikeArray < SpikeNeuroscope
             end
             themeanquint=mean(vals,1);
             thesterrquint=std(vals,1)/sqrt(size(vals,1));
-            frm=Channel(sprintf('Mean Over Units'),...
+            frm=neuro.basic.Channel(sprintf('Mean Over Units'),...
                 themeanquint,frs.getTimeInterval);
-            fre=Channel(sprintf('Mean Over Units'),...
+            fre=neuro.basic.Channel(sprintf('Mean Over Units'),...
                 thesterrquint,frs.getTimeInterval);
             
         end
-        function ct=getFireRates(obj,timebin)
+        function frs=getFireRates(obj,timebininsec)
             sus=obj.getSpikeUnits;
             for isu=1:numel(sus)
                 su=sus(isu);
-                frs=su.getFireRate(timebin);
+                frs=su.getFireRate(timebininsec);
                 try
                     vals(isu,:)=frs.getValues;
                 catch
                 end
             end
-            ct=ChannelTime(vals,[sus.Id],obj.TimeIntervalCombined.getStartTime+seconds(frs.getTimeStamps));
+            frs=neuro.spike.FireRates(vals,[sus.Id],frs.getTimeInterval);
+            frs.Info.TimebinInSec=timebininsec;
+            frs.ClusterInfo=obj.ClusterInfo;
         end
         function []=plot(obj,tfm)
 
@@ -226,11 +272,11 @@ classdef SpikeArray < SpikeNeuroscope
             for isid=1:height(ci_sub)
                 aci=ci_sub(isid,:);
                 spktimes=tbl.SpikeTimes(tbl.SpikeCluster==aci.id);
-                spikeUnits(isid)=SpikeUnit(aci.id,spktimes,obj.TimeIntervalCombined,...
+                spikeUnits(isid)=neuro.spike.SpikeUnit(aci.id,spktimes,obj.TimeIntervalCombined,...
                     aci.amp,aci.ch,aci.fr,aci.group,aci.n_spikes,aci.purity);
             end
         end
-        function obj=getSub(obj,idx)
+        function obj=get(obj,idx)
             tbl=obj.SpikeTable;
             obj.ClusterInfo=obj.ClusterInfo(idx,:);
             obj.SpikeTable=tbl(ismember(tbl.SpikeCluster,obj.ClusterInfo.id),:);
@@ -260,8 +306,7 @@ classdef SpikeArray < SpikeNeuroscope
             obj.ClusterInfo.sh=ones(height(obj.ClusterInfo),1)*shankno;
         end
         function [obj]=setLocation(obj,location)
-            str=cell(height(obj.ClusterInfo),1);
-            str(:)=location;
+            str= repmat(location,height(obj.ClusterInfo),1);
             obj.ClusterInfo.location=str;
         end
         function [obj]=sort(obj,by)

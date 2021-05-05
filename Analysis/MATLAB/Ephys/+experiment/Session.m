@@ -16,7 +16,7 @@ classdef Session
         function obj = Session(baseFolder)
             %SESSION Construct an instance of this class
             %   Detailed explanation goes here
-            params=SDExperiment.instance.get;
+            params=experiment.SDExperiment.instance.get;
             %% SessionInfo
             sessionInfoFile=fullfile(baseFolder,params.FileLocations.Session.SessionInfo);
             folder=fileparts(sessionInfoFile);
@@ -47,7 +47,7 @@ classdef Session
                 end             
                 writetimetable(blockstt,blockFile);
             end
-            sdblock= SDBlocks(obj.SessionInfo.Date,blockstt);
+            sdblock=experiment.SDBlocks(obj.SessionInfo.Date,blockstt);
             obj.Blocks=sdblock;
             %% Probe
             try
@@ -67,14 +67,14 @@ classdef Session
         function obj = setProbe(obj,probe)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperiment.instance.get;
             probeFile=fullfile(obj.SessionInfo.baseFolder,sde.FileLocations.Session.Probe);
             if nargin>1
                 obj.Probe = probe;
                 
             else
                 % load templateProbe
-                obj.Probe=Probe(sde.FileLocations.General.ProbeTemplate); %#ok<CPROPLC>
+                obj.Probe=neuro.probe.Probe(sde.FileLocations.General.ProbeTemplate); %#ok<CPROPLC>
                 warning('No Probe File. Template is loaded.');
             end
             obj.Probe.saveProbeTable(probeFile);
@@ -106,7 +106,7 @@ classdef Session
         function data = getDataLFP(obj,varargin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            pr=Preprocess(obj);
+            pr=preprocessing.Preprocess(obj);
             data=pr.getDataForLFP;
         end
         function data = getDataClustering(obj,varargin)

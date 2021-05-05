@@ -5,12 +5,15 @@ classdef (Abstract) SpikeNeuroscope
     properties
         
     end
-    
+    methods (Abstract)
+        getSpikeClusters
+        getSpikeTimes
+    end
     methods
-        function [] = saveCluFile(obj, FileName,spikeClusters)
+        function [] = saveCluFile(obj, FileName)
             %SPIKENEUROSCOPE Construct an instance of this class
             %   Detailed explanation goes here
-            
+            spikeClusters=obj.getSpikeClusters;
             nClusters = numel(spikeClusters);
             
             outputfile = fopen(FileName,'w');
@@ -19,10 +22,12 @@ classdef (Abstract) SpikeNeuroscope
             fclose(outputfile);
         end
         
-        function [] = saveResFile(obj,FileName,spikeTimes)
+        function [] = saveResFile(obj,FileName)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             outputfile = fopen(FileName,'w');
+            spikeTimes=obj.getSpikeTimes;
+            
             fprintf(outputfile,'%d\n', spikeTimes(:));
             fclose(outputfile);
         end

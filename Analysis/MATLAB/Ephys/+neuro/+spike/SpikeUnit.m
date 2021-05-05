@@ -36,18 +36,18 @@ classdef SpikeUnit
             ticd=obj.TimeIntervalCombined;
             timesnew=ticd.getRealTimeFor(double(obj.Times));
         end
-        function fireRate = getFireRate(obj,timebin)
+        function fireRate = getFireRate(obj,timebininsec)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             timesInSamples=obj.Times;
             ticd=obj.TimeIntervalCombined;
             endtimeinsec=seconds(ticd.getEndTime-ticd.getStartTime);
-            TimeBinsInSec=timebin;
+            TimeBinsInSec=timebininsec;
             timesInSamples_adj=ticd.adjustTimestampsAsIfNotInterrupted(timesInSamples);
             timesInSec_adj=double(timesInSamples_adj)/ticd.getSampleRate;
             N=histcounts(timesInSec_adj,0:TimeBinsInSec:endtimeinsec)/TimeBinsInSec;
-            ticdnew=TimeInterval(ticd.getStartTime+seconds(TimeBinsInSec/2),1/(TimeBinsInSec),numel(N));
-            fireRate=Channel(num2str(obj.Id),N,ticdnew); %#ok<CPROP>
+            ticdnew=neuro.time.TimeInterval(ticd.getStartTime+seconds(TimeBinsInSec/2),1/(TimeBinsInSec),numel(N));
+            fireRate=neuro.basic.Channel(num2str(obj.Id),N,ticdnew); %#ok<*CPROPLC>
         end
         function [] = plotOnTimeTrack(obj,track,speedthreshold)
             %METHOD1 Summary of this method goes here

@@ -17,7 +17,7 @@ classdef Preprocess
             %   Detailed explanation goes here
             obj.Session = session;
             %% RawFiles
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperiment.instance.get;
             preprocessFile=fullfile(session.SessionInfo.baseFolder, sde.FileLocations.Preprocess.RawFiles);
             folder=fileparts(preprocessFile);
             if ~isfolder(folder), mkdir(folder);end
@@ -203,10 +203,10 @@ classdef Preprocess
 %                 delete(mergedData.DataFile)
             end
             %             end
-            dataForLFP=DataForLFP(newFileName);
+            dataForLFP=preprocessing.DataForLFP(newFileName);
             dataForLFP=dataForLFP.setProbe(newprobe);
             list=dir(fullfile(baseFolder,'*TimeIntervalCombined*'));
-            ticd=TimeIntervalCombined(fullfile(baseFolder,list.name));
+            ticd=neuro.time.TimeIntervalCombined(fullfile(baseFolder,list.name));
             dataForLFP=dataForLFP.setTimeIntervalCombined(ticd);
         end
         function arts=reCalculateArtifacts(obj)
@@ -215,7 +215,7 @@ classdef Preprocess
             params_chrx=param_spec.Method.chronux;
             freqs=[param_spec.FrequencyBands.start' param_spec.FrequencyBands.stop'];
             for ifreq=1:size(freqs,1)
-                tfmethod=TimeFrequencyChronuxMtspecgramc(...
+                tfmethod=neuro.tf.TimeFrequencyChronuxMtspecgramc(...
                     freqs(ifreq,:),[params_chrx.WindowSize params_chrx.WindowStep]);
                 if ~isfolder(params.cachefolder), mkdir(params.cachefolder);end
                 cacheFile=fullfile(params.cachefolder, strcat(DataHash(tfmethod),'.mat'));
@@ -270,30 +270,30 @@ classdef Preprocess
             end
             bad.BadTimes.Time= table2struct( combinedBad.getTimeTable);
             obj=obj.setBad(bad);
-            arts=Artifacts(obj,combinedBad,ch_ds,artifacts_freq,power);
+            arts=preprocessing.Artifacts(obj,combinedBad,ch_ds,artifacts_freq,power);
         end
 
         
         function bad=getBad(obj)
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperiment.instance.get;
             badFile=fullfile(obj.Session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Bad);
             
             bad=readstruct(badFile);
         end
         function obj=setBad(obj,bad)
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperiment.instance.get;
             badFile=fullfile(obj.Session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Bad);
             writestruct(bad,badFile);
             obj.Bad=bad;
             
         end
         function param=getParameters(obj)
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperiment.instance.get;
             ParamFile=fullfile(obj.Session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Parameters);
             param=readstruct(ParamFile);
         end
         function obj=setParameters(obj,params)
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperiment.instance.get;
             paramFile=fullfile(obj.Session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Parameters);
             writestruct(params,paramFile);
             obj.Parameters=params;
@@ -361,7 +361,7 @@ classdef Preprocess
                 end
             end
             finalTimeTable= struct2table(finalTimeTable);
-            timeWindows= TimeWindows(finalTimeTable,ticd);
+            timeWindows= neuro.basic.TimeWindows(finalTimeTable,ticd);
         end
     end
 end

@@ -17,7 +17,7 @@ classdef DataForLFP
             % (1) Create required .mat files for Buzcode.
             % (2)
             obj.DataFile = dataFile;
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperiment.instance.get;
             [baseFolder,name,ext]=fileparts(dataFile);
             analysisFile=fullfile(baseFolder,sde.FileLocations.Session.Analysis);
             obj.AnalysisFile=analysisFile;
@@ -60,7 +60,7 @@ classdef DataForLFP
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             [folder,name,ext]=fileparts(obj.DataFile);
-            ctd=ChannelTimeData(folder);
+            ctd=neuro.basic.ChannelTimeData(folder);
         end
                
         function sdd = getStateDetectionData(obj)

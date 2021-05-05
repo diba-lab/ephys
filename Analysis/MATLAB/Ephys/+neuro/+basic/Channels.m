@@ -1,20 +1,19 @@
-classdef ChannelTime
+classdef Channels
     %CHANNELTIME Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
         Data
-        Channels
+        ChannelNames
         Time
-        Info
     end
     
     methods
-        function obj = ChannelTime(data,ch,time)
+        function obj = Channels(data,ch,time)
             %CHANNELTIME Construct an instance of this class
             %   Detailed explanation goes here
             obj.Data = data;
-            obj.Channels= ch;
+            obj.ChannelNames= ch;
             obj.Time=time;
         end
         
@@ -28,6 +27,7 @@ classdef ChannelTime
             obj.Time=t(time_idx);
             obj.Data=obj.Data(:,time_idx);           
         end
+       
     end
 end
 

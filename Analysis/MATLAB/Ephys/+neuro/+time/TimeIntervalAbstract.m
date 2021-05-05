@@ -49,6 +49,7 @@ classdef TimeIntervalAbstract
             dt=datetime(st.Year,st.Month,st.Day)+hours(dt1.Hour)+minutes(dt1.Minute);
         end
         function times=getDatetime(obj,times)
+            % Convert times of duration or string('HH:mm') to datetime format.
             if ~isdatetime(times)
                 if isduration(times)
                     times=obj.convertDurationToDatetime(times);

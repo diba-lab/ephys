@@ -1,4 +1,4 @@
-classdef ChannelTimeData < BinarySave
+classdef ChannelTimeData < file.BinarySave
     %COMBINEDCHANNELS Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -31,7 +31,7 @@ classdef ChannelTimeData < BinarySave
                 end
             end
             probefile=dir(fullfile(folder,'*Probe*'));
-            probe=Probe(fullfile(probefile.folder,probefile.name));
+            probe=neuro.probe.Probe(fullfile(probefile.folder,probefile.name));
             chans=probe.getActiveChannels;
             numberOfChannels=numel(chans);
             newObj.Probe=probe;
@@ -45,7 +45,7 @@ classdef ChannelTimeData < BinarySave
                 newObj.TimeIntervalCombined=s.(fnames{1});
             catch
                 try
-                    newObj.TimeIntervalCombined=TimeIntervalCombined(fullfile(timeFile.folder,timeFile.name));
+                    newObj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(fullfile(timeFile.folder,timeFile.name));
                 catch
                     numberOfPoints=samples;
                     prompt = {'Start DateTime:','SampleRate:'};
@@ -55,8 +55,8 @@ classdef ChannelTimeData < BinarySave
                     answer = inputdlg(prompt,dlgtitle,dims,definput);
                     startTime=datetime(answer{1},'InputFormat','dd-MMM-yyyy HH:mm:ss');
                     sampleRate=str2num(answer{2});
-                    ti=TimeInterval(startTime, sampleRate, numberOfPoints);
-                    ticd=TimeIntervalCombined(ti);
+                    ti=neuro.time.TimeInterval(startTime, sampleRate, numberOfPoints);
+                    ticd=neuro.time.TimeIntervalCombined(ti);
                     ticd.save(folder);
                     newObj.TimeIntervalCombined=ticd;
                 end
@@ -72,7 +72,7 @@ classdef ChannelTimeData < BinarySave
             datamemmapfile=obj.Data;
             datamat=datamemmapfile.Data;
             voltageArray=datamat.mapped(index,:);
-            ch=Channel(channelNumber,voltageArray,ticd);
+            ch=neuro.basic.Channel(channelNumber,voltageArray,ticd);
         end
         function LFP = getChannelsLFP(obj,channelNumber)
             ticd=obj.getTimeIntervalCombined;

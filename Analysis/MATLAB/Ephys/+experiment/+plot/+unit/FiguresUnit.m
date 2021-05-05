@@ -13,6 +13,7 @@ classdef FiguresUnit
     methods
         function obj = FiguresUnit()
             import neuro.spike.*
+            logger=logging.Logger.getLogger;
             %FIGURESUNIT Construct an instance of this class
             %   Detailed explanation goes here
             obj.UnitListFile='./ExperimentSpecific/PlottingRoutines/UnitPlots/UnitList.csv';
@@ -26,15 +27,19 @@ classdef FiguresUnit
                 ses=sessions(ises);
                 cachefile=fullfile(cachefolder,strcat('unitarray_ses',num2str(ses)));
                 try
-                    load(cachefile,'spikeArray')
+                    load(cachefile,'spikeArray');
+                    logger.info(['Session ' num2str(ses) 'loaded from cache.']);
                 catch
                     rowidx=list.SESSIONNO==ses;
                     seslist=list(rowidx,:);
                     for is=1:height(seslist)
                         afolder=seslist(is,:);
                         sfFolder=afolder.PATH{:};
-                        sa=sf.getSpykingCircusOutputFolder(sfFolder);
+                        sa=sf.getPhyOutputFolder(sfFolder);
                         sa=sa.setShank(afolder.SHANKNO);
+                        sa=sa.setLocation(string(afolder.LOCATION{1}));
+                        logger.info(['Loaded Session ' num2str(ses) ...
+                            ', Shank ' num2str(afolder.SHANKNO) '(' afolder.LOCATION{1} ')'])
                         try
                             spikeArray=spikeArray+sa;
                         catch
@@ -42,7 +47,11 @@ classdef FiguresUnit
                         end
                     end
                     save(cachefile,'spikeArray');
+                    logger.info(['Session ' num2str(ses) 'save to cache.']);
                 end
+                str=spikeArray.tostring('sh','location','group');
+                logger.info(['Session ' num2str(ses) ' loaded from cache. ' strjoin(str,'; ')]);
+
                 SpikeArrays(ises)=spikeArray;
                 clear spikeArray
             end
@@ -51,10 +60,10 @@ classdef FiguresUnit
             obj.Parameters=obj.getParameters;
         end
         
-        function plotFireRate(obj)
+        function plotFireRateQui(obj)
             figureFolder='./ExperimentSpecific/PlottingRoutines/UnitPlots/figures';
             if ~isfolder(figureFolder), mkdir(figureFolder);end
-            ff=FigureFactory.instance(figureFolder);
+            ff=logistics.FigureFactory.instance(figureFolder);
             sessions=obj.SpikeArrays;
             fireratechannels=1:2:10;
 %             fireratechannels=11:2:14;
@@ -114,6 +123,107 @@ classdef FiguresUnit
             %             ff.save(strcat('allblocks_',blnames{ibl}));%INTERESTED BLOCKS
             ff.save('allblocksstatewise');%ALL BLOCKS
             %             ff.save('allblocksfixed');%ALL BLOCKS
+        end
+        function plotFireRate(obj)
+            figureFolder='./ExperimentSpecific/PlottingRoutines/UnitPlots/figures';
+            if ~isfolder(figureFolder), mkdir(figureFolder);end
+            ff=logistics.FigureFactory.instance(figureFolder);
+            sessions=obj.SpikeArrays;
+            list=readtable(obj.UnitListFile,'Delimiter',',');
+            sessionsNos=obj.getSessionNos;
+            for ises=1:numel(sessionsNos)
+                sublist=list(list.SESSIONNO==sessionsNos(ises),:);
+%                 inj=unique(sublist.INJECTION);
+                ani=unique(sublist.ANIMAL);
+%                 sessionsstr(ises)=inj; %#ok<AGROW>
+                legendstr(ises)=strcat(ani,', ',unique(sublist.SLEEP)); %#ok<AGROW>
+            end
+            for ises=1:numel(sessions)
+                sesno=sessionsNos(ises);
+                blnames=obj.getBlock(sesno).getBlockNames;
+                frs=obj.getFireRates(sesno);
+                %                 blint=4;blnames=blnames(blint);%ALL BLOCKS
+                locs=unique(frs.ClusterInfo.location);
+                for iloc=1:numel(locs)
+                    loc=locs{iloc};
+                    frssub(iloc)=frs.get(ismember(frs.ClusterInfo.location,loc));
+                    sizes(iloc)=size(frssub(iloc).Data,1);
+                end
+                try close(1); catch, end; f=figure(1);f.Position=[100,100,2560*.5,1348*.5];
+                xlim=duration({'5:00','18:00'},'InputFormat','hh:mm')+frs.Time.getDate; %ALL BLOCKS FIXED
+                xlim1=hours(xlim-frs.Time.getDatetime("08:00"));
+                axp=axes;
+                axps(1)=axp;
+                ha=axp.Position(4);
+                for iloc=1:numel(locs)
+                    if iloc>1
+                        hs=ha*sizes(iloc)/sum(sizes);
+                        axp.Position(2)=axp.Position(2)+hs;
+                        axp=axes;
+                        axps(iloc)=axp;
+                    else
+                        hs=ha*sizes(iloc)/sum(sizes);
+                    end
+                    axp.Position=[axp.Position(1) axp.Position(2) axp.Position(3) hs];
+                    frs=frssub(iloc);
+                    frs.plotFireRates;
+                    if iloc>1, colorbar off;end
+                    ylabel(locs{iloc});
+                    axp.XLim=xlim1;
+                    axp.CLim=[-.5 2];
+                end
+                hypno=frs.Info.hypnogram;
+                axh=axes;
+                axh.Position=[axp.Position(1) axp.Position(2)+ha*1.01 axp.Position(3) .04];
+                ps=hypno.plot;
+                l=legend(ps([1 2 3 5]),{'a-Wake','q-Wake','SWS','REM'},'Location','none');
+                l.Position=[.92 .93 .05 .05];
+                axh.XLim=xlim;
+                axh.Box='off';
+                axh.XAxisLocation='top';
+                axh.YTickLabel=[];
+
+                params=obj.getParameters;
+                interestedBlocks=fieldnames(params.interest);
+                axes(axp);
+                a=annotation('textbox', [.4 .02 .2 .04], 'String','','FitBoxToText','on');
+                label1=sprintf('%s',legendstr{ises});
+                a.String=label1;
+                ff.save(['ses_' num2str(sesno) '_' label1]);
+              %%  
+%                 for iblock=1:numel(interestedBlocks)
+%                     block=interestedBlocks{iblock};
+%                     block_times=obj.getBlockTimes(sesno,block);
+%                     
+%                     wins=params.interest.(block);
+%                     for iwin=1:numel(wins)
+%                         st1=hours(wins(iwin).st);
+%                         if st1<0
+%                             st=block_times(2)+st1;
+%                         else
+%                             st=block_times(1)+st1;
+%                         end
+%                         dur=minutes(wins(iwin).dur);
+%                         en=st+dur;
+%                         if st>en, tmp=st; st=en;en=tmp;end
+%                         win=[st en];
+%                         xlim=win+frs.Time.getDate; %ALL BLOCKS FIXED
+%                         xlim1=hours(xlim-frs.Time.getDatetime("08:00"));
+%                         for iloc=1:numel(locs)
+%                             axps(iloc).XLim=xlim1;
+%                         end
+%                         axh.XLim=xlim;
+%                         label1=sprintf('%s, %s, <%s, %s>',legendstr{ises},block,string(st1),string(dur));
+%                         a.String=label1;
+%                         ff.save(['ses_' num2str(sesno) '_' label1]);
+%                     end
+%                 end
+%%
+                xlim=duration({'5:00','18:00'},'InputFormat','hh:mm')+frs.Time.getDate; %ALL BLOCKS FIXED
+                xlim1=hours(xlim-frs.Time.getDatetime("08:00"));
+
+
+            end
         end
         function plotFireRateAroundInjection(obj)
             ff=FigureFactory.instance('./ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
@@ -190,7 +300,7 @@ classdef FiguresUnit
         function bl=getBlock(obj,ses)
             ses_block=readtable(obj.Session_Block,'Delimiter',',');
             tbl=readtable(ses_block(ses_block.Session==ses,:).BlockFile{:});
-            bl=SDBlocks(datetime(date),tbl);
+            bl=experiment.SDBlocks(datetime(date),tbl);
         end
         function LFPFolder=getLFPFolder(obj,ses)
             ses_block=readtable(obj.Session_Block,'Delimiter',',');
@@ -198,51 +308,25 @@ classdef FiguresUnit
             f=split(filefolder,'/');
             LFPFolder=['/',fullfile(f{1:(end-1)})];
         end
-        function boc=getBlockOfChannels(obj,sessionNo,blockName)
+        function frs=getFireRates(obj,sessionNo)
             bt=obj.getBlockTimes(sessionNo);
-            nameidx=ismember(bt.BlockNames,blockName);
             blocktimes=bt.blockTimes';
-            blocktime=blocktimes(nameidx,:);
             
             timebin=obj.getParameters.timeBinsForFireRateInSeconds;
             sessionNos=obj.getSessionNos;
             sesidx=ismember(sessionNos,sessionNo);
             spikeArraysPerSession=obj.SpikeArrays;
             sa=spikeArraysPerSession(sesidx);
-            sa_good=sa.getSub(ismember(sa.ClusterInfo.group,'good'));
-            frs=sa_good.getFireRates(10);
-            
-            blocktime_sd=blocktimes(3,:);%% run
             blocktime_all=[blocktimes(1,1) blocktimes(4,2)];%% all
+            frs=sa.getFireRates(timebin);
             block=frs.getWindow(blocktime_all);
-            [B,order]=sort(mean(block.Data,2));
-            [fireRatem, fireRatee]=sa_good.getMeanFireRateQuintiles(5,timebin,order);
-            boc=BlockOfChannels();
-            for iq=1:numel(fireRatem)
-                frmq=fireRatem{iq};
-                try
-                    aBlockfrmq=frmq.getTimeWindow(blocktime);
-                catch
-                end
-                boc=boc.addChannel(aBlockfrmq);
-                freq=fireRatee{iq};
-                aBlockfreq=freq.getTimeWindow(blocktime);
-                boc=boc.addChannel(aBlockfreq);
-            end
-            sa_mua=sa.getSub(ismember(sa.ClusterInfo.group,'mua'));
-            [fireRatem, fireRatee]=sa_mua.getMeanFireRate(timebin);
-            boc=boc.addChannel(fireRatem.getTimeWindow(blocktime));
-            boc=boc.addChannel(fireRatee.getTimeWindow(blocktime));
-%             sa_undefined=sa.getSub(~ismember(sa.ClusterInfo.group,{'mua','good','unsorted'}));
-%             [fireRatem, fireRatee]=sa_undefined.getMeanFireRate(timebin);
-%             boc=boc.addChannel(fireRatem.getTimeWindow(blocktime));
-%             boc=boc.addChannel(fireRatee.getTimeWindow(blocktime));
-            ss1=StateDetectionData(obj.getLFPFolder(sessionNo)).getStateSeries;
-            ss=ss1.getWindow(blocktime);
-            boc=boc.addHypnogram(ss);
+            [~,order]=sort(mean(block.Data,2));
+            frs=frs.sort(flipud(order));
+            ss=buzcode.SleepDetection.StateDetectionData(obj.getLFPFolder(sessionNo)).getStateSeries;
             info.SessionNo=sessionNo;
-            info.BlockName=blockName;
-            boc=boc.setInfo(info);
+            info.SortedBasedOn='ALL';
+            info.hypnogram=ss;
+            frs.Info=info;
         end
         function it=getInjectionTimes(obj,sesno)
             bt=obj.getBlockTimes(sesno);
@@ -252,7 +336,7 @@ classdef FiguresUnit
         function params=getParameters(obj)
             params=readstruct('./ExperimentSpecific/PlottingRoutines/UnitPlots/FigureUnit.xml');
         end
-        function bl=getBlockTimes(obj,sesno)
+        function bl=getBlockTimes(obj,sesno,blockname)
             sessionInterests=[-hours(3) hours(5) hours(1.5) hours(3)];
             block=obj.getBlock(sesno);
             sess=block.getBlockNames;
@@ -267,6 +351,16 @@ classdef FiguresUnit
                 bl.blockTimes(:,iblock)=thebl; %#ok<AGROW>
             end
             bl.BlockNames=sess;
+            if exist('blockname','var')
+                bl_idx=ismember(sess,blockname);
+                if ~any(bl_idx)
+                    if strcmp(blockname,'SD')
+                        blockname='NSD';
+                        bl_idx=ismember(sess,blockname);
+                    end
+                end
+                bl=bl.blockTimes(:,bl_idx);
+            end
         end
         function ses=getSessionNos(obj)
             list=readtable(obj.UnitListFile,'Delimiter',',');
