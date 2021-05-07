@@ -25,7 +25,7 @@ classdef (Abstract) SWRDetectionMethod
             %[chan] = bz_GetBestRippleChan(lfp)
             %eventually this will detect which lfp channel has the highest SNR for the
             % ripple componenent of SPWR events....
-            
+            ft_defaults
             data=ft_preproc_bandpassfilter(LFP.data,LFP.sampleRate,frequencyBand);
             
             for i=1:length(LFP.channels)

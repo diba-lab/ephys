@@ -50,7 +50,7 @@ classdef TimeWindows
                 end
             end
             tnew=table(secondPass(:,1),secondPass(:,2),secondType,'VariableNames',{'Start','Stop','Type'});
-            obj=TimeWindows(tnew,obj.TimeIntervalCombined);
+            obj=neuro.basic.TimeWindows(tnew,obj.TimeIntervalCombined);
         end
         
         function timeWindows = plus(thisTimeWindows,newTimeWindows)
@@ -89,7 +89,7 @@ classdef TimeWindows
             end
             tRes=[tRes;t2];
             tRes=sortrows(tRes, 'Start');
-            timeWindows=TimeWindows(tRes,thisTimeWindows.TimeIntervalCombined);
+            timeWindows=neuro.basic.TimeWindows(tRes,thisTimeWindows.TimeIntervalCombined);
             timeWindows=timeWindows.mergeOverlaps(seconds(.5));
         end
         function ax=plot(obj,ax)

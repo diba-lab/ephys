@@ -1,4 +1,4 @@
-classdef SpikeFactory < neuro.spike.SpikeNeuroscope
+classdef SpikeFactory
     %SPIKEFACTORY Summary of this class goes here
     %   Detailed explanation goes here
     properties
@@ -56,7 +56,7 @@ classdef SpikeFactory < neuro.spike.SpikeNeuroscope
                 cluster_info=SpikeFactory.getTSVCluster(tsvfile);
                 logger.info('cluster_info.tsv loaded');
             catch
-                logger.error(strcat(fullfile(foldername,'cluster_info.tsv')))
+                logger.error(strcat('File couldn''t be found -->',fullfile(foldername,'cluster_info.tsv')))
             end
             theFile=dir(fullfile(foldername,['spike_clusters' '.npy']));
             spikeclusters=readNPY(fullfile(theFile.folder, theFile.name));
@@ -114,12 +114,11 @@ classdef SpikeFactory < neuro.spike.SpikeNeuroscope
             logger.info(['Phy output folder loaded. ' sastr{:}])
             ts=split(theFile.folder,filesep);
             filename=fullfile(theFile.folder,ts{numel(ts)-1});
-            obj.saveCluFile(strcat(filename, '.clu.0'),sa.SpikeTable.SpikeCluster);
-            obj.saveResFile(strcat(filename, '.res.0'),sa.SpikeTable.SpikeTimes);
+            sa.saveCluFile(strcat(filename, '.clu.0'));
+            sa.saveResFile(strcat(filename, '.res.0'));
             logger.info(['.clu and .res files saved. ' theFile.folder])
         end
     end
-    
     methods (Static, Access=private)
         function clustergroup=getTSVGroup(filepath)
             %% Setup the Import Options and import the data

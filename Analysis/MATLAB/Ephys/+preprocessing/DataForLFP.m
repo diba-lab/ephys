@@ -70,7 +70,7 @@ classdef DataForLFP
             [folder, name, ext]=fileparts(obj.DataFile);
             baseFolder=convertStringsToChars(folder);
             params=obj.AnalysisParameters.StateDetection;
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperiment.instance.get;
             folder=fileparts(obj.DataFile);
             try
                 badfile=fullfile(folder, sde.FileLocations.Preprocess.Bad);
@@ -79,7 +79,7 @@ classdef DataForLFP
                 bad=[];
             end
             params.bad=bad.BadTimes;
-            bcs=BuzcodeStructure(baseFolder);
+            bcs=buzcode.BuzcodeStructure(baseFolder);
             sdd=bcs.detectStates(params);
             S=obj.AnalysisParameters;
             S.StateDetection.Channels.BestTheta=sdd.getThetaChannelID;
@@ -92,7 +92,7 @@ classdef DataForLFP
             %   Detailed explanation goes here
             %% TODO
             basefolder=fileparts(obj.DataFile);
-            bc=BuzcodeFactory.getBuzcode(basefolder);
+            bc=buzcode.BuzcodeFactory.getBuzcode(basefolder);
             ripples=bc.calculateSWR;
         end
         function tfmap = getPowerSpectrum(obj)

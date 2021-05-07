@@ -1,4 +1,4 @@
-classdef TimeFrequencyMapChronuxMtspecgramc < TimeFrequencyMap
+classdef TimeFrequencyMapChronuxMtspecgramc < neuro.tf.TimeFrequencyMap
     %TIMEFREQUENCYMAPSPECTROGRAM Summary of this class goes here
     %   Detailed explanation goes here
     properties
@@ -8,7 +8,7 @@ classdef TimeFrequencyMapChronuxMtspecgramc < TimeFrequencyMap
                 matrix, timePoints, frequencyPoints)
             %TIMEFREQUENCYMAPSPECTROGRAM Construct an instance of this class
             %   Detailed explanation goes here
-            obj@TimeFrequencyMap(matrix, timePoints, frequencyPoints);
+            obj@neuro.tf.TimeFrequencyMap(matrix, timePoints, frequencyPoints);
         end
         function imsc = plot(obj,ax,clim)
             %METHOD1 Summary of this method goes here
@@ -49,7 +49,7 @@ classdef TimeFrequencyMapChronuxMtspecgramc < TimeFrequencyMap
                 end
                 itp=itp+1;
             end
-            new=TimeFrequencyMapChronuxMtspecgramc(newmat,tps_gen,obj.frequencyPoints);
+            new=neuro.tf.TimeFrequencyMapChronuxMtspecgramc(newmat,tps_gen,obj.frequencyPoints);
         end
     end
 end

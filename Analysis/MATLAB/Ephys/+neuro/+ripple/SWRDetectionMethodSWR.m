@@ -1,4 +1,4 @@
-classdef SWRDetectionMethodSWR < SWRDetectionMethod
+classdef SWRDetectionMethodSWR < neuro.ripple.SWRDetectionMethod
     %SWRDETECTIONMETHODRIPPLEONLY Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -10,7 +10,7 @@ classdef SWRDetectionMethodSWR < SWRDetectionMethod
             %SWRDETECTIONMETHODRIPPLEONLY Construct an instance of this class
             %   Detailed explanation goes here
             
-            obj@SWRDetectionMethod(basepath)
+            obj@neuro.ripple.SWRDetectionMethod(basepath)
         end
         
         function ripple1 = execute(obj,varargin)
@@ -48,7 +48,7 @@ classdef SWRDetectionMethodSWR < SWRDetectionMethod
                 fnames=fieldnames(S);
                 ripple=S.(fnames{1});
             end
-            ripple1=SWRipple(ripple);
+            ripple1=neuro.ripple.SWRipple(ripple);
         end
         function objnew= plus(obj,newRiple)
             pt_base=obj.getPeakTimes;

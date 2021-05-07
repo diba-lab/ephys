@@ -1,4 +1,4 @@
-classdef SWRDetectionMethodRippleOnly < SWRDetectionMethod
+classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
     %SWRDETECTIONMETHODRIPPLEONLY Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -7,12 +7,12 @@ classdef SWRDetectionMethodRippleOnly < SWRDetectionMethod
     
     methods
         function obj = SWRDetectionMethodRippleOnly(basepath)
-            obj@SWRDetectionMethod(basepath)
+            obj@neuro.ripple.SWRDetectionMethod(basepath)
         end
         
         function ripple1 = execute(obj,varargin)
             conf=obj.Configuration;
-            ctd=ChannelTimeData(obj.BasePath);
+            ctd=neuro.basic.ChannelTimeData(obj.BasePath);
             if nargin>1
                 chans=varargin{1};
             else
@@ -65,7 +65,7 @@ classdef SWRDetectionMethodRippleOnly < SWRDetectionMethod
                 fnames=fieldnames(S);
                 ripple=S.(fnames{1});
             end
-            ripple1=Ripple(ripple);
+            ripple1=neuro.ripple.Ripple(ripple);
         end
     end
 end

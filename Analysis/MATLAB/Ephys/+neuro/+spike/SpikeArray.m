@@ -291,8 +291,8 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             if ~exist('folder','var')
                 folder='.';
             end
-            obj.saveCluFile(fullfile(folder,[filename  '.clu.0']),obj.SpikeTable.SpikeCluster);
-            obj.saveResFile(fullfile(folder,[filename  '.res.0']),obj.SpikeTable.SpikeTimes);
+            obj.saveCluFile(fullfile(folder,[filename  '.clu.0']));
+            obj.saveResFile(fullfile(folder,[filename  '.res.0']));
         end
         function [sa]=plus(obj,sa)
             shift=max(obj.ClusterInfo.id);
@@ -315,7 +315,12 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
         end
     end
     methods %interited
-        
+        function st=getSpikeTimes(obj)
+            st=obj.SpikeTable.SpikeTimes;
+        end
+        function sc=getSpikeClusters(obj)
+            sc=obj.SpikeTable.SpikeCluster;
+        end
     end
 end
 

@@ -1,4 +1,4 @@
-classdef TimeFrequencyMapWavelet < TimeFrequencyMap
+classdef TimeFrequencyMapWavelet < neuro.tf.TimeFrequencyMap
     %TIMEFREQUENCYMAPWAVELET Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -11,7 +11,7 @@ classdef TimeFrequencyMapWavelet < TimeFrequencyMap
                 matrix, timePoints,frequencyPoints)
             %TIMEFREQUENCYMAPWAVELET Construct an instance of this class
             %   Detailed explanation goes here
-            obj@TimeFrequencyMap(matrix, timePoints,frequencyPoints)
+            obj@neuro.tf.TimeFrequencyMap(matrix, timePoints,frequencyPoints)
 %             obj.clim=[0 1];
         end
         
@@ -35,13 +35,13 @@ classdef TimeFrequencyMapWavelet < TimeFrequencyMap
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             va=angle(obj.matrix(ismember(obj.frequencyPoints,freq),:));
-            phase=Channel(num2str(freq),va,obj.timeIntervalCombined);
+            phase=neuro.basic.Channel(num2str(freq),va,obj.timeIntervalCombined);
         end
         function power = getPower(obj,freq)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             va=abs(obj.matrix(ismember(obj.frequencyPoints,freq),:));
-            power=Channel(num2str(freq),va,obj.timeIntervalCombined);
+            power=neuro.basic.Channel(num2str(freq),va,obj.timeIntervalCombined);
         end
     end
 end

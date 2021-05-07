@@ -12,14 +12,15 @@ classdef FiguresUnit
     
     methods
         function obj = FiguresUnit()
-            import neuro.spike.*
             logger=logging.Logger.getLogger;
+             
             %FIGURESUNIT Construct an instance of this class
             %   Detailed explanation goes here
             obj.UnitListFile='./ExperimentSpecific/PlottingRoutines/UnitPlots/UnitList.csv';
             obj.Session_Block='./ExperimentSpecific/PlottingRoutines/UnitPlots/Ses_Block.csv';
             cachefolder='./ExperimentSpecific/PlottingRoutines/UnitPlots/cache';
             if ~isfolder(cachefolder), mkdir(cachefolder); end
+            import neuro.spike.*
             sf=SpikeFactory.instance;
             list=readtable(obj.UnitListFile,'Delimiter',',');
             sessions=obj.getSessionNos;
@@ -52,10 +53,10 @@ classdef FiguresUnit
                 str=spikeArray.tostring('sh','location','group');
                 logger.info(['Session ' num2str(ses) ' loaded from cache. ' strjoin(str,'; ')]);
 
-                SpikeArrays(ises)=spikeArray;
+                neuro.spike.SpikeArrays(ises)=spikeArray;
                 clear spikeArray
             end
-            obj.SpikeArrays=SpikeArrays;
+            obj.SpikeArrays=neuro.spike.SpikeArrays;
             obj.Injections=[1 2.5];
             obj.Parameters=obj.getParameters;
         end
@@ -138,7 +139,7 @@ classdef FiguresUnit
 %                 sessionsstr(ises)=inj; %#ok<AGROW>
                 legendstr(ises)=strcat(ani,', ',unique(sublist.SLEEP)); %#ok<AGROW>
             end
-            for ises=1:numel(sessions)
+            for ises=3:numel(sessions)
                 sesno=sessionsNos(ises);
                 blnames=obj.getBlock(sesno).getBlockNames;
                 frs=obj.getFireRates(sesno);

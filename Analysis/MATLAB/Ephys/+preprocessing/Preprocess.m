@@ -230,7 +230,7 @@ classdef Preprocess
                     tfmap=ch.getTimeFrequencyMap(tfmethod);
                     powers=tfmap.matrix;
                     meanPower=mean(powers,2);
-                    chPower=Channel(strcat('Power',sprintf(' %d-%d Hz',freqs(ifreq,:))),meanPower',tfmap.getTimeintervalCombined);
+                    chPower=neuro.basic.Channel(strcat('Power',sprintf(' %d-%d Hz',freqs(ifreq,:))),meanPower',tfmap.getTimeintervalCombined);
                     save(cacheFile,'chPower');
                 end
                 power{ifreq}=chPower;
@@ -333,7 +333,11 @@ classdef Preprocess
             end
             idx=zs<zScoreThreshold(1)|zs>zScoreThreshold(2);
             idx(1)=0;idx(end)=0;
-            idx=[idx' 0];
+            try
+                idx=[idx' 0];
+            catch
+                idx=[idx 0]; 
+            end
             idx_edge=diff(idx);
             t(:,1)=find(idx_edge==1);
             t(:,2)=find(idx_edge==-1)+1;

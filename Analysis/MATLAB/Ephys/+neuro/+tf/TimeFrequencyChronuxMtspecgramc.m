@@ -47,7 +47,7 @@ classdef TimeFrequencyChronuxMtspecgramc < neuro.tf.TimeFrequencyMethod
             params.fpass=[obj.FrequencyInterest(1) obj.FrequencyInterest(end)];
             params.Fs=Fs;
             [matrix,t,f]=mtspecgramc(data,movingwin,params);
-            aTimeFrequencyMap=TimeFrequencyMapChronuxMtspecgramc(...
+            aTimeFrequencyMap=neuro.tf.TimeFrequencyMapChronuxMtspecgramc(...
                 matrix, seconds(t), f);
         end
     end

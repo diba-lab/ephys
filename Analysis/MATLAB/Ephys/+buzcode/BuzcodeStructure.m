@@ -35,18 +35,19 @@ classdef BuzcodeStructure
             
             try
                 list=dir(fullfile(obj.BasePath,'*Probe*'));
-                obj.Probe=Probe(fullfile(list.folder,list.name));
+                obj.Probe=neuro.probe.Probe(fullfile(list.folder,list.name));
             catch
                 fprintf('No Probe File at: %s',obj.BasePath);
             end
             try
                 list=dir(fullfile(obj.BasePath,'*TimeInterval*'));
-                obj.TimeIntervalCombined=TimeIntervalCombined(fullfile(list.folder,list.name));
+                obj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(fullfile(list.folder,list.name));
             catch
                 fprintf('No TimeIntervalCombined File at: %s',obj.BasePath);
             end
         end
         function ripple1 = calculateSWR(obj)
+            import neuro.ripple.*
             folders={'.','..',['..',filesep,'..']};
             for ifolder=1:numel(folders)
                 list=dir(fullfile(obj.BasePath,folders{ifolder},'*.conf'));
@@ -57,11 +58,11 @@ classdef BuzcodeStructure
             conf=readConf(fullfile(list.folder,list.name));
             switch str2double(conf.detectiontype)
                 case 1
-                    method=SWRDetectionMethodRippleOnly(obj.BasePath);
+                    method=neuro.ripple.SWRDetectionMethodRippleOnly(obj.BasePath);
                 case 2
-                    method=SWRDetectionMethodSWR(obj.BasePath);
+                    method=neuro.ripple.SWRDetectionMethodSWR(obj.BasePath);
                 case 3
-                    method=SWRDetectionMethodCombined(obj.BasePath);
+                    method=neuro.ripple.SWRDetectionMethodCombined(obj.BasePath);
                 otherwise
                     error('Incorrect Detection Type. Should be 1,2, or 3.')
             end
@@ -72,6 +73,7 @@ classdef BuzcodeStructure
             warning('Depricated! Use calculateSWR() and change configure.conf file. Set detection type=1.')
         end
         function sdd = detectStates(obj,params)
+            import buzcode.sleepDetection.*
             try
                 sdd=StateDetectionData(obj.BasePath);
             catch
