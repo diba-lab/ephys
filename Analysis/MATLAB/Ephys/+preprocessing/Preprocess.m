@@ -134,9 +134,9 @@ classdef Preprocess
             catch
                 for ifile=1:numel(rawfiles)
                     filename=fullfile(rawfiles{ifile});
-                    oer =OpenEphysRecordFactory.getOpenEphysRecord(filename);
+                    oer =openEphys.OpenEphysRecordFactory.getOpenEphysRecord(filename);
                     if ~exist('oerc','var')
-                        oerc=OpenEphysRecordsCombined( oer);
+                        oerc=openEphys.OpenEphysRecordsCombined( oer);
                     else
                         oerc=oerc+oer;
                     end
@@ -144,9 +144,9 @@ classdef Preprocess
                 save(oercCacheFile,'oerc')
             end
             
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperiment.instance.get;
             probeFile=fullfile(baseFolder,sde.FileLocations.Preprocess.Probe);
-            probe=Probe(probeFile);
+            probe=neuro.probe.Probe(probeFile);
             if isempty(oerc.getProbe)
                 oerc=oerc.setProbe(probe);
             end
@@ -197,7 +197,7 @@ classdef Preprocess
                 channels=newprobe.getActiveChannels;
                 mergedData=oerc.mergeBlocksOfChannels(channels,obj.ClusterParams.OutputFolder);
                 
-                chantime=ChannelTimeData(mergedData.DataFile);
+                chantime=neuro.basic.ChannelTimeData(mergedData.DataFile);
                 downsamplerate=obj.LFPParams.DownSampleRate;
                 chantime_ds=chantime.getDownSampled(downsamplerate,newFileName);
 %                 delete(mergedData.DataFile)

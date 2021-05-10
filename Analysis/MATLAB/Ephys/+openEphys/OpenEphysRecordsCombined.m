@@ -1,4 +1,4 @@
-classdef OpenEphysRecordsCombined < Timelined
+classdef OpenEphysRecordsCombined < neuro.time.Timelined
     %OPENEPHYSRECORDSCOMBINED Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -17,7 +17,7 @@ classdef OpenEphysRecordsCombined < Timelined
             openEphysRecords=CellArrayList();
             for iArgIn=1:nargin
                 theOpenEphysRecord=varargin{iArgIn};
-                assert(isa(theOpenEphysRecord,'OpenEphysRecord'));
+                assert(isa(theOpenEphysRecord,'openEphys.OpenEphysRecord'));
                 openEphysRecords.add(theOpenEphysRecord);
                 try
                   newobj.Probe=theOpenEphysRecord.getProbe;
@@ -34,7 +34,7 @@ classdef OpenEphysRecordsCombined < Timelined
         function obj=plus(obj,varargin)
             for iArgIn=1:(nargin-1)
                 theOpenEphysRecord=varargin{iArgIn};
-                assert(isa(theOpenEphysRecord,'OpenEphysRecord'));
+                assert(isa(theOpenEphysRecord,'openEphys.OpenEphysRecord'));
                 obj.OpenEphysRecords.add(theOpenEphysRecord);
                 fprintf('Record addded:\n%s\n', theOpenEphysRecord.getFile);
                 try
@@ -79,7 +79,7 @@ classdef OpenEphysRecordsCombined < Timelined
             first=true;
             fname=sprintf('MergedRaw');
             fileout=fullfile(path, [fname '.dat']);
-            dataForClustering=DataForClustering(fileout);
+            dataForClustering=preprocessing.DataForClustering(fileout);
             [folder,fname,ext]=fileparts(fileout);
             probe=obj.getProbe;
             probe=probe.setActiveChannels(channels);
@@ -154,7 +154,7 @@ classdef OpenEphysRecordsCombined < Timelined
             iter=obj.getIterator();
             tls=[];
             i=1;
-            timeIntervalCombined=TimeIntervalCombined;
+            timeIntervalCombined=neuro.time.TimeIntervalCombined;
             while(iter.hasNext)
                 anOpenEphysRecord=iter.next();
                 timeIntervalCombined=timeIntervalCombined+anOpenEphysRecord.getTimeInterval();

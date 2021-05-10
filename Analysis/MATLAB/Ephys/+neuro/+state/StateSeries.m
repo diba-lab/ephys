@@ -83,14 +83,14 @@ classdef StateSeries
             obj.TimeIntervalCombined=ticd_new;
         end
         function newobj = getResampled(obj,timeIntervalCombined)
-            if isa(timeIntervalCombined,'Channel')
+            if isa(timeIntervalCombined,'neuro.basic.Channel')
                 timeIntervalCombined=timeIntervalCombined.getTimeIntervalCombined;
             end
             timePointsInSec=timeIntervalCombined.getTimePointsInSec;
             ts=obj.getTimeSeries;
             ts1=ts.resample(timePointsInSec,'zoh');
             states1=ts1.Data;
-            newobj=StateSeries(states1,timeIntervalCombined);
+            newobj=neuro.state.StateSeries(states1,timeIntervalCombined);
         end
         function [ps] = plot(obj,colorMap)
             states1=obj.States;

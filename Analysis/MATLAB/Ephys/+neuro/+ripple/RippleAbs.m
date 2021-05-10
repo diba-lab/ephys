@@ -17,7 +17,7 @@ classdef RippleAbs
         
         function outputArg = plotScatterHoursInXAxes(obj)
             ticd=obj.TimeIntervalCombined;
-            peaktimestamps=obj.PeakTimes*ticd.getSampleRate;
+            peaktimestamps=obj.getPeakTimes*ticd.getSampleRate;
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
             peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
             peakripmax=obj.RipMax(:,1);
@@ -28,7 +28,7 @@ classdef RippleAbs
         end
         function outputArg = plotScatterAbsoluteTimeInXAxes(obj)
             ticd=obj.TimeIntervalCombined;
-            peaktimestamps=obj.PeakTimes*ticd.getSampleRate;
+            peaktimestamps=obj.getPeakTimes*ticd.getSampleRate;
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
             peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
             peakripmax=obj.RipMax(:,1);
@@ -42,12 +42,13 @@ classdef RippleAbs
                 TimeBinsInSec=30;
             end
             ticd=obj.TimeIntervalCombined;
-            peaktimestamps=obj.PeakTimes*ticd.getSampleRate;
+            peaktimestamps=obj.getPeakTimes*ticd.getSampleRate;
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
             peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
             [N,edges]=histcounts(peakTimesAdjusted,1:TimeBinsInSec:max(peakTimesAdjusted));
             t=hours(seconds(edges(1:(numel(edges)-1))+15));
             t1=linspace(min(t),max(t),numel(t)*10);
+            N=N/TimeBinsInSec;
             N=interp1(t,N,t1,'spline','extrap');
             p2=plot(t1,N,'LineWidth',1);
         end
@@ -226,7 +227,7 @@ classdef RippleAbs
             ripple.SwMax=[ripple.SwMax; swp_new];
             ripple.SwMax=ripple.SwMax(idx);
             
-            objnew=SWRipple(ripple);
+            objnew=neuro.ripple.SWRipple(ripple);
             objnew=objnew.setTimeIntervalCombined(obj.TimeIntervalCombined);
             objnew=objnew.mergeOverlappingRipples;
         end

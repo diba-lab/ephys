@@ -1,4 +1,4 @@
-classdef OpenEphysRecordRaw < OpenEphysRecord
+classdef OpenEphysRecordRaw < openEphys.OpenEphysRecord
     %OPENEPHYSRECORD Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -8,7 +8,7 @@ classdef OpenEphysRecordRaw < OpenEphysRecord
     
     methods (Access=public)
         function obj = OpenEphysRecordRaw(filename)
-            obj = obj@OpenEphysRecord(filename);
+            obj = obj@openEphys.OpenEphysRecord(filename);
             fileLoaderMethod=obj.getFileLoaderMethod;
             
             oeProperties = fileLoaderMethod.load();

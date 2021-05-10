@@ -65,7 +65,7 @@ classdef DataForClustering
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             %% TODO
-            folder='C:\MatlabUtku\DibaLabEphys\Analysis\MATLAB\Ephys\ExperimentSpecific\Configure\Kilosort';
+            folder='/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Kilosort';
             S=readstruct(fullfile(folder,'Kilosort.xml'));
             probe=obj.getProbe;
             dataFile=obj.getDataFile;
@@ -78,7 +78,7 @@ classdef DataForClustering
             rootH = S.SSDFolder; % path to temporary binary file (same size as data, should be on fast SSD)
             pathToYourConfigFile = folder; % take from Github folder and put it somewhere else (together with the master_file)
             
-            kcm=KilosortChannelMap(probe,ticd.getSampleRate);
+            kcm=preprocessing.cluster.kilosort.KilosortChannelMap(probe,ticd.getSampleRate);
             chanMapFile=fullfile(rootZ,'chanMap.mat');
             kcm.createChannelMapFile(chanMapFile);
             

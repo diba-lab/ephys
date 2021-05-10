@@ -323,7 +323,7 @@ classdef FiguresUnit
             block=frs.getWindow(blocktime_all);
             [~,order]=sort(mean(block.Data,2));
             frs=frs.sort(flipud(order));
-            ss=buzcode.SleepDetection.StateDetectionData(obj.getLFPFolder(sessionNo)).getStateSeries;
+            ss=buzcode.sleepDetection.StateDetectionData(obj.getLFPFolder(sessionNo)).getStateSeries;
             info.SessionNo=sessionNo;
             info.SortedBasedOn='ALL';
             info.hypnogram=ss;

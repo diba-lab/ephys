@@ -74,6 +74,7 @@ classdef BuzcodeStructure
         end
         function sdd = detectStates(obj,params)
             import buzcode.sleepDetection.*
+            logger=logging.Logger.getLogger;
             try
                 sdd=StateDetectionData(obj.BasePath);
             catch
@@ -87,6 +88,7 @@ classdef BuzcodeStructure
                         varargin={varargin{:}, 'SWChannels', params.Channels.SWChannels};
                     end
                 catch
+                    logger.warning('No SW Channels set.')
                 end
                 try
                     if ~(isempty(params.Channels.BestTheta)||strcmp(params.Channels.BestTheta,""))
@@ -95,10 +97,12 @@ classdef BuzcodeStructure
                         varargin={varargin{:},'ThetaChannels',params.Channels.ThetaChannels};
                     end
                 catch
+                    logger.warning('No Theta Channels set.')                    
                 end
                 try
                     varargin={varargin{:},'EMGChannels',params.Channels.EMGChannel};
                 catch
+                    logger.warning('No EMG Channels set.')                    
                 end
                 try varargin={varargin{:},'overwrite',overwrite};catch; end
                 try
@@ -110,8 +114,11 @@ classdef BuzcodeStructure
                     bad1(:,2)=stop;
                     varargin={varargin{:},'ignoretime',bad1};
                 catch
+                    logger.warning('No Ignore Times set.')
                 end
                 varargin1=varargin(2:end);
+                logger.info(['SleepScoreMaster is callled with the following parameters: ', strjoin(varargin1)]);
+
                 SleepScoreMaster(obj.BasePath,varargin1{:});
                 sdd=StateDetectionData(obj.BasePath);
             end

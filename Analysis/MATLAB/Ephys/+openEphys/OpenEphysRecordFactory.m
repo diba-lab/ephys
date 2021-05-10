@@ -15,12 +15,12 @@ classdef OpenEphysRecordFactory
                 case {'.oebin','.openephys'}
                     fprintf('File loading:\n %s\n',filename)
                     tic
-                    oer=OpenEphysRecordRaw(filename);
+                    oer=openEphys.OpenEphysRecordRaw(filename);
                     toc
                 case '.lfp'
                     fprintf('File loading:\n %s\n',filename)
                     tic
-                    oer = OpenEphysRecordDownsampled(filename);
+                    oer =openEphys.OpenEphysRecordDownsampled(filename);
                     toc
                 otherwise
                     
@@ -35,7 +35,7 @@ classdef OpenEphysRecordFactory
                 for ievent=1:numel(newevents)
                     newevents(ievent).StartDate=...
                         datestr(oer.getRecordStartTime,...
-                        TimeFactory.getddmmmyyyyHHMMSSFFF);
+                        logistics.TimeFactory.getddmmmyyyyHHMMSSFFF);
                 end
                 events=[events newevents];
             end

@@ -1,4 +1,4 @@
-classdef FileLoaderBinary < FileLoaderMethod
+classdef FileLoaderBinary < file.FileLoaderMethod
     %FILELOADERBINARY Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -78,7 +78,7 @@ classdef FileLoaderBinary < FileLoaderMethod
             file=dir(D.Data.Filename);
             samples=file.bytes/2/hdr.num_channels;
             
-            openEphysRecord.TimeInterval=TimeInterval(starttime,D.Header.sample_rate,samples);
+            openEphysRecord.TimeInterval=neuro.time.TimeInterval(starttime,D.Header.sample_rate,samples);
             openEphysRecord.DataFile=D.Data.Filename;
         end
     end
