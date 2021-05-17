@@ -119,7 +119,16 @@ classdef TimeWindows
                 p.EdgeColor='none';
             end
         end
-        function ax=saveForClusteringSpyKingCircus(obj,ax)
+        function file=saveForClusteringSpyKingCircus(obj,file)
+            t=obj.TimeTable;
+            time=obj.TimeIntervalCombined;
+            for it=1:height(t)
+                t1=t(it,1:2);
+                
+                samples=time.getSampleForClosest([t1.Start t1.Stop]);
+                timeMS(it,:)= (samples/time.getSampleRate)*1000;
+            end
+            writematrix(timeMS,file,'Delimiter',' ');
         end
         function ax=saveForNeuroscope(obj,pathname)
             T=obj.TimeTable;

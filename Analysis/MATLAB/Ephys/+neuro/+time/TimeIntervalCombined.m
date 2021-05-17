@@ -54,7 +54,6 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                     theTimeInterval=til.get(iInt);
                     theTimeInterval.print
                 end
-           
         end
         function str=tostring(obj)
             %METHOD1 Summary of this method goes here

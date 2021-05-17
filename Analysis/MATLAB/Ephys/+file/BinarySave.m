@@ -71,7 +71,7 @@ classdef (Abstract) BinarySave
             fclose(fid);
             clear a
             ctd1=obj;
-            ctd1=ctd1.setTimeIntervalCombined(ticdnew);
+            ctd1=ctd1.setTimeIntervalCombined(tic,dnew);
             ctd1=ctd1.setProbe(pr);
             ctd1=ctd1.setFile(outname);
             ctd1.save

@@ -76,6 +76,10 @@ classdef Artifacts
                 ylabel(sprintf('Power (zscored) %d-%d Hz',freqs(ifreq,:)))
             end
         end
+        function saveBadTimesForClustering(obj)
+            t=obj.Table;
+            t.saveForClusteringSpyKingCircus('dead.txt');
+        end
     end
 end
 

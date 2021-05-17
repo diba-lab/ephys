@@ -96,6 +96,10 @@ classdef DataForClustering
             % main parameter changes from Kilosort2 to v2.5
             
             ops.fbinary = dataFile;
+            %% Based on the comment in github issue https://github.com/MouseLand/Kilosort/issues/333
+            % see also https://www.mathworks.com/matlabcentral/answers/309235-can-i-use-my-nvidia-pascal-architecture-gpu-with-matlab-for-gpu-computing
+            % 
+            setenv("CUDA_CACHE_MAXSIZE","1073741824");%% bytes, 1GB -->1024*1024*1024. Default is 32MB.
             %%
             rez                = preprocessDataSub(ops);
             rez                = datashift2(rez, 1);
