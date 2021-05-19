@@ -6,6 +6,11 @@ function [pairs_plot_all, pp_pairs] = pre_v_postCCG(spike_data_fullpath, ...
 %   inspection. Useful for initial screening of millisecond-connectivity
 %   across all cell pairs and plotting of ALL pairs. See ____ for plotting
 %   final pairs only.
+%
+%   IMPORTANT NOTE: this code uses the CCG function from 
+%   www.github.com/buzsakilab/buzcode.git repository. You MUST have
+%   the buzcode/analysis/spikes/correlation folder on your path!
+% 
 
 ip = inputParser;
 ip.addRequired('spike_data_fullpath', @isfile);
