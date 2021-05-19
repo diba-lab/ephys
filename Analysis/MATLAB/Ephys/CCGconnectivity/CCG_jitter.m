@@ -45,6 +45,7 @@ ip.addParameter('alpha', 0.05, @(a) a > 0 && a < 1);
 ip.addParameter('plot_output', 1, @(a) isnumeric(a) && a > 0 && round(a) == a);
 ip.addParameter('subfig', 1, @(a) a > 0 && a <= 16);
 ip.addParameter('subplot_size', [4,4], @(a) length(a) == 2);
+ip.addParameter('for_grant', false, @islogical);
 ip.parse(res1, res2, SampleRate, BinSize, Duration, varargin{:});
 
 jscale = ip.Results.jscale;
@@ -53,6 +54,7 @@ alpha = ip.Results.alpha;
 plot_output = ip.Results.plot_output;
 subfig = ip.Results.subfig;
 subplot_size = ip.Results.subplot_size;
+for_grant = ip.Results.for_grant;
 
 % Make spike-trains column vectors
 if isrow(res1); res1 = res1'; end
@@ -73,20 +75,23 @@ tR = -HalfBins:HalfBins;
 ccgR = zeros(2*HalfBins+1,2,2);
 
 if ~isempty(res1) && ~isempty(res2)
-    try
-        nn = NearestNeighbour(res1,res2,'both',BinSize*(HalfBins+1));
-    catch
-        try
-            nn = nearestneighbour(res1',res2','Radius',BinSize*(HalfBins+1));
-        catch ME
-            if strcmp(ME.identifier, 'MATLAB:array:SizeLimitExceeded')
-%                 warning('Super large spike trains - skipping CCG_jitter time-saving step');
-                nn = 1;
-            else
-                error('Error in CCG_jitter>nearest_neighbor')
-            end
-        end
-    end
+    % NRK note - this step causes more problems than it avoids, commenting
+    % out for now...
+%     try
+%         nn = NearestNeighbour(res1,res2,'both',BinSize*(HalfBins+1));
+%     catch
+%         try
+%             nn = nearestneighbour(res1',res2','Radius',BinSize*(HalfBins+1));
+%         catch ME
+%             if strcmp(ME.identifier, 'MATLAB:array:SizeLimitExceeded')
+% %                 warning('Super large spike trains - skipping CCG_jitter time-saving step');
+%                 nn = 1;
+%             else
+%                 ieerror('Error in CCG_jitter>nearest_neighbor')
+%             end
+%         end
+%     end
+    nn = 1;
 
     if isempty(nn)
         % try to save some time in case no overlap
@@ -154,9 +159,11 @@ if plot_output
     bar(tRms,ccgR(:,1,2),'k')
     line(tRms,ccgjm,'linestyle','--','color','b')
     line(tRms,ccgjptMax,'linestyle','--','color','r')
-    line(tRms,ccgjgbMax,'linestyle','--','color','g')
     line(tRms,ccgjptMin,'linestyle','--','color','r')
-    line(tRms,ccgjgbMin,'linestyle','--','color','g')
+    if ~for_grant
+        line(tRms,ccgjgbMax,'linestyle','--','color','g')
+        line(tRms,ccgjgbMin,'linestyle','--','color','g')
+    end
     xlabel('Time Lag (ms)');
     ylabel('Count');
     set(gca,'XLim',[min(tRms),max(tRms)])

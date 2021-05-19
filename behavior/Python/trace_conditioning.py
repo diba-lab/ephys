@@ -197,7 +197,9 @@ class trace:
                 tones.play_flat_tone(duration=0.5, f=1000.0)
                 self.write_event("end_sync_tone")
 
-                self.write_event("video_start")  # write first line to csv
+                self.write_event(
+                    "video_start"
+                )  # write first line to csv - note this is off - should be same as start tone time.
                 if session == "training":
                     self.run_training_session(test=test_run)
                 elif session in [
