@@ -84,6 +84,24 @@ params = {
             "ITI_range": 10,
         },
     },
+     "Pilot2test": {
+        "alias": "Pilot2",
+        "training_params": {
+            "tone_dur": 3,
+            "trace_dur": 2,
+            "shock_dur": 1,
+            "ITI": 5,
+            "ITI_range": 1,
+            "nshocks": 6,
+            "start_buffer": 6,
+        },
+        "recall_params": {
+            "baseline_time": 12,
+            "CStimes": [3, 3, 3, 3, 3, 3],
+            "ITI": 3,
+            "ITI_range": 1,
+        },
+    },
 }
 
 default_port = {
@@ -102,7 +120,7 @@ class trace:
         volume=1.0,
         base_dir=Path.home(),
     ):
-        assert paradigm in ["Pilot1", "Pilot2"]
+        assert paradigm in params.keys()
         self.params = params[paradigm]
         print(
             "Initializing trace fc class with " + 
