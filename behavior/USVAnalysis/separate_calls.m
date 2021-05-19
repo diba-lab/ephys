@@ -1,5 +1,5 @@
-function [calls_sep, high_bool] = separate_calls(mean_freq, times, threshold)
-% calls_sep = separate_calls(mean_freq, times, threshold)
+function [calls_sep, high_bool, threshold] = separate_calls(mean_freq, times, threshold)
+% [calls_sep, high_bool, threshold] = separate_calls(mean_freq, times, threshold)
 %   Takes USV call mean frequencies and times and splits them into low vs.
 %   high calls based on the designated threshold.
 %
@@ -16,7 +16,7 @@ function [calls_sep, high_bool] = separate_calls(mean_freq, times, threshold)
 %   high_bool: a boolean matching the size of times with a 1/true value for
 %   all high calls and a 0/false value for all low calls
 
-% set threshold to 30kHZ by default
+% set threshold to 27.5kHZ by default
 plot_thresh = false;
 if nargin < 3
     threshold = 27.5;  
@@ -42,8 +42,10 @@ calls_sep.low.times = times(~high_bool, :);
 if plot_thresh
     figure;
     
-    % plot histogram of call frequencies and label it
+    % plot histogram of call frequencies
     histogram(mean_freq, 20);
+    
+    % label
     xlabel('Frequency (kHz)')
     ylabel('# Calls')
     hold on;
@@ -53,6 +55,8 @@ if plot_thresh
     
     % label it
     legend(ht, 'threshold')
+    
+end
 
 end
 

@@ -3,7 +3,7 @@
     <FileLocations>
         <General>
             <ExperimentConfig>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Experiment.xml</ExperimentConfig>
-            <Sessions>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Sessions.txt</Sessions>
+            <Sessions>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Sessions.csv</Sessions>
             <Animals>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Animals.xml</Animals>
             <ProbeTemplate>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Probes/ProbeTemplate.xlsx</ProbeTemplate>
             <ProbeFolder>/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Probes</ProbeFolder>
