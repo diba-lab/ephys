@@ -66,10 +66,12 @@ classdef TimeWindows
                 base.start=art_base.Start;
                 base.stop=art_base.Stop;
                 
-                new_start_is_in_old_ripple=(t2.Start>base.start & t2.Start<base.stop);
-                new_stop_is_in_old_ripple=(t2.Stop>base.start & t2.Stop<base.stop);
-                idx=new_start_is_in_old_ripple|new_stop_is_in_old_ripple;
-                if sum(idx)>1 
+                new_start_is_in_old=(t2.Start>base.start & t2.Start<base.stop);
+                new_stop_is_in_old=(t2.Stop>base.start & t2.Stop<base.stop);
+                old_start_is_in_new=(base.start>t2.Start & base.start<t2.Stop);
+                old_stop_is_in_new=(base.stop>t2.Start & base.stop<t2.Stop);
+                idx=new_start_is_in_old|new_stop_is_in_old|old_start_is_in_new|old_stop_is_in_new;
+                if sum(idx)>0 % take the first one
                     x=find(idx);
                     idx1=false(size(idx));
                     idx1(x(1))=true; 
@@ -77,11 +79,14 @@ classdef TimeWindows
                 end
                 artifactHasNoOverlap=~sum(idx);
                 if artifactHasNoOverlap
-                    art_count=art_count+1;
+                    art_count=art_count+1;% no overlap, put the base
                     tRes(art_count,:)=art_base;
-                else
+                else % overlap, merge and put the merged
                     art_count=art_count+1;
-                    art_new=t2(idx,:);t2(idx,:)=[];
+                    art_new=t2(idx,:);t2(idx,:)=[];%remove new
+                    if (art_new.Stop-art_new.Start)>(art_base.Stop-art_base.Start)
+                        art_base.Type=art_new.Type;
+                    end
                     if art_new.Start<art_base.Start, art_base.Start=art_new.Start;end
                     if art_new.Stop>art_base.Stop, art_base.Stop=art_new.Stop;end
                     tRes(art_count,:)=art_base;

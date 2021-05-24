@@ -14,13 +14,13 @@ classdef ChannelTimeData < file.BinarySave
             if isa(filepath,'neuro.basic.ChannelTimeData')
                 newObj=filepath;
             else
+                exts={'.lfp','.eeg','.dat'};
                 logger=logging.Logger.getLogger;
                 if ~exist('filepath','var')
                     defpath='/data/EphysAnalysis/SleepDeprivationData/';
                     defpath1={'*.eeg;*.lfp;*.dat;*.mat','Binary Record Files (*.eeg,*.lfp,*.dat)'};
                     title='Select basepath';
                     [file,folder,~] = uigetfile(defpath1, title, defpath,'MultiSelect', 'off');
-                    exts={'.lfp','.eeg','.dat'};
                     for iext=1:numel(exts)
                         theext=exts{iext};
                         thefile=dir(fullfile(folder,['*' theext]));
@@ -28,14 +28,23 @@ classdef ChannelTimeData < file.BinarySave
                             break
                         end
                     end
-                else
+                elseif isfolder(filepath)
+                    folder=filepath;
+                    for iext=1:numel(exts)
+                        theext=exts{iext};
+                        thefile=dir(fullfile(folder,['*' theext]));
+                        if numel(thefile)>0
+                            break
+                        end
+                    end
+                elseif isfile(filepath)
                     thefile=dir(filepath);
                     folder=thefile.folder;
                 end
                 
                 probefile=dir(fullfile(folder,'*Probe*'));
                 probe=neuro.probe.Probe(fullfile(probefile.folder,probefile.name));
-                logger.info(probe.print)
+                logger.info(probe.toString)
                 chans=probe.getActiveChannels;
                 numberOfChannels=numel(chans);
                 newObj.Probe=probe;
@@ -68,6 +77,13 @@ classdef ChannelTimeData < file.BinarySave
                 logger.info(newObj.TimeIntervalCombined.tostring)
                 newObj.Filepath=newObj.Data.Filename;
             end
+        end
+        function str=toString(obj)
+            ticd=obj.TimeIntervalCombined;
+            probe=obj.Probe;
+            file1=dir(obj.Filepath);
+            GB=file1.bytes/1024/1024/1024;
+            str=sprintf('\n%s (%.2fGB)\n%s\n%s', obj.Filepath, GB, ticd.tostring, probe.toString);
         end
         function chnames=getChannelNames(obj)
             probe=obj.Probe;

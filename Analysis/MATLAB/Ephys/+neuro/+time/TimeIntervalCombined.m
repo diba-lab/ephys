@@ -67,7 +67,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             np=obj.getNumberOfPoints;
             jf=java.text.DecimalFormat; % comma for thousands, three decimal places
             np1= char(jf.format(np)); % omit "char" if you want a string out
-            str=sprintf('\t%s \t%s - %s\t<%s>\t<%s (%dHz)> \n',date,st,en,dur1,np1,sf);
+            str=sprintf('\t%s \t%s - %s\t<%s>\t<%s (%dHz)>',date,st,en,dur1,np1,sf);
         end
         function new_timeIntervalCombined=getTimeIntervalForSamples(obj, times)
             %METHOD1 Summary of this method goes here

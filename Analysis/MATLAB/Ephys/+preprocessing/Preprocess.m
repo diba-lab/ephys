@@ -9,6 +9,7 @@ classdef Preprocess
         LFPParams
         Bad
         Parameters
+        Artifacts
     end
     
     methods
@@ -182,9 +183,9 @@ classdef Preprocess
                 catch
                     for ifile=1:numel(rawfiles)
                         filename=fullfile(rawfiles{ifile});
-                        oer =OpenEphysRecordFactory.getOpenEphysRecord(filename);
+                        oer =openEphys.OpenEphysRecordFactory.getOpenEphysRecord(filename);
                         if ~exist('oerc','var')
-                            oerc=OpenEphysRecordsCombined( oer);
+                            oerc=openEphys.OpenEphysRecordsCombined( oer);
                         else
                             oerc=oerc+oer;
                         end
@@ -254,8 +255,8 @@ classdef Preprocess
                 chans=probe.getActiveChannels;
                 ch=ctd.getChannel(chans(params.Channels.Channel)); 
             end
-            ch_ds=ch.getDownSampled(params.ZScore.Downsample);
-            ch_ds=ch_ds.setChannelName('RawLFP');
+%             ch_ds=ch.getDownSampled(params.ZScore.Downsample);
+            ch_ds=ch.setChannelName('RawLFP');
             if ~isnumeric(params.ZScore.Threshold)
                 [artifacts_rawLFP,zscoreThld]=obj.getArtifacts(ch_ds,[],params.ZScore.PlotYLims);
                 params.ZScore.Threshold=zscoreThld;
@@ -270,7 +271,8 @@ classdef Preprocess
             end
             bad.BadTimes.Time= table2struct( combinedBad.getTimeTable);
             obj=obj.setBad(bad);
-            arts=preprocessing.Artifacts(obj,combinedBad,ch_ds,artifacts_freq,power);
+            obj.Artifacts=preprocessing.Artifacts(obj,combinedBad,ch_ds,artifacts_freq,power);
+            arts=obj.Artifacts;
         end
 
         
@@ -297,6 +299,30 @@ classdef Preprocess
             paramFile=fullfile(obj.Session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Parameters);
             writestruct(params,paramFile);
             obj.Parameters=params;
+        end
+        function [] = saveBadFile(obj)
+            bad=obj.getBad;
+            dataclu=obj.getDataForClustering;
+            %             datafile=char(dataclu(1).DataFile);
+            %
+            %             hdr=ft_read_header(datafile)
+            %             dat=ft_read_data(datafile,'header',hdr,  'begsample',1,'endsample',1e6);
+            %             cfg=[];
+            %             cfg.trialdef.triallength = 500;
+            %             cfg.trialdef.ntrials     =1;
+            %             cfg.trialfun   =  'ft_trialfun_general';
+            %             cfg.dataset     = datafile;
+            %             [cfg] = ft_definetrial(cfg);
+            %             data=ft_preprocessing(cfg);
+            %             cfg.continuous='yes';
+            %             cfg.artfctdef.jump.channel='all';
+            %             cfg.artfctdef.jump.interactive = 'yes';
+            %             [cfg, artifact_jump] =ft_artifact_jump(cfg,data)
+            ticd=dataclu.TimeIntervalCombined;
+            st=ticd.getSampleForClosest([obj.getBad.BadTimes.Time.Start])';
+            en1=ticd.getSampleForClosest([obj.getBad.BadTimes.Time.Stop])';
+            
+            file1=round([st en1]/ticd.getSampleRate*1000);
         end
     end
     methods (Access=private)

@@ -90,7 +90,7 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
     end
     %% GETTER & SETTERS
     methods
-        function str=print(obj)
+        function str=toString(obj)
             t=obj.SiteSpatialLayout;
             actch=sum(t.isActive);
             allch=height(t);
@@ -99,7 +99,7 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
             allsh=numel(unique(sh));
             dep=max(t.Z)-min(t.Z);
             xsp=max(t.X)-min(t.X);
-            str=sprintf('\n%d/%d Shanks, %d/%d Channels, %d u depht-span, %d u x-span.',actsh,allsh,actch,allch,dep,xsp);
+            str=sprintf('%d/%d Shanks, %d/%d Channels, %d u depht-span, %d u x-span.',actsh,allsh,actch,allch,dep,xsp);
         end
         function siteLayout=getSiteSpatialLayout(obj,chans)
             if ~exist('chans','var')
