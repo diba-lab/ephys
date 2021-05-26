@@ -167,7 +167,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                 theTimeInterval=til.get(iInt);
                 ends((iInt-1)*2+1)=theTimeInterval.getStartTime;
                 ends(iInt*2)=theTimeInterval.getEndTime;
-                idx=times>=theTimeInterval.StartTime & times<=theTimeInterval.getEndTime;
+                idx=times>=theTimeInterval.getStartTime & times<=theTimeInterval.getEndTime;
                 samples(idx)=theTimeInterval.getSampleFor(times(idx))+lastSample;
                 lastSample=lastSample+theTimeInterval.NumberOfPoints;         
             end

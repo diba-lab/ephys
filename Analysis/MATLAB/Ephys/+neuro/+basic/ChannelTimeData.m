@@ -41,8 +41,15 @@ classdef ChannelTimeData < file.BinarySave
                     thefile=dir(filepath);
                     folder=thefile.folder;
                 end
-                
+                if numel(thefile)>1
+                    logger.warning('\nMultiple files: selecting the first one.\n\t%s\n\t%s',thefile.name)
+                    thefile=thefile(1);
+                end
                 probefile=dir(fullfile(folder,'*Probe*'));
+                if numel(probefile)>1
+                    [~,name,~]=fileparts(thefile.name);
+                    probefile=dir(fullfile(folder,sprintf('*%s*Probe*',name)));
+                end
                 probe=neuro.probe.Probe(fullfile(probefile.folder,probefile.name));
                 logger.info(probe.toString)
                 chans=probe.getActiveChannels;
@@ -52,6 +59,10 @@ classdef ChannelTimeData < file.BinarySave
                 newObj.Data=memmapfile(fullfile(thefile.folder,thefile.name),...
                     'Format',{'int16' [numberOfChannels samples] 'mapped'});
                 timeFile=dir(fullfile(folder,'*TimeInterval*'));
+                if numel(timeFile)>1
+                    [~,name]=fileparts(thefile.name);
+                    timeFile=dir(fullfile(folder,sprintf('*%s*TimeInterval*',name)));
+                end
                 try
                     s=load(fullfile(timeFile.folder,timeFile.name));
                     fnames=fieldnames(s);
@@ -118,7 +129,8 @@ classdef ChannelTimeData < file.BinarySave
         function newobj = getDownSampled(obj, newRate, newFileName)
             if nargin>2
             else
-                newFolder=fileparts(obj.Filepath);
+                [newFolder,name,ext]=fileparts(obj.Filepath);
+                newFileName=fullfile(newFolder, sprintf('%s_%dHz.lfp',name,newRate));
             end
             ticd=obj.TimeIntervalCombined;
             currentRate=ticd.getSampleRate;
@@ -139,7 +151,7 @@ classdef ChannelTimeData < file.BinarySave
                     currentRate, newRate, numberOfChannels,...
                     currentFileName, newFileName));
             end
-            newobj=ChannelTimeData(newFileName);
+            newobj=neuro.basic.ChannelTimeData(newFileName);
         end
         %         function [] = plot(obj,varargin)
         %             try

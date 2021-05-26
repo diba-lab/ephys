@@ -90,11 +90,11 @@ classdef Preprocess
                 param.Channels.Channel=1;
                 param.ZScore.Threshold=[nan nan];
                 param.ZScore.PlotYLims=[-3 3];
-                param.ZScore.MinimumDurationInMs=500;
-                param.ZScore.WindowsBeforeDetectionInMs=500;
-                param.ZScore.WindowsAfterDetectionInMs=500;
-                param.ZScore.MinimumInterArtifactDistanceInMs=500;
-                param.ZScore.Downsample=250;
+                param.ZScore.MinimumDurationInMs=50;
+                param.ZScore.WindowsBeforeDetectionInMs=50;
+                param.ZScore.WindowsAfterDetectionInMs=50;
+                param.ZScore.MinimumInterArtifactDistanceInMs=50;
+                param.ZScore.Downsample=1250;
                 freqbans=[1 4; 4 12];
                 ZScoreThresholds=nan(size(freqbans));
                 ZScorePlotYLims=[-.3 .5; -.5 1];
@@ -104,8 +104,8 @@ classdef Preprocess
                 param.Spectogram.ZScore.Threshold.stop=ZScoreThresholds(:,2);
                 param.Spectogram.ZScore.PlotYLims.start=ZScorePlotYLims(:,1);
                 param.Spectogram.ZScore.PlotYLims.stop=ZScorePlotYLims(:,2);
-                param.Spectogram.Method.chronux.WindowSize=2;
-                param.Spectogram.Method.chronux.WindowStep=1;
+                param.Spectogram.Method.chronux.WindowSize=[2 1];
+                param.Spectogram.Method.chronux.WindowStep=[1 .5];
                 
                 writestruct(param,paramFile);
             end
@@ -210,14 +210,14 @@ classdef Preprocess
             ticd=neuro.time.TimeIntervalCombined(fullfile(baseFolder,list.name));
             dataForLFP=dataForLFP.setTimeIntervalCombined(ticd);
         end
-        function arts=reCalculateArtifacts(obj)
+        function [arts, obj]=reCalculateArtifacts(obj)
             params=obj.getParameters;
             param_spec=params.Spectogram;
             params_chrx=param_spec.Method.chronux;
             freqs=[param_spec.FrequencyBands.start' param_spec.FrequencyBands.stop'];
             for ifreq=1:size(freqs,1)
                 tfmethod=neuro.tf.TimeFrequencyChronuxMtspecgramc(...
-                    freqs(ifreq,:),[params_chrx.WindowSize params_chrx.WindowStep]);
+                    freqs(ifreq,:),[params_chrx.WindowSize(ifreq) params_chrx.WindowStep(ifreq)]);
                 if ~isfolder(params.cachefolder), mkdir(params.cachefolder);end
                 cacheFile=fullfile(params.cachefolder, strcat(DataHash(tfmethod),'.mat'));
                 if isfile(cacheFile)
@@ -300,30 +300,14 @@ classdef Preprocess
             writestruct(params,paramFile);
             obj.Parameters=params;
         end
-        function [] = saveBadFile(obj)
-            bad=obj.getBad;
-            dataclu=obj.getDataForClustering;
-            %             datafile=char(dataclu(1).DataFile);
-            %
-            %             hdr=ft_read_header(datafile)
-            %             dat=ft_read_data(datafile,'header',hdr,  'begsample',1,'endsample',1e6);
-            %             cfg=[];
-            %             cfg.trialdef.triallength = 500;
-            %             cfg.trialdef.ntrials     =1;
-            %             cfg.trialfun   =  'ft_trialfun_general';
-            %             cfg.dataset     = datafile;
-            %             [cfg] = ft_definetrial(cfg);
-            %             data=ft_preprocessing(cfg);
-            %             cfg.continuous='yes';
-            %             cfg.artfctdef.jump.channel='all';
-            %             cfg.artfctdef.jump.interactive = 'yes';
-            %             [cfg, artifact_jump] =ft_artifact_jump(cfg,data)
-            ticd=dataclu.TimeIntervalCombined;
-            st=ticd.getSampleForClosest([obj.getBad.BadTimes.Time.Start])';
-            en1=ticd.getSampleForClosest([obj.getBad.BadTimes.Time.Stop])';
-            
-            file1=round([st en1]/ticd.getSampleRate*1000);
-        end
+%         function [] = saveBadFile(obj)
+%             bad=obj.getBad;
+%             dataclu=obj.getDataForClustering;
+%             ticd=dataclu.TimeIntervalCombined;
+%             st=ticd.getSampleForClosest([obj.getBad.BadTimes.Time.Start])';
+%             en1=ticd.getSampleForClosest([obj.getBad.BadTimes.Time.Stop])';
+%             file1=round([st en1]/ticd.getSampleRate*1000);
+%         end
     end
     methods (Access=private)
         function  [timeWindows,zScoreThreshold]=getArtifacts(obj,channel,zScoreThreshold,ylim)
@@ -360,9 +344,9 @@ classdef Preprocess
             idx=zs<zScoreThreshold(1)|zs>zScoreThreshold(2);
             idx(1)=0;idx(end)=0;
             try
-                idx=[idx' 0];
+                idx=[0 idx'];
             catch
-                idx=[idx 0]; 
+                idx=[0 idx]; 
             end
             idx_edge=diff(idx);
             t(:,1)=find(idx_edge==1);
