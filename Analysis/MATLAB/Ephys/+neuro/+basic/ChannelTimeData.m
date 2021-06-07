@@ -45,12 +45,8 @@ classdef ChannelTimeData < file.BinarySave
                     logger.warning('\nMultiple files: selecting the first one.\n\t%s\n\t%s',thefile.name)
                     thefile=thefile(1);
                 end
-                probefile=dir(fullfile(folder,'*Probe*'));
-                if numel(probefile)>1
-                    [~,name,~]=fileparts(thefile.name);
-                    probefile=dir(fullfile(folder,sprintf('*%s*Probe*',name)));
-                end
-                probe=neuro.probe.Probe(fullfile(probefile.folder,probefile.name));
+                
+                probe=neuro.probe.Probe(folder);
                 logger.info(probe.toString)
                 chans=probe.getActiveChannels;
                 numberOfChannels=numel(chans);
@@ -58,32 +54,22 @@ classdef ChannelTimeData < file.BinarySave
                 samples=thefile.bytes/2/numberOfChannels;
                 newObj.Data=memmapfile(fullfile(thefile.folder,thefile.name),...
                     'Format',{'int16' [numberOfChannels samples] 'mapped'});
-                timeFile=dir(fullfile(folder,'*TimeInterval*'));
-                if numel(timeFile)>1
-                    [~,name]=fileparts(thefile.name);
-                    timeFile=dir(fullfile(folder,sprintf('*%s*TimeInterval*',name)));
-                end
+                
                 try
-                    s=load(fullfile(timeFile.folder,timeFile.name));
-                    fnames=fieldnames(s);
-                    newObj.TimeIntervalCombined=s.(fnames{1});
+                    newObj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(folder);
                 catch
-                    try
-                        newObj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(fullfile(timeFile.folder,timeFile.name));
-                    catch
-                        numberOfPoints=samples;
-                        prompt = {'Start DateTime:','SampleRate:'};
-                        dlgtitle = 'Input';
-                        dims = [1 35];
-                        definput = {'11-Aug-2011 11:11:11','1250'};
-                        answer = inputdlg(prompt,dlgtitle,dims,definput);
-                        startTime=datetime(answer{1},'InputFormat','dd-MMM-yyyy HH:mm:ss');
-                        sampleRate=str2num(answer{2});
-                        ti=neuro.time.TimeInterval(startTime, sampleRate, numberOfPoints);
-                        ticd=neuro.time.TimeIntervalCombined(ti);
-                        ticd.save(folder);
-                        newObj.TimeIntervalCombined=ticd;
-                    end
+                    numberOfPoints=samples;
+                    prompt = {'Start DateTime:','SampleRate:'};
+                    dlgtitle = 'Input';
+                    dims = [1 35];
+                    definput = {'11-Aug-2011 11:11:11','1250'};
+                    answer = inputdlg(prompt,dlgtitle,dims,definput);
+                    startTime=datetime(answer{1},'InputFormat','dd-MMM-yyyy HH:mm:ss');
+                    sampleRate=str2num(answer{2});
+                    ti=neuro.time.TimeInterval(startTime, sampleRate, numberOfPoints);
+                    ticd=neuro.time.TimeIntervalCombined(ti);
+                    ticd.save(folder);
+                    newObj.TimeIntervalCombined=ticd;
                 end
                 logger.info(newObj.TimeIntervalCombined.tostring)
                 newObj.Filepath=newObj.Data.Filename;
@@ -209,11 +195,11 @@ classdef ChannelTimeData < file.BinarySave
             [folder,name,~]=fileparts(obj.Filepath);
             %% Probe, XML
             pr=obj.Probe;
-            pr.saveProbeTable(fullfile(folder,strcat(name,'_Probe.xlsx')));
+            pr.saveProbeTable(fullfile(folder,strcat(name,'.Probe.xlsx')));
             pr.createXMLFile(fullfile(folder,strcat(name,'.xml')),obj.TimeIntervalCombined.getSampleRate)
             %% Ticd.
             ticd=obj.TimeIntervalCombined;
-            ticd.saveTable(fullfile(folder,strcat(name,'TimeIntervalCombined.csv')));
+            ticd.saveTable(fullfile(folder,strcat(name,'.TimeIntervalCombined.csv')));
         end
     end
 end

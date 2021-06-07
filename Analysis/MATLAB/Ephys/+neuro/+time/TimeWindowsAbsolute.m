@@ -1,4 +1,4 @@
-classdef TimeWindows
+classdef TimeWindowsAbsolute<neuro.time.TimeWindows
     %TIMEWINDOWS Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -8,7 +8,7 @@ classdef TimeWindows
     end
     
     methods
-        function obj = TimeWindows(timeTable,ticd)
+        function obj = TimeWindowsAbsolute(timeTable,ticd)
             %TIMEWINDOWS Construct an instance of this class
             %   Time Table should have at least 
             % two datetime value columns: Start, Stop

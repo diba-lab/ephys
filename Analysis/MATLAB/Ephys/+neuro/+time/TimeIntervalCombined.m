@@ -18,8 +18,24 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             if nargin>0
                 el=varargin{1};
                 if isstring(el)||ischar(el)
+                    if isfolder(el)
+                        timefile=dir(fullfile(el,sprintf('*TimeInterval*')));
+                        if numel(timefile)==1
+                            timefilefinal=timefile;
+                        elseif numel(timefile)>1
+                            [~,ind]=sort({timefile.date});
+                            timefiles = timefile(ind);
+                            timefilefinal=timefiles(1);
+                            logger.warning('\nMultiple Time files. Selecting the latest.\n  -->\t%s\n\t%s',timefiles.name)
+                        else
+                            logger.error('\nNo Time file found in\n\t\%s',el);
+                        end
+                        timefilepath=fullfile(timefilefinal.folder,timefilefinal.name);
+                    else
+                        timefilepath=el;
+                    end
                     try
-                        T=readtable(el);
+                        T=readtable(timefilepath);
                         obj=TimeIntervalCombined;
                         for iti=1:height(T)
                             tiRow=T(iti,:);
@@ -28,10 +44,11 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                             logger.fine('ti added.');
                         end
                     catch
-                        S=load(el);
+                        S=load(timefilepath);
                         logger.fine('til loaded.');
                         timeIntervalList=S.obj.timeIntervalList;
                     end
+                    
                 else
                     for iArgIn=1:nargin
                         theTimeInterval=varargin{iArgIn};

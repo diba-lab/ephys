@@ -100,7 +100,7 @@ end
 
 for j = 1:3
     subplot(2, 3, 3 + j)
-    imagesc(imrotate(Scomb(j).horizontal.image_marked, -90))
+    imagesc(imrotate(Scomb(j).horizontal.image_marked, 0))
     axis off
 end
 

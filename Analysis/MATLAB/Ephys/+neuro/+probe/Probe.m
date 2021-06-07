@@ -10,22 +10,42 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
     end
     
     methods
-        function newobj = Probe(probeFile)
+        function newobj = Probe(varargin)
             %PROBE Construct an instance of this class
             %   Detailed explanation goes here
-            if istable( probeFile)
-                lay=probeFile;
-            else
-                try
+            probeFile=varargin{1};
+            logger=logging.Logger.getLogger;
+            % load table
+            if isstring(probeFile)||ischar(probeFile)
+                
+                if isfolder(probeFile)
+                    probefile=dir(fullfile(probeFile,sprintf('*Probe*')));
+                    if numel(probefile)==1
+                        probefilefinal=probefile;
+                    elseif numel(probefile)>1
+                        [~,ind]=sort({probefile.date});
+                        probefiles = probefile(ind);
+                        probefilefinal=probefiles(1);
+                        logger.warning('\nMultiple probe files. Selecting the latest.\n  -->\t%s\n\t%s',probefiles.name)
+                    else
+                        logger.error('\nNo probe file found in\n\t\%s',el);
+                    end
+                    probeFile=fullfile(probefilefinal.folder,probefilefinal.name);
+                end
+                
+                try % if saved mat table
                     T=load(probeFile);
                     fnames=fieldnames(T);
                     lay =T.(fnames{1});
-                catch
+                catch % if saved csv table
                     T=readtable(probeFile);
                     lay=T;
                 end
+                
+            elseif istable( probeFile)% if the table is given
+                lay=probeFile;
             end
-            if isa(lay, 'Probe')
+            if isa(lay, 'Probe') % if loaded mat file is not table
                 probe=lay;
                 newobj=probe;
                 lay=probe.SiteSpatialLayout;
