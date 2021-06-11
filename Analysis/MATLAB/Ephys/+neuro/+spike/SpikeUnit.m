@@ -36,6 +36,11 @@ classdef SpikeUnit
             ticd=obj.TimeIntervalCombined;
             timesnew=ticd.getRealTimeFor(double(obj.Times));
         end
+        function times = getTimes(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            times=neuro.time.Sample(obj.Times, obj.TimeIntervalCombined.getSampleRate);
+        end
         function fireRate = getFireRate(obj,timebininsec)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
