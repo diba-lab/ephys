@@ -45,16 +45,26 @@ classdef TimeIntervalAbstract
         end
         function dt=convertStringToDatetime(obj,time)
             st=obj.getStartTime;
-            dt1=datetime(time,'Format','HH:mm');
-            dt=datetime(st.Year,st.Month,st.Day)+hours(dt1.Hour)+minutes(dt1.Minute);
+            try 
+                dt1=datetime(time);
+            catch
+                dt1=datetime(time,'InputFormat','HH:mm');
+            end
+            dt=datetime(st.Year,st.Month,st.Day)+hours(dt1.Hour)+minutes(dt1.Minute)+seconds(dt1.Second);
         end
         function times=getDatetime(obj,times)
             % Convert times of duration or string('HH:mm') to datetime format.
             if ~isdatetime(times)
                 if isduration(times)
                     times=obj.convertDurationToDatetime(times);
-                elseif isstring(times{1})||ischar(times{1})
-                    times=obj.convertStringToDatetime(times);
+                elseif iscell(times)
+                    if (isstring(times{1})||ischar(times{1}))
+                        times = obj.convertStringToDatetime(times);
+                    end
+                else
+                    if (isstring(times)||ischar(times))
+                        times = obj.convertStringToDatetime(times);
+                    end
                 end
             end
         end

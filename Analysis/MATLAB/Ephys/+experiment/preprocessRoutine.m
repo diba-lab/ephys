@@ -7,6 +7,7 @@ for ises=1:numel(sessions)
     pr=preprocessing.Preprocess(theses);
     %     datalfp=theses.getDataLFP;
     dataclu=pr.getDataForClustering;
+    pr.saveBadFile
     for iclu=dataclu
         iclu.runKilosort3
     end

@@ -18,8 +18,24 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             if nargin>0
                 el=varargin{1};
                 if isstring(el)||ischar(el)
+                    if isfolder(el)
+                        timefile=dir(fullfile(el,sprintf('*TimeInterval*')));
+                        if numel(timefile)==1
+                            timefilefinal=timefile;
+                        elseif numel(timefile)>1
+                            [~,ind]=sort({timefile.date});
+                            timefiles = timefile(ind);
+                            timefilefinal=timefiles(1);
+                            logger.warning('\nMultiple Time files. Selecting the latest.\n  -->\t%s\n\t%s',timefiles.name)
+                        else
+                            logger.error('\nNo Time file found in\n\t\%s',el);
+                        end
+                        timefilepath=fullfile(timefilefinal.folder,timefilefinal.name);
+                    else
+                        timefilepath=el;
+                    end
                     try
-                        T=readtable(el);
+                        T=readtable(timefilepath);
                         obj=TimeIntervalCombined;
                         for iti=1:height(T)
                             tiRow=T(iti,:);
@@ -28,10 +44,11 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                             logger.fine('ti added.');
                         end
                     catch
-                        S=load(el);
+                        S=load(timefilepath);
                         logger.fine('til loaded.');
                         timeIntervalList=S.obj.timeIntervalList;
                     end
+                    
                 else
                     for iArgIn=1:nargin
                         theTimeInterval=varargin{iArgIn};
@@ -67,7 +84,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             np=obj.getNumberOfPoints;
             jf=java.text.DecimalFormat; % comma for thousands, three decimal places
             np1= char(jf.format(np)); % omit "char" if you want a string out
-            str=sprintf('\t%s \t%s - %s\t<%s>\t<%s (%dHz)> \n',date,st,en,dur1,np1,sf);
+            str=sprintf('\t%s \t%s - %s\t<%s>\t<%s (%dHz)>',date,st,en,dur1,np1,sf);
         end
         function new_timeIntervalCombined=getTimeIntervalForSamples(obj, times)
             %METHOD1 Summary of this method goes here
@@ -167,7 +184,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                 theTimeInterval=til.get(iInt);
                 ends((iInt-1)*2+1)=theTimeInterval.getStartTime;
                 ends(iInt*2)=theTimeInterval.getEndTime;
-                idx=times>=theTimeInterval.StartTime & times<=theTimeInterval.getEndTime;
+                idx=times>=theTimeInterval.getStartTime & times<=theTimeInterval.getEndTime;
                 samples(idx)=theTimeInterval.getSampleFor(times(idx))+lastSample;
                 lastSample=lastSample+theTimeInterval.NumberOfPoints;         
             end

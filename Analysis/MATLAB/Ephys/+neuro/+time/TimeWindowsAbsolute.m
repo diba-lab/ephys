@@ -1,4 +1,4 @@
-classdef TimeWindows
+classdef TimeWindowsAbsolute<neuro.time.TimeWindows
     %TIMEWINDOWS Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -8,7 +8,7 @@ classdef TimeWindows
     end
     
     methods
-        function obj = TimeWindows(timeTable,ticd)
+        function obj = TimeWindowsAbsolute(timeTable,ticd)
             %TIMEWINDOWS Construct an instance of this class
             %   Time Table should have at least 
             % two datetime value columns: Start, Stop
@@ -60,16 +60,18 @@ classdef TimeWindows
             t2=newTimeWindows.TimeTable;
             tRes=t1;
             tRes(:,:)=[];
-            art_count=0;
+            art_count=0;%count on result;
             for iwin=1:height(t1)
                 art_base=t1(iwin,:);
                 base.start=art_base.Start;
                 base.stop=art_base.Stop;
                 
-                new_start_is_in_old_ripple=(t2.Start>base.start & t2.Start<base.stop);
-                new_stop_is_in_old_ripple=(t2.Stop>base.start & t2.Stop<base.stop);
-                idx=new_start_is_in_old_ripple|new_stop_is_in_old_ripple;
-                if sum(idx)>1 
+                new_start_is_in_old=(t2.Start>base.start & t2.Start<base.stop);
+                new_stop_is_in_old=(t2.Stop>base.start & t2.Stop<base.stop);
+                old_start_is_in_new=(base.start>t2.Start & base.start<t2.Stop);
+                old_stop_is_in_new=(base.stop>t2.Start & base.stop<t2.Stop);
+                idx=new_start_is_in_old|new_stop_is_in_old|old_start_is_in_new|old_stop_is_in_new;
+                if sum(idx)>0 % take the first one
                     x=find(idx);
                     idx1=false(size(idx));
                     idx1(x(1))=true; 
@@ -77,20 +79,23 @@ classdef TimeWindows
                 end
                 artifactHasNoOverlap=~sum(idx);
                 if artifactHasNoOverlap
-                    art_count=art_count+1;
+                    art_count=art_count+1;% no overlap: put the base
                     tRes(art_count,:)=art_base;
-                else
-                    art_count=art_count+1;
-                    art_new=t2(idx,:);t2(idx,:)=[];
+                else % overlap: merge and put the merged, remove from new
+                    art_new=t2(idx,:);t2(idx,:)=[];%remove new
+                    if (art_new.Stop-art_new.Start)>(art_base.Stop-art_base.Start)
+                        art_base.Type=art_new.Type;
+                    end
                     if art_new.Start<art_base.Start, art_base.Start=art_new.Start;end
                     if art_new.Stop>art_base.Stop, art_base.Stop=art_new.Stop;end
+                    art_count=art_count+1;
                     tRes(art_count,:)=art_base;
                 end
             end
             tRes=[tRes;t2];
             tRes=sortrows(tRes, 'Start');
             timeWindows=neuro.basic.TimeWindows(tRes,thisTimeWindows.TimeIntervalCombined);
-            timeWindows=timeWindows.mergeOverlaps(seconds(.5));
+%             timeWindows=timeWindows.mergeOverlaps(seconds(.5));
         end
         function ax=plot(obj,ax)
             T=obj.TimeTable;
@@ -132,16 +137,16 @@ classdef TimeWindows
         end
         function ax=saveForNeuroscope(obj,pathname)
             T=obj.TimeTable;
-            start=T.Start;
-            stop=T.Stop;
-            ctd=ChannelTimeData(pathname);
+%             start=T.Start;
+%             stop=T.Stop;
+            ctd=neuro.basic.ChannelTimeData(pathname);
             ticd=ctd.getTimeIntervalCombined;
-            files = dir(fullfile(pathname,'*.R*.evt'));
+            files = dir(fullfile(pathname,'*Bad.R*.evt'));
             if isempty(files)
                 fileN = 1;
             else
                 %set file index to next available value\
-                pat = '.R[0-9].';
+                pat = 'Bad.R[0-9].';
                 fileN = 0;
                 for ii = 1:length(files)
                     token  = regexp(files(ii).name,pat);
@@ -152,7 +157,7 @@ classdef TimeWindows
             end
             tokens=split(pathname,filesep);
             filename=tokens{end};
-            fid = fopen(sprintf('%s%s%s.R%02d.evt',pathname,filesep,filename,fileN),'w');
+            fid = fopen(sprintf('%s%s%sBad.R%02d.evt',pathname,filesep,filename,fileN),'w');
             
             % convert detections to milliseconds
             T= obj.TimeTable;
