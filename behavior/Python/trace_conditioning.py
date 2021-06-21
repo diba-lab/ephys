@@ -84,7 +84,7 @@ params = {
             "ITI_range": 10,
         },
     },
-     "Pilot2test": {
+    "Pilot2test": {
         "alias": "Pilot2",
         "training_params": {
             "tone_dur": 3,
@@ -123,8 +123,9 @@ class trace:
         assert paradigm in params.keys()
         self.params = params[paradigm]
         print(
-            "Initializing trace fc class with " + 
-            str(self.params["alias"]) + " parameters"
+            "Initializing trace fc class with "
+            + str(self.params["alias"])
+            + " parameters"
         )
         self.tone_freq = tone_freq
         self.arduino_port = arduino_port
