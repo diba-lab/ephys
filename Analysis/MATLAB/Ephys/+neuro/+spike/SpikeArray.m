@@ -284,9 +284,25 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
                     aci.amp,aci.ch,aci.fr,aci.group,aci.n_spikes,aci.purity);
             end
         end
-        function obj=get(obj,idx)
+        function obj=get(obj,varargin)
+            selected=true(height(obj.ClusterInfo),1);
+            if nargin==2&& isnumeric(varargin{1})
+                selected=varargin{1};
+            else
+                cluinf=obj.ClusterInfo;
+                stringinterest={'location','group'};
+                for iarg=1:nargin-1
+                    arg=varargin{iarg};
+                    for iint=1:numel(stringinterest)
+                        interest=stringinterest{iint};
+                        if any(ismember(cluinf.(interest),arg))
+                            selected=selected&ismember(cluinf.(interest),arg);
+                        end
+                    end
+                end
+            end
             tbl=obj.SpikeTable;
-            obj.ClusterInfo=obj.ClusterInfo(idx,:);
+            obj.ClusterInfo=obj.ClusterInfo(selected,:);
             obj.SpikeTable=tbl(ismember(tbl.SpikeCluster,obj.ClusterInfo.id),:);
         end
         function pbe=getPopulationBurstEvents(obj)

@@ -26,6 +26,9 @@ classdef SDBlocks
             idx=true(size(blocks));
             if nargin>1
                 idx=ismember(blocks,varargin);
+                if any(ismember({'SD','NSD'}, varargin))
+                    idx=ismember(blocks,{'SD','NSD'});
+                end
             end
             block=T(idx,:);
             wind=[block.t1 block.t2];
