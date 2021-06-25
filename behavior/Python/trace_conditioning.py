@@ -84,7 +84,7 @@ params = {
             "ITI_range": 10,
         },
     },
-     "Pilot2test": {
+    "Pilot2test": {
         "alias": "Pilot2",
         "training_params": {
             "tone_dur": 3,
@@ -123,8 +123,9 @@ class trace:
         assert paradigm in params.keys()
         self.params = params[paradigm]
         print(
-            "Initializing trace fc class with " + 
-            str(self.params["alias"]) + " parameters"
+            "Initializing trace fc class with "
+            + str(self.params["alias"])
+            + " parameters"
         )
         self.tone_freq = tone_freq
         self.arduino_port = arduino_port
@@ -267,6 +268,19 @@ class trace:
     def generate_ITI(self, ITI, ITI_range):
         return ITI + np.random.random_integers(low=-ITI_range, high=ITI_range)
 
+    def send_recording_sync(self, length_min):
+        """Send sync signal out to recording system(s) """
+
+        self.initialize_arduino()
+        print("Sending recording sync signal")
+        self.board.digital[self.record_sync_pin].write(1)
+
+        # Now sleep until recording length has elapsed
+        sleep_timer(length_min)
+
+        # End signal
+        self.board.digital[self.record_sync_pin].write(1)
+
     def start_experiment(self, session, test_run=False, force_start=False):
         """Starts running ALL experiments when video tracking starts.
         param: force_start: set to True if Optitrack crashes and you need to start manually"""
@@ -397,6 +411,7 @@ class trace:
         shock_box_pin=2,
         shock_io_pin=7,
         video_io_pin=9,
+        record_sync_pin=12,
         video_start=True,
     ):
         """20210202: No try/except for now because I want to see an error when setting things up for now!
@@ -418,6 +433,7 @@ class trace:
         self.shock_box_pin = shock_box_pin
         self.shock_io_pin = shock_io_pin
         self.video_io_pin = video_io_pin
+        self.record_sync_pin = record_sync_pin
 
         # initialize cleanup function
         atexit.register(shutdown_arduino, self.board)

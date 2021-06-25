@@ -13,8 +13,15 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
         function obj = SpikeArray(spikeClusters,spikeTimes)
             %SPIKEARRAY Construct an instance of this class
             %   spiketimes should be in Timestamps.
-            tablearray=horzcat( spikeTimes, double(spikeClusters));
-            obj.SpikeTable=array2table(tablearray,'VariableNames',{'SpikeTimes','SpikeCluster'});
+            if ~isa(spikeClusters,'neuro.spike.SpikeArray')
+                tablearray=horzcat( spikeTimes, double(spikeClusters));
+                obj.SpikeTable=array2table(tablearray,'VariableNames',{'SpikeTimes','SpikeCluster'});
+            else
+                obj.SpikeTable=spikeClusters.SpikeTable;
+                obj.TimeIntervalCombined=spikeClusters.TimeIntervalCombined;
+                obj.ClusterInfo=spikeClusters.ClusterInfo;
+                obj.Info=spikeClusters.Info;
+            end
         end
         
         function obj = getSpikeArrayWithAdjustedTimestamps(obj)
@@ -260,6 +267,7 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             tbl=obj.SpikeTable;
             tbl((tbl.SpikeTimes<s(1))|(tbl.SpikeTimes>=s(2)),:)=[];
             obj.SpikeTable=tbl;
+            obj.Info.TimeFrame=timeWindow;
         end
         function spikeUnits=getSpikeUnits(obj,idx)
             tbl=obj.SpikeTable;
@@ -276,13 +284,33 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
                     aci.amp,aci.ch,aci.fr,aci.group,aci.n_spikes,aci.purity);
             end
         end
-        function obj=get(obj,idx)
+        function obj=get(obj,varargin)
+            selected=true(height(obj.ClusterInfo),1);
+            if nargin==2&& isnumeric(varargin{1})
+                selected=varargin{1};
+            else
+                cluinf=obj.ClusterInfo;
+                stringinterest={'location','group'};
+                for iarg=1:nargin-1
+                    arg=varargin{iarg};
+                    for iint=1:numel(stringinterest)
+                        interest=stringinterest{iint};
+                        if any(ismember(cluinf.(interest),arg))
+                            selected=selected&ismember(cluinf.(interest),arg);
+                        end
+                    end
+                end
+            end
             tbl=obj.SpikeTable;
-            obj.ClusterInfo=obj.ClusterInfo(idx,:);
+            obj.ClusterInfo=obj.ClusterInfo(selected,:);
             obj.SpikeTable=tbl(ismember(tbl.SpikeCluster,obj.ClusterInfo.id),:);
         end
-        function spikeUnit=getSpikeUnit(obj,spikeId)
-            error('Use getSpikeUnits(obj,spikeId)');
+        function pbe=getPopulationBurstEvents(obj)
+
+        end
+        function acg=getAutoCorrelogram(obj)
+            sus=obj.getSpikeUnits;
+            acg=neuro.spike.AutoCorrelogram(sus);
         end
         function []=saveNeuroscopeFiles(obj,folder,filename)
             if ~exist('filename','var')
@@ -314,7 +342,7 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             obj.ClusterInfo=sortrows(obj.ClusterInfo,by);
         end
     end
-    methods %interited
+    methods %inherited
         function st=getSpikeTimes(obj)
             st=obj.SpikeTable.SpikeTimes;
         end

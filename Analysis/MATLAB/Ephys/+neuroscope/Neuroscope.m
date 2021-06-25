@@ -77,6 +77,7 @@ classdef (Abstract) Neuroscope
             
             [path,name,~]=fileparts(filepath);
             if isfile(fullfile(path,strcat(name,'.nrs'))), delete(fullfile(path,strcat(name,'.nrs'))); end
+            
             struct2xml(s,filepath); 
         end
         function [] = createXMLFileNotOrder(obj,filepath,samplingRate)
