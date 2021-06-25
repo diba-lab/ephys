@@ -314,6 +314,7 @@ class trace:
         while not started:
             if self.board.digital[self.video_io_pin].read() or force_start:
                 print("Experiment triggered by video (or forced)!")
+                self.board.digital[self.record_sync_pin].write(1)
                 self.start_time = time.time()
                 self.start_datetime = datetime.now()
                 self.csv_path = self.base_dir / (
@@ -396,26 +397,30 @@ class trace:
         self.write_event("trace" + str(trial) + "_end")
 
         # administer shock
+        print('Degrounding shock floor')
+        self.board.digital[self.shock_relay_pin].write(0)  # signal to solid-state relay - send to floating ground
+        time.sleep(0.05) # make sure you give enough time for relay to switch over before shocking.
         print("Shock!")
         self.write_event("shock" + str(trial) + "_start")
         self.board.digital[self.shock_box_pin].write(1)  # signal to shock box
-        self.board.digital[self.shock_io_pin].write(1)  # TTL to Intan. Necessary?
         time.sleep(shock_dur_use)
         self.board.digital[self.shock_box_pin].write(0)  # stop shock signal
-        self.board.digital[self.shock_io_pin].write(0)  # TTL off to Intan. Necessary?
         self.write_event("shock" + str(trial) + "_end")
+        time.sleep(0.05)
+        self.board.digital[self.shock_relay_pin].write(1)  # signal to solid-state relay - send to floating ground
+        print('Shock floor re-grounded')
+
 
     def initialize_arduino(
         self,
-        port="COM7",
+        port="COM4",
         shock_box_pin=2,
-        shock_io_pin=7,
+        shock_relay_pin=7,
         video_io_pin=9,
         record_sync_pin=12,
         video_start=True,
     ):
-        """20210202: No try/except for now because I want to see an error when setting things up for now!
-        Not sure shock_io_pin is entirely necessary - just send shock_box_pin to both shock box and open ephys"""
+        """20210202: No try/except for now because I want to see an error when setting things up for now!"""
         # try:
         self.board = pyfirmata.Arduino(port)
         if video_start:
@@ -431,9 +436,13 @@ class trace:
         #     print('Check connections and port and run ""trace.initialize_arduino"" again')
         #     board = None
         self.shock_box_pin = shock_box_pin
-        self.shock_io_pin = shock_io_pin
+        self.shock_relay_pin = shock_relay_pin
         self.video_io_pin = video_io_pin
         self.record_sync_pin = record_sync_pin
+
+        # Make sure you always start out setting shock_relay_pin to 1 to ground box.
+        print('Grounding shock floor')
+        self.board.digital[self.shock_relay_pin].write(1)
 
         # initialize cleanup function
         atexit.register(shutdown_arduino, self.board)
