@@ -285,13 +285,15 @@ class trace:
 
         # First connect to the Arduino - super important
         print("Initializing arduino")
-        self.initialize_arduino(self.arduino_port)
+        video_start_bool = not force_start
+        self.initialize_arduino(self.arduino_port, video_start=video_start_bool)
 
         # Print update to screen
         if not force_start:
             print("Experiment initialized. Waiting for video triggering")
         else:
             print("Force starting experiment")
+            self.board.digital[self.video_io_pin].write(1)  # write to video pin
 
         # Now set up while loop to start once you get TTL to video i/o pin
         started = False
