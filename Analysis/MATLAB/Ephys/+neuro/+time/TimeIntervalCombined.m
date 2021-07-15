@@ -23,8 +23,8 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                         if numel(timefile)==1
                             timefilefinal=timefile;
                         elseif numel(timefile)>1
-                            [~,ind]=sort({timefile.date});
-                            timefiles = timefile(ind);
+                            [~,ind]=sort(datetime({timefile.date}));
+                            timefiles = timefile(flip(ind));
                             timefilefinal=timefiles(1);
                             logger.warning('\nMultiple Time files. Selecting the latest.\n  -->\t%s\n\t%s',timefiles.name)
                         else

@@ -15,7 +15,11 @@ classdef TimeWindowsDuration
                 timeTable=struct2table(timeTable);
             elseif istable(timeTable)
             elseif ismatrix(timeTable)
-                timeTable=array2table(timeTable,'VariableNames',{'Start','Stop'});
+                if ~isempty(timeTable)
+                    timeTable=array2table(timeTable,'VariableNames',{'Start','Stop'});
+                else
+                    timeTable=cell2table(cell(0,2),'VariableNames',{'Start','Stop'});
+                end
             end
             obj.TimeTable = timeTable;
         end
@@ -49,7 +53,7 @@ classdef TimeWindowsDuration
                     temp=win;
                 end
             end
-            rest=[rest;win];
+            rest=[rest;temp];
             obj.TimeTable=rest;
         end
         

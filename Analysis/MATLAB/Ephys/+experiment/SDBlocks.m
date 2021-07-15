@@ -27,7 +27,7 @@ classdef SDBlocks
             if nargin>1
                 idx=ismember(blocks,varargin);
                 if any(ismember({'SD','NSD'}, varargin))
-                    idx=ismember(blocks,{'SD','NSD'});
+                    idx=ismember(blocks,{'SD','NSD','SD_NSD'});
                 end
             end
             block=T(idx,:);
