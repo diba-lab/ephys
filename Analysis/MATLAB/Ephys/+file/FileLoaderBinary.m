@@ -23,9 +23,9 @@ classdef FileLoaderBinary < file.FileLoaderMethod
                         xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
                     else
                         try
-                            xmlfile=fullfile(listing(1).folder, sprintf('settings.xml'));
-                        catch
                             xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
+                        catch
+                            xmlfile=fullfile(listing(1).folder, sprintf('settings.xml'));
                         end
                     end
                 else

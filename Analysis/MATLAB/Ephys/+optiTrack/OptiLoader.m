@@ -13,7 +13,7 @@ classdef OptiLoader<Singleton
         % Singleton superclass.
         function newObj = OptiLoader(files)
             % Initialise your custom properties.
-            s=xml2struct('/data/EphysAnalysis/Structure/OptiTrack/configuration.xml');
+            s=xml2struct('+optiTrack/configuration.xml');
             fname=fieldnames(s);
             newObj.parameters=s.(fname{1});
             if exist('files','var')
@@ -34,7 +34,7 @@ classdef OptiLoader<Singleton
                 end
             end
             if isempty(uniqueInstance)
-                obj = OptiLoader();
+                obj = optiTrack.OptiLoader();
                 uniqueInstance = obj;
             else
                 obj = uniqueInstance;
@@ -53,14 +53,14 @@ classdef OptiLoader<Singleton
         function files=getOptiFilesCombined(obj)
             files= obj.OptifilesCombined;
         end
-        function saveFiles(obj)
-            files= obj.Files;
-            for ifile=1:numel(files)
-                aFile=files{ifile};
-                [filepath,name,~]=fileparts(aFile.file);
-                save(fullfile(filepath,[name '.mat']),'aFile');
-            end
-        end
+%         function saveFiles(obj)
+%             files= obj.Files;
+%             for ifile=1:numel(files)
+%                 aFile=files{ifile};
+%                 [filepath,name,~]=fileparts(aFile.file);
+%                 save(fullfile(filepath,[name '.mat']),'aFile');
+%             end
+%         end
     end
     methods (Access=private)
         function [obj] = loadFile(obj, files)
@@ -81,10 +81,10 @@ classdef OptiLoader<Singleton
                 filename=[fname ext];
                 switch ext
                     case '.fbx'
-                        of=OptiFBXAsciiFile(fullfile(path,filename));
+                        of=optiTrack.OptiFBXAsciiFile(fullfile(path,filename));
                     case '.csv'
-                        of=OptiCSVFileSingleMarker(fullfile(path,files{ifile}));
-%                         of=OptiCSVFileRigidBody(fullfile(path,filename));
+                        of=optiTrack.OptiCSVFileSingleMarker(fullfile(path,files{ifile}));
+%                         of=optiTrack.OptiCSVFileRigidBody(fullfile(path,filename));
                 end
                 if ~exist('ofs','var')
                     ofs=of;

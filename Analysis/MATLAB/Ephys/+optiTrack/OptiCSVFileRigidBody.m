@@ -1,4 +1,4 @@
-classdef OptiCSVFileRigidBody<OptiCSVFile
+classdef OptiCSVFileRigidBody<optiTrack.OptiCSVFile
     %OPTICSVFILESINGLEMARKER Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -10,7 +10,7 @@ classdef OptiCSVFileRigidBody<OptiCSVFile
         function newobj = OptiCSVFileRigidBody(file)
             %OPTICSVFILESINGLEMARKER Construct an instance of this class
             %   Detailed explanation goes here
-            newobj@OptiCSVFile(file);
+            newobj@optiTrack.OptiCSVFile(file);
             newobj= newobj.loadData(file);
         end
         

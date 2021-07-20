@@ -272,6 +272,22 @@ classdef LocationData
         function ind = getBelow(obj,threshold)
             ind=obj.Z<=threshold;
         end
+        function ind = saveInPlainFormat(obj,folder)
+            if exist('folder','var')
+                if ~isfolder(folder)
+                    folder= pwd;
+                end
+            else
+                folder= pwd;
+            end
+            x=obj.X;
+            y=obj.Y;
+            z=obj.Z;
+            time=obj.timeIntervalCombined;
+            time.saveTable(fullfile(folder,'location.time.csv'));
+            t=array2table([x y z],'VariableNames',{'x','y','z'});
+            writetable(t,fullfile(folder,'location.points.csv'))
+        end
     end
 end
 
