@@ -45,7 +45,7 @@ classdef (Abstract) Neuroscope
                     s.parameters.anatomicalDescription.channelGroups...
                         .group{ishank}.channel{ichan}.Attributes.skip='0';
                     s.parameters.anatomicalDescription.channelGroups...
-                        .group{ishank}.channel{ichan}.Text=num2str(chan-1);
+                        .group{ishank}.channel{ichan}.Text=num2str(chan1-1);
                 end
             end
             s.parameters.spikeDetection='';

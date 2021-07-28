@@ -50,7 +50,7 @@ classdef FigureFactory < Singleton
             end
             f=gcf;
             f.Renderer='painters';
-            folderfile=fullfile(filepath,name);
+            folderfile=fullfile(filepath,matlab.lang.makeValidName(name));
             for ifig=1:numel(obj.figtypes)
                 figtype=obj.figtypes{ifig};
                 print([folderfile obj.ext{ifig}],figtype,obj.resolution)

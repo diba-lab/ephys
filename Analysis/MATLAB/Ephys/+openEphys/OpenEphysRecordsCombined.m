@@ -84,7 +84,7 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
             probe=obj.getProbe;
             probe=probe.setActiveChannels(channels);
             probe=probe.renameChannelsByOrder(channels);
-            probe.saveProbeTable(fullfile(folder,'Probe.xlsx'));
+            probe.saveProbeTable(fullfile(folder,'Probe.csv'));
             ticd=obj.getTimeIntervalCombined;
             dataForClustering=dataForClustering.setTimeIntervalCombined(ticd);
             probe.createXMLFile(fullfile(folder,strcat(fname, '.xml')),ticd.getSampleRate)
@@ -113,6 +113,19 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
                     end
                     delete(fileIn);
                 end
+            end
+        end
+        function dataForClustering=saveShanksInSeparateFolders(obj, shanks, filePath)
+            probe=obj.getProbe;
+
+            for ish=1:numel(shanks)
+                theshank=shanks(ish);
+                chans=probe.getShank(theshank).getActiveChannels;
+                folder=fullfile(filePath,sprintf('shank%d',theshank));
+                if ~isfolder(folder)
+                    mkdir(folder);
+                end
+                dataForClustering{ish}=obj.mergeBlocksOfChannels(chans,folder);
             end
         end
     end

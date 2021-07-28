@@ -19,7 +19,15 @@ classdef FileLoaderBinary < file.FileLoaderMethod
                 if numel(listing)>1
                     listing1=dir(fullfile(filepath,'..'));
                     experimentno=str2double(listing1(1).folder(end));
-                    xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
+                    if experimentno>1
+                        xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
+                    else
+                        try
+                            xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
+                        catch
+                            xmlfile=fullfile(listing(1).folder, sprintf('settings.xml'));
+                        end
+                    end
                 else
                     xmlfile=fullfile(listing.folder,listing.name);
                 end
