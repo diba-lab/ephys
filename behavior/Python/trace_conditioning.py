@@ -413,7 +413,7 @@ class trace:
 
     def initialize_arduino(
         self,
-        port="COM4",
+        port="COM7",
         shock_box_pin=2,
         shock_relay_pin=7,
         video_io_pin=9,
