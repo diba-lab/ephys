@@ -4,7 +4,11 @@ function [] = zone_to_ttl(folder, com_use, debug)
 if nargin < 3
     debug = false;    
     if nargin < 2
-        com_use = 'com7';
+        if getenv('computername') == 'MSW00866'
+            com_use = 'com7';
+        else
+            com_use = 'com5';
+        end
     end
 end
 clear global
