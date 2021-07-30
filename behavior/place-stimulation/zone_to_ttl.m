@@ -1,13 +1,16 @@
-function [] = zone_to_ttl(folder, com_use, debug)
+function [] = zone_to_ttl(folder, com_use, stim_ratio, debug)
 % Function to ID track and zones to trigger TTL out pulses
 
-if nargin < 3
-    debug = false;    
-    if nargin < 2
-        if getenv('computername') == 'MSW00866'
-            com_use = 'com7';
-        else
-            com_use = 'com5';
+if nargin < 4
+    debug = false;
+    if nargin < 3
+        stim_ratio = 0.8;
+        if nargin < 2
+            if getenv('computername') == 'MSW00866'
+                com_use = 'com7';
+            else
+                com_use = 'com5';
+            end
         end
     end
 end
@@ -130,7 +133,7 @@ theta = atan2(end_pos(3)-start_pos(3), end_pos(1) - start_pos(1));
 track_length = pdist2(end_pos, start_pos);
 
 % Calculate stim zone - middle of the track! Double check!!!
-ttl_zone = [-1/3, 1/3]*track_length/2;
+ttl_zone = [-stim_ratio, stim_ratio]*track_length/2;
 
 % Below is code if track is aligned with z-axis perfectly!!!
 track_zdist = end_pos(3) - start_pos(3);
