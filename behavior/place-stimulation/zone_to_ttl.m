@@ -1,10 +1,16 @@
-function [] = zone_to_ttl(folder, com_use, debug)
+function [] = zone_to_ttl(folder, com_use, stim_proportion, debug)
 % Function to ID track and zones to trigger TTL out pulses
+% Pin2 = trigger LED
+% Pin4 = to openephys
 
-if nargin < 3
-    debug = false;    
-    if nargin < 2
-        com_use = 'com7';
+
+if nargin < 4
+    debug = false;
+    if nargin < 3
+        stim_proportion = 0.8;
+        if nargin < 2
+            com_use = 'com5';
+        end
     end
 end
 clear global
@@ -126,7 +132,7 @@ theta = atan2(end_pos(3)-start_pos(3), end_pos(1) - start_pos(1));
 track_length = pdist2(end_pos, start_pos);
 
 % Calculate stim zone - middle of the track! Double check!!!
-ttl_zone = [-1/3, 1/3]*track_length/2;
+ttl_zone = [-stim_proportion, stim_proportion]*track_length/2;
 
 % Below is code if track is aligned with z-axis perfectly!!!
 track_zdist = end_pos(3) - start_pos(3);
@@ -289,7 +295,7 @@ pos_lin = [pos_lin; pos_s];
 % Turn TTL off if rat's position has not changed at all (most likely
 % optitrack can't find it) OR if rat is chilling within zone for greater
 % than zone_thresh seconds
-zone_thresh = 3;
+zone_thresh = 15;
 if all(delta_pos == 0) || zone_sum >= zone_thresh*SR %sqrt(sum(delta_pos.^2)) < 0.05 %
     trigger_off(ax, ht, pos_s)
     trig_on = [trig_on; 0];
