@@ -4,10 +4,12 @@
 duration = 0.007;  % total width of CCG plot...
 data_folder = '/data/Working/Other Peoples Data/HiroData';
 
+
 %% Load in data for the appropriate session
 epoch_num = 2; %1 = pre, 2 = maze, 3 = post
 [parse_spikes, SampleRate] = load_hiro_data(fullfile(data_folder,...
      'wake_new/wake-spikes.mat'), 'RoyMaze1');
+
 
 sp_times = parse_spikes.spindices(:,1);
 cell_nos = parse_spikes.spindices(:,2);

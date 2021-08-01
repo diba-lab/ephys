@@ -1,4 +1,4 @@
-classdef SWRDetectionMethodCombined < SWRDetectionMethod
+classdef SWRDetectionMethodCombined < neuro.ripple.SWRDetectionMethod
     %SWRDETECTIONMETHODRIPPLEONLY Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -7,7 +7,7 @@ classdef SWRDetectionMethodCombined < SWRDetectionMethod
     
     methods
         function obj = SWRDetectionMethodCombined(basepath)
-            obj@SWRDetectionMethod(basepath)
+            obj@neuro.ripple.SWRDetectionMethod(basepath)
         end
         
         function rippleFinalCombined = execute(obj)
@@ -17,7 +17,7 @@ classdef SWRDetectionMethodCombined < SWRDetectionMethod
                 load(cachefile,'rippleFinalCombined');
             catch
                 probe=obj.getProbe;
-                methodRip=SWRDetectionMethodRippleOnly(obj.BasePath);
+                methodRip=neuro.ripple.SWRDetectionMethodRippleOnly(obj.BasePath);
                 shanks_rip=str2double(conf.shanks_ripple);
                 for ishank=1:numel(shanks_rip)
                     ashank_rip=shanks_rip(ishank);
@@ -35,7 +35,7 @@ classdef SWRDetectionMethodCombined < SWRDetectionMethod
                     % (2) by detectSWR function
                 end
                 rippleCombinedROnly.saveEventsNeuroscope(obj.BasePath);
-                methodSW=SWRDetectionMethodSWR(obj.BasePath);
+                methodSW=neuro.ripple.SWRDetectionMethodSWR(obj.BasePath);
                 shanks_sw=str2double(conf.shanks_sw);
                 for ishank=1:numel(shanks_sw)
                     ashank_sw=shanks_sw(ishank);
@@ -64,7 +64,7 @@ classdef SWRDetectionMethodCombined < SWRDetectionMethod
         function probe=getProbe(obj)
             try
                 list=dir(fullfile(obj.BasePath,'*Probe*'));
-                probe=Probe(fullfile(list.folder,list.name));
+                probe=neuro.probe.Probe(fullfile(list.folder,list.name));
             catch
                 fprintf('No Probe File at: %s',obj.BasePath);
             end

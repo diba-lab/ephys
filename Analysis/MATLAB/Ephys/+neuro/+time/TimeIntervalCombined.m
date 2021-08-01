@@ -1,6 +1,7 @@
-classdef TimeIntervalCombined < TimeIntervalAbstract
+classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
     %TIMEINTERVALCOMBINED Summary of this class goes here
     %   Detailed explanation goes here
+
     
     properties
         timeIntervalList
@@ -8,6 +9,8 @@ classdef TimeIntervalCombined < TimeIntervalAbstract
     
     methods
         function obj = TimeIntervalCombined(varargin)
+            import neuro.time.*
+            logger=logging.Logger.getLogger;
             %TIMEINTERVALCOMBINED Construct an instance of this class
             %   Detailed explanation goes here
             timeIntervalList=CellArrayList();
@@ -15,31 +18,48 @@ classdef TimeIntervalCombined < TimeIntervalAbstract
             if nargin>0
                 el=varargin{1};
                 if isstring(el)||ischar(el)
-                    try
-                    T=readtable(el);
-                    obj=TimeIntervalCombined;
-                    for iti=1:height(T)
-                        tiRow=T(iti,:);
-                        theTimeInterval=TimeInterval(tiRow.StartTime,tiRow.SampleRate,tiRow.NumberOfPoints);
-                        timeIntervalList.add(theTimeInterval);
-                        fprintf('\nRecord addded:\n');theTimeInterval.print;
+                    if isfolder(el)
+                        timefile=dir(fullfile(el,sprintf('*TimeInterval*')));
+                        if numel(timefile)==1
+                            timefilefinal=timefile;
+                        elseif numel(timefile)>1
+                            [~,ind]=sort(datetime({timefile.date}));
+                            timefiles = timefile(flip(ind));
+                            timefilefinal=timefiles(1);
+                            logger.warning('\nMultiple Time files. Selecting the latest.\n  -->\t%s\n\t%s',timefiles.name)
+                        else
+                            logger.error('\nNo Time file found in\n\t\%s',el);
+                        end
+                        timefilepath=fullfile(timefilefinal.folder,timefilefinal.name);
+                    else
+                        timefilepath=el;
                     end
+                    try
+                        T=readtable(timefilepath);
+                        obj=TimeIntervalCombined;
+                        for iti=1:height(T)
+                            tiRow=T(iti,:);
+                            theTimeInterval=TimeInterval(tiRow.StartTime,tiRow.SampleRate,tiRow.NumberOfPoints);
+                            timeIntervalList.add(theTimeInterval);
+                            logger.fine('ti added.');
+                        end
                     catch
-                        S=load(el);
+                        S=load(timefilepath);
+                        logger.fine('til loaded.');
                         timeIntervalList=S.obj.timeIntervalList;
                     end
+                    
                 else
                     for iArgIn=1:nargin
                         theTimeInterval=varargin{iArgIn};
                         assert(isa(theTimeInterval,'TimeInterval'));
                         timeIntervalList.add(theTimeInterval);
-                        fprintf('\nRecord addded:\n');theTimeInterval.print;
+                        logger.fine('ti added.');
                     end
                 end
             end
             obj.timeIntervalList=timeIntervalList;
-%             obj.Format='dd-MMM-uuuu HH:mm:ss.SSS';
-            obj.Format='HH:mm:ss.SSS';
+            obj.Format='dd-MMM-uuuu HH:mm:ss.SSS';
         end
         
         function []=print(obj)
@@ -51,7 +71,20 @@ classdef TimeIntervalCombined < TimeIntervalAbstract
                     theTimeInterval=til.get(iInt);
                     theTimeInterval.print
                 end
-           
+        end
+        function str=tostring(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            date=datestr(obj.getDate,1);
+            st=datestr( obj.getStartTime,13);
+            en=datestr(obj.getEndTime,13);
+            dur=obj.getEndTime-obj.getStartTime;
+            dur1=datestr(dur,13);
+            sf=obj.getSampleRate;
+            np=obj.getNumberOfPoints;
+            jf=java.text.DecimalFormat; % comma for thousands, three decimal places
+            np1= char(jf.format(np)); % omit "char" if you want a string out
+            str=sprintf('\t%s \t%s - %s\t<%s>\t<%s (%dHz)>',date,st,en,dur1,np1,sf);
         end
         function new_timeIntervalCombined=getTimeIntervalForSamples(obj, times)
             %METHOD1 Summary of this method goes here
@@ -151,7 +184,7 @@ classdef TimeIntervalCombined < TimeIntervalAbstract
                 theTimeInterval=til.get(iInt);
                 ends((iInt-1)*2+1)=theTimeInterval.getStartTime;
                 ends(iInt*2)=theTimeInterval.getEndTime;
-                idx=times>=theTimeInterval.StartTime & times<=theTimeInterval.getEndTime;
+                idx=times>=theTimeInterval.getStartTime & times<=theTimeInterval.getEndTime;
                 samples(idx)=theTimeInterval.getSampleFor(times(idx))+lastSample;
                 lastSample=lastSample+theTimeInterval.NumberOfPoints;         
             end
@@ -181,11 +214,11 @@ classdef TimeIntervalCombined < TimeIntervalAbstract
                 theTimeInterval=varargin{iArgIn};
                 if ~isempty(theTimeInterval)
                     try
-                        assert(isa(theTimeInterval,'TimeInterval'));
+                        assert(isa(theTimeInterval,'neuro.time.TimeInterval'));
                         obj.timeIntervalList.add(theTimeInterval);
                         fprintf('\nRecord addded:\n');theTimeInterval.print;
                     catch
-                        assert(isa(theTimeInterval,'TimeIntervalCombined'));
+                        assert(isa(theTimeInterval,'neuro.time.TimeIntervalCombined'));
                         til=theTimeInterval.timeIntervalList.createIterator;
                         while(til.hasNext)
                             obj.timeIntervalList.add(til.next);
@@ -235,7 +268,8 @@ classdef TimeIntervalCombined < TimeIntervalAbstract
                 end
                 resArr=[resArr residuals(iInt,1):residuals(iInt,2)];
                 if exist('timeIntervalCombined','var')
-                    timeIntervalCombined=timeIntervalCombined+ds_ti;
+                    timeIntervalCombined1=timeIntervalCombined+ds_ti;
+                    timeIntervalCombined=timeIntervalCombined1;
                 else
                     timeIntervalCombined=ds_ti;
                 end
@@ -291,7 +325,7 @@ classdef TimeIntervalCombined < TimeIntervalAbstract
             til= obj.timeIntervalList;
             st=obj.getStartTime;
             
-            ti=TimeInterval(obj.getStartTime, obj.getSampleRate, obj.getNumberOfPoints);
+            ti=neuro.time.TimeInterval(obj.getStartTime, obj.getSampleRate, obj.getNumberOfPoints);
             %             tps(end)=[];
         end
         
@@ -320,14 +354,14 @@ classdef TimeIntervalCombined < TimeIntervalAbstract
             end
             T=struct2table(S);
             writetable(T,filePath);
-            ticd=TimeIntervalCombined(filePath);
+            ticd=neuro.time.TimeIntervalCombined(filePath);
         end
         function ticd=readTimeIntervalTable(obj,table)
             T=readtable(table);
-            ticd=TimeIntervalCombined;
+            ticd=neuro.time.TimeIntervalCombined;
             for iti=1:height(T)
                 tiRow=T(iti,:);
-                ti=TimeInterval(tiRow.StartTime,tiRow.SampleRate,tiRow.NumberOfPoints);
+                ti=neuro.time.TimeInterval(tiRow.StartTime,tiRow.SampleRate,tiRow.NumberOfPoints);
                 ticd=ticd+ti;
             end
         end

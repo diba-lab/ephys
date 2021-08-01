@@ -1,4 +1,4 @@
-classdef TimeInterval < TimeIntervalAbstract
+classdef TimeInterval < neuro.time.TimeIntervalAbstract
     %INTERVAL Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -22,6 +22,11 @@ classdef TimeInterval < TimeIntervalAbstract
         function []=print(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            fprintf('%s',obj.tostring);
+        end
+        function str=tostring(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
             date=datestr(obj.getDate,1);
             st=datestr( obj.getStartTime,13);
             en=datestr(obj.getEndTime,13);
@@ -32,7 +37,7 @@ classdef TimeInterval < TimeIntervalAbstract
             jf=java.text.DecimalFormat; % comma for thousands, three decimal places
             np1= char(jf.format(np)); % omit "char" if you want a string out
             
-            fprintf('\n\t%s <%s> <%s (%dHz)> \n\t%s %s\n',st,dur1,np1,sf,en,date);
+            str=sprintf('\t%s \t%s - %s\t<%s>\t<%s (%dHz)> \n',date,st,en,dur1,np1,sf);
         end
         function timeInterval=getTimeIntervalForSamples(obj, startSample, endSample)
             %METHOD1 Summary of this method goes here
@@ -45,7 +50,7 @@ classdef TimeInterval < TimeIntervalAbstract
                 endSample=obj.NumberOfPoints;
             end
             if startSample>0 && startSample<=endSample && endSample<=obj.NumberOfPoints
-                timeInterval=TimeInterval(obj.getRealTimeFor(startSample),obj.SampleRate, endSample-startSample+1);
+                timeInterval=neuro.time.TimeInterval(obj.getRealTimeFor(startSample),obj.SampleRate, endSample-startSample+1);
             else
                 timeInterval=[];
             end
@@ -129,14 +134,14 @@ classdef TimeInterval < TimeIntervalAbstract
         function timeIntervalCombined=plus(obj,timeInterval)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            timeIntervalCombined=TimeIntervalCombined(obj,timeInterval);
+            timeIntervalCombined=neuro.time.TimeIntervalCombined(obj,timeInterval);
         end
         function [timeInterval,residual]=getDownsampled(obj,downsampleFactor)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             newnumPoints=floor(obj.NumberOfPoints/downsampleFactor);
             residual=mod(obj.NumberOfPoints,downsampleFactor);
-            timeInterval=TimeInterval(obj.StartTime,...
+            timeInterval=neuro.time.TimeInterval(obj.StartTime,...
                 round(obj.SampleRate/downsampleFactor),...
                 newnumPoints);
         end
@@ -151,8 +156,12 @@ classdef TimeInterval < TimeIntervalAbstract
             st=obj.StartTime;
             st.Format=obj.Format;
         end
-        function tps=getTimePointsInSec(obj)
+        function tps=getTimePointsInSec(obj,referencetime)
             tps=0:(1/obj.SampleRate):((obj.NumberOfPoints-1)/obj.SampleRate);
+            if exist('referencetime','var')
+                diff1=seconds(obj.getStartTime-obj.getDatetime(referencetime));
+                tps=tps+diff1;
+            end
         end
         function tps=getTimePointsInAbsoluteTimes(obj)
             tps=seconds(obj.getTimePointsInSec)+obj.getStartTime;
@@ -173,7 +182,7 @@ classdef TimeInterval < TimeIntervalAbstract
             S.SampleRate=obj.SampleRate;
             T=struct2table(S);
             writetable(T,filePath)
-            ticd=TimeIntervalCombined(filePath);
+            ticd=neuro.time.TimeIntervalCombined(filePath);
         end
     end
 end

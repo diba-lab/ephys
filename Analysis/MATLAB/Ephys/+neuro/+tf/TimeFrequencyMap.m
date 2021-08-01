@@ -1,4 +1,4 @@
-classdef (Abstract) TimeFrequencyMap < Topography2D
+classdef (Abstract) TimeFrequencyMap < neuro.tf.Topography2D
     %TIMEFREQUENCYMAP Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -17,7 +17,7 @@ classdef (Abstract) TimeFrequencyMap < Topography2D
             %TIMEFREQUENCYMAP Construct an instance of this class
             %   Detailed explanation goes here
 
-            obj@Topography2D(abs(matrix),timePoints, frequencyPoints);
+            obj@neuro.tf.Topography2D(abs(matrix),timePoints, frequencyPoints);
             obj.timePoints=timePoints;
             obj.frequencyPoints=frequencyPoints;
             obj.matrix=matrix;
@@ -57,7 +57,7 @@ classdef (Abstract) TimeFrequencyMap < Topography2D
                 end
                 
             end
-            thpkfreq=EphysTimeSeries(thpkfreq,obj.getSampleRate);
+            thpkfreq=neuro.basic.   EphysTimeSeries(thpkfreq,obj.getSampleRate);
             thpkpower=EphysTimeSeries(thpkpower,obj.getSampleRate);
         end
         function [obj] = setTimeintervalCombined(obj,ticd)

@@ -45,7 +45,7 @@ classdef (Abstract) Neuroscope
                     s.parameters.anatomicalDescription.channelGroups...
                         .group{ishank}.channel{ichan}.Attributes.skip='0';
                     s.parameters.anatomicalDescription.channelGroups...
-                        .group{ishank}.channel{ichan}.Text=num2str(chan-1);
+                        .group{ishank}.channel{ichan}.Text=num2str(chan1-1);
                 end
             end
             s.parameters.spikeDetection='';
@@ -77,6 +77,7 @@ classdef (Abstract) Neuroscope
             
             [path,name,~]=fileparts(filepath);
             if isfile(fullfile(path,strcat(name,'.nrs'))), delete(fullfile(path,strcat(name,'.nrs'))); end
+            
             struct2xml(s,filepath); 
         end
         function [] = createXMLFileNotOrder(obj,filepath,samplingRate)

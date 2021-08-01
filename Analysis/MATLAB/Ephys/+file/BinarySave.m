@@ -8,7 +8,7 @@ classdef (Abstract) BinarySave
     
     methods
         
-        function [outputFile, status,cmdout]= keepChannels(obj, binaryFile, outputFile, nChannels, channels)
+        function [outputFile, status, cmdout]= keepChannels(obj, binaryFile, outputFile, nChannels, channels)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             tic
@@ -71,7 +71,7 @@ classdef (Abstract) BinarySave
             fclose(fid);
             clear a
             ctd1=obj;
-            ctd1=ctd1.setTimeIntervalCombined(ticdnew);
+            ctd1=ctd1.setTimeIntervalCombined(tic,dnew);
             ctd1=ctd1.setProbe(pr);
             ctd1=ctd1.setFile(outname);
             ctd1.save

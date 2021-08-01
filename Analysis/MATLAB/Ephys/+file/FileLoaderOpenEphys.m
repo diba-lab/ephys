@@ -88,7 +88,7 @@ classdef FileLoaderOpenEphys < FileLoaderMethod
             openEphysRecord.Channels=1:numel(channels);
             openEphysRecord.Data=Data;
             sr=str2double(oefile.EXPERIMENT.RECORDING.Attributes.samplerate);
-            openEphysRecord.TimeInterval=TimeInterval(starttime,sr,samples);
+            openEphysRecord.TimeInterval=neuro.time.TimeInterval(starttime,sr,samples);
             openEphysRecord.DataFile=newlfpfileName;
             
         end

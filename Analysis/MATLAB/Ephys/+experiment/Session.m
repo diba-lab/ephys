@@ -16,19 +16,22 @@ classdef Session
         function obj = Session(baseFolder)
             %SESSION Construct an instance of this class
             %   Detailed explanation goes here
-            params=SDExperiment.instance.get;
+            logger=logging.Logger.getLogger;
+            params=experiment.SDExperiment.instance.get;
             %% SessionInfo
             sessionInfoFile=fullfile(baseFolder,params.FileLocations.Session.SessionInfo);
             folder=fileparts(sessionInfoFile);
             if ~isfolder(folder), mkdir(folder);end
             try 
                 sessionInfo=readstruct(sessionInfoFile);
+                logger.info('Session info file is loaded.')
             catch
                 sessionInfo.baseFolder=baseFolder;
                 sessionInfo.Date='';
                 sessionInfo.Notes='';
                 sessionInfo.Condition='';                
                 writestruct(sessionInfo,sessionInfoFile)
+                logger.info(strcat('No session info file. It is created.\t', sessionInfoFile))
             end
             obj.SessionInfoFile=sessionInfoFile;
             obj.SessionInfo=sessionInfo;
@@ -36,6 +39,7 @@ classdef Session
             blockFile=fullfile(baseFolder,params.FileLocations.Session.Blocks);
             try 
                 blockstt=readtimetable(blockFile,'Delimiter',',');
+                logger.info('Experimental Block file is loaded.')
             catch
                 blocks=params.Blocks.Block;
                 blockstt=[];
@@ -46,15 +50,21 @@ classdef Session
                     blockstt=[blockstt; timetable(t1, t2, Block)]; %#ok<AGROW>
                 end             
                 writetimetable(blockstt,blockFile);
+                logger.info(strcat('No experimental blocks file. It is created.\t', blockFile))
             end
-            sdblock= SDBlocks(obj.SessionInfo.Date,blockstt);
+            sdblock=experiment.SDBlocks(obj.SessionInfo.Date,blockstt);
             obj.Blocks=sdblock;
+            logger.info(sdblock.print)
             %% Probe
+            key=fullfile(baseFolder,strcat('*Probe*.xlsx'));
+            list=dir(key);
             try
-                list=dir(fullfile(baseFolder,strcat('*Probe*.xlsx')));
-                probe=Probe(fullfile(list.folder,list.name));
+                probe=neuro.probe.Probe(fullfile(list().folder,list.name));
                 obj.Probe=probe;
+                logger.info('Probe file is loaded.')
+                logger.info(probe.print)
             catch
+                logger.info(strcat('No probe file. ', key))
             end
 
         end
@@ -67,14 +77,14 @@ classdef Session
         function obj = setProbe(obj,probe)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperiment.instance.get;
             probeFile=fullfile(obj.SessionInfo.baseFolder,sde.FileLocations.Session.Probe);
             if nargin>1
                 obj.Probe = probe;
                 
             else
                 % load templateProbe
-                obj.Probe=Probe(sde.FileLocations.General.ProbeTemplate); %#ok<CPROPLC>
+                obj.Probe=neuro.probe.Probe(sde.FileLocations.General.ProbeTemplate); %#ok<CPROPLC>
                 warning('No Probe File. Template is loaded.');
             end
             obj.Probe.saveProbeTable(probeFile);
@@ -106,7 +116,7 @@ classdef Session
         function data = getDataLFP(obj,varargin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            pr=Preprocess(obj);
+            pr=preprocessing.Preprocess(obj);
             data=pr.getDataForLFP;
         end
         function data = getDataClustering(obj,varargin)

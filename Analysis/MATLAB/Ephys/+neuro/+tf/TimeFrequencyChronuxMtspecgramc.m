@@ -1,4 +1,4 @@
-classdef TimeFrequencyChronuxMtspecgramc < TimeFrequencyMethod
+classdef TimeFrequencyChronuxMtspecgramc < neuro.tf.TimeFrequencyMethod
     %TIMEFREQUENCYPROPERTIESWAVELET Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -22,7 +22,7 @@ classdef TimeFrequencyChronuxMtspecgramc < TimeFrequencyMethod
 %                                                 to be consistent with
 %                                                 units of Fs - required
 
-            obj = obj@TimeFrequencyMethod(frequencyInterests);
+            obj = obj@neuro.tf.TimeFrequencyMethod(frequencyInterests);
             obj.fpass=frequencyInterests;
             obj.movingWindow=movingWindow;
             if nargin>4
@@ -47,7 +47,7 @@ classdef TimeFrequencyChronuxMtspecgramc < TimeFrequencyMethod
             params.fpass=[obj.FrequencyInterest(1) obj.FrequencyInterest(end)];
             params.Fs=Fs;
             [matrix,t,f]=mtspecgramc(data,movingwin,params);
-            aTimeFrequencyMap=TimeFrequencyMapChronuxMtspecgramc(...
+            aTimeFrequencyMap=neuro.tf.TimeFrequencyMapChronuxMtspecgramc(...
                 matrix, seconds(t), f);
         end
     end

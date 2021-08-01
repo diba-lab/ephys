@@ -1,4 +1,4 @@
-classdef OptiFileCombined < Timelined
+classdef OptiFileCombined < neuro.time.Timelined
     %OPTIFILECOMBINED Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -11,7 +11,7 @@ classdef OptiFileCombined < Timelined
             optiFiles=CellArrayList();
             for iArgIn=1:nargin
                 optifile=varargin{iArgIn};
-                assert(isa(optifile,'OptiFile'));
+                assert(isa(optifile,'optiTrack.OptiFile'));
                 optiFiles.add(optifile);
             end
             obj.OptiFiles=optiFiles;
@@ -19,7 +19,7 @@ classdef OptiFileCombined < Timelined
         function obj=plus(obj,varargin)
             for iArgIn=1:(nargin-1)
                 optifile=varargin{iArgIn};
-                assert(isa(optifile,'OptiFile'));
+                assert(isa(optifile,'optiTrack.OptiFile'));
                 obj.OptiFiles.add(optifile);
             end
         end
@@ -52,7 +52,7 @@ classdef OptiFileCombined < Timelined
             X=table1.X;
             Y=table1.Y;
             Z=table1.Z;
-            locationData=LocationData(X,Y,Z,tic1);
+            locationData=optiTrack.LocationData(X,Y,Z,tic1);
         end
         function ofssorted=getSorted(obj)
             ofs=obj.OptiFiles;

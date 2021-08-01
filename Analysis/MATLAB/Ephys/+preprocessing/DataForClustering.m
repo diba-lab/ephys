@@ -65,7 +65,7 @@ classdef DataForClustering
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             %% TODO
-            folder='C:\MatlabUtku\DibaLabEphys\Analysis\MATLAB\Ephys\ExperimentSpecific\Configure\Kilosort';
+            folder='/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/Configure/Kilosort';
             S=readstruct(fullfile(folder,'Kilosort.xml'));
             probe=obj.getProbe;
             dataFile=obj.getDataFile;
@@ -78,7 +78,7 @@ classdef DataForClustering
             rootH = S.SSDFolder; % path to temporary binary file (same size as data, should be on fast SSD)
             pathToYourConfigFile = folder; % take from Github folder and put it somewhere else (together with the master_file)
             
-            kcm=KilosortChannelMap(probe,ticd.getSampleRate);
+            kcm=preprocessing.cluster.kilosort.KilosortChannelMap(probe,ticd.getSampleRate);
             chanMapFile=fullfile(rootZ,'chanMap.mat');
             kcm.createChannelMapFile(chanMapFile);
             
@@ -96,6 +96,10 @@ classdef DataForClustering
             % main parameter changes from Kilosort2 to v2.5
             
             ops.fbinary = dataFile;
+            %% Based on the comment in github issue https://github.com/MouseLand/Kilosort/issues/333
+            % see also https://www.mathworks.com/matlabcentral/answers/309235-can-i-use-my-nvidia-pascal-architecture-gpu-with-matlab-for-gpu-computing
+            % 
+            setenv("CUDA_CACHE_MAXSIZE","1073741824");%% bytes, 1GB -->1024*1024*1024. Default is 32MB.
             %%
             rez                = preprocessDataSub(ops);
             rez                = datashift2(rez, 1);

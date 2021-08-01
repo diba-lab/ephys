@@ -1,4 +1,4 @@
-classdef EphysTimeSeries < Oscillation
+classdef EphysTimeSeries < neuro.basic.Oscillation
     %EPHYSTIMESERIES Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -11,7 +11,7 @@ classdef EphysTimeSeries < Oscillation
         function obj = EphysTimeSeries(values,sampleRate,name)
             %EPHYSTIMESERIES Construct an instance of this class
             %   Detailed explanation goes here
-            obj=obj@Oscillation(values,sampleRate);
+            obj=obj@neuro.basic.Oscillation(values,sampleRate);
 
             if exist('name','var')
                 obj.Name=name;

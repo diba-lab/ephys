@@ -22,10 +22,92 @@ fs = 44100
 volume = 1.0
 ITI_range = 20  # +/- this many seconds for each ITI
 
+# Define dictionaries for experimental parameters
+# Keep the original params from Gilmartin2013 here for reference - used a different scheme (CSshort and CSlong) vs CS1, CS2 ...
+params_archive = {
+    "Gilmartin2013": {
+        "alias": "Pilot1",
+        "recall_params": {
+            "baseline_time": 120,
+            "CSshort": 10,
+            "ITI": 120,
+            "ITI_range": 0,
+            "CSlong": 300,
+            "start_buffer": 6 * 60,
+        },
+        "training_params": {
+            "tone_dur": 10,
+            "trace_dur": 20,
+            "shock_dur": 1,
+            "ITI": 240,
+            "ITI_range": 20,
+            "nshocks": 6,
+        },
+    }
+}
+
+# Here's the updated list
+params = {
+    "Pilot1": {
+        "alias": "Gilmartin2013",
+        "training_params": {
+            "tone_dur": 10,
+            "trace_dur": 20,
+            "shock_dur": 1,
+            "ITI": 240,
+            "ITI_range": 20,
+            "nshocks": 6,
+            "start_buffer": 6 * 60,
+        },
+        "recall_params": {
+            "baseline_time": 120,
+            "CStimes": [10, 300],
+            "ITI": 120,
+            "ITI_range": 0,
+        },
+    },
+    "Pilot2": {
+        "alias": "Pilot2",
+        "training_params": {
+            "tone_dur": 10,
+            "trace_dur": 20,
+            "shock_dur": 1,
+            "ITI": 240,
+            "ITI_range": 20,
+            "nshocks": 6,
+            "start_buffer": 6 * 60,
+        },
+        "recall_params": {
+            "baseline_time": 180,
+            "CStimes": [10, 10, 10, 10, 10, 10],
+            "ITI": 60,
+            "ITI_range": 10,
+        },
+    },
+    "Pilot2test": {
+        "alias": "Pilot2",
+        "training_params": {
+            "tone_dur": 3,
+            "trace_dur": 2,
+            "shock_dur": 1,
+            "ITI": 5,
+            "ITI_range": 1,
+            "nshocks": 6,
+            "start_buffer": 6,
+        },
+        "recall_params": {
+            "baseline_time": 12,
+            "CStimes": [3, 3, 3, 3, 3, 3],
+            "ITI": 3,
+            "ITI_range": 1,
+        },
+    },
+}
+
 default_port = {
     "linux": "/dev/ttyACM0",
     "windows": "COM7",
-}  # NRK TODO: fold this into below!
+}
 
 
 class trace:
@@ -33,36 +115,22 @@ class trace:
         self,
         arduino_port="COM7",
         tone_type="white",
-        tone_dur=10,
-        trace_dur=20,
-        shock_dur=1,
-        ITI=240,
+        paradigm="Pilot2",
         tone_freq=None,
-        nshocks=6,
         volume=1.0,
-        start_buffer=6 * 60,
         base_dir=Path.home(),
     ):
+        assert paradigm in params.keys()
+        self.params = params[paradigm]
         print(
             "Initializing trace fc class with "
-            + str(tone_dur)
-            + " second tone, "
-            + str(trace_dur)
-            + " second trace, and "
-            + str(shock_dur)
-            + " second shock"
+            + str(self.params["alias"])
+            + " parameters"
         )
-        self.tone_dur = tone_dur
-        self.trace_dur = trace_dur
-        self.shock_dur = shock_dur
         self.tone_freq = tone_freq
         self.arduino_port = arduino_port
         self.tone_type = tone_type
-        self.ITI = ITI
-        self.ITI_range = ITI_range
-        self.nshocks = nshocks
         self.volume = volume
-        self.start_buffer = start_buffer  # seconds before 1st trial.
         self.base_dir = base_dir
         self.p, self.stream = tones.initialize_player(channels=1, rate=20100)
         self.csv_path = None
@@ -70,46 +138,95 @@ class trace:
         # # First connect to the Arduino - super important
         # self.initialize_arduino(self.arduino_port)
 
-        # Next create tone
+        # Next create tone for training
         self.tone_samples = self.create_tone(
-            tone_type=tone_type, duration=tone_dur, freq=tone_freq
+            tone_type=tone_type,
+            duration=params[paradigm]["training_params"]["tone_dur"],
+            freq=tone_freq,
         )
 
     def run_training_session(self, test=False):
         """Runs training session."""
-
+        training_params = self.params["training_params"]
         if not test:
-            ITIuse = [self.generate_ITI() for _ in range(0, self.nshocks)]
+            ITIuse = [
+                self.generate_ITI(training_params["ITI"], training_params["ITI_range"])
+                for _ in range(0, training_params["nshocks"])
+            ]
 
             # # start video if using trace class to trigger experiment start.
             # if not video_start:
             #     self.board.digital[self.video_io_pin].write(1)
             print("Initial exploration period started")
             self.write_event("start_exploration")
-            sleep_timer(self.start_buffer)
+            sleep_timer(training_params["start_buffer"])
             self.write_event("end_exploration")
         elif test:  # generate 3 second ITI
-            ITIuse = np.ones(self.nshocks).astype("int") * 3
+            ITIuse = np.ones(training_params["nshocks"]).astype("int") * 3
 
         for idt, ITIdur in enumerate(ITIuse):
             print("Starting trial " + str(idt + 1))
 
             # Run trial
-            self.write_event("trial_" + str(idt) + "_start")
-            self.run_trial(test_run=test)
-            self.write_event("trial_" + str(idt) + "_end")
+            self.write_event("trial_" + str(idt + 1) + "_start")
+            self.run_trial(test_run=test, trial=idt + 1)
+            self.write_event("trial_" + str(idt + 1) + "_end")
 
             # Run ITI
             print("Starting " + str(ITIdur) + " second ITI")
-            self.write_event("ITI_" + str(idt) + "_start")
+            self.write_event("ITI_" + str(idt + 1) + "_start")
             sleep_timer(ITIdur)
-            self.write_event("ITI_" + str(idt) + "_end")
+            self.write_event("ITI_" + str(idt + 1) + "_end")
 
         if not test:
             self.ITIdata = ITIuse
 
-    def run_tone_recall(self, baseline_time=120, CSshort=10, ITI=120, CSlong=300):
-        """Run tone recall session with baseline exploration time, short CS, ITI, and long CS"""
+    def run_tone_recall(self):
+        """Run tone recall session using params in specified paradigm"""
+
+        # Grab correct parameters
+        recall_params = self.params["recall_params"]
+
+        # Next, create tones
+        tones_use = [
+            self.create_tone(
+                tone_type=self.tone_type, duration=CStime, freq=self.tone_freq
+            )
+            for CStime in recall_params["CStimes"]
+        ]
+
+        # Last, generate ITIs
+        ITIuse = [
+            self.generate_ITI(recall_params["ITI"], recall_params["ITI_range"])
+            for _ in recall_params["CStimes"]
+        ]
+
+        # Start with baseline exploration period
+        baseline_time = recall_params["baseline_time"]
+        print("Starting " + str(baseline_time) + " sec baseline exploration period")
+        self.write_event("baseline_start")
+        sleep_timer(baseline_time)
+        self.write_event("baseline_end")
+
+        # Now start playing the tone!
+        for idt, (tone, CStime, ITIdur) in enumerate(
+            zip(tones_use, recall_params["CStimes"], ITIuse)
+        ):
+            print("Starting trial " + str(idt + 1))
+            print(str(CStime) + " sec tone playing now")
+            self.write_event("CS" + str(idt + 1) + "_start")
+
+            tones.play_tone(self.stream, tone, volume)
+            self.write_event("CS" + str(idt + 1) + "_end")
+
+            print(str(ITIdur) + " sec ITI starting now")
+            sleep_timer(ITIdur)
+
+    def run_tone_recall_archive(
+        self, baseline_time=120, CSshort=10, ITI=120, CSlong=300
+    ):
+        """Run tone recall session with baseline exploration time, short CS, ITI, and long CS - legacy from first version
+        of class for Pilot1(Gilmartin2013) only"""
         self.tone_recall_params = {
             "baseline_time": baseline_time,
             "CSshort": CSshort,
@@ -148,10 +265,21 @@ class trace:
         sleep_timer(60)
         self.write_event("final_explore_end")
 
-    def generate_ITI(self):
-        return self.ITI + np.random.random_integers(
-            low=-self.ITI_range, high=self.ITI_range
-        )
+    def generate_ITI(self, ITI, ITI_range):
+        return ITI + np.random.random_integers(low=-ITI_range, high=ITI_range)
+
+    def send_recording_sync(self, length_min):
+        """Send sync signal out to recording system(s) """
+
+        self.initialize_arduino()
+        print("Sending recording sync signal")
+        self.board.digital[self.record_sync_pin].write(1)
+
+        # Now sleep until recording length has elapsed
+        sleep_timer(length_min)
+
+        # End signal
+        self.board.digital[self.record_sync_pin].write(1)
 
     def start_experiment(self, session, test_run=False, force_start=False):
         """Starts running ALL experiments when video tracking starts.
@@ -171,19 +299,22 @@ class trace:
 
         # First connect to the Arduino - super important
         print("Initializing arduino")
-        self.initialize_arduino(self.arduino_port)
+        video_start_bool = not force_start
+        self.initialize_arduino(self.arduino_port, video_start=video_start_bool)
 
         # Print update to screen
         if not force_start:
             print("Experiment initialized. Waiting for video triggering")
         else:
             print("Force starting experiment")
+            self.board.digital[self.video_io_pin].write(1)  # write to video pin
 
         # Now set up while loop to start once you get TTL to video i/o pin
         started = False
         while not started:
             if self.board.digital[self.video_io_pin].read() or force_start:
                 print("Experiment triggered by video (or forced)!")
+                self.board.digital[self.record_sync_pin].write(1)
                 self.start_time = time.time()
                 self.start_datetime = datetime.now()
                 self.csv_path = self.base_dir / (
@@ -197,7 +328,9 @@ class trace:
                 tones.play_flat_tone(duration=0.5, f=1000.0)
                 self.write_event("end_sync_tone")
 
-                self.write_event("video_start")  # write first line to csv
+                self.write_event(
+                    "video_start"
+                )  # write first line to csv - note this is off - should be same as start tone time.
                 if session == "training":
                     self.run_training_session(test=test_run)
                 elif session in [
@@ -237,12 +370,12 @@ class trace:
 
     # NRK TODO: Make trace.run_tone_recall() input consistent - keep at top during initialization?
 
-    def run_trial(self, test_run):
+    def run_trial(self, test_run, trial=""):
 
         if not test_run:
             tone_use = self.tone_samples
-            trace_dur_use = self.trace_dur
-            shock_dur_use = self.shock_dur
+            trace_dur_use = self.params["training_params"]["trace_dur"]
+            shock_dur_use = self.params["training_params"]["shock_dur"]
         elif (
             test_run
         ):  # Run test with 1 second tone, 2 second trace, and 3 second shock
@@ -253,35 +386,41 @@ class trace:
             shock_dur_use = 1
 
         # play tone
-        self.write_event("tone_start")
+        self.write_event("tone" + str(trial) + "_start")
         tones.play_tone(self.stream, tone_use, volume)
-        self.write_event("tone_end")
+        self.write_event("tone" + str(trial) + "_end")
 
         # start trace period
         print(str(trace_dur_use) + " sec trace period started")
-        self.write_event("trace_start")
+        self.write_event("trace" + str(trial) + "_start")
         sleep_timer(trace_dur_use)
-        self.write_event("trace_end")
+        self.write_event("trace" + str(trial) + "_end")
 
         # administer shock
-        self.write_event("shock_start")
+        print('Degrounding shock floor')
+        self.board.digital[self.shock_relay_pin].write(0)  # signal to solid-state relay - send to floating ground
+        time.sleep(0.05) # make sure you give enough time for relay to switch over before shocking.
+        print("Shock!")
+        self.write_event("shock" + str(trial) + "_start")
         self.board.digital[self.shock_box_pin].write(1)  # signal to shock box
-        self.board.digital[self.shock_io_pin].write(1)  # TTL to Intan. Necessary?
         time.sleep(shock_dur_use)
         self.board.digital[self.shock_box_pin].write(0)  # stop shock signal
-        self.board.digital[self.shock_io_pin].write(0)  # TTL off to Intan. Necessary?
-        self.write_event("shock_end")
+        self.write_event("shock" + str(trial) + "_end")
+        time.sleep(0.05)
+        self.board.digital[self.shock_relay_pin].write(1)  # signal to solid-state relay - send to floating ground
+        print('Shock floor re-grounded')
+
 
     def initialize_arduino(
         self,
         port="COM7",
         shock_box_pin=2,
-        shock_io_pin=7,
+        shock_relay_pin=7,
         video_io_pin=9,
+        record_sync_pin=12,
         video_start=True,
     ):
-        """20210202: No try/except for now because I want to see an error when setting things up for now!
-        Not sure shock_io_pin is entirely necessary - just send shock_box_pin to both shock box and open ephys"""
+        """20210202: No try/except for now because I want to see an error when setting things up for now!"""
         # try:
         self.board = pyfirmata.Arduino(port)
         if video_start:
@@ -297,8 +436,13 @@ class trace:
         #     print('Check connections and port and run ""trace.initialize_arduino"" again')
         #     board = None
         self.shock_box_pin = shock_box_pin
-        self.shock_io_pin = shock_io_pin
+        self.shock_relay_pin = shock_relay_pin
         self.video_io_pin = video_io_pin
+        self.record_sync_pin = record_sync_pin
+
+        # Make sure you always start out setting shock_relay_pin to 1 to ground box.
+        print('Grounding shock floor')
+        self.board.digital[self.shock_relay_pin].write(1)
 
         # initialize cleanup function
         atexit.register(shutdown_arduino, self.board)

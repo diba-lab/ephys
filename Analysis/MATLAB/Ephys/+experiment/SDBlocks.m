@@ -16,6 +16,7 @@ classdef SDBlocks
         function obj = SDBlocks(date,T)
             %EXPERIMENTBLOCKTIMES Construct an instance of this class
             %   Detailed explanation goes here
+
             obj.TimeTable=T;
             obj.Date=date;
         end
@@ -25,6 +26,9 @@ classdef SDBlocks
             idx=true(size(blocks));
             if nargin>1
                 idx=ismember(blocks,varargin);
+                if any(ismember({'SD','NSD'}, varargin))
+                    idx=ismember(blocks,{'SD','NSD','SD_NSD'});
+                end
             end
             block=T(idx,:);
             wind=[block.t1 block.t2];
@@ -40,6 +44,17 @@ classdef SDBlocks
         end
         function date = getDate(obj)
             date=obj.Date;
+        end
+        function str = print(obj)
+            t=obj.TimeTable;
+            date=obj.getDate;
+            str=sprintf('%s',datestr(date));
+            for ib=1:height(t)
+                t1=t(ib,:);
+                strs{ib}=sprintf('%s <%s-%s>', t1.Block{1},...
+                    datestr(t1.t1,15), datestr(t1.t2,15));
+            end
+            str=sprintf('\n%s\n\t%s',str,strjoin(strs,';\t'));
         end
     end
 end

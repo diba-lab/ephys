@@ -8,6 +8,7 @@ classdef BuzcodeFactory
     
     methods (Static)
         function buzcodeStructure = getBuzcode(filepath)
+            import buzcode.*
             if ~exist('filepath','var')
                 buzcodeStructure=BuzcodeStructure();
             elseif isa(filepath,'OpenEphysRecord')

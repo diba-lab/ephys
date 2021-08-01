@@ -11,7 +11,7 @@ classdef SessionFactory
             %SESIONFACTORY Construct an instance of this class
             %   Detailed explanation goes here
             if nargin==0
-                S=SDExperiment.instance.get();
+                S=experiment.SDExperiment.instance.get();
                 T=readtable(S.FileLocations.General.Sessions,'Delimiter',',');
             else
                 
@@ -27,8 +27,8 @@ classdef SessionFactory
                 t_sub=obj.getSessionsTable(varargin{:});
             end
             for ifile=1:height(t_sub)
-                aSession=Session(t_sub.Filepath{ifile});
-                af=AnimalFactory;
+                aSession=experiment.Session(t_sub.Filepath{ifile});
+                af=experiment.AnimalFactory;
                 animal=af.getAnimals(t_sub.animal{ifile});
                 aSession=aSession.setAnimal(animal);
                 aSession=aSession.setCondition(t_sub.Condition{ifile});

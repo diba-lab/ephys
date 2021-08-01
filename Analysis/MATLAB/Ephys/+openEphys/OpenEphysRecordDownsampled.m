@@ -1,4 +1,4 @@
-classdef OpenEphysRecordDownsampled < OpenEphysRecord
+classdef OpenEphysRecordDownsampled < openEphys.OpenEphysRecord
     %OPENEPHYSRECORD Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -8,7 +8,7 @@ classdef OpenEphysRecordDownsampled < OpenEphysRecord
     
     methods
         function obj = OpenEphysRecordDownsampled(filename)
-            obj = obj@OpenEphysRecord(filename);
+            obj = obj@openEphys.OpenEphysRecord(filename);
             fileLoaderMethod=obj.getFileLoaderMethod;
             
             oeProperties = fileLoaderMethod.load();
@@ -20,7 +20,7 @@ classdef OpenEphysRecordDownsampled < OpenEphysRecord
         end
         function stateDetectionData = getStateDetectionData(obj,update)
             sessionStruct=BuzcodeFactory.getBuzcode(obj);
-            stateDetectionBuzcode=StateDetectionBuzcode();
+            stateDetectionBuzcode=buzcode.StateDetectionBuzcode();
             stateDetectionBuzcode=stateDetectionBuzcode.setBuzcodeStructer(sessionStruct);
             %     stateDetectionBuzcode.overwriteEMGFromLFP
             stateDetectionData=stateDetectionBuzcode.getStates(update);

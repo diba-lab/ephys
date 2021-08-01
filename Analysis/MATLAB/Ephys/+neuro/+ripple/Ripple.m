@@ -1,4 +1,4 @@
-classdef Ripple < RippleAbs
+classdef Ripple < neuro.ripple.RippleAbs
     %RIPPLE Summary of this class goes here
     %   Detailed explanation goes here
     

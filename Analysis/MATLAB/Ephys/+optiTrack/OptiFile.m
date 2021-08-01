@@ -1,4 +1,4 @@
-classdef OptiFile < Timelined
+classdef OptiFile < neuro.time.Timelined
     %OPTIFILE Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -72,7 +72,7 @@ classdef OptiFile < Timelined
         end
         
         function newOptiFileCombined = plus(obj,optiFileToAdd)
-            newOptiFileCombined=OptiFileCombined(obj,optiFileToAdd);
+            newOptiFileCombined=optiTrack.OptiFileCombined(obj,optiFileToAdd);
         end
         function ts = getTimestamps(obj)
             startDate=obj.CaptureStartTime;
@@ -92,7 +92,7 @@ classdef OptiFile < Timelined
             startTime=obj.getStartTime;
             sampleRate=obj.getSampleRate;
             numPoints=obj.getNumFrames;
-            ti=TimeInterval(startTime,sampleRate,numPoints);
+            ti=neuro.time.TimeInterval(startTime,sampleRate,numPoints);
         end
     end
 end

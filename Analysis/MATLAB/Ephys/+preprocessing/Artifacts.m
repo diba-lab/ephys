@@ -11,7 +11,7 @@ classdef Artifacts
     end
     
     methods
-        function obj = Artifacts(preprocess,combinedBad,ch_ds,artifacts_freq,power)
+        function obj = Artifacts(preprocess, combinedBad, ch_ds, artifacts_freq,power)
             %ARTIFACTS Construct an instance of this class
             %   Detailed explanation goes here
             obj.Table = combinedBad;
@@ -74,6 +74,19 @@ classdef Artifacts
                 theartifacts_freq=obj.artifacts_freq{ifreq};
                 theartifacts_freq.plot()
                 ylabel(sprintf('Power (zscored) %d-%d Hz',freqs(ifreq,:)))
+            end
+        end
+        function saveBadTimesForClustering(obj)
+            t=obj.Table;
+            t.saveForClusteringSpyKingCircus('dead.txt');
+        end
+        function saveBadTimesForNeuroscope(obj)
+            t=obj.Table;
+            data=obj.Preprocess.getDataForClustering;
+            for ish=1:numel(data)
+                sh1=data(ish);
+                file=dir(sh1.getDataFile);
+                t.saveForNeuroscope(file.folder)
             end
         end
     end

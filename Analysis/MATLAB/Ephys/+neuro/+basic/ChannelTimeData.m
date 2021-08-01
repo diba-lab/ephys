@@ -1,4 +1,4 @@
-classdef ChannelTimeData < BinarySave
+classdef ChannelTimeData < file.BinarySave
     %COMBINEDCHANNELS Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -11,41 +11,52 @@ classdef ChannelTimeData < BinarySave
     
     methods
         function newObj = ChannelTimeData(filepath)
-            if ~exist('filepath','var')
-                defpath='/data/EphysAnalysis/SleepDeprivationData/';
-                defpath1={'*.eeg;*.lfp;*.dat;*.mat','Binary Record Files (*.eeg,*.lfp,*.dat)'};
-                title='Select basepath';
-                [file,filepath,~] = uigetfile(defpath1, title, defpath,'MultiSelect', 'off');
-            end
-            if isfolder(filepath)
-                folder=filepath;
+            if isa(filepath,'neuro.basic.ChannelTimeData')
+                newObj=filepath;
             else
-                [folder,~,~]=fileparts(filepath);
-            end
-            exts={'.lfp','.eeg','.dat'};
-            for iext=1:numel(exts)
-                theext=exts{iext};
-                thefile=dir(fullfile(folder,['*' theext]));
-                if numel(thefile)>0
-                    break
+                exts={'.lfp','.eeg','.dat'};
+                logger=logging.Logger.getLogger;
+                if ~exist('filepath','var')
+                    defpath='/data/EphysAnalysis/SleepDeprivationData/';
+                    defpath1={'*.eeg;*.lfp;*.dat;*.mat','Binary Record Files (*.eeg,*.lfp,*.dat)'};
+                    title='Select basepath';
+                    [file,folder,~] = uigetfile(defpath1, title, defpath,'MultiSelect', 'off');
+                    for iext=1:numel(exts)
+                        theext=exts{iext};
+                        thefile=dir(fullfile(folder,['*' theext]));
+                        if numel(thefile)>0
+                            break
+                        end
+                    end
+                elseif isfolder(filepath)
+                    folder=filepath;
+                    for iext=1:numel(exts)
+                        theext=exts{iext};
+                        thefile=dir(fullfile(folder,['*' theext]));
+                        if numel(thefile)>0
+                            break
+                        end
+                    end
+                elseif isfile(filepath)
+                    thefile=dir(filepath);
+                    folder=thefile.folder;
                 end
-            end
-            probefile=dir(fullfile(folder,'*Probe*'));
-            probe=Probe(fullfile(probefile.folder,probefile.name));
-            chans=probe.getActiveChannels;
-            numberOfChannels=numel(chans);
-            newObj.Probe=probe;
-            samples=thefile.bytes/2/numberOfChannels;
-            newObj.Data=memmapfile(fullfile(thefile.folder,thefile.name),...
-                'Format',{'int16' [numberOfChannels samples] 'mapped'});
-            timeFile=dir(fullfile(folder,'*TimeInterval*'));
-            try
-                s=load(fullfile(timeFile.folder,timeFile.name));
-                fnames=fieldnames(s);
-                newObj.TimeIntervalCombined=s.(fnames{1});
-            catch
+                if numel(thefile)>1
+                    logger.warning('\nMultiple files: selecting the first one.\n\t%s\n\t%s',thefile.name)
+                    thefile=thefile(1);
+                end
+                
+                probe=neuro.probe.Probe(folder);
+                logger.info(probe.toString)
+                chans=probe.getActiveChannels;
+                numberOfChannels=numel(chans);
+                newObj.Probe=probe;
+                samples=thefile.bytes/2/numberOfChannels;
+                newObj.Data=memmapfile(fullfile(thefile.folder,thefile.name),...
+                    'Format',{'int16' [numberOfChannels samples] 'mapped'});
+                
                 try
-                    newObj.TimeIntervalCombined=TimeIntervalCombined(fullfile(timeFile.folder,timeFile.name));
+                    newObj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(folder);
                 catch
                     numberOfPoints=samples;
                     prompt = {'Start DateTime:','SampleRate:'};
@@ -55,15 +66,26 @@ classdef ChannelTimeData < BinarySave
                     answer = inputdlg(prompt,dlgtitle,dims,definput);
                     startTime=datetime(answer{1},'InputFormat','dd-MMM-yyyy HH:mm:ss');
                     sampleRate=str2num(answer{2});
-                    ti=TimeInterval(startTime, sampleRate, numberOfPoints);
-                    ticd=TimeIntervalCombined(ti);
+                    ti=neuro.time.TimeInterval(startTime, sampleRate, numberOfPoints);
+                    ticd=neuro.time.TimeIntervalCombined(ti);
                     ticd.save(folder);
                     newObj.TimeIntervalCombined=ticd;
                 end
+                logger.info(newObj.TimeIntervalCombined.tostring)
+                newObj.Filepath=newObj.Data.Filename;
             end
-            newObj.Filepath=newObj.Data.Filename;
         end
-        
+        function str=toString(obj)
+            ticd=obj.TimeIntervalCombined;
+            probe=obj.Probe;
+            file1=dir(obj.Filepath);
+            GB=file1.bytes/1024/1024/1024;
+            str=sprintf('\n%s (%.2fGB)\n%s\n%s', obj.Filepath, GB, ticd.tostring, probe.toString);
+        end
+        function chnames=getChannelNames(obj)
+            probe=obj.Probe;
+            chnames=probe.getActiveChannels;
+        end
         function ch = getChannel(obj,channelNumber)
             ticd=obj.getTimeIntervalCombined;
             probe=obj.Probe;
@@ -72,7 +94,7 @@ classdef ChannelTimeData < BinarySave
             datamemmapfile=obj.Data;
             datamat=datamemmapfile.Data;
             voltageArray=datamat.mapped(index,:);
-            ch=Channel(channelNumber,voltageArray,ticd);
+            ch=neuro.basic.Channel(channelNumber,voltageArray,ticd);
         end
         function LFP = getChannelsLFP(obj,channelNumber)
             ticd=obj.getTimeIntervalCombined;
@@ -93,7 +115,8 @@ classdef ChannelTimeData < BinarySave
         function newobj = getDownSampled(obj, newRate, newFileName)
             if nargin>2
             else
-                newFolder=fileparts(obj.Filepath);
+                [newFolder,name,ext]=fileparts(obj.Filepath);
+                newFileName=fullfile(newFolder, sprintf('%s_%dHz.lfp',name,newRate));
             end
             ticd=obj.TimeIntervalCombined;
             currentRate=ticd.getSampleRate;
@@ -102,7 +125,7 @@ classdef ChannelTimeData < BinarySave
             numberOfChannels=numel(chans);
             currentFileName=obj.Filepath;
             
-             [folder1,name,~]=fileparts(newFileName);
+            [folder1,name,~]=fileparts(newFileName);
             if ~exist(folder1,'dir'), mkdir(folder1);end
             probe.saveProbeTable(fullfile(folder1,strcat(name, '.Probe.xlsx')));
             ticd=ticd.getDownsampled(currentRate/newRate);
@@ -114,7 +137,7 @@ classdef ChannelTimeData < BinarySave
                     currentRate, newRate, numberOfChannels,...
                     currentFileName, newFileName));
             end
-            newobj=ChannelTimeData(newFileName);
+            newobj=neuro.basic.ChannelTimeData(newFileName);
         end
         %         function [] = plot(obj,varargin)
         %             try
@@ -172,11 +195,11 @@ classdef ChannelTimeData < BinarySave
             [folder,name,~]=fileparts(obj.Filepath);
             %% Probe, XML
             pr=obj.Probe;
-            pr.saveProbeTable(fullfile(folder,strcat(name,'_Probe.xlsx')));
+            pr.saveProbeTable(fullfile(folder,strcat(name,'.Probe.xlsx')));
             pr.createXMLFile(fullfile(folder,strcat(name,'.xml')),obj.TimeIntervalCombined.getSampleRate)
             %% Ticd.
             ticd=obj.TimeIntervalCombined;
-            ticd.saveTable(fullfile(folder,strcat(name,'TimeIntervalCombined.csv')));
+            ticd.saveTable(fullfile(folder,strcat(name,'.TimeIntervalCombined.csv')));
         end
     end
 end

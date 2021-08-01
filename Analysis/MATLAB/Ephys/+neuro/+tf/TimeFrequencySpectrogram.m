@@ -1,4 +1,4 @@
-classdef TimeFrequencySpectrogram < TimeFrequencyMethod
+classdef TimeFrequencySpectrogram < neuro.tf.TimeFrequencyMethod
     %TIMEFREQUENCYPROPERTIESWAVELET Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -13,7 +13,7 @@ classdef TimeFrequencySpectrogram < TimeFrequencyMethod
                 window, noverlap, nfft)
             %TIMEFREQUENCYPROPERTIESWAVELET Construct an instance of this class
             %   Detailed explanation goes here
-            obj = obj@TimeFrequencyMethod(frequencyInterests);
+            obj = obj@neuro.tf.TimeFrequencyMethod(frequencyInterests);
             ms=1000;
             if nargin>3
                 obj.nfft = nfft;
@@ -41,11 +41,8 @@ classdef TimeFrequencySpectrogram < TimeFrequencyMethod
                 obj.noverlap,...
                 obj.nfft,...
                 obj.getSamplingFrequency(time));        
-            aTimeFrequencyMap=TimeFrequencyMapSpectrogram(...
+            aTimeFrequencyMap=neuro.tf.TimeFrequencyMapSpectrogram(...
                 matrix, seconds(t)+time(1), f);
-            
-            
         end
     end
 end
-

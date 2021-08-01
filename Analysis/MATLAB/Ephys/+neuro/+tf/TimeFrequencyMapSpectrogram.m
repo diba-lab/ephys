@@ -1,4 +1,4 @@
-classdef TimeFrequencyMapSpectrogram < TimeFrequencyMap
+classdef TimeFrequencyMapSpectrogram < neuro.tf.TimeFrequencyMap
     %TIMEFREQUENCYMAPSPECTROGRAM Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -11,7 +11,7 @@ classdef TimeFrequencyMapSpectrogram < TimeFrequencyMap
                 matrix, timePoints, frequencyPoints)
             %TIMEFREQUENCYMAPSPECTROGRAM Construct an instance of this class
             %   Detailed explanation goes here
-            obj@TimeFrequencyMap(matrix, timePoints, frequencyPoints);
+            obj@neuro.tf.TimeFrequencyMap(matrix, timePoints, frequencyPoints);
             obj.clim=[0 20000];
         end
         

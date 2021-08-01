@@ -1,6 +1,13 @@
 Session, BlockFile
 1,/data/EphysAnalysis/SleepDeprivationData/AG_2019-12-22_SD/Parameters/Blocks.csv
 2,/data/EphysAnalysis/SleepDeprivationData/AG_2019-12-26_SD/Parameters/Blocks.csv
+3,/data/EphysAnalysis/SleepDeprivationData/AG_2020-01-05_SD/Parameters/Blocks.csv
+4,/data/EphysAnalysis/SleepDeprivationData/AF_2019-11-24_SD/Parameters/Blocks.csv
+5,/data/EphysAnalysis/SleepDeprivationData/AF_2019-12-05_SD/Parameters/Blocks.csv
+6,/data/EphysAnalysis/SleepDeprivationData/AG_2020-01-05_SD/Parameters/Blocks.csv
 
 11,/data/EphysAnalysis/SleepDeprivationData/AG_2019-12-23_NSD/Parameters/Blocks.csv
 12,/data/EphysAnalysis/SleepDeprivationData/AG_2019-12-27_NSD/Parameters/Blocks.csv
+13,/data/EphysAnalysis/SleepDeprivationData/AE_2019-10-23_NSD/Parameters/Blocks.csv
+14,/data/EphysAnalysis/SleepDeprivationData/AE_2019-11-04_NSD/Parameters/Blocks.csv
+15,/data/EphysAnalysis/SleepDeprivationData/AF_2019-12-04_NSD//Parameters/Blocks.csv

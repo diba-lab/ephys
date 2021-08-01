@@ -45,18 +45,14 @@ classdef Animal
             obj.VirusInjection=struct.VirusInjection;
             obj.VirusInjectionDate=struct.VirusInjectionDate;
             obj.Weight=struct.Weight;
-
+            obj.ProbeMeta=struct.ProbeName;
         end
         function probe=getProbe(obj)
             probename=obj.ProbeMeta;
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperiment.instance.get;
             probeFolder=sde.FileLocations.General.ProbeFolder;
-            try
-                list=dir(fullfile(probeFolder,strcat('*',probename,'*')));
-                probe=Probe(fullfile(list.folder,list.name));
-            catch
-                probe=[];
-            end
+            list=dir(fullfile(probeFolder,strcat('*',probename,'*')));
+            probe=neuro.probe.Probe(fullfile(list.folder,list.name));
         end
     end
 end

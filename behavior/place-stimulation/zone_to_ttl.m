@@ -1,4 +1,5 @@
 function [] = zone_to_ttl(folder, com_use, stim_proportion, debug)
+
 % Function to ID track and zones to trigger TTL out pulses
 % Pin2 = trigger LED
 % Pin4 = to openephys
@@ -9,7 +10,12 @@ if nargin < 4
     if nargin < 3
         stim_proportion = 0.8;
         if nargin < 2
-            com_use = 'com5';
+            if strcmpi(getenv('computername'),'MSW00866')
+                com_use = 'com7';
+            else
+                com_use = 'com5';
+            end
+            
         end
     end
 end
@@ -87,7 +93,7 @@ if ~debug
 end
 
 % set up window sanity check
-hf = figure; set(gcf,'Position', [250 500 1780 900]); ax = subplot(2,3,1);
+hf = figure; set(gcf,'Position', [250 300 1780 900]); ax = subplot(2,3,1);
 imagesc(ax, 1);
 colormap(ax,[1 0 0])
 ht = text(ax, 1, 1, 'OFF', 'FontSize', 50, 'HorizontalAlignment', 'center');

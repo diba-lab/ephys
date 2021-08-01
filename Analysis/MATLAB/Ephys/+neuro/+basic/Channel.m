@@ -1,4 +1,4 @@
-classdef Channel < Oscillation & matlab.mixin.CustomDisplay
+classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
     %CHANNEL Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -23,7 +23,7 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
                 diff1=timeIntervalCombined.getNumberOfPoints-numel(voltageArray);
                 voltageArray=[voltageArray zeros(1,diff1)];
             end
-            obj@Oscillation(voltageArray,...
+            obj@neuro.basic.Oscillation(voltageArray,...
                 timeIntervalCombined.getSampleRate);
             try
                 obj.ChannelName=channelname;
@@ -33,7 +33,6 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
                 obj.TimeIntervalCombined=timeIntervalCombined;
             catch
             end
-            obj.print;
         end
         function print(obj)
             fprintf(...
@@ -74,11 +73,11 @@ classdef Channel < Oscillation & matlab.mixin.CustomDisplay
             st=obj.TimeIntervalCombined;
         end
         function ch=setTimeInterval(obj,ti)
-            ch=Channel(obj.ChannelName,obj.Values,ti);
+            ch=neuro.basic.Channel(obj.ChannelName,obj.Values,ti);
             ch=ch.setInfo(obj.Info);
         end
         function ets=getEphysTimeSeries(obj)
-            ets=EphysTimeSeries(obj.getValues,obj.getSampleRate,obj.getChannelName);
+            ets=neuro.basic.EphysTimeSeries(obj.getValues,obj.getSampleRate,obj.getChannelName);
             ets=ets.setInfo(obj.Info);
         end
         function obj=getTimeWindowForAbsoluteTime(obj,window)

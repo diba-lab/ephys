@@ -1,5 +1,5 @@
 total_nb_channels = 32
-radius            = 100
+radius            = 150
 channel_groups    = {1 : {}}
 
 channel_groups[1]["channels"] = range(32)

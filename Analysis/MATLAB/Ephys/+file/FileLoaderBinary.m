@@ -1,4 +1,4 @@
-classdef FileLoaderBinary < FileLoaderMethod
+classdef FileLoaderBinary < file.FileLoaderMethod
     %FILELOADERBINARY Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -19,7 +19,15 @@ classdef FileLoaderBinary < FileLoaderMethod
                 if numel(listing)>1
                     listing1=dir(fullfile(filepath,'..'));
                     experimentno=str2double(listing1(1).folder(end));
-                    xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
+                    if experimentno>1
+                        xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
+                    else
+                        try
+                            xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
+                        catch
+                            xmlfile=fullfile(listing(1).folder, sprintf('settings.xml'));
+                        end
+                    end
                 else
                     xmlfile=fullfile(listing.folder,listing.name);
                 end
@@ -78,7 +86,7 @@ classdef FileLoaderBinary < FileLoaderMethod
             file=dir(D.Data.Filename);
             samples=file.bytes/2/hdr.num_channels;
             
-            openEphysRecord.TimeInterval=TimeInterval(starttime,D.Header.sample_rate,samples);
+            openEphysRecord.TimeInterval=neuro.time.TimeInterval(starttime,D.Header.sample_rate,samples);
             openEphysRecord.DataFile=D.Data.Filename;
         end
     end

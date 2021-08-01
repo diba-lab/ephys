@@ -1,4 +1,4 @@
-classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
+classdef (Abstract)OpenEphysRecord < neuro.time.Timelined & file.BinarySave
     %OPENEPHYSRECORD Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -23,16 +23,16 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
             [filepath,~,ext]=fileparts(filename);
             switch ext
                 case '.oebin'
-                    fileLoaderMethod = FileLoaderBinary(filename);
+                    fileLoaderMethod = file.FileLoaderBinary(filename);
                 case '.openephys'
-                    fileLoaderMethod = FileLoaderOpenEphys(filename);
+                    fileLoaderMethod = file.FileLoaderOpenEphys(filename);
                 case '.lfp'
-                    fileLoaderMethod = FileLoaderLFP(filename);
+                    fileLoaderMethod = file.FileLoaderLFP(filename);
                 otherwise
                     
             end
             obj.FileLoaderMethod=fileLoaderMethod;
-            obj.Probe=obj.loadProbeFile(filepath);
+            obj.Probe=neuro.probe.Probe([filepath filesep '..' filesep '..' ]);
             obj.Events=[];
         end
         %% Functions
@@ -40,7 +40,7 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
         function channel=getChannel(obj,chan)
             D = obj.Data;
             dat = double(D.Data.mapped(chan,:));
-            channel = Channel(num2str(chan), dat, obj.getTimeInterval);
+            channel = neuro.basic.Channel(num2str(chan), dat, obj.getTimeInterval);
         end
 %%%% THIS PART WILL BE UPDATED!        
         function combined=getTimeWindow(obj, timeWindow)
@@ -66,11 +66,11 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
                 ts1.TimeInfo.StartDate=obj.getRecordStartTime;
                 tsc=tsc.addts(ts1);
             end
-            combined=ChannelTimeData(tsc);
+            combined=neuro.basic.ChannelTimeData(tsc);
         end
 %%%%%%        
         function newOpenEphysRecordsCombined = plus(obj,recordToAdd)
-            newOpenEphysRecordsCombined=OpenEphysRecordsCombined(obj,recordToAdd);
+            newOpenEphysRecordsCombined=openEphys.OpenEphysRecordsCombined(obj,recordToAdd);
         end
         
         
@@ -282,7 +282,7 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
                 timestamps=obj.getTimestamps;
                 save(headerFile,'header','timestamps','-v7.3');
             end
-            obj=OpenEphysRecordFactory.getOpenEphysRecord(newFileName);
+            obj=openephys.OpenEphysRecordFactory.getOpenEphysRecord(newFileName);
         end
         function out=saveChannels(obj, channels)
             [filepath, name, ext] = fileparts(obj.getFile);
@@ -301,12 +301,12 @@ classdef (Abstract)OpenEphysRecord < Timelined & BinarySave
         function probe=loadProbeFile(obj,filepath)
             list=dir(fullfile(filepath,'..','..','*Probe*.xlsx'));
             if numel(list)>0
-                probe=Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
+                probe=neuro.probe.Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
                 printf('Probe file: \n\t%s',fullfile(list(1).folder,list(1).name));
             else
                 list=dir(fullfile(filepath,'*Probe*.xlsx'));
                 if numel(list)>0
-                    probe=Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
+                    probe=neuro.probe.Probe(fullfile(list(1).folder,list(1).name)); %#ok<CPROPLC>
                     printf('Probe file: \n\t%s',fullfile(list(1).folder,list(1).name));
                     
                 else

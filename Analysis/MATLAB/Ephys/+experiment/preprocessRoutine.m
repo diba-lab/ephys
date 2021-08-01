@@ -1,12 +1,13 @@
-sf=SessionFactory;
-sessions=sf.getSessions('AG',4);
+sf=experiment.SessionFactory
+sessions=sf.getSessions('AG',5);
 % sess={'PRE','SD_NSD','TRACK','POST'};
 % ses=sess{3};
 for ises=1:numel(sessions)
     theses=sessions(ises);
-    pr=Preprocess(theses);
+    pr=preprocessing.Preprocess(theses);
     %     datalfp=theses.getDataLFP;
     dataclu=pr.getDataForClustering;
+    pr.saveBadFile
     for iclu=dataclu
         iclu.runKilosort3
     end
@@ -24,3 +25,5 @@ for ises=1:numel(sessions)
 end
 % f=FigureFactory.instance;
 % f.save(ses)
+
+ctd=neuro.basic.ChannelTimeData('/data2/gdrive/ephys/clustering/AG_2020-01-05_SD/shank1/MergedRaw.filtered.dat')
