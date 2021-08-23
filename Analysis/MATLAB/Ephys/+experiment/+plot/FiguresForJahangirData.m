@@ -128,7 +128,7 @@ classdef FiguresForJahangirData <Singleton
                             try
                                 load(cacheCh,'th')
                             catch
-                                ctd=ChannelTimeData(file);
+                                ctd=neuro.basic.ChannelTimeDataHard(file);
                                 th=ctd.getChannel(thId);
                                 save(cacheCh,'th');
                             end
@@ -388,7 +388,7 @@ classdef FiguresForJahangirData <Singleton
                                 seconds(slidingWindowSize),[],edges);
                             subblocks=ss_block.getStartTime+seconds(edges);
                             thId=sdd.getThetaChannelID;
-                            ctd=ChannelTimeData(file);
+                            ctd=neuro.basic.ChannelTimeDataHard(file);
                             th=ctd.getChannel(thId);
                             allBlock=th.getTimeWindowForAbsoluteTime(timeWindowadj);
                             cacheFilePower=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...

@@ -66,7 +66,7 @@ classdef (Abstract)OpenEphysRecord < neuro.time.Timelined & file.BinarySave
                 ts1.TimeInfo.StartDate=obj.getRecordStartTime;
                 tsc=tsc.addts(ts1);
             end
-            combined=neuro.basic.ChannelTimeData(tsc);
+            combined=neuro.basic.ChannelTimeDataHard(tsc);
         end
         %%%%%%
         function newOpenEphysRecordsCombined = plus(obj,recordToAdd)

@@ -23,7 +23,7 @@ if downsample
             probe.getShank(3).getActiveChannels; ...
             probe.getShank(4).getActiveChannels ];
         filename=oerc.mergeBlocksOfChannels(combined,folders{iday});
-        chantime=ChannelTimeData(filename);
+        chantime=neuro.basic.ChannelTimeDataHard(filename);
         chantime_ds=chantime.getDownSampled(1250,sdl.getActiveWorkspaceFile);
         channel=26;
 %         SleepScoreMaster(chantime_ds.getFolder,...

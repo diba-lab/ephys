@@ -20,7 +20,7 @@ classdef SWRDetectionMethodSWR < neuro.ripple.SWRDetectionMethod
             end
             list1=dir(fullfile(obj.BasePath,'*.xml'));
             if ~exist('epochs','var')
-                ctdd=neuro.basic.ChannelTimeData(obj.BasePath);
+                ctdd=neuro.basic.ChannelTimeDataHard(obj.BasePath);
                 ctda=preprocessing.ChannelTimeDataArtifact(ctdd);
                 arts=ctda.getArtifactsAllCombined;
                 arts_rev=arts.getReverse(ctda.getTimeIntervalCombined.getEndTime-ctda.getTimeIntervalCombined.getStartTime);

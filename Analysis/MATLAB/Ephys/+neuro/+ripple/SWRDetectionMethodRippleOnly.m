@@ -12,7 +12,7 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
         
         function ripple1 = execute(obj,varargin)
             conf=obj.Configuration;
-            ctd=neuro.basic.ChannelTimeData(obj.BasePath);
+            ctd=neuro.basic.ChannelTimeDataHard(obj.BasePath);
             if nargin>1
                 chans=varargin{1};
             else

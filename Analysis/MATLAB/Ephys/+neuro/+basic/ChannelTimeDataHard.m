@@ -1,4 +1,4 @@
-classdef ChannelTimeData < file.BinarySave
+classdef ChannelTimeDataHard < file.BinarySave
     %COMBINEDCHANNELS Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -11,8 +11,8 @@ classdef ChannelTimeData < file.BinarySave
     end
     
     methods
-        function newObj = ChannelTimeData(filepath)
-            if isa(filepath,'neuro.basic.ChannelTimeData')
+        function newObj = ChannelTimeDataHard(filepath)
+            if isa(filepath,'neuro.basic.ChannelTimeDataHard')
                 newObj=filepath;
             else
                 exts={'.lfp','.eeg','.dat'};
@@ -113,6 +113,24 @@ classdef ChannelTimeData < file.BinarySave
             LFP.channels=channelList(index);
             LFP.sampleRate=ticd.getSampleRate;
         end
+        function obj = get(obj,channels,time)
+            ticd1=obj.getTimeIntervalCombined;
+            ticd=ticd1.getTimeIntervalForTimes(time);
+            samples=ticd1.getSampleForClosest(time);
+            probe=obj.Probe;
+            channelList=probe.getActiveChannels;
+            if exist('channelNumber','var')
+                ch_index=ismember(channelList, channels);
+            else
+                ch_index=true(size(channelList));
+            end                        
+            datamemmapfile=obj.Data;
+            datamat=datamemmapfile.Data;
+            
+            obj.data=datamat.mapped(ch_index,time);
+            LFP.channels=channelList(ch_index);
+            LFP.sampleRate=ticd.getSampleRate;
+        end
         function newobj = getDownSampled(obj, newRate, newFileName)
             if nargin>2
             else
@@ -138,7 +156,7 @@ classdef ChannelTimeData < file.BinarySave
                     currentRate, newRate, numberOfChannels,...
                     currentFileName, newFileName));
             end
-            newobj=neuro.basic.ChannelTimeData(newFileName);
+            newobj=neuro.basic.ChannelTimeDataHard(newFileName);
         end
         %         function [] = plot(obj,varargin)
         %             try

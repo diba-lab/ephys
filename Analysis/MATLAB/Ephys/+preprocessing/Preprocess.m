@@ -198,7 +198,7 @@ classdef Preprocess
                 channels=newprobe.getActiveChannels;
                 mergedData=oerc.mergeBlocksOfChannels(channels,obj.ClusterParams.OutputFolder);
                 
-                chantime=neuro.basic.ChannelTimeData(mergedData.DataFile);
+                chantime=neuro.basic.ChannelTimeDataHard(mergedData.DataFile);
                 downsamplerate=obj.LFPParams.DownSampleRate;
                 chantime_ds=chantime.getDownSampled(downsamplerate,newFileName);
 %                 delete(mergedData.DataFile)
@@ -224,7 +224,7 @@ classdef Preprocess
                     load(cacheFile,'chPower');
                 else
                     datalfp=obj.getDataForLFP;
-                    ctd=datalfp.getChannelTimeData;
+                    ctd=datalfp.getChannelTimeDataHard;
                     probe=ctd.getProbe;
                     chans=probe.getActiveChannels;
                     ch=ctd.getChannel(chans(params.Channels.Channel));
@@ -250,7 +250,7 @@ classdef Preprocess
             end
             if ~exist('ch','var')
                 datalfp=obj.getDataForLFP;
-                ctd=datalfp.getChannelTimeData;
+                ctd=datalfp.getChannelTimeDataHard;
                 probe=ctd.getProbe;
                 chans=probe.getActiveChannels;
                 ch=ctd.getChannel(chans(params.Channels.Channel)); 

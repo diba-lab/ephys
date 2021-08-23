@@ -1,4 +1,4 @@
-classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeData
+classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
     %COMBINEDCHANNELS Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -14,7 +14,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeData
             else
                 datafile=ctd.getFilepath;
             end
-            newobj@neuro.basic.ChannelTimeData(datafile);
+            newobj@neuro.basic.ChannelTimeDataHard(datafile);
             ft_defaults
             cfg=[];
             cfg.channel=97:128;

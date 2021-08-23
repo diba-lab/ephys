@@ -56,11 +56,11 @@ classdef DataForLFP
             %   Detailed explanation goes here
             obj.TimeIntervalCombined = ticd;
         end
-        function ctd = getChannelTimeData(obj)
+        function ctd = getChannelTimeDataHard(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             [folder,name,ext]=fileparts(obj.DataFile);
-            ctd=neuro.basic.ChannelTimeData(folder);
+            ctd=neuro.basic.ChannelTimeDataHard(folder);
         end
                
         function sdd = getStateDetectionData(obj)
