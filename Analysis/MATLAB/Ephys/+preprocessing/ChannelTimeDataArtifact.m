@@ -17,6 +17,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeData
             newobj@neuro.basic.ChannelTimeData(datafile);
             ft_defaults
             cfg=[];
+            cfg.channel=97:128;
             cfg.trialdef.triallength = 60;%seconds(hours(1));
             cfg.trialdef.ntrials     = inf;
             cfg.trialfun   =  'ft_trialfun_general';

@@ -130,6 +130,21 @@ classdef TimeWindowsDuration
             end
             fclose(fid);
         end
+        function obj=getReverse(obj,length)
+            % convert detections to milliseconds
+            T= obj.TimeTable;
+            Start=seconds(1);
+            Stop=[];
+            start=T.Start;
+            stop=T.Stop;
+            for iwin=1:numel(start)
+                Stop=[Stop; start(iwin)];
+                Start=[Start; stop(iwin)];
+            end
+            Stop=[Stop; length-seconds(1)];
+            T=table(Start,Stop);
+            obj.TimeTable=T;
+        end
         function ax=getArrayForBuzcode(obj,ax)
             T=obj.TimeTable;
             start=T.Start;

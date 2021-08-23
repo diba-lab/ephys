@@ -46,6 +46,9 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
             
             chan=Ripple1.BestChannel.(chasStr);
             list1=dir(fullfile(obj.BasePath,'*.xml'));
+            if numel(list1)>1
+                list1=list1(1);
+            end
             conf.chan=chan;
             str=DataHash(conf);
             cacheFileName=fullfile(obj.BasePath,'cacheripple',[str '.mat']);

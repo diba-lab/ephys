@@ -75,6 +75,10 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
         function dataForClustering=mergeBlocksOfChannels(obj,channels,path)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            
+            evts=obj.getEvents;
+            evets.sa
+            
             iter=obj.getIterator();
             first=true;
             fname=sprintf('MergedRaw');
@@ -165,16 +169,25 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
         end
         function timeIntervalCombined=getTimeIntervalCombined(obj)
             iter=obj.getIterator();
-            tls=[];
-            i=1;
             timeIntervalCombined=neuro.time.TimeIntervalCombined;
             while(iter.hasNext)
                 anOpenEphysRecord=iter.next();
                 timeIntervalCombined=timeIntervalCombined+anOpenEphysRecord.getTimeInterval();
             end
         end
-        function evts=getEvents(obj)
-            evts=obj;
+        function [evts]=getEvents(obj)
+            iter=obj.getIterator;
+            
+            while iter.hasNext
+                oer=iter.next;
+                if exist('evts','var')
+                    evts=evts+oer.getEvents;
+                else
+                    evts=oer.getEvents;
+                end
+            end
+            ticd=obj.getTimeIntervalCombined;
+            evts=neuro.event.TimeIntervalCombinedEvents(evts, ticd);
         end
         function oerc=addEvents(obj,evts)
             iter=obj.getIterator;

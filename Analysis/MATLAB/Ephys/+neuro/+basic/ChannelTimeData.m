@@ -7,6 +7,7 @@ classdef ChannelTimeData < file.BinarySave
         TimeIntervalCombined
         Data
         Filepath
+        Info
     end
     
     methods

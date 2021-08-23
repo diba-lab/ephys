@@ -29,7 +29,7 @@ classdef FigureFactory < Singleton
         function obj = instance(defpath)
             persistent uniqueInstance
             if isempty(uniqueInstance)
-                try obj = logistics.FigureFactory(defpath);catch, obj = FigureFactory();end
+                try obj = logistics.FigureFactory(defpath);catch, obj = logistics.FigureFactory();end
                 uniqueInstance = obj;
             elseif ~strcmp( uniqueInstance.DefaultPath, defpath)
                 uniqueInstance.DefaultPath=defpath;

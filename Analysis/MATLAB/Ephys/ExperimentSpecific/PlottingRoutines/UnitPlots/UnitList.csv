@@ -13,18 +13,18 @@ PATH,SLEEP,ANIMAL,SESSIONNO,LOCATION,SHANKNO
 /data2/temp/AG_day3/shank5/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA3,5
 /data2/temp/AG_day3/shank6/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA3,6
 
-/data/EphysAnalysis/cluster/AE_day2/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,3,CA1,1
-/data/EphysAnalysis/cluster/AE_day2/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,3,CA1,2
-/data/EphysAnalysis/cluster/AE_day2/shank3/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,3,CA1,3
-/data/EphysAnalysis/cluster/AE_day2/shank4/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,3,CA1,4
+/data/EphysAnalysis/cluster/AE_day2/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AE,3,CA1,1
+/data/EphysAnalysis/cluster/AE_day2/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AE,3,CA1,2
+/data/EphysAnalysis/cluster/AE_day2/shank3/MergedRaw/MergedRawcrs-merged.GUI,SD,AE,3,CA1,3
+/data/EphysAnalysis/cluster/AE_day2/shank4/MergedRaw/MergedRawcrs-merged.GUI,SD,AE,3,CA1,4
 
-/data/EphysAnalysis/cluster/AF_day1/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,4,CA1,1
-/data/EphysAnalysis/cluster/AF_day1/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,4,CA1,2
+/data/EphysAnalysis/cluster/AF_day1/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,4,CA1,1
+/data/EphysAnalysis/cluster/AF_day1/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,4,CA1,2
 
-/data/EphysAnalysis/cluster/AF_day3/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,5,CA1,1
-/data/EphysAnalysis/cluster/AF_day3/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,5,CA1,2
-/data/EphysAnalysis/cluster/AF_day3/shank3/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,5,CA1,3
-/data/EphysAnalysis/cluster/AF_day3/shank4/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,5,CA1,4
+/data/EphysAnalysis/cluster/AF_day3/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,5,CA1,1
+/data/EphysAnalysis/cluster/AF_day3/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,5,CA1,2
+/data/EphysAnalysis/cluster/AF_day3/shank3/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,5,CA1,3
+/data/EphysAnalysis/cluster/AF_day3/shank4/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,5,CA1,4
 
 /data/EphysAnalysis/cluster/AG_day5/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,6,CA3,2
 /data/EphysAnalysis/cluster/AG_day5/shank3/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,6,CA3,3
@@ -47,15 +47,15 @@ PATH,SLEEP,ANIMAL,SESSIONNO,LOCATION,SHANKNO
 /data2/temp/AG_day4/shank5/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA3,5
 /data2/temp/AG_day4/shank6/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA3,6
 
-/data/EphysAnalysis/cluster/AE_day1/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,13,CA1,1
-/data/EphysAnalysis/cluster/AE_day1/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,13,CA1,2
-/data/EphysAnalysis/cluster/AE_day1/shank3/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,13,CA1,3
-/data/EphysAnalysis/cluster/AE_day1/shank4/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,13,CA1,4
+/data/EphysAnalysis/cluster/AE_day1/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,13,CA1,1
+/data/EphysAnalysis/cluster/AE_day1/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,13,CA1,2
+/data/EphysAnalysis/cluster/AE_day1/shank3/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,13,CA1,3
+/data/EphysAnalysis/cluster/AE_day1/shank4/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,13,CA1,4
 
-/data/EphysAnalysis/cluster/AE_day3/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,14,CA1,1
-/data/EphysAnalysis/cluster/AE_day3/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,14,CA1,2
+/data/EphysAnalysis/cluster/AE_day3/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,14,CA1,1
+/data/EphysAnalysis/cluster/AE_day3/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,14,CA1,2
 
-/data/EphysAnalysis/cluster/AF_day2/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,15,CA1,1
-/data/EphysAnalysis/cluster/AF_day2/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,15,CA1,2
-/data/EphysAnalysis/cluster/AF_day2/shank3/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,15,CA1,3
-/data/EphysAnalysis/cluster/AF_day2/shank4/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,15,CA1,4
+/data/EphysAnalysis/cluster/AF_day2/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AF,15,CA1,1
+/data/EphysAnalysis/cluster/AF_day2/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AF,15,CA1,2
+/data/EphysAnalysis/cluster/AF_day2/shank3/MergedRaw/MergedRawcrs-merged.GUI,NSD,AF,15,CA1,3
+/data/EphysAnalysis/cluster/AF_day2/shank4/MergedRaw/MergedRawcrs-merged.GUI,NSD,AF,15,CA1,4
