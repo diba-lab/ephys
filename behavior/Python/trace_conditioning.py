@@ -19,7 +19,6 @@ tone_dur_default = 10  # seconds
 trace_dur_default = 20  # seconds
 shock_dur_default = 1  # seconds at 1mA
 fs = 44100
-volume = 1.0
 ITI_range = 20  # +/- this many seconds for each ITI
 
 # Define dictionaries for experimental parameters
@@ -102,6 +101,16 @@ params = {
             "ITI_range": 1,
         },
     },
+    "Misc": {
+        "alias": "Misc",
+        "training_params": {"tone_dur": 10},
+        "ctx+tone_recall_params": {
+            "baseline_time": 8*60,
+            "CStimes": [10],
+            "ITI": 120,
+            "ITI_range": 0,
+        }
+    }
 }
 
 default_port = {
@@ -110,7 +119,7 @@ default_port = {
 }
 
 
-class trace:
+class Trace:
     def __init__(
         self,
         arduino_port="COM7",
@@ -185,7 +194,7 @@ class trace:
         """Run tone recall session using params in specified paradigm"""
 
         # Grab correct parameters
-        recall_params = self.params["recall_params"]
+        recall_params = self.params[self.session + "_params"]
 
         # Next, create tones
         tones_use = [
@@ -216,7 +225,7 @@ class trace:
             print(str(CStime) + " sec tone playing now")
             self.write_event("CS" + str(idt + 1) + "_start")
 
-            tones.play_tone(self.stream, tone, volume)
+            tones.play_tone(self.stream, tone, self.volume)
             self.write_event("CS" + str(idt + 1) + "_end")
 
             print(str(ITIdur) + " sec ITI starting now")
@@ -249,7 +258,7 @@ class trace:
 
         print(str(CSshort) + " sec short tone playing now")
         self.write_event("CSshort_start")
-        tones.play_tone(self.stream, CStone_short, volume)
+        tones.play_tone(self.stream, CStone_short, self.volume)
         self.write_event("CSshort_end")
 
         print(str(ITI) + " sec ITI starting now")
@@ -257,7 +266,7 @@ class trace:
 
         print(str(CSlong) + " sec long tone playing now")
         self.write_event("CSlong_start")
-        tones.play_tone(self.stream, CStone_long, volume)
+        tones.play_tone(self.stream, CStone_long, self.volume)
         self.write_event("CSlong_end")
 
         print("Final 1 minute exploration period starting now")
@@ -291,6 +300,7 @@ class trace:
             "training",
             "ctx_recall",
             "tone_recall",
+            "ctx+tone_recall"
         ]  # Make sure session is properly named
         if not test_run:
             self.session = session
@@ -339,8 +349,9 @@ class trace:
                     "post",
                     "ctx_recall",
                     "tone_recall",
+                    "ctx+tone_recall",
                 ]:
-                    if session == "tone_recall":
+                    if session in ["tone_recall", "ctx+tone_recall"]:
                         self.run_tone_recall()
                     elif session == "ctx_recall":
                         print("Starting context recall session")
@@ -387,7 +398,7 @@ class trace:
 
         # play tone
         self.write_event("tone" + str(trial) + "_start")
-        tones.play_tone(self.stream, tone_use, volume)
+        tones.play_tone(self.stream, tone_use, self.volume)
         self.write_event("tone" + str(trial) + "_end")
 
         # start trace period
