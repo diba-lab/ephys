@@ -16,6 +16,7 @@
             <Blocks>Parameters/Blocks.csv</Blocks>
             <Probe>Parameters/Probe.xlsx</Probe>
             <Analysis>Parameters/Analysis.xml</Analysis>
+            <Location>Location/Location.xml</Location>
         </Session>
         <Preprocess>
             <RawFiles>Preprocess/RawFiles.xml</RawFiles>

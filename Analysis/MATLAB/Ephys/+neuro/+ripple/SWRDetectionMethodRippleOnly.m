@@ -12,7 +12,7 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
         
         function ripple1 = execute(obj,varargin)
             conf=obj.Configuration;
-            ctd=neuro.basic.ChannelTimeData(obj.BasePath);
+            ctd=neuro.basic.ChannelTimeDataHard(obj.BasePath);
             if nargin>1
                 chans=varargin{1};
             else
@@ -46,6 +46,9 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
             
             chan=Ripple1.BestChannel.(chasStr);
             list1=dir(fullfile(obj.BasePath,'*.xml'));
+            if numel(list1)>1
+                list1=list1(1);
+            end
             conf.chan=chan;
             str=DataHash(conf);
             cacheFileName=fullfile(obj.BasePath,'cacheripple',[str '.mat']);

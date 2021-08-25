@@ -13,21 +13,26 @@ classdef SWRDetectionMethodSWR < neuro.ripple.SWRDetectionMethod
             obj@neuro.ripple.SWRDetectionMethod(basepath)
         end
         
-        function ripple1 = execute(obj,varargin)
+        function ripple1 = execute(obj, chans, epochs)
             conf=obj.Configuration;
-            if nargin>1
-                chans=varargin{1};
-            else
+            if ~exist('chans','var')||isempty(chans)
                 chans=str2double( conf.swr_channnels);
             end
             list1=dir(fullfile(obj.BasePath,'*.xml'));
+            if ~exist('epochs','var')
+                ctdd=neuro.basic.ChannelTimeDataHard(obj.BasePath);
+                ctda=preprocessing.ChannelTimeDataArtifact(ctdd);
+                arts=ctda.getArtifactsAllCombined;
+                arts_rev=arts.getReverse(ctda.getTimeIntervalCombined.getEndTime-ctda.getTimeIntervalCombined.getStartTime);
+                epochs=seconds(table2array( arts_rev.getTimeTable));
+            end
             chans=chans+1;% NOT NEUROSCOPE
             conf.chans=chans;
             str=DataHash(conf);
             cacheFileName=fullfile(obj.BasePath,'cache',[str '.mat']);
             [folder,~,~]=fileparts(cacheFileName);if ~isfolder(folder), mkdir(folder); end
             if ~exist(cacheFileName,'file')
-                ripple=detect_swr(fullfile(list1.folder,list1.name),chans,[]...
+                ripple=detect_swr(fullfile(list1.folder,list1.name),chans,epochs...
                     ,'EVENTFILE',str2double( conf.eventfile)...
                     ,'FIGS',str2double( conf.figs)...
                     ,'swBP',str2double( conf.swbp)...

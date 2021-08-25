@@ -22,9 +22,8 @@ classdef FileLoaderBinary < file.FileLoaderMethod
                     if experimentno>1
                         xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
                     else
-                        try
-                            xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
-                        catch
+                        xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
+                        if ~isfile(xmlfile)
                             xmlfile=fullfile(listing(1).folder, sprintf('settings.xml'));
                         end
                     end
@@ -54,10 +53,13 @@ classdef FileLoaderBinary < file.FileLoaderMethod
         function openEphysRecord = load(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            log=logging.Logger.getLogger;
+            
             starttime1=obj.getRecordStartTime();
             fprintf('Start Time in .xml file: %s\n',datestr(starttime1));
             fprintf('Loading binary file...\n');tic
             D= load_open_ephys_binary(obj.OEBinFile,'continuous',1,'mmap','.dat');toc
+            log.fine(sprintf('Binary continuous loaded. %s',obj.OEBinFile))
             recLatency=double(D.Timestamps(1))/D.Header.sample_rate;
             fprintf('First time stamp (in s.): %.5f\n',recLatency)
             [filepath,name,ext] = fileparts(obj.OEBinFile);
@@ -88,6 +90,13 @@ classdef FileLoaderBinary < file.FileLoaderMethod
             
             openEphysRecord.TimeInterval=neuro.time.TimeInterval(starttime,D.Header.sample_rate,samples);
             openEphysRecord.DataFile=D.Data.Filename;
+            
+            openEphysRecord.evts= load_open_ephys_binary(obj.OEBinFile,'events',1,'mmap','.dat');toc
+            try
+                openEphysRecord.spks= load_open_ephys_binary(obj.OEBinFile,'spikes',1,'mmap','.dat');toc
+            catch
+                log.warning('No spike data.')
+            end
         end
     end
 end

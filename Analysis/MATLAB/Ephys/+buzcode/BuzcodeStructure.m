@@ -33,18 +33,8 @@ classdef BuzcodeStructure
             end
             obj.BasePath=filepath;
             
-            try
-                list=dir(fullfile(obj.BasePath,'*Probe*'));
-                obj.Probe=neuro.probe.Probe(fullfile(list.folder,list.name));
-            catch
-                fprintf('No Probe File at: %s',obj.BasePath);
-            end
-            try
-                list=dir(fullfile(obj.BasePath,'*TimeInterval*'));
-                obj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(fullfile(list.folder,list.name));
-            catch
-                fprintf('No TimeIntervalCombined File at: %s',obj.BasePath);
-            end
+            obj.Probe=neuro.probe.Probe(obj.BasePath);
+            obj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(obj.BasePath);
         end
         function ripple1 = calculateSWR(obj)
             import neuro.ripple.*

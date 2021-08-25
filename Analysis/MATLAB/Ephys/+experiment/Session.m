@@ -29,6 +29,7 @@ classdef Session
                 sessionInfo.baseFolder=baseFolder;
                 sessionInfo.Date='';
                 sessionInfo.Notes='';
+                sessionInfo.ZeitgeberTime='hh:mm:ss';
                 sessionInfo.Condition='';                
                 writestruct(sessionInfo,sessionInfoFile)
                 logger.info(strcat('No session info file. It is created.\t', sessionInfoFile))
@@ -55,6 +56,13 @@ classdef Session
             sdblock=experiment.SDBlocks(obj.SessionInfo.Date,blockstt);
             obj.Blocks=sdblock;
             logger.info(sdblock.print)
+            %% Location
+            LocFile=fullfile(baseFolder,params.FileLocations.Session.Location);
+            try
+                
+            catch
+                
+            end
             %% Probe
             key=fullfile(baseFolder,strcat('*Probe*.xlsx'));
             list=dir(key);
@@ -66,7 +74,7 @@ classdef Session
             catch
                 logger.info(strcat('No probe file. ', key))
             end
-
+          
         end
         
         function obj = setAnimal(obj,animal)
@@ -107,11 +115,9 @@ classdef Session
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             blocks=obj.Blocks;
-            idx=true(height(blocks),1);
             if nargin>1
-                idx= ismember(blocks.Block,varargin);
+                blocks= blocks.get(varargin{:});
             end
-            blocks=blocks(idx,:);
         end
         function data = getDataLFP(obj,varargin)
             %METHOD1 Summary of this method goes here
@@ -122,7 +128,7 @@ classdef Session
         function data = getDataClustering(obj,varargin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            pr=Preprocess(obj);
+            pr=preprocessing.Preprocess(obj);
             data=pr.getDataForClustering;
         end
         

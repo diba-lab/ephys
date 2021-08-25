@@ -15,6 +15,14 @@ classdef OpenEphysRecordRaw < openEphys.OpenEphysRecord
             obj = obj.setData(oeProperties.Data);
             obj = obj.setTimeInterval(oeProperties.TimeInterval);
             obj = obj.setChannels(oeProperties.Channels);
+            try
+                obj = obj.setEvents(oeProperties.evts);
+            catch
+            end
+            try
+%                 obj = obj.setSpikes(oeProperties.spks);
+            catch
+            end
         end
         %% Functions
         

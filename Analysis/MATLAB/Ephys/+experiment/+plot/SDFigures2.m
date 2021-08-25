@@ -213,7 +213,7 @@ classdef SDFigures2 <Singleton
                         EMG=sdd.getEMG;
                         ss=sdd.getStateSeries;
                         thId=sdd.getThetaChannelID;
-                        ctd=ChannelTimeData(file);
+                        ctd=neuro.basic.ChannelTimeDataHard(file);
                         th=ctd.getChannel(thId);
                         blocks=ses.Blocks;
                         blocksStr1=categorical([1 2 3 4],[1 2 3 4],blocks.getBlockNames,'Ordinal',true);
