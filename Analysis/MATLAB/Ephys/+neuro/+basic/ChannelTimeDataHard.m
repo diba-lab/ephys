@@ -113,7 +113,7 @@ classdef ChannelTimeDataHard < file.BinarySave
             LFP.channels=channelList(index);
             LFP.sampleRate=ticd.getSampleRate;
         end
-        function obj = get(obj,channels,time)
+        function ctd = get(obj,channels,time)
             ticd1=obj.getTimeIntervalCombined;
             ticd=ticd1.getTimeIntervalForTimes(time);
             samples=ticd1.getSampleForClosest(time);
@@ -127,9 +127,10 @@ classdef ChannelTimeDataHard < file.BinarySave
             datamemmapfile=obj.Data;
             datamat=datamemmapfile.Data;
             
-            obj.data=datamat.mapped(ch_index,time);
-            LFP.channels=channelList(ch_index);
-            LFP.sampleRate=ticd.getSampleRate;
+            data=datamat.mapped(ch_index,samples(1):samples(2));
+            probe=probe.setActiveChannels(channels);
+            time=ticd;
+            ctd=neuro.basic.ChannelTimeData(probe,time,data);
         end
         function newobj = getDownSampled(obj, newRate, newFileName)
             if nargin>2

@@ -71,13 +71,12 @@ classdef Preprocess
             %% Bad channel and time
             badFile=fullfile(session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Bad);
             try
-                bad=readstruct(badFile);
+                bad=readtable(badFile);
             catch
-                bad.BadChannels.Channel(1)=nan;
-                bad.BadTimes.Time(1).Start=datetime('now','Format','HH:mm:ss.SSS');
-                bad.BadTimes.Time(1).Stop=datetime('now','Format','HH:mm:ss.SSS')+seconds(5);
-                bad.BadTimes.Time(1).Type='Type';
-                writestruct(bad,badFile);
+                bad=table([],[],'VariableNames',{'Start','Stop'});
+                writetable(bad,badFile);
+                l=logging.Logger.getLogger;
+                l.error('No bad file: %s',badFile);
             end
             obj.Bad=bad;
             %% Params
@@ -114,7 +113,10 @@ classdef Preprocess
             %% Probe File
             probeRaw=fullfile(session.SessionInfo.baseFolder, sde.FileLocations.Session.Probe);
             probePrep=fullfile(session.SessionInfo.baseFolder, sde.FileLocations.Preprocess.Probe);
+            try
             copyfile(probeRaw,probePrep);
+            catch
+            end
         end
         
         function dataForClustering = getDataForClustering(obj)

@@ -32,6 +32,7 @@ classdef DataForLFP
                 S.StateDetection.Channels.BestSW=nan;
                 S.StateDetection.Channels.EMGChannel=[0 31 96 127];
                 S.StateDetection.Overwrite=0;
+                S.StateDetection.HVSFilter=0;
                 %% Ripple
                 S.Ripple.RippleOnly.SomeParameters='';
                 S.Ripple.SWR.SomeParameters='';
@@ -74,11 +75,14 @@ classdef DataForLFP
             folder=fileparts(obj.DataFile);
             try
                 badfile=fullfile(folder, sde.FileLocations.Preprocess.Bad);
-                bad=readstruct(badfile);
+                bad=readtable(badfile, 'Delimiter',',');
             catch
+                l=logging.Logger.getLogger;
+                l.error('No Bad file: %s\n',badfile)
                 bad=[];
+                
             end
-            params.bad=bad.BadTimes;
+            params.bad=[bad.Start bad.Stop];
             bcs=buzcode.BuzcodeStructure(baseFolder);
             sdd=bcs.detectStates(params);
             S=obj.AnalysisParameters;
@@ -94,18 +98,6 @@ classdef DataForLFP
             basefolder=fileparts(obj.DataFile);
             bc=buzcode.BuzcodeFactory.getBuzcode(basefolder);
             ripples=bc.calculateSWR;
-        end
-        function tfmap = getPowerSpectrum(obj)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            %% TODO
-            
-        end
-        function SykingCircusOutputFolder = getCSD(obj)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            %% TODO
-            
         end
         function obj = setAnalysisParameters(obj,S)
             %METHOD1 Summary of this method goes here

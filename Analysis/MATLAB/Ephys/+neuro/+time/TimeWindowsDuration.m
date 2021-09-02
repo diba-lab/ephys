@@ -133,7 +133,7 @@ classdef TimeWindowsDuration
         function obj=getReverse(obj,length)
             % convert detections to milliseconds
             T= obj.TimeTable;
-            Start=seconds(1);
+            Start=.001;
             Stop=[];
             start=T.Start;
             stop=T.Stop;
@@ -141,7 +141,7 @@ classdef TimeWindowsDuration
                 Stop=[Stop; start(iwin)];
                 Start=[Start; stop(iwin)];
             end
-            Stop=[Stop; length-seconds(1)];
+            Stop=[Stop; seconds(length)];
             T=table(Start,Stop);
             obj.TimeTable=T;
         end

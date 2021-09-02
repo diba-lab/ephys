@@ -3,11 +3,20 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
     %   Detailed explanation goes here
     
     properties
+        Epochs
     end
     
     methods
         function obj = SWRDetectionMethodRippleOnly(basepath)
             obj@neuro.ripple.SWRDetectionMethod(basepath)
+            conf=obj.Configuration;
+            if isfield(conf,'bad_file')
+                bad=fullfile(basepath, conf.bad_file);
+                ticd=neuro.basic.ChannelTimeDataHard(obj.BasePath).getTimeIntervalCombined;
+                dur=seconds(ticd.getNumberOfPoints/ticd.getSampleRate);
+                arts_rev=neuro.time.TimeWindowsDuration(readtable(bad)).getReverse(dur);
+                obj.Epochs=table2array( arts_rev.getTimeTable);
+            end
         end
         
         function ripple1 = execute(obj,varargin)
@@ -61,6 +70,8 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
                     ,'plotType',str2double(conf.ripple_plottype)...
                     ,'show',conf.ripple_show...
                     ,'thresholds',str2double(conf.ripple_threshold)...
+                    ,'EMGThresh',str2double(conf.ripple_emgthreshold)...
+                    ,'restrict',obj.Epochs...
                     );
                 save(cacheFileName,'ripple');
             else

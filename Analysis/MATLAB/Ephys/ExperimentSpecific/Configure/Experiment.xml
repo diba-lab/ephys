@@ -16,6 +16,7 @@
             <Blocks>Parameters/Blocks.csv</Blocks>
             <Probe>Parameters/Probe.xlsx</Probe>
             <Analysis>Parameters/Analysis.xml</Analysis>
+            <Events>Events/Events.xml</Events>
             <Location>Location/Location.xml</Location>
         </Session>
         <Preprocess>
@@ -23,7 +24,7 @@
             <ForClustering>Preprocess/ForClustering.xml</ForClustering>
             <OutputFolderForClustering>/data2/gdrive/ephys/clustering</OutputFolderForClustering>
             <ForLFP>Preprocess/ForLFP.xml</ForLFP>
-            <Bad>Preprocess/Bad.xml</Bad>
+            <Bad>Events/Bad.csv</Bad>
             <Probe>Preprocess/Probe.xlsx</Probe>
             <Parameters>Preprocess/Parameters.xml</Parameters>
         </Preprocess>
