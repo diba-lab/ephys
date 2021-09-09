@@ -22,6 +22,17 @@ classdef OpenEphysRecordFactory
                     tic
                     oer =openEphys.OpenEphysRecordDownsampled(filename);
                     toc
+                case '.txt'
+                    list=readcell('/data2/gdrive/ephys/AI/2021-08-12_Day7-SD/list.txt','Delimiter','');
+                    for ilist=1:numel(list)
+                        path=list{ilist};
+                        oer1=openEphys.OpenEphysRecordFactory.getOpenEphysRecord(path);
+                        try
+                            oer=oer+oer1;
+                        catch
+                            oer=oer1;
+                        end
+                    end
                 otherwise
                     if isfolder(filename)
                         expfols=dir(fullfile(filename,'*experiment*'));

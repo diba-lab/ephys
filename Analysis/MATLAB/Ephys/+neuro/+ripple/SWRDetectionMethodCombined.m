@@ -22,8 +22,8 @@ classdef SWRDetectionMethodCombined < neuro.ripple.SWRDetectionMethod
                 for ishank=1:numel(shanks_rip)
                     ashank_rip=shanks_rip(ishank);
                     chansofShank_rip=probe.getShank(ashank_rip).getActiveChannels;
-                    chansofShank_rip_sel=unique(round(linspace(min(chansofShank_rip),max(chansofShank_rip),8)));
-                    ripple=methodRip.execute(chansofShank_rip_sel);
+                    chansofShank_rip_sel=unique(round(linspace(min(chansofShank_rip),max(chansofShank_rip),32)));
+                    ripple=methodRip.execute();
                     try
                         rippleCombinedROnly=rippleCombinedROnly+ripple;
                         display(rippleCombinedROnly)
@@ -46,7 +46,7 @@ classdef SWRDetectionMethodCombined < neuro.ripple.SWRDetectionMethod
                     else
                         chansofShank_sw=str2double(conf.(subfield))';
                     end
-                    ripple=methodSW.execute(chansofShank_sw);
+                    ripple=methodSW.execute();
                     try
                         rippleCombinedSW=rippleCombinedSW+ripple;
                         display(rippleCombinedSW);
@@ -63,8 +63,7 @@ classdef SWRDetectionMethodCombined < neuro.ripple.SWRDetectionMethod
         end
         function probe=getProbe(obj)
             try
-                list=dir(fullfile(obj.BasePath,'*Probe*'));
-                probe=neuro.probe.Probe(fullfile(list.folder,list.name));
+                probe=neuro.probe.Probe(obj.BasePath);
             catch
                 fprintf('No Probe File at: %s',obj.BasePath);
             end

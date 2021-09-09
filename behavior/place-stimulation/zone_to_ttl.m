@@ -93,7 +93,7 @@ if ~debug
 end
 
 % set up window sanity check
-hf = figure; set(gcf,'Position', [250 300 1780 900]); ax = subplot(2,3,1);
+hf = figure; set(gcf,'Position', [810, 100, 1130, 590 ]); ax = subplot(2,3,1);
 imagesc(ax, 1);
 colormap(ax,[1 0 0])
 ht = text(ax, 1, 1, 'OFF', 'FontSize', 50, 'HorizontalAlignment', 'center');

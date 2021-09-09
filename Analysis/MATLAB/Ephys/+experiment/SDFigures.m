@@ -102,7 +102,7 @@ classdef SDFigures <Singleton
             medianfilter=3;
             for ifile=fileNos
                 file=files.Filepath{ifile};
-                ctd=ChannelTimeData(file);
+                ctd=neuro.basic.ChannelTimeDataHard(file);
                 ch=ctd.getChannel(channel);
                 str=[file num2str(ch.getChannelName) 'tfmap1'];
                 cachefile=fullfile(file,'cache', [DataHash(str) '.mat']);

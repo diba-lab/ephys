@@ -17,7 +17,7 @@ classdef ChannelFactory
             end
             obj.BaseFolder=baseFolder;
             obj.sdd=StateDetectionData(baseFolder);
-            obj.ctd=ChannelTimeData(baseFolder);
+            obj.ctd=neuro.basic.ChannelTimeDataHard(baseFolder);
         end
         
         function ch = getChannel(obj,channelName)

@@ -10,6 +10,10 @@ classdef Oscillation
             %OSCILLATION Construct an instance of this class
             %   Detailed explanation goes here
             obj.SampleRate=sampleRate;
+            sz=size(values);
+            if sz(1)>sz(2)
+                values=values';
+            end
             if ~isa(values,'double')
                 obj.Values=double(values);
             else
@@ -99,26 +103,29 @@ classdef Oscillation
         end
         function obj=getLowpassFiltered(obj,filterFreq)
             obj.Values=ft_preproc_lowpassfilter(...
-                obj.Values',obj.SampleRate,filterFreq);
+                obj.Values,obj.SampleRate,filterFreq);
         end
         function obj=getHighpassFiltered(obj,filterFreqBand)
             obj.Values=ft_preproc_highpassfilter(...
-                obj.Values',obj.SampleRate,filterFreqBand,[],[],[]);
+                obj.Values,obj.SampleRate,filterFreqBand,[],[],[]);
         end
         function obj=getBandpassFiltered(obj,filterFreqBand)
             obj.Values=ft_preproc_bandpassfilter(...
-                obj.Values',obj.SampleRate,filterFreqBand,[],[],[]);
+                obj.Values,obj.SampleRate,filterFreqBand,[],[],[]);
+        end
+        function obj=getEnvelope(obj)
+            obj.Values=ft_preproc_hilbert(obj.Values,'abs');
         end
         function obj=getMedianFiltered(obj,windowInSeconds,varargin)
-            obj.Values=medfilt1(obj.Values',...
+            obj.Values=medfilt1(obj.Values,...
                 obj.getSampleRate*windowInSeconds,varargin{:});
         end
         function obj=getMeanFiltered(obj,windowInSeconds)
-            obj.Values=smoothdata(obj.Values',...
+            obj.Values=smoothdata(obj.Values,...
                 'movmean', obj.getSampleRate*windowInSeconds);
         end
         function obj=getZScored(obj)
-            obj.Values=zscore(obj.Values');
+            obj.Values=zscore(obj.Values);
         end
         function vals=getValues(obj)
             vals = obj.Values;
