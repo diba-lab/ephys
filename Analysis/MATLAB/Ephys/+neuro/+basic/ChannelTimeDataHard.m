@@ -87,11 +87,16 @@ classdef ChannelTimeDataHard < file.BinarySave
             probe=obj.Probe;
             chnames=probe.getActiveChannels;
         end
+        function ctdh=getChanneltimeDataHardBad(obj)
+            ctdh=neuro.basic.ChannelTimeDataHardBad(obj,Bad);
+        end
         function ch = getChannel(obj,channelNumber)
+            l=logging.Logger.getLogger;
             ticd=obj.getTimeIntervalCombined;
             probe=obj.Probe;
             channelList=probe.getActiveChannels;
             index=channelList==channelNumber;
+            l.info(sprintf('Loading Channel %d from %s',channelNumber,obj.Filepath))
             datamemmapfile=obj.Data;
             datamat=datamemmapfile.Data;
             voltageArray=datamat.mapped(index,:);

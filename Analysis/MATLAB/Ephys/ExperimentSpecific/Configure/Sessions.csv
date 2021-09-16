@@ -20,3 +20,5 @@ SessionNo,animal,day,Condition,Filepath
 17,AD,3,NSD,/data1/EphysAnalysis/SleepDeprivationData/AD_2019-08-03_NSD
 21,AI,1,NSD,/data1/EphysAnalysis/SleepDeprivationData/AI_2021-08-05_NSD
 10,AI,2,SD,/data1/EphysAnalysis/SleepDeprivationData/AI_2021-08-12_SD
+22,AI,3,NSD,/data1/EphysAnalysis/SleepDeprivationData/AI_2021-08-24_NSD
+23,AI,4,SD,/data1/EphysAnalysis/SleepDeprivationData/AI_2021-08-26_SD

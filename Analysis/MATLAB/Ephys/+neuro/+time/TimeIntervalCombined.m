@@ -59,7 +59,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                 end
             end
             obj.timeIntervalList=timeIntervalList;
-            obj.Format='dd-MMM-uuuu HH:mm:ss.SSS';
+            obj.Format='uuuu-MM-dd HH:mm:ss.SSS';
         end
         
         function []=print(obj)
@@ -216,7 +216,8 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                     try
                         assert(isa(theTimeInterval,'neuro.time.TimeInterval'));
                         obj.timeIntervalList.add(theTimeInterval);
-                        fprintf('\nRecord addded:\n');theTimeInterval.print;
+                        l=logging.Logger.getLogger;
+                        l.fine(sprintf('\nRecord addded:\n%s',theTimeInterval.tostring));
                     catch
                         assert(isa(theTimeInterval,'neuro.time.TimeIntervalCombined'));
                         til=theTimeInterval.timeIntervalList.createIterator;
@@ -252,21 +253,18 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             theTimeInterval=til.get(1);
             startTime=theTimeInterval.getStartTime;
         end
-        function [timeIntervalCombined,resArr]=getDownsampled(obj,downsampleFactor)
+        function [timeIntervalCombined, residualthis]=getDownsampled(obj,downsampleFactor)
             til= obj.timeIntervalList;
-            resArr=[];
             for iInt=1:til.length
                 theTimeInterval=til.get(iInt);
-                [ds_ti, residual]=theTimeInterval.getDownsampled(downsampleFactor);
                 if iInt==1
-                    residuals(iInt,1)=ds_ti.NumberOfPoints*downsampleFactor+1;
-                    residuals(iInt,2)=ds_ti.NumberOfPoints*downsampleFactor+residual;
                 else
-                    numPointsPrev=residuals(iInt-1,2);
-                    residuals(iInt,1)=numPointsPrev+ds_ti.NumberOfPoints*downsampleFactor+1;
-                    residuals(iInt,2)=numPointsPrev+ds_ti.NumberOfPoints*downsampleFactor+residual;
+                    residualprev=residualthis;
+                    residualtime=seconds(residualprev/theTimeInterval.SampleRate);
+                    theTimeInterval.StartTime=theTimeInterval.StartTime-residualtime;
+                    theTimeInterval.NumberOfPoints=theTimeInterval.NumberOfPoints+residualprev;
                 end
-                resArr=[resArr residuals(iInt,1):residuals(iInt,2)];
+                [ds_ti, residualthis]=theTimeInterval.getDownsampled(downsampleFactor);
                 if exist('timeIntervalCombined','var')
                     timeIntervalCombined1=timeIntervalCombined+ds_ti;
                     timeIntervalCombined=timeIntervalCombined1;
@@ -364,6 +362,20 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                 ti=neuro.time.TimeInterval(tiRow.StartTime,tiRow.SampleRate,tiRow.NumberOfPoints);
                 ticd=ticd+ti;
             end
+        end
+        function ticd=setZeitgeberTime(obj,zt)
+            ticd=neuro.time.TimeIntervalCombined;
+            iter=obj.timeIntervalList.createIterator;            
+            while(iter.hasNext)
+                ti=iter.next;
+                tiz=neuro.time.TimeIntervalZT(ti,zt);
+                ticd=ticd+tiz;
+            end
+        end
+        function zt=getZeitgeberTime(obj)
+            iter=obj.timeIntervalList.createIterator;
+            ti=iter.next;
+            zt=ti.ZeitgeberTime;
         end
         
     end

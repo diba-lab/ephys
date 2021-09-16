@@ -28,7 +28,7 @@ classdef Oscillation
                 [ticd1, res]=obj.getTimeIntervalCombined.getDownsampled(...
                     obj.getTimeIntervalCombined.getSampleRate*...
                     timeFrequencyMethod.movingWindow(2));
-                obj.Values(res)=[];
+                obj.Values(end-res+1:end)=[];
             catch
                 ticd1=obj.getTimeIntervalCombined;
             end

@@ -45,7 +45,7 @@ classdef Preprocess
             try
                 forClu=readstruct(paramsCluFile);
             catch
-                forClu.Shanks.Shank=[1 2 3 4];
+                forClu.Shanks.Shank=[nan nan];
                 animal=session.Animal.Code;
                 date=session.SessionInfo.Date;
                 if ~isdatetime(date)
@@ -62,7 +62,8 @@ classdef Preprocess
             try
                 forLFP=readstruct(paramsLFPFile);
             catch
-                forLFP.Shanks.Shank=[1 2 3 4];
+                forLFP.Shanks.Shank=[nan nan];
+                forLFP.Channels.Channel=[nan nan];
                 forLFP.DownSampleRate=1250;
                 
                 writestruct(forLFP,paramsLFPFile);
@@ -72,49 +73,64 @@ classdef Preprocess
             badFile=fullfile(session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Bad);
             try
                 bad=readtable(badFile);
+                bad.Start=seconds(bad.Start);
+                bad.Stop=seconds(bad.Stop);
             catch
                 bad=table([],[],'VariableNames',{'Start','Stop'});
+                if ~isfolder(fileparts(badFile)), mkdir(fileparts(badFile));end
                 writetable(bad,badFile);
                 l=logging.Logger.getLogger;
                 l.error('No bad file: %s',badFile);
             end
-            obj.Bad=bad;
+            obj.Bad=neuro.time.TimeWindowsDuration(bad);
             %% Params
             paramFile=fullfile(session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Parameters);
+            cfg=[];
             try
-                param=readstruct(paramFile);
+                cfg=readstruct(paramFile);
             catch
                 folder=fileparts(paramFile);
-                param.cachefolder=fullfile(folder,'cache');
-                param.Channels.Channel=1;
-                param.ZScore.Threshold=[nan nan];
-                param.ZScore.PlotYLims=[-3 3];
-                param.ZScore.MinimumDurationInMs=50;
-                param.ZScore.WindowsBeforeDetectionInMs=50;
-                param.ZScore.WindowsAfterDetectionInMs=50;
-                param.ZScore.MinimumInterArtifactDistanceInMs=50;
-                param.ZScore.Downsample=1250;
-                freqbans=[1 4; 4 12];
-                ZScoreThresholds=nan(size(freqbans));
-                ZScorePlotYLims=[-.3 .5; -.5 1];
-                param.Spectogram.FrequencyBands.start=freqbans(:,1);
-                param.Spectogram.FrequencyBands.stop=freqbans(:,2);
-                param.Spectogram.ZScore.Threshold.start=ZScoreThresholds(:,1);
-                param.Spectogram.ZScore.Threshold.stop=ZScoreThresholds(:,2);
-                param.Spectogram.ZScore.PlotYLims.start=ZScorePlotYLims(:,1);
-                param.Spectogram.ZScore.PlotYLims.stop=ZScorePlotYLims(:,2);
-                param.Spectogram.Method.chronux.WindowSize=[2 1];
-                param.Spectogram.Method.chronux.WindowStep=[1 .5];
+                cfg.cachefolder=fullfile(folder,'cache');
+                cfg.channel=97:128;
+                cfg.trialdef.triallength = 60;%seconds(hours(1));
                 
-                writestruct(param,paramFile);
+                cfg.artfctdef.jump.channel      ='all';
+                cfg.artfctdef.jump.interactive  = 'no';
+                cfg.artfctdef.jump.artpadding  =.01;
+                cfg.artfctdef.jump.interactive = 'yes';
+                
+                cfg.artfctdef.clip.channel      ='all';
+                cfg.artfctdef.clip.timethreshold =.01;
+                cfg.artfctdef.clip.amplthreshold ='1%';
+                cfg.artfctdef.clip.pretim        =.02;
+                cfg.artfctdef.clip.psttim        =.02;
+                cfg.artfctdef.clip.interactive = 'yes';
+                
+                cfg.artfctdef.zvalue.channel      ='all';
+                cfg.artfctdef.zvalue.cutoff     = 50;
+                cfg.artfctdef.zvalue.artpadding = .01;
+                cfg.artfctdef.zvalue.hilbert    ='yes';
+                cfg.artfctdef.zvalue.bpfilter      = 'yes';
+                cfg.artfctdef.zvalue.bpfreq        = [300 600];
+                cfg.artfctdef.zvalue.interactive = 'yes';
+                
+                cfg.artfctdef.threshold.channel   = 'all';
+                cfg.artfctdef.threshold.bpfilter  = 'no';
+                cfg.artfctdef.threshold.bpfreq    = [0.3 80];
+                cfg.artfctdef.threshold.bpfiltord = 4;
+                cfg.artfctdef.threshold.range     = 1000;
+                cfg.artfctdef.threshold.max       = 10000;
+                
+                writestruct(cfg,paramFile);
             end
-            obj.Parameters=param;
+            
+            obj.Parameters=cfg;
             
             %% Probe File
             probeRaw=fullfile(session.SessionInfo.baseFolder, sde.FileLocations.Session.Probe);
             probePrep=fullfile(session.SessionInfo.baseFolder, sde.FileLocations.Preprocess.Probe);
             try
-            copyfile(probeRaw,probePrep);
+                copyfile(probeRaw,probePrep);
             catch
             end
         end
@@ -139,7 +155,11 @@ classdef Preprocess
                     filename=fullfile(rawfiles{ifile});
                     oer =openEphys.OpenEphysRecordFactory.getOpenEphysRecord(filename);
                     if ~exist('oerc','var')
-                        oerc=openEphys.OpenEphysRecordsCombined( oer);
+                        if isa(oer,'openEphys.OpenEphysRecord')
+                            oerc=openEphys.OpenEphysRecordsCombined(oer);
+                        elseif isa(oer,'openEphys.OpenEphysRecordsCombined')
+                            oerc=oer;
+                        end
                     else
                         oerc=oerc+oer;
                     end
@@ -153,11 +173,19 @@ classdef Preprocess
             if isempty(oerc.getProbe)
                 oerc=oerc.setProbe(probe);
             end
+            evt=oerc.getEvents;
             for ish=1:numel(shanks)
                 aShank=shanks(ish);
                 chans=probe.getShank(aShank).getActiveChannels;
                 shankstr=strcat('shank',int2str(aShank) );
                 outfolder=fullfile(outfol,shankstr);
+                l=logging.Logger.getLogger;
+                try
+                    evt.saveNeuroscopeEventFiles(outfolder,'On-Off');
+                    l.fine('Event file saved.');
+                catch
+                    l.error('No event file saved.');
+                end
                 dataForClustering(ish)=oerc.mergeBlocksOfChannels(chans,outfolder);
             end
         end
@@ -174,7 +202,19 @@ classdef Preprocess
                 sprintf('%s%s',name,ext));
             probe=session.Probe;
             shanks=obj.LFPParams.Shanks.Shank;
+            try 
+                chans=obj.LFPParams.Channels.Channel;
+            catch
+            end
+            if exist('chans','var')&&~sum(isnan(chans))
+                chans=chans'+1;
+            else
+                chans=[];
+            end
             newprobe=probe.getShank(shanks);
+            channels=newprobe.getActiveChannels;
+            channels=[channels; chans];
+            newprobe=probe.setActiveChannels(channels);
             if ~isfile(newFileName)
                 rawfiles=obj.OpenephysFiles;
                 cachestr=DataHash(strcat(convertStringsToChars(rawfiles')));
@@ -197,7 +237,7 @@ classdef Preprocess
                 if isempty(oerc.getProbe)
                     oerc=oerc.setProbe(probe);
                 end
-                channels=newprobe.getActiveChannels;
+                
                 mergedData=oerc.mergeBlocksOfChannels(channels,obj.ClusterParams.OutputFolder);
                 
                 chantime=neuro.basic.ChannelTimeDataHard(mergedData.DataFile);
@@ -212,69 +252,12 @@ classdef Preprocess
             ticd=neuro.time.TimeIntervalCombined(fullfile(baseFolder,list.name));
             dataForLFP=dataForLFP.setTimeIntervalCombined(ticd);
         end
-        function [arts, obj]=reCalculateArtifacts(obj)
-            params=obj.getParameters;
-            param_spec=params.Spectogram;
-            params_chrx=param_spec.Method.chronux;
-            freqs=[param_spec.FrequencyBands.start' param_spec.FrequencyBands.stop'];
-            for ifreq=1:size(freqs,1)
-                tfmethod=neuro.tf.TimeFrequencyChronuxMtspecgramc(...
-                    freqs(ifreq,:),[params_chrx.WindowSize(ifreq) params_chrx.WindowStep(ifreq)]);
-                if ~isfolder(params.cachefolder), mkdir(params.cachefolder);end
-                cacheFile=fullfile(params.cachefolder, strcat(DataHash(tfmethod),'.mat'));
-                if isfile(cacheFile)
-                    load(cacheFile,'chPower');
-                else
-                    datalfp=obj.getDataForLFP;
-                    ctd=datalfp.getChannelTimeDataHard;
-                    probe=ctd.getProbe;
-                    chans=probe.getActiveChannels;
-                    ch=ctd.getChannel(chans(params.Channels.Channel));
-                    tfmap=ch.getTimeFrequencyMap(tfmethod);
-                    powers=tfmap.matrix;
-                    meanPower=mean(powers,2);
-                    chPower=neuro.basic.Channel(strcat('Power',sprintf(' %d-%d Hz',freqs(ifreq,:))),meanPower',tfmap.getTimeintervalCombined);
-                    save(cacheFile,'chPower');
-                end
-                power{ifreq}=chPower;
-                thld=[params.Spectogram.ZScore.Threshold.start' params.Spectogram.ZScore.Threshold.stop'];
-                ylim=[params.Spectogram.ZScore.PlotYLims.start' params.Spectogram.ZScore.PlotYLims.stop'];
-                if ~isnumeric(thld(ifreq,:))||sum(isnan(thld(ifreq,:)))
-                    [artifacts_freq{ifreq}, zscoreThld]=obj.getArtifacts(chPower,[],ylim(ifreq,:));
-                    params.Spectogram.ZScore.Threshold.start(ifreq)=zscoreThld(1);
-                    params.Spectogram.ZScore.Threshold.stop(ifreq)=zscoreThld(2);
-                    obj=obj.setParameters(params);
-
-                else
-                    [artifacts_freq{ifreq}]=obj.getArtifacts(...
-                        chPower,thld(ifreq,:));
-                end
-            end
-            if ~exist('ch','var')
-                datalfp=obj.getDataForLFP;
-                ctd=datalfp.getChannelTimeDataHard;
-                probe=ctd.getProbe;
-                chans=probe.getActiveChannels;
-                ch=ctd.getChannel(chans(params.Channels.Channel)); 
-            end
-%             ch_ds=ch.getDownSampled(params.ZScore.Downsample);
-            ch_ds=ch.setChannelName('RawLFP');
-            if ~isnumeric(params.ZScore.Threshold)
-                [artifacts_rawLFP,zscoreThld]=obj.getArtifacts(ch_ds,[],params.ZScore.PlotYLims);
-                params.ZScore.Threshold=zscoreThld;
-                obj=obj.setParameters(params);
-            else
-                [artifacts_rawLFP]=obj.getArtifacts(ch_ds,params.ZScore.Threshold); 
-            end
-            bad=obj.getBad;
-            combinedBad=artifacts_rawLFP;
-            for ifreq=1:numel(artifacts_freq)
-                combinedBad=combinedBad+artifacts_freq{ifreq};
-            end
-            bad.BadTimes.Time= table2struct( combinedBad.getTimeTable);
-            obj=obj.setBad(bad);
-            obj.Artifacts=preprocessing.Artifacts(obj,combinedBad,ch_ds,artifacts_freq,power);
-            arts=obj.Artifacts;
+        function [obj]=reCalculateArtifacts(obj)
+            cfg=obj.getParameters;
+            ctdh=neuro.basic.ChannelTimeDataHard(obj.Session.SessionInfo.baseFolder);
+            ctda=preprocessing.ChannelTimeDataArtifact(ctdh, cfg);
+            ctda.saveArtifactsForNeuroscope
+            obj.Artifacts=ctda.saveDeadFileForSpyKingCircus;
         end
 
         

@@ -8,7 +8,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
     end
     
     methods
-        function newobj = ChannelTimeDataArtifact(ctd)
+        function newobj = ChannelTimeDataArtifact(ctd,cfg1)
             if isstring(ctd)||ischar(ctd)
                 datafile=ctd;
             else
@@ -17,48 +17,72 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
             newobj@neuro.basic.ChannelTimeDataHard(datafile);
             ft_defaults
             cfg=[];
-            cfg.channel=97:128;
-            cfg.trialdef.triallength = 60;%seconds(hours(1));
+            if ~exist('cfg1','var')||isempty(cfg1)
+                cfg.channel=97:128;
+                cfg.trialdef.triallength = 60;%seconds(hours(1));
+            else
+                cfg.channel=cfg1.channel;
+                cfg.trialdef.triallength = cfg1.trialdef.triallength;%seconds(hours(1));
+            end
             cfg.trialdef.ntrials     = inf;
             cfg.trialfun   =  'ft_trialfun_general';
             cfg.dataset     = newobj.getFilepath;
             cfg.headerformat='openephys_binary';
             [cfg] = ft_definetrial(cfg);
+            
             cfg.dataformat='openephys_binary';
             newobj.data=ft_preprocessing(cfg);
             
             cfg=[];
             cfg.continuous                  ='yes';
-            cfg.artfctdef.jump.channel      ='all';
-            cfg.artfctdef.jump.interactive  = 'no';
-            cfg.artfctdef.jump.artpadding  =.01;
-            cfg.artfctdef.jump.interactive = 'yes';
+            if ~exist('cfg1','var')||isempty(cfg1)
+                cfg.artfctdef.jump.channel      ='all';
+                cfg.artfctdef.jump.artpadding  =.01;
+                cfg.artfctdef.jump.interactive = 'yes';
+                
+                cfg.artfctdef.clip.channel      ='all';
+                cfg.artfctdef.clip.timethreshold =.01;
+                cfg.artfctdef.clip.amplthreshold ='1%';
+                cfg.artfctdef.clip.pretim        =.02;
+                cfg.artfctdef.clip.psttim        =.02;
+                cfg.artfctdef.clip.interactive = 'yes';
+                
+                cfg.artfctdef.zvalue.channel      ='all';
+                cfg.artfctdef.zvalue.cutoff     = 50;
+                cfg.artfctdef.zvalue.artpadding = .01;
+                cfg.artfctdef.zvalue.hilbert    ='yes';
+                cfg.artfctdef.zvalue.bpfilter      = 'yes';
+                cfg.artfctdef.zvalue.bpfreq        = [300 600];
+                cfg.artfctdef.zvalue.interactive = 'yes';
+                
+                cfg.artfctdef.threshold.channel   = 'all';
+                cfg.artfctdef.threshold.bpfilter  = 'no';
+                %             cfg.artfctdef.threshold.bpfreq    = [0.3 80];
+                %             cfg.artfctdef.threshold.bpfiltord = 4;
+                cfg.artfctdef.threshold.range     = 1000;
+                %             cfg.artfctdef.threshold.max       = 10000;
+                %             cfg.artfctdef.threshold.onset     = value in uV or T, default  inf
+                %             cfg.artfctdef.threshold.offset    = value in uV or T, default  inf
+            else
+                cfg.artfctdef=cfg1.artfctdef;
+                cfg.artfctdef.jump.channel      =convertStringsToChars(cfg.artfctdef.jump.channel);
+                cfg.artfctdef.jump.interactive  =convertStringsToChars(cfg.artfctdef.jump.interactive );
+                
+                cfg.artfctdef.clip.channel      =convertStringsToChars(cfg.artfctdef.clip.channel);
+                cfg.artfctdef.clip.amplthreshold =convertStringsToChars(cfg.artfctdef.clip.amplthreshold);
+                cfg.artfctdef.clip.interactive = convertStringsToChars(cfg.artfctdef.clip.interactive);
+                
+                cfg.artfctdef.zvalue.channel      =convertStringsToChars(cfg.artfctdef.zvalue.channel );
+                cfg.artfctdef.zvalue.hilbert    =convertStringsToChars(cfg.artfctdef.zvalue.hilbert);
+                cfg.artfctdef.zvalue.bpfilter      =convertStringsToChars(cfg.artfctdef.zvalue.bpfilter );
+                cfg.artfctdef.zvalue.interactive = convertStringsToChars(cfg.artfctdef.zvalue.interactive);
+               
+                cfg.artfctdef.threshold.channel   =convertStringsToChars(cfg.artfctdef.threshold.channel);
+                cfg.artfctdef.threshold.bpfilter  =convertStringsToChars(cfg.artfctdef.threshold.bpfilter);
 
-            cfg.artfctdef.clip.channel      ='all';
-            cfg.artfctdef.clip.timethreshold =.01;
-            cfg.artfctdef.clip.amplthreshold ='1%';
-            cfg.artfctdef.clip.pretim        =.02;
-            cfg.artfctdef.clip.psttim        =.02;
-            cfg.artfctdef.clip.interactive = 'yes';
-
-            cfg.artfctdef.zvalue.channel      ='all';
-            cfg.artfctdef.zvalue.cutoff     = 50;
-            cfg.artfctdef.zvalue.artpadding = .01;
-            cfg.artfctdef.zvalue.hilbert    ='yes';
-            cfg.artfctdef.zvalue.bpfilter      = 'yes';
-            cfg.artfctdef.zvalue.bpfreq        = [300 600];
-            cfg.artfctdef.zvalue.interactive = 'yes';
+            end
             
-            cfg.artfctdef.threshold.channel   = 'all';
-            cfg.artfctdef.threshold.bpfilter  = 'no';
-%             cfg.artfctdef.threshold.bpfreq    = [0.3 80];
-%             cfg.artfctdef.threshold.bpfiltord = 4;
-            cfg.artfctdef.threshold.range     = 1000;
-%             cfg.artfctdef.threshold.max       = 10000;
-%             cfg.artfctdef.threshold.onset     = value in uV or T, default  inf
-%             cfg.artfctdef.threshold.offset    = value in uV or T, default  inf
-
-
+            
             newobj.cfg=cfg;
         end
         function twd=getArtifactsJump(obj,overwrite)
@@ -76,7 +100,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
             end
             tws=neuro.time.TimeWindowsSample(artifact);
             twd=tws.getDuration(obj.getTimeIntervalCombined.getSampleRate);
-            if overwrite     
+            if overwrite
                 twd.saveForNeuroscope(obj.getFolder,'jump');
             end
         end
@@ -95,7 +119,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
             end
             tws=neuro.time.TimeWindowsSample(artifact);
             twd=tws.getDuration(obj.getTimeIntervalCombined.getSampleRate);
-            if overwrite     
+            if overwrite
                 twd.saveForNeuroscope(obj.getFolder,'clip');
             end
         end
@@ -128,7 +152,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
             cfg1.artfctdef.zvalue.cutoff     = 7;
             cfg1.artfctdef.zvalue.artpadding = .01;
             cfg1.artfctdef.zvalue.interactive = 'yes';
-
+            
             %% zvalue
             cachefile=fullfile(obj.getFolder,'cache',[DataHash(cfg1.artfctdef.zvalue) '.mat']);
             try
@@ -220,7 +244,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
             a.plotHist(gca,colors(4,:))
             title('All');
             xlabel('Artifact Duration');
-    
+            
             f=logistics.FigureFactory.instance(obj.getFolder);
             f.save('artifact_hist')
             try close(2);catch, end;figure(2);

@@ -18,7 +18,7 @@ classdef FigureFactory < Singleton
                     obj.DefaultPath =defpath;
                 end
             else
-                obj.DefaultPath = '/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof';
+                obj.DefaultPath = pwd;
             end
             obj.figtypes={'-dpng'};%,'-depsc'
             obj.ext={'.png'};%,'.eps'

@@ -80,6 +80,7 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
                 ripple=S.(fnames{1});
             end
             ripple1=neuro.ripple.Ripple(ripple);
+            ripple1.DetectorInfo.BasePath=obj.BasePath;
         end
     end
 end

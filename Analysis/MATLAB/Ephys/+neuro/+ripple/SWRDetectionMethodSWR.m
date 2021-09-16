@@ -19,6 +19,8 @@ classdef SWRDetectionMethodSWR < neuro.ripple.SWRDetectionMethod
                 dur=seconds(ticd.getNumberOfPoints/ticd.getSampleRate);
                 arts_rev=neuro.time.TimeWindowsDuration(readtable(bad)).getReverse(dur);
                 obj.Epochs=table2array( arts_rev.getTimeTable);
+            else
+                obj.Epochs=[];
             end            
         end
         
@@ -57,6 +59,7 @@ classdef SWRDetectionMethodSWR < neuro.ripple.SWRDetectionMethod
                 ripple=S.(fnames{1});
             end
             ripple1=neuro.ripple.SWRipple(ripple);
+            ripple1.DetectorInfo.BasePath=obj.BasePath;
         end
         function objnew= plus(obj,newRiple)
             pt_base=obj.getPeakTimes;

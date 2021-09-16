@@ -55,10 +55,10 @@ classdef Session
             end
             sdblock=experiment.SDBlocks(obj.SessionInfo.Date,blockstt);
             obj.Blocks=sdblock;
-            logger.info(sdblock.print)
-            %% Location
-            LocFile=fullfile(baseFolder,params.FileLocations.Session.Location);
             try
+                logger.info(sdblock.print)
+                %% Location
+                LocFile=fullfile(baseFolder,params.FileLocations.Session.Location);
                 
             catch
                 
