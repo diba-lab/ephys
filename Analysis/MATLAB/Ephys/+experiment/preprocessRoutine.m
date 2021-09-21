@@ -26,4 +26,4 @@ end
 % f=FigureFactory.instance;
 % f.save(ses)
 
-ctd=neuro.basic.ChannelTimeData('/data2/gdrive/ephys/clustering/AG_2020-01-05_SD/shank1/MergedRaw.filtered.dat')
+ctd=neuro.basic.ChannelTimeDataHard('/data2/gdrive/ephys/clustering/AG_2020-01-05_SD/shank1/MergedRaw.filtered.dat')

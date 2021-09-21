@@ -15,7 +15,11 @@ classdef TimeWindowsDuration
                 timeTable=struct2table(timeTable);
             elseif istable(timeTable)
             elseif ismatrix(timeTable)
-                timeTable=array2table(timeTable,'VariableNames',{'Start','Stop'});
+                if ~isempty(timeTable)
+                    timeTable=array2table(timeTable,'VariableNames',{'Start','Stop'});
+                else
+                    timeTable=cell2table(cell(0,2),'VariableNames',{'Start','Stop'});
+                end
             end
             obj.TimeTable = timeTable;
         end
@@ -49,7 +53,7 @@ classdef TimeWindowsDuration
                     temp=win;
                 end
             end
-            rest=[rest;win];
+            rest=[rest;temp];
             obj.TimeTable=rest;
         end
         
@@ -59,14 +63,64 @@ classdef TimeWindowsDuration
             table2=sortrows(table1,1);
             timeWindows=neuro.time.TimeWindowsDuration(table2);
         end
+        function thisTimeWindows = minus(thisTimeWindows,newTimeWindows)
+            %METHOD1 Summary of this method goes here
+            newtt=newTimeWindows.TimeTable;
+            for inew=1:height(newtt)
+                event=newtt(inew,:);
+                startnew=event.Start;
+                stopnew=event.Stop;
+                thisTimeWindows=thisTimeWindows.removeWindow([startnew, stopnew]);
+            end
+        end
+        function thisTimeWindows=removeWindow(thisTimeWindows,n)
+            thistt=thisTimeWindows.TimeTable;
+            ii=1;
+            for iold=1:height(thistt)
+                event=thistt(iold,:);
+                o(1)=event.Start;
+                o(2)=event.Stop;
+                if n(1)>=o(2)||n(2)<=o(1) % outside
+                    Start(ii)=o(1); % do nothing
+                    Stop(ii)=o(2);
+                elseif n(2)>=o(2) % first one is inside
+                    if n(1)<o(1)
+                       ii=ii-1;
+                    else
+                        Start(ii)=o(1);
+                        Stop(ii)=n(1);
+                    end
+                else
+                    if n(1)<=o(1)
+                        Start(ii)=n(2);
+                        Stop(ii)=o(2);
+                    else
+                        Start(ii)=o(1);
+                        Stop(ii)=n(1);
+                        ii=ii+1;
+                        Start(ii)=n(2);
+                        Stop(ii)=o(2);
+                    end
+                end
+                ii=ii+1;
+            end
+            Start=Start';
+            Stop=Stop';
+            thisTimeWindows.TimeTable= table(Start,Stop);
+        end
+        
+        
         function ax=plotHist(obj, ax, color)
             if ~exist('ax','var')
                 ax=gca;
             end
+            if ~exist('color','var')
+                color=[0 0 0];
+            end
             tt=table2array(obj.TimeTable);
             dur=tt(:,2)-tt(:,1);
             histogram(dur,'FaceColor', color);
-            dim=[.4 ax.Position(2)-ax.Position(4)/3 .2 .2];
+            dim=[.4 ax.Position(2)+ax.Position(4)/3 .2 .2];
             annotation('textbox',dim,'String', [num2str(round(seconds(sum(dur)))) ' s'] ,...
                 'FitBoxToText','on','LineStyle','none'),
             ylabel('Count')
@@ -75,19 +129,28 @@ classdef TimeWindowsDuration
             if ~exist('ax','var')
                 ax=gca;
             end
+            if ~exist('color','var')
+                color=[0 0 0];
+            end
             tt=seconds(table2array(obj.TimeTable));
             dur=tt(:,2)-tt(:,1);
-            scatter( mean(tt,2),rand(size(dur)),dur*10,color,'filled');
+            s=scatter( hours(seconds(mean(tt,2))),rand(size(dur)),dur*10,color,'filled');
             alpha(.5)
-            legend ('5 sec')
+            legend (s,'5 sec')
         end
         
         function file=saveForClusteringSpyKingCircus(obj,file)
-            t=obj.TimeTable;
-            timeMs=seconds(table2array(t))*1000;
-            if isfolder(file)
-                file=fullfile(file,'dead.txt');
-            end            
+            t=table2array(obj.TimeTable);
+            if isduration(t)
+                timeMs=seconds(t)*1000;
+            else
+                timeMs=t*1000;
+            end
+            if exist('file','var')
+                if isfolder(file)
+                    file=fullfile(file,'dead.txt');
+                end
+            end
             writematrix(timeMs,file,'Delimiter',' ');
         end
         function ax=saveForNeuroscope(obj, pathname, type)
@@ -125,6 +188,21 @@ classdef TimeWindowsDuration
                 fprintf(fid,'%9.1f\tstop\n',stop(ii));
             end
             fclose(fid);
+        end
+        function obj=getReverse(obj,length)
+            % convert detections to milliseconds
+            T= obj.TimeTable;
+            Start=.001;
+            Stop=[];
+            start=T.Start;
+            stop=T.Stop;
+            for iwin=1:numel(start)
+                Stop=[Stop; start(iwin)];
+                Start=[Start; stop(iwin)];
+            end
+            Stop=[Stop; seconds(length)];
+            T=table(Start,Stop);
+            obj.TimeTable=T;
         end
         function ax=getArrayForBuzcode(obj,ax)
             T=obj.TimeTable;

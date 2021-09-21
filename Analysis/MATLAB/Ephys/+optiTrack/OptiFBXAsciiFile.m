@@ -1,4 +1,4 @@
-classdef OptiFBXAsciiFile<OptiFile
+classdef OptiFBXAsciiFile<optiTrack.OptiFile
     %OPTITAKFILE Summary of this class goes here
     %   Detailed explanation goes here
     

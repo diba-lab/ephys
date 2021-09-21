@@ -34,9 +34,18 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
         function obj=plus(obj,varargin)
             for iArgIn=1:(nargin-1)
                 theOpenEphysRecord=varargin{iArgIn};
-                assert(isa(theOpenEphysRecord,'openEphys.OpenEphysRecord'));
-                obj.OpenEphysRecords.add(theOpenEphysRecord);
-                fprintf('Record addded:\n%s\n', theOpenEphysRecord.getFile);
+                if isa(theOpenEphysRecord,'openEphys.OpenEphysRecord')
+                    obj.OpenEphysRecords.add(theOpenEphysRecord);
+                    fprintf('Record addded:\n%s\n', theOpenEphysRecord.getFile);
+                elseif isa(theOpenEphysRecord,'openEphys.OpenEphysRecordsCombined')
+                    oers=theOpenEphysRecord.OpenEphysRecords;
+                    iter=oers.createIterator;
+                    for ioer=1:oers.length
+                        oer=iter.next;
+                        obj.OpenEphysRecords.add(oer);
+
+                    end
+                end
                 try
                     if isempty(obj.Probe)
                         obj.Probe=theOpenEphysRecord.getProbe;
@@ -75,16 +84,22 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
         function dataForClustering=mergeBlocksOfChannels(obj,channels,path)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            
+            evts=obj.getEvents;
+%             evets.sa
+            
             iter=obj.getIterator();
             first=true;
-            fname=sprintf('MergedRaw');
+            tokens=strsplit(path,'/');
+            fname=tokens{end};
             fileout=fullfile(path, [fname '.dat']);
             dataForClustering=preprocessing.DataForClustering(fileout);
             [folder,fname,ext]=fileparts(fileout);
             probe=obj.getProbe;
             probe=probe.setActiveChannels(channels);
             probe=probe.renameChannelsByOrder(channels);
-            probe.saveProbeTable(fullfile(folder,'Probe.xlsx'));
+            if ~isfolder(folder),mkdir(folder);end
+            probe.saveProbeTable(fullfile(folder,'Probe.csv'));
             ticd=obj.getTimeIntervalCombined;
             dataForClustering=dataForClustering.setTimeIntervalCombined(ticd);
             probe.createXMLFile(fullfile(folder,strcat(fname, '.xml')),ticd.getSampleRate)
@@ -113,6 +128,19 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
                     end
                     delete(fileIn);
                 end
+            end
+        end
+        function dataForClustering=saveShanksInSeparateFolders(obj, shanks, filePath)
+            probe=obj.getProbe;
+
+            for ish=1:numel(shanks)
+                theshank=shanks(ish);
+                chans=probe.getShank(theshank).getActiveChannels;
+                folder=fullfile(filePath,sprintf('shank%d',theshank));
+                if ~isfolder(folder)
+                    mkdir(folder);
+                end
+                dataForClustering{ish}=obj.mergeBlocksOfChannels(chans,folder);
             end
         end
     end
@@ -152,16 +180,25 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
         end
         function timeIntervalCombined=getTimeIntervalCombined(obj)
             iter=obj.getIterator();
-            tls=[];
-            i=1;
             timeIntervalCombined=neuro.time.TimeIntervalCombined;
             while(iter.hasNext)
                 anOpenEphysRecord=iter.next();
                 timeIntervalCombined=timeIntervalCombined+anOpenEphysRecord.getTimeInterval();
             end
         end
-        function evts=getEvents(obj)
-            evts=obj;
+        function [evts]=getEvents(obj)
+            iter=obj.getIterator;
+            
+            while iter.hasNext
+                oer=iter.next;
+                if exist('evts','var')
+                    evts=evts+oer.getEvents;
+                else
+                    evts=oer.getEvents;
+                end
+            end
+            ticd=obj.getTimeIntervalCombined;
+            evts=neuro.event.TimeIntervalCombinedEvents(evts, ticd);
         end
         function oerc=addEvents(obj,evts)
             iter=obj.getIterator;

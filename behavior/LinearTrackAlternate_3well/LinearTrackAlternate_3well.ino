@@ -22,7 +22,7 @@ int valve3 = 11; // middle valve
 
 int sensorTrig = 0; // 0 = start (no wells visited), 1 = thereafter (at least one well has been visited)
 int SensorConf=0; // legacy code to track water well delivery and id false positives - not checked recently (2/19/2020)
-int pumpOpen = 100;
+int pumpOpen = 500; // ms, time each valve is open after a lick.
 int next_well = 0; // initialize next and last well values
 int last_well = 0;
  
@@ -56,6 +56,9 @@ void loop() {
 //     digitalWrite(valve2, HIGH);   // turn the LED on (HIGH is the voltage level)
 //    delay(pumpOpen);               // wait for a second
 //    digitalWrite(valve2, LOW);    // turn the LED off by making the voltage LOW 
+
+//========================== sensor 1 =====================================================
+
 
   // first well visited is end 1 -> open middle and end 1
   if (digitalRead(sensor1)==HIGH && sensorTrig ==0)

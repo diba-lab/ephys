@@ -23,12 +23,12 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
                     if numel(probefile)==1
                         probefilefinal=probefile;
                     elseif numel(probefile)>1
-                        [~,ind]=sort({probefile.date});
-                        probefiles = probefile(ind);
+                        [~,ind]=sort(datetime({probefile.date}));
+                        probefiles = probefile(flip(ind));
                         probefilefinal=probefiles(1);
                         logger.warning('\nMultiple probe files. Selecting the latest.\n  -->\t%s\n\t%s',probefiles.name)
                     else
-                        logger.error('\nNo probe file found in\n\t\%s',el);
+                        logger.error('\nNo probe file found in\n\t\%s',probeFile);
                     end
                     probeFile=fullfile(probefilefinal.folder,probefilefinal.name);
                 end
@@ -103,8 +103,7 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
             ax.YDir='reverse';
             %             ax.YLim=[-100 400];
             lim=axis;
-            %             ax.XTickLabel{1}=[ax.XTickLabel{1} '\mu'];
-            axis([lim(1)-50 lim(2)+50 -100 400])
+            axis([min(T.X)-150 max(T.X)+150 min(T.Z)-150 max(T.Z)+150])
             
         end
     end
@@ -119,7 +118,7 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
             allsh=numel(unique(sh));
             dep=max(t.Z)-min(t.Z);
             xsp=max(t.X)-min(t.X);
-            str=sprintf('%d/%d Shanks, %d/%d Channels, %d u depht-span, %d u x-span.',actsh,allsh,actch,allch,dep,xsp);
+            str=sprintf('%d/%d Shanks, %d/%d Channels, %.0f u depht-span, %.0f u x-span.',actsh,allsh,actch,allch,dep,xsp);
         end
         function siteLayout=getSiteSpatialLayout(obj,chans)
             if ~exist('chans','var')

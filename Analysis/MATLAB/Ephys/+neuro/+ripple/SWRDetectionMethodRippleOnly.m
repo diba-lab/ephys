@@ -3,16 +3,25 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
     %   Detailed explanation goes here
     
     properties
+        Epochs
     end
     
     methods
         function obj = SWRDetectionMethodRippleOnly(basepath)
             obj@neuro.ripple.SWRDetectionMethod(basepath)
+            conf=obj.Configuration;
+            if isfield(conf,'bad_file')
+                bad=fullfile(basepath, conf.bad_file);
+                ticd=neuro.basic.ChannelTimeDataHard(obj.BasePath).getTimeIntervalCombined;
+                dur=seconds(ticd.getNumberOfPoints/ticd.getSampleRate);
+                arts_rev=neuro.time.TimeWindowsDuration(readtable(bad)).getReverse(dur);
+                obj.Epochs=table2array( arts_rev.getTimeTable);
+            end
         end
         
         function ripple1 = execute(obj,varargin)
             conf=obj.Configuration;
-            ctd=neuro.basic.ChannelTimeData(obj.BasePath);
+            ctd=neuro.basic.ChannelTimeDataHard(obj.BasePath);
             if nargin>1
                 chans=varargin{1};
             else
@@ -46,6 +55,9 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
             
             chan=Ripple1.BestChannel.(chasStr);
             list1=dir(fullfile(obj.BasePath,'*.xml'));
+            if numel(list1)>1
+                list1=list1(1);
+            end
             conf.chan=chan;
             str=DataHash(conf);
             cacheFileName=fullfile(obj.BasePath,'cacheripple',[str '.mat']);
@@ -58,6 +70,8 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
                     ,'plotType',str2double(conf.ripple_plottype)...
                     ,'show',conf.ripple_show...
                     ,'thresholds',str2double(conf.ripple_threshold)...
+                    ,'EMGThresh',str2double(conf.ripple_emgthreshold)...
+                    ,'restrict',obj.Epochs...
                     );
                 save(cacheFileName,'ripple');
             else
@@ -66,6 +80,7 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
                 ripple=S.(fnames{1});
             end
             ripple1=neuro.ripple.Ripple(ripple);
+            ripple1.DetectorInfo.BasePath=obj.BasePath;
         end
     end
 end

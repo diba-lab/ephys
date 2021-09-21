@@ -31,7 +31,7 @@ if downsample
         close;probe.plotProbeLayout(combined);
         oerc=oerc.setProbe(probe);
         filename=oerc.mergeBlocksOfChannels(combined,folders{iday});
-        chantime=ChannelTimeData(filename);
+        chantime=neuro.basic.ChannelTimeDataHard(filename);
         chantime_ds=chantime.getDownSampled(1250,sdl.getActiveWorkspaceFile);
         channel=1;
         SleepScoreMaster(chantime_ds.getFolder,...

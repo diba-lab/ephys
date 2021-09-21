@@ -19,7 +19,6 @@ tone_dur_default = 10  # seconds
 trace_dur_default = 20  # seconds
 shock_dur_default = 1  # seconds at 1mA
 fs = 44100
-volume = 1.0
 ITI_range = 20  # +/- this many seconds for each ITI
 
 # Define dictionaries for experimental parameters
@@ -102,6 +101,16 @@ params = {
             "ITI_range": 1,
         },
     },
+    "Misc": {
+        "alias": "Misc",
+        "training_params": {"tone_dur": 10},
+        "ctx+tone_recall_params": {
+            "baseline_time": 8*60,
+            "CStimes": [10],
+            "ITI": 120,
+            "ITI_range": 0,
+        }
+    }
 }
 
 default_port = {
@@ -110,7 +119,7 @@ default_port = {
 }
 
 
-class trace:
+class Trace:
     def __init__(
         self,
         arduino_port="COM7",
@@ -185,7 +194,7 @@ class trace:
         """Run tone recall session using params in specified paradigm"""
 
         # Grab correct parameters
-        recall_params = self.params["recall_params"]
+        recall_params = self.params[self.session + "_params"]
 
         # Next, create tones
         tones_use = [
@@ -216,7 +225,7 @@ class trace:
             print(str(CStime) + " sec tone playing now")
             self.write_event("CS" + str(idt + 1) + "_start")
 
-            tones.play_tone(self.stream, tone, volume)
+            tones.play_tone(self.stream, tone, self.volume)
             self.write_event("CS" + str(idt + 1) + "_end")
 
             print(str(ITIdur) + " sec ITI starting now")
@@ -249,7 +258,7 @@ class trace:
 
         print(str(CSshort) + " sec short tone playing now")
         self.write_event("CSshort_start")
-        tones.play_tone(self.stream, CStone_short, volume)
+        tones.play_tone(self.stream, CStone_short, self.volume)
         self.write_event("CSshort_end")
 
         print(str(ITI) + " sec ITI starting now")
@@ -257,7 +266,7 @@ class trace:
 
         print(str(CSlong) + " sec long tone playing now")
         self.write_event("CSlong_start")
-        tones.play_tone(self.stream, CStone_long, volume)
+        tones.play_tone(self.stream, CStone_long, self.volume)
         self.write_event("CSlong_end")
 
         print("Final 1 minute exploration period starting now")
@@ -291,6 +300,7 @@ class trace:
             "training",
             "ctx_recall",
             "tone_recall",
+            "ctx+tone_recall"
         ]  # Make sure session is properly named
         if not test_run:
             self.session = session
@@ -299,19 +309,22 @@ class trace:
 
         # First connect to the Arduino - super important
         print("Initializing arduino")
-        self.initialize_arduino(self.arduino_port)
+        video_start_bool = not force_start
+        self.initialize_arduino(self.arduino_port, video_start=video_start_bool)
 
         # Print update to screen
         if not force_start:
             print("Experiment initialized. Waiting for video triggering")
         else:
             print("Force starting experiment")
+            self.board.digital[self.video_io_pin].write(1)  # write to video pin
 
         # Now set up while loop to start once you get TTL to video i/o pin
         started = False
         while not started:
             if self.board.digital[self.video_io_pin].read() or force_start:
                 print("Experiment triggered by video (or forced)!")
+                self.board.digital[self.record_sync_pin].write(1)
                 self.start_time = time.time()
                 self.start_datetime = datetime.now()
                 self.csv_path = self.base_dir / (
@@ -336,8 +349,9 @@ class trace:
                     "post",
                     "ctx_recall",
                     "tone_recall",
+                    "ctx+tone_recall",
                 ]:
-                    if session == "tone_recall":
+                    if session in ["tone_recall", "ctx+tone_recall"]:
                         self.run_tone_recall()
                     elif session == "ctx_recall":
                         print("Starting context recall session")
@@ -384,7 +398,7 @@ class trace:
 
         # play tone
         self.write_event("tone" + str(trial) + "_start")
-        tones.play_tone(self.stream, tone_use, volume)
+        tones.play_tone(self.stream, tone_use, self.volume)
         self.write_event("tone" + str(trial) + "_end")
 
         # start trace period
@@ -394,26 +408,30 @@ class trace:
         self.write_event("trace" + str(trial) + "_end")
 
         # administer shock
+        print('Degrounding shock floor')
+        self.board.digital[self.shock_relay_pin].write(0)  # signal to solid-state relay - send to floating ground
+        time.sleep(0.05) # make sure you give enough time for relay to switch over before shocking.
         print("Shock!")
         self.write_event("shock" + str(trial) + "_start")
         self.board.digital[self.shock_box_pin].write(1)  # signal to shock box
-        self.board.digital[self.shock_io_pin].write(1)  # TTL to Intan. Necessary?
         time.sleep(shock_dur_use)
         self.board.digital[self.shock_box_pin].write(0)  # stop shock signal
-        self.board.digital[self.shock_io_pin].write(0)  # TTL off to Intan. Necessary?
         self.write_event("shock" + str(trial) + "_end")
+        time.sleep(0.05)
+        self.board.digital[self.shock_relay_pin].write(1)  # signal to solid-state relay - send to floating ground
+        print('Shock floor re-grounded')
+
 
     def initialize_arduino(
         self,
         port="COM7",
         shock_box_pin=2,
-        shock_io_pin=7,
+        shock_relay_pin=7,
         video_io_pin=9,
         record_sync_pin=12,
         video_start=True,
     ):
-        """20210202: No try/except for now because I want to see an error when setting things up for now!
-        Not sure shock_io_pin is entirely necessary - just send shock_box_pin to both shock box and open ephys"""
+        """20210202: No try/except for now because I want to see an error when setting things up for now!"""
         # try:
         self.board = pyfirmata.Arduino(port)
         if video_start:
@@ -429,9 +447,13 @@ class trace:
         #     print('Check connections and port and run ""trace.initialize_arduino"" again')
         #     board = None
         self.shock_box_pin = shock_box_pin
-        self.shock_io_pin = shock_io_pin
+        self.shock_relay_pin = shock_relay_pin
         self.video_io_pin = video_io_pin
         self.record_sync_pin = record_sync_pin
+
+        # Make sure you always start out setting shock_relay_pin to 1 to ground box.
+        print('Grounding shock floor')
+        self.board.digital[self.shock_relay_pin].write(1)
 
         # initialize cleanup function
         atexit.register(shutdown_arduino, self.board)

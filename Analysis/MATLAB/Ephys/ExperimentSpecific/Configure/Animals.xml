@@ -100,4 +100,24 @@
         <Species></Species>
         <ProbeName>Probe.masmanides_128Kx2table_256chans.xlsx</ProbeName>
     </animals>
+    <animals>
+        <VirusCoordinates>na</VirusCoordinates>
+        <SurgicalNotes></SurgicalNotes>
+        <SurgicalComplications></SurgicalComplications>
+        <Antibiotics></Antibiotics>
+        <Analgesics></Analgesics>
+        <Anesthesia>isoflorine</Anesthesia>
+        <TargetAnatomy></TargetAnatomy>
+        <SurgeryDate></SurgeryDate>
+        <VirusInjectionDate>na</VirusInjectionDate>
+        <Code>AI</Code>
+        <VirusInjection>na</VirusInjection>
+        <GeneticLine>wild type</GeneticLine>
+        <Weight></Weight>
+        <Age></Age>
+        <Sex>female</Sex>
+        <Strain>long evans</Strain>
+        <Species>rat</Species>
+        <ProbeName>Probe.Diagnostic_Biochips_Channelmap_128x2.csv</ProbeName>
+    </animals>
 </struct>

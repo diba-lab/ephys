@@ -286,20 +286,23 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
         end
         function obj=get(obj,varargin)
             selected=true(height(obj.ClusterInfo),1);
-            if nargin==2&& isnumeric(varargin{1})
+            if nargin==1
+            elseif nargin==2&& isnumeric(varargin{1})
                 selected=varargin{1};
             else
                 cluinf=obj.ClusterInfo;
                 stringinterest={'location','group'};
+                selected_arg=false(height(obj.ClusterInfo),1);
                 for iarg=1:nargin-1
                     arg=varargin{iarg};
                     for iint=1:numel(stringinterest)
                         interest=stringinterest{iint};
                         if any(ismember(cluinf.(interest),arg))
-                            selected=selected&ismember(cluinf.(interest),arg);
+                            selected_arg=selected_arg|ismember(cluinf.(interest),arg);
                         end
                     end
                 end
+                selected=selected&selected_arg;
             end
             tbl=obj.SpikeTable;
             obj.ClusterInfo=obj.ClusterInfo(selected,:);

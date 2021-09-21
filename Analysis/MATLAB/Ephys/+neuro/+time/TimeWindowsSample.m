@@ -14,7 +14,11 @@ classdef TimeWindowsSample <neuro.time.TimeWindows
             if isstruct(sampleTable)
                 sampleTable=struct2table(sampleTable);
             elseif ismatrix(sampleTable)
-                sampleTable=array2table(sampleTable,'VariableNames',{'Start','Stop'});
+                if ~isempty(sampleTable)
+                    sampleTable=array2table(sampleTable,'VariableNames',{'Start','Stop'});
+                else
+                    sampleTable=cell2table(cell(0,2), 'VariableNames',{'Start','Stop'});
+                end
             end
             obj.SampleTable = sampleTable;
         end

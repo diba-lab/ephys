@@ -129,7 +129,6 @@ classdef TimeWindowsAbsolute<neuro.time.TimeWindows
             time=obj.TimeIntervalCombined;
             for it=1:height(t)
                 t1=t(it,1:2);
-                
                 samples=time.getSampleForClosest([t1.Start t1.Stop]);
                 timeMS(it,:)= (samples/time.getSampleRate)*1000;
             end
@@ -139,7 +138,7 @@ classdef TimeWindowsAbsolute<neuro.time.TimeWindows
             T=obj.TimeTable;
 %             start=T.Start;
 %             stop=T.Stop;
-            ctd=neuro.basic.ChannelTimeData(pathname);
+            ctd=neuro.basic.ChannelTimeDataHard(pathname);
             ticd=ctd.getTimeIntervalCombined;
             files = dir(fullfile(pathname,'*Bad.R*.evt'));
             if isempty(files)

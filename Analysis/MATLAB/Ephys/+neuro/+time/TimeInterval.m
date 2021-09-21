@@ -14,6 +14,8 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             %   Detailed explanation goes here
             obj.SampleRate = sampleRate;
             obj.StartTime=startTime;
+            obj.StartTime.Format='uuuu-MM-dd HH:mm:ss.SSS';
+            
             obj.NumberOfPoints=numberOfPoints;
 %             obj.Format='dd-MMM-uuuu HH:mm:ss.SSS';
             obj.Format='HH:mm:ss.SSS';

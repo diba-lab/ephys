@@ -13,7 +13,7 @@ classdef (Abstract)OpenEphysRecord < neuro.time.Timelined & file.BinarySave
     properties (Access = private)
     end
     methods (Abstract)
-         
+        
     end
     
     methods
@@ -32,7 +32,12 @@ classdef (Abstract)OpenEphysRecord < neuro.time.Timelined & file.BinarySave
                     
             end
             obj.FileLoaderMethod=fileLoaderMethod;
-            obj.Probe=obj.loadProbeFile(filepath);
+            try 
+                obj.Probe=neuro.probe.Probe([filepath filesep '..' filesep '..' ]);
+            catch
+                l=logging.Logger.getLogger;
+                l.error('You should provide a probe file in %s',[filepath filesep '..' filesep '..' ]);
+            end
             obj.Events=[];
         end
         %% Functions
@@ -42,7 +47,7 @@ classdef (Abstract)OpenEphysRecord < neuro.time.Timelined & file.BinarySave
             dat = double(D.Data.mapped(chan,:));
             channel = neuro.basic.Channel(num2str(chan), dat, obj.getTimeInterval);
         end
-%%%% THIS PART WILL BE UPDATED!        
+        %%%% THIS PART WILL BE UPDATED!
         function combined=getTimeWindow(obj, timeWindow)
             ts=obj.getTimeInterval;
             if nargin<2
@@ -66,9 +71,9 @@ classdef (Abstract)OpenEphysRecord < neuro.time.Timelined & file.BinarySave
                 ts1.TimeInfo.StartDate=obj.getRecordStartTime;
                 tsc=tsc.addts(ts1);
             end
-            combined=neuro.basic.ChannelTimeData(tsc);
+            combined=neuro.basic.ChannelTimeDataHard(tsc);
         end
-%%%%%%        
+        %%%%%%
         function newOpenEphysRecordsCombined = plus(obj,recordToAdd)
             newOpenEphysRecordsCombined=openEphys.OpenEphysRecordsCombined(obj,recordToAdd);
         end
@@ -81,7 +86,7 @@ classdef (Abstract)OpenEphysRecord < neuro.time.Timelined & file.BinarySave
             % additionalrecording properties can be listed here.
             file=obj.Data.Filename;
             ti=obj.getTimeInterval;
-%             fprintf('%s\n   %d channels @ %d Hz\n',file,numel(obj.getChannelNames),ti.ge)
+            %             fprintf('%s\n   %d channels @ %d Hz\n',file,numel(obj.getChannelNames),ti.ge)
             
         end
     end
@@ -96,66 +101,22 @@ classdef (Abstract)OpenEphysRecord < neuro.time.Timelined & file.BinarySave
         
         function events = getEvents(obj)
             events=obj.Events;
-        end
-        function evttbl = getEventTable(obj)
-% UPDATE IT!
-            %             tsc=obj.getTimestamps;
-%             ts=tsc.IsActive;
-%             evts=ts.Events;
-%             evttbl=[];
-%             iievt=0;
-%             for ievt=1:numel(evts)
-%                 iievt=iievt+1;
-%                 evt=evts(ievt);
-%                 dif1=datetime(evt.StartDate)-ts.TimeInfo.StartDate;
-%                 try
-%                     evttbl(iievt,:)=[1, seconds(seconds(evt.Time)+dif1)]; %#ok<AGROW>
-%                 catch
-%                     warning('unknow key.')
-%                 end
-%             end
+            s=events.Timestamps;
+            if ~isempty(s)
+                a=neuro.time.Absolute(neuro.time.Sample(s,obj.getTimeInterval.SampleRate),obj.getTimeInterval.StartTime);
+                tt=timetable(a.time, events.ChannelIndex, logical(events.FullWords),'VariableNames',{'Channel','On-Off'});
+                events=neuro.event.Events(tt,events.Header);
+            else
+                events=neuro.event.Events();
+            end
         end
         function obj = addEvents(obj,evts)
-%             obj.Events=[obj.Events evts];
-%             try
-%                 tsc=obj.getTimestamps;
-%                 tsnames=tsc.gettimeseriesnames;
-%                 if numel(tsnames)<1
-%                     ts=timeseries(true(numel(tsc.Time),1),tsc.Time,'Name','IsActive');
-%                     ts.TimeInfo.StartDate=tsc.TimeInfo.StartDate;
-%                 else
-%                     ts= tsc.(tsnames{1});
-%                     tsc=tsc.removets(tsnames{1});
-%                 end
-%                 for ievent=1:numel(evts)
-%                     evt=evts(ievent);
-%                     evtTime=datetime(evt.StartDate)+seconds(evt.Time);
-%                     biggerThanBegin=evtTime>=(seconds(ts.Time(1))+ts.TimeInfo.StartDate);
-%                     smallerThanEnd=evtTime<=(seconds(ts.Time(end))+ts.TimeInfo.StartDate);
-%                     inThisRecord=biggerThanBegin&&smallerThanEnd;
-%                     if inThisRecord
-%                         ts=ts.addevent(evt);
-%                     else
-% %                         warning(['Event cannot be added ' evt.Name ' ' evt.getTimeStr{:}]);
-%                     end
-%                 end
-%                 tsc=tsc.addts(ts);
-%                 obj=obj.setTimestamps(tsc);
-%             catch
-%             end
+            
+        end
+        function obj = setEvents(obj,evts)
+            obj.Events=evts;
         end
         function ts = getTimeline(obj)
-%             ts=obj.getTimestamps;
-%             step=diff([ts.Time(1) ts.Time(end)])/numel(ts.Time);
-%             newtime=linspace(ts.Time(1),ts.Time(end),1000);
-%             ts=ts.resample(newtime);
-%             try
-%                 ts=ts.addsample('Data',false,'Time',ts.Time(1)-step);
-%             catch
-%                 ts=ts.IsActive;
-%                 ts=ts.addsample('Data',false,'Time',ts.Time(1)-step);
-%             end
-%             ts=ts.addsample('Data',false,'Time',ts.Time(end)+step);
         end
         function data=getData(obj)
             data=obj.Data;
@@ -243,7 +204,7 @@ classdef (Abstract)OpenEphysRecord < neuro.time.Timelined & file.BinarySave
         function obj=setProbe(obj,probe)
             obj.Probe=probe;
             fprintf('Probe added.\n\t%s\n',probe);
-        end        
+        end
     end
     methods (Access=public)
         function obj=getDownSampled(obj, newRate, newFolder)

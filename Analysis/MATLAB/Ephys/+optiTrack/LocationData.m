@@ -21,6 +21,8 @@ classdef LocationData
                 obj.Z = Z;
                 obj.timeIntervalCombined = ticd;
                 obj.units='cm';
+            elseif isstring(X)||ischar(X)
+%                 T=readtable(X);
             else
                 error('Sizes of XYZ or time are not equal.')
             end
@@ -271,6 +273,23 @@ classdef LocationData
         end
         function ind = getBelow(obj,threshold)
             ind=obj.Z<=threshold;
+        end
+        function file1 = saveInPlainFormat(obj,folder)
+            if exist('folder','var')
+                if ~isfolder(folder)
+                    folder= pwd;
+                end
+            else
+                folder= pwd;
+            end
+            x=obj.X;
+            y=obj.Y;
+            z=obj.Z;
+            time=obj.timeIntervalCombined;
+            time.saveTable(fullfile(folder,'location.time.csv'));
+            t=array2table([x y z],'VariableNames',{'x','y','z'});
+            file1=fullfile(folder,'location.points.csv');
+            writetable(t,file1);
         end
     end
 end

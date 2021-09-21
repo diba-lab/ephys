@@ -37,20 +37,21 @@ classdef RippleAbs
                 'SizeData',50);
             
         end
-        function [p2] = plotHistCount(obj, TimeBinsInSec)
-            if ~exist('TimeBinsInSec','var')
+        function [p2] = plotHistCount(obj, TimeBinsInSec,color)
+            if ~exist('TimeBinsInSec','var')||isempty(TimeBinsInSec)
                 TimeBinsInSec=30;
             end
             ticd=obj.TimeIntervalCombined;
+            ztshift=ticd.getStartTime-ticd.getZeitgeberTime;
             peaktimestamps=obj.getPeakTimes*ticd.getSampleRate;
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
             peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
             [N,edges]=histcounts(peakTimesAdjusted,1:TimeBinsInSec:max(peakTimesAdjusted));
-            t=hours(seconds(edges(1:(numel(edges)-1))+15));
+            t=hours(seconds(edges(1:(numel(edges)-1))+TimeBinsInSec/2))+hours(ztshift);
             t1=linspace(min(t),max(t),numel(t)*10);
             N=N/TimeBinsInSec;
             N=interp1(t,N,t1,'spline','extrap');
-            p2=plot(t1,N,'LineWidth',1);
+            p2=plot(t1,N,'LineWidth',1,'Color',color);
         end
         
         function [ripples, y]=getRipplesTimesInWindow(obj,toi)
@@ -117,9 +118,12 @@ classdef RippleAbs
             obj.TimeIntervalCombined=ticd_new;
         end
         function []= saveEventsNeuroscope(obj,pathname)
+            if ~exist('pathname','var')
+                pathname=obj.DetectorInfo.BasePath;
+            end
             tokens=split(pathname,filesep);
             filename=tokens{end};
-            fid = fopen(sprintf('%s%s%s.R%02d.evt',pathname,filesep,filename,1),'w');
+            fid = fopen(sprintf('%s%s%s.SWR.evt',pathname,filesep,filename),'w');
             
             % convert detections to milliseconds
             peakTimes= obj.getPeakTimes*1000;

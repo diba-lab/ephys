@@ -5,6 +5,7 @@ classdef StateSeries
     properties
         States
         Episodes
+        TimePoints
         TimeIntervalCombined
         StateNames
     end
@@ -12,7 +13,7 @@ classdef StateSeries
     methods
         function obj = StateSeries(states, ticd)
             obj.TimeIntervalCombined=ticd;
-            obj.States=states(1:ticd.getNumberOfPoints);
+            obj.States=states;
         end
         function obj = getWindow(obj,window)
             states=obj.States;
