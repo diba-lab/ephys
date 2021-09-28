@@ -111,37 +111,41 @@ classdef Fooof
             end
         end
         function peakres=getPeaks(obj,freqs,powers,bandwidth)
-            peaks=obj.fooof_results.peak_params;
-            idxall=true([size(peaks,1) 1]);
-            try
-                idxfreq=peaks(:,1)<freqs(2)&peaks(:,1)>freqs(1);
-            catch
-                idxfreq=idxall;
-            end
-            try
-                idxpow=peaks(:,2)<powers(2)&peaks(:,2)>powers(1);
-            catch
-                idxpow=idxall;
-            end
-            try
-                idxbw=peaks(:,3)<bandwidth(2)&peaks(:,3)>bandwidth(1);
-            catch
-                idxbw=idxall;
-            end
-            idxall=idxall & idxfreq & idxpow & idxbw;
-            peaks1=peaks(idxall,:);
-            peaksorted=sortrows(peaks1,2,'descend');%sort by power
-            for ipeak=1:(size(peaksorted,1))
-                peaks2=peaksorted(ipeak,:);
+            if ~isempty(obj.fooof_results)
+                peaks=obj.fooof_results.peak_params;
+                idxall=true([size(peaks,1) 1]);
                 try
-                    peakres(ipeak).cf=peaks2(1);
-                    peakres(ipeak).power=peaks2(2);
-                    peakres(ipeak).bw=peaks2(3);
+                    idxfreq=peaks(:,1)<freqs(2)&peaks(:,1)>freqs(1);
                 catch
-                    peakres(ipeak).cf=nan;
-                    peakres(ipeak).power=nan;
-                    peakres(ipeak).bw=nan;
+                    idxfreq=idxall;
                 end
+                try
+                    idxpow=peaks(:,2)<powers(2)&peaks(:,2)>powers(1);
+                catch
+                    idxpow=idxall;
+                end
+                try
+                    idxbw=peaks(:,3)<bandwidth(2)&peaks(:,3)>bandwidth(1);
+                catch
+                    idxbw=idxall;
+                end
+                idxall=idxall & idxfreq & idxpow & idxbw;
+                peaks1=peaks(idxall,:);
+                peaksorted=sortrows(peaks1,2,'descend');%sort by power
+                for ipeak=1:(size(peaksorted,1))
+                    peaks2=peaksorted(ipeak,:);
+                    try
+                        peakres(ipeak).cf=peaks2(1);
+                        peakres(ipeak).power=peaks2(2);
+                        peakres(ipeak).bw=peaks2(3);
+                    catch
+                        peakres(ipeak).cf=nan;
+                        peakres(ipeak).power=nan;
+                        peakres(ipeak).bw=nan;
+                    end
+                end
+            else
+                peakres=[];
             end
         end
     end

@@ -54,25 +54,28 @@ classdef Oscillation
             ts=timeseries(obj.getValues,obj.getTimeStamps);
             tsr=ts.resample(ts1);
             sr=1/((ts1(end)-ts1(1))/numel(ts1));
-            ets=EphysTimeSeries(squeeze(tsr.Data),sr);
+            ets=neuro.basic.EphysTimeSeries(squeeze(tsr.Data),sr);
         end
         function ps=getPSpectrum(obj)
             [pxx,f] = pspectrum(double(obj.Values),obj.getSampleRate,...
                 'FrequencyLimits',[1 250]);
-            ps=PowerSpectrum(pxx,f);
+            ps=neuro.power.PowerSpectrum(pxx,f);
+        end
+        function l=getLength(obj)
+            l=seconds(obj.getNumberOfPoints/obj.getSampleRate);
         end
         function ps=getPSpectrumChronux(obj)
 %             params.tapers=[3 5];
             params.Fs=obj.getSampleRate;
             params.fpass=[1 250];
             [S,f] = mtspectrumc( obj.Values, params );
-            ps=PowerSpectrum(S,f);
+            ps=neuro.power.PowerSpectrum(S,f);
         end
         function ps=getPSpectrumWelch(osc)
             window=2*osc.getSampleRate;
             overlap=window/2;
             [psd, freqs] = pwelch(osc.Values, window, overlap, [], osc.getSampleRate);
-            ps=PowerSpectrum(psd,freqs);
+            ps=neuro.power.PowerSpectrum(psd,freqs);
         end
         function specslope=getPSpectrumSlope(osc)
             LFP.data=osc.Values;
@@ -99,7 +102,7 @@ classdef Oscillation
             obj.Values=x_whitened';
         end
         function obj=getWhitened(obj)
-            obj.Values = reshape(WhitenSignal(obj.Values,[],1),size(obj.Values));
+            obj.Values = reshape(external.WhitenSignal(obj.Values,[],1),size(obj.Values));
         end
         function obj=getLowpassFiltered(obj,filterFreq)
             obj.Values=ft_preproc_lowpassfilter(...

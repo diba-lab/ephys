@@ -85,11 +85,11 @@ function [w, A, C, sbc, fpe, th]=arfit(v, pmin, pmax, selector, no_const)
   end
 
   % compute QR factorization for model of order pmax
-  [R, scale]   = arqr(v, pmax, mcor);
+  [R, scale]   = external.arfit.arqr(v, pmax, mcor);
 
   % compute approximate order selection criteria for models 
   % of order pmin:pmax
-  [sbc, fpe]   = arord(R, m, mcor, ne, pmin, pmax);
+  [sbc, fpe]   = external.arfit.arord(R, m, mcor, ne, pmin, pmax);
 
   % get index iopt of order that minimizes the order selection 
   % criterion specified by the variable selector

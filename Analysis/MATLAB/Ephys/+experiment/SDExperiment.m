@@ -73,7 +73,8 @@ classdef SDExperiment < Singleton
                     state1=states(state);
                     
                 else
-                    state1=S.StateCodes.(state);
+                    idx=ismember(sc,state);
+                    state1=statecodes(idx);
                 end
             end
         end

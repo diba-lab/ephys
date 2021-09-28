@@ -71,9 +71,12 @@ classdef PowerSpectrum
             if ~exist('f_range','var')
                 f_range = [0, 250];
             end
+            if isstring(settings.aperiodic_mode)
+                settings.aperiodic_mode=convertStringsToChars(settings.aperiodic_mode);
+            end
             fooof_results = fooof(powerSpectrum.Frequency, powerSpectrum.Power, f_range, settings, true);
 
-            fooofr=Fooof(fooof_results);
+            fooofr=neuro.power.Fooof(fooof_results);
         end
         function [freq, pwr]=getPeak(powerSpectrum,f_range)
             [~,idx(1)]=min(abs(powerSpectrum.Frequency-f_range(1)));

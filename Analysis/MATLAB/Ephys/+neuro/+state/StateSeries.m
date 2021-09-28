@@ -159,16 +159,15 @@ classdef StateSeries
                     state(thestate).state=thestate;
                 end
             end
-            state=StateRatios(state);
+            state=neuro.state.StateRatios(state);
         end
         function theEpisodeAbs=getState(obj,state)
             stateEpisodes=obj.getEpisodes;
             stateNames=obj.getStateNames;
             theStateName=stateNames{state};
-            try
-                theEpisode=stateEpisodes.(strcat(theStateName,'state'));
-            catch
-            end
+            
+            theEpisode=stateEpisodes.(strcat(theStateName,'state'));
+            
             if ~isempty(theEpisode)
                 ticdss=obj.TimeIntervalCombined;
                 for irow=1:size(theEpisode,1)
