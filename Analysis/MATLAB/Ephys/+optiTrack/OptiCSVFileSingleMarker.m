@@ -46,6 +46,16 @@ classdef OptiCSVFileSingleMarker<optiTrack.OptiCSVFile
             fclose(fid);
             obj.table = T;
         end
+        function st=getStartTime(obj)
+            st=obj.CaptureStartTime;
+        end
+        function sr=getSampleRate(obj)
+            sr=obj.ExportFrameRate;
+        end
+        function nf=getNumFrames(obj)
+            nf=obj.TotalExportedFrames;
+        end
+
     end
 end
 

@@ -34,6 +34,15 @@ classdef OptiCSVFileRigidBody<optiTrack.OptiCSVFile
             % Import the data
             obj.table = readtable(file, opts);
         end
+        function st=getStartTime(obj)
+            st=obj.CaptureStartTime;
+        end
+        function sr=getSampleRate(obj)
+            sr=obj.ExportFrameRate;
+        end
+        function nf=getNumFrames(obj)
+            nf=obj.TotalExportedFrames;
+        end
 
     end
 end

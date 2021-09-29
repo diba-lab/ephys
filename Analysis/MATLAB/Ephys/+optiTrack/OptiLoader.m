@@ -1,12 +1,12 @@
 classdef OptiLoader<Singleton
     %OPTILOADER Summary of this class goes here
     %   Detailed explanation goes here
-    
+
     properties(Access=private)
         parameters
         OptifilesCombined
     end
-    
+
     methods(Access=private)
         % Guard the constructor against external invocation.  We only want
         % to allow a single instance of this class.  See description in
@@ -23,25 +23,25 @@ classdef OptiLoader<Singleton
             end
         end
     end
-    
+
     methods(Static)
         % Concrete implementation.  See Singleton superclass.
-        function obj = instance(isRenew)
+        function obj = instance(files)
             persistent uniqueInstance
-            if nargin>0
-                if isRenew
-                    uniqueInstance=[];
-                end
-            end
             if isempty(uniqueInstance)
-                obj = optiTrack.OptiLoader();
+                if nargin>0
+
+                    obj = optiTrack.OptiLoader(files);
+                else
+                    obj = optiTrack.OptiLoader();
+                end
                 uniqueInstance = obj;
             else
                 obj = uniqueInstance;
             end
         end
     end
-    
+
     %*** Define your own methods for SingletonImpl.
     methods % Public Access
         function obj=reload(obj)
@@ -53,14 +53,14 @@ classdef OptiLoader<Singleton
         function files=getOptiFilesCombined(obj)
             files= obj.OptifilesCombined;
         end
-%         function saveFiles(obj)
-%             files= obj.Files;
-%             for ifile=1:numel(files)
-%                 aFile=files{ifile};
-%                 [filepath,name,~]=fileparts(aFile.file);
-%                 save(fullfile(filepath,[name '.mat']),'aFile');
-%             end
-%         end
+        %         function saveFiles(obj)
+        %             files= obj.Files;
+        %             for ifile=1:numel(files)
+        %                 aFile=files{ifile};
+        %                 [filepath,name,~]=fileparts(aFile.file);
+        %                 save(fullfile(filepath,[name '.mat']),'aFile');
+        %             end
+        %         end
     end
     methods (Access=private)
         function [obj] = loadFile(obj, files)
@@ -70,21 +70,26 @@ classdef OptiLoader<Singleton
                 [files, path] = uigetfile({'*.csv;*.fbx','Exported Optitrack Files (*.csv,*.fbx)'},...
                     'Select the folder containing *.csv or *.fbx files.',...
                     obj.parameters.defaultLocation.Text,'MultiSelect', 'on');
-                if ischar(files)
-                    files={files};
-                end
+                
                 obj.parameters.defaultLocation.Text = path;
+            end
+            if ischar(files)
+                files={files};
             end
             for ifile=1:numel(files)
                 filename=files{ifile};
-                [~,fname,ext]=fileparts(filename);
+                [path1,fname,ext]=fileparts(filename);
                 filename=[fname ext];
                 switch ext
                     case '.fbx'
                         of=optiTrack.OptiFBXAsciiFile(fullfile(path,filename));
                     case '.csv'
-                        of=optiTrack.OptiCSVFileSingleMarker(fullfile(path,files{ifile}));
-%                         of=optiTrack.OptiCSVFileRigidBody(fullfile(path,filename));
+                        %                         of=optiTrack.OptiCSVFileSingleMarker(fullfile(path,files{ifile}));
+                        if exist('path','var')
+                            of=optiTrack.OptiCSVFileRigidBody(fullfile(path,filename));
+                        else
+                            of=optiTrack.OptiCSVFileRigidBody(fullfile(path1,filename));
+                        end
                 end
                 if ~exist('ofs','var')
                     ofs=of;
@@ -94,6 +99,6 @@ classdef OptiLoader<Singleton
             end
             obj.OptifilesCombined=ofs;
         end
-        
+
     end
 end
