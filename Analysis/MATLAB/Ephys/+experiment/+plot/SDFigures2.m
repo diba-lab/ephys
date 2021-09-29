@@ -273,7 +273,7 @@ classdef SDFigures2 <Singleton
                                 thestate=statelist(istate);
                                 thestateNum=statelistnum(istate);
                                 cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache', DataHash(params)...
-                                    ,strcat(sprintf('PlotFooof_afoof_%s_%d_%s_%s_',cond,isession,block,thestate),'.mat'));
+                                    ,strcat(sprintf('PlotFooof_afoof_%s_%s_%s_%s_',cond,ses.toString,block,thestate),'.mat'));
                                 if isfile(cacheFilePower)
                                     load(cacheFilePower,'thpks','epiFooof')
                                 else
@@ -310,19 +310,19 @@ classdef SDFigures2 <Singleton
                                             else
                                                 thpks=thpk;
                                             end
-                                            if strcmpi( char(thestate),'AWAKE')
-                                                try close(1); catch, end
-                                                f=figure(1);
-                                                f.Visible='on';
-                                                f.Position=[1441,200,2800,1100];
-                                                
-                                                obj.plotEpisode(boc_sub,params,thestate);%awake
-                                                
-                                                fname=strcat(sprintf('/home/ukaya/Desktop/theta-cf/%s/%s/%s/PlotFooof_afoof_ses%d_sub%d_%s',block,thestate,cond,isession,isublock),DataHash(params));
-                                                ff=logistics.FigureFactory.instance;
-                                                ff.save(fname);
-                                                %Plot end
-                                            end
+%                                             if strcmpi( char(thestate),'AWAKE')
+%                                                 try close(1); catch, end
+%                                                 f=figure(1);
+%                                                 f.Visible='on';
+%                                                 f.Position=[1441,200,2800,1100];
+%                                                 
+%                                                 obj.plotEpisode(boc_sub,params,thestate);%awake
+%                                                 
+%                                                 fname=strcat(sprintf('/home/ukaya/Desktop/theta-cf/%s/%s/%s/PlotFooof_afoof_ses%d_sub%d_%s',block,thestate,cond,isession,isublock),DataHash(params));
+%                                                 ff=logistics.FigureFactory.instance;
+%                                                 ff.save(fname);
+%                                                 %Plot end
+%                                             end
                                         end
                                         
                                     end
@@ -364,7 +364,11 @@ classdef SDFigures2 <Singleton
             sde=experiment.SDExperiment.instance;
             sdeparams=sde.get;
             params=obj.getParams.Fooof;
-            
+             sf=experiment.SessionFactory;
+            selected_ses=[1:11 14:17 20:23];
+%             selected_ses=[21 23];
+            tses=sf.getSessionsTable(selected_ses);
+           
             statelist=categorical({'AWAKE','QWAKE','SWS','REM'});
             condlist=categorical({'NSD','SD'});
             blocklist=categorical({'PRE','NSD','SD','TRACK','POST'});
@@ -376,20 +380,24 @@ classdef SDFigures2 <Singleton
             states=statelist(:);
             for icond=1:numel(conds)
                 cond=conds(icond);
-                for isession=1:numel(sesnos{icond})
-                    sesnos1=sesnos{icond};
-                    session=sesnos1(isession);
+                sesc=tses(ismember(tses.Condition,cond),:);
+                for isession=1:height(sesc)
+                    sesfilepath=sesc(isession,"Filepath").Filepath;sesfilepath=sesfilepath{:};
+                    ses=sf.getSessions(sesfilepath);
                     for iblock=1:numel(blocks)
                         block=blocks(iblock);
                         for istate=1:numel(states)
                             state=states(istate);
                             cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache', DataHash(params)...
-                                ,strcat(sprintf('PlotFooof_afoof_%s_%d_%s_%s_',cond,session,block,state),'.mat'));
+                                ,strcat(sprintf('PlotFooof_afoof_%s_%s_%s_%s_',cond,ses.toString,block,state),'.mat'));
                             if isfile(cacheFilePower)
                                 S=load(cacheFilePower,'thpks','epiFooof');
                                 try
-                                    thpks.(char(cond)).(char(block)).(char(state)).(['ses' num2str(session)])=S.thpks;
-                                    fooof.(char(cond)).(char(block)).(char(state)).(['ses' num2str(session)])=S.epiFooof;
+                                    S.thpks.Info.Session=ses;
+                                    thpks.(char(cond)).(char(block)).(char(state)).(['ses' num2str(isession)])=S.thpks;
+                                    thpks.(char(cond)).(char(block)).(char(state)).(['ses' num2str(isession)])=S.thpks;
+                                    fooof.(char(cond)).(char(block)).(char(state)).(['ses' num2str(isession)])=S.epiFooof;
+                                    fooof.(char(cond)).(char(block)).(char(state)).(['ses' num2str(isession)])=S.epiFooof;
                                 catch
                                 end
                             end

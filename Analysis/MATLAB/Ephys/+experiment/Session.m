@@ -82,6 +82,11 @@ classdef Session
             %   Detailed explanation goes here
             obj.Animal = animal;
         end
+        function sesstr = toString(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            sesstr=strcat(obj.Animal.Code, '_' ,datestr(obj.SessionInfo.Date,29));
+        end
         function obj = setProbe(obj,probe)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here

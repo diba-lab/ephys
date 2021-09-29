@@ -4,6 +4,7 @@ classdef ThetaPeakCombined
     
     properties
         thpkList
+        Info
     end
     
     methods
@@ -64,7 +65,7 @@ classdef ThetaPeakCombined
             list=obj.thpkList;
             for isub=1:list.length
                 if exist('axs','var')
-                    axes(axs(isub)); %#ok<LAXES>
+                    ax=axes(axs(isub)); %#ok<LAXES>
                     hold on
                 else
                     if exist('col','var')
@@ -81,6 +82,8 @@ classdef ThetaPeakCombined
                     xlabel('');
                     xticks('')
 %                     xticks([]);
+                else
+                    text(ax.x, obj.Info.Session.toString);
                 end
                 if row<rows
                     ylabel('');

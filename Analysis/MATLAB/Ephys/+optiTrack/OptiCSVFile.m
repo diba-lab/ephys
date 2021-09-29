@@ -1,4 +1,4 @@
-classdef (Abstract) OptiCSVFile <OptiFile
+classdef (Abstract) OptiCSVFile <optiTrack.OptiFile
     %OPTITAKFILE Summary of this class goes here
     %   Detailed explanation goes here
     
