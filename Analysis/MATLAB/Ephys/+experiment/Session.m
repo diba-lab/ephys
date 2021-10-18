@@ -36,6 +36,10 @@ classdef Session
             end
             obj.SessionInfoFile=sessionInfoFile;
             obj.SessionInfo=sessionInfo;
+            if ~strcmp(sessionInfo.baseFolder,baseFolder)
+                sessionInfo.baseFolder=baseFolder;
+                obj=obj.setSessionInfo(sessionInfo);
+            end
             %% Blocks
             blockFile=fullfile(baseFolder,params.FileLocations.Session.Blocks);
             try 

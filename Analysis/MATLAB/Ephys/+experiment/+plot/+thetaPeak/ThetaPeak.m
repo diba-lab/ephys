@@ -7,6 +7,7 @@ classdef ThetaPeak
         CF
         Power
         fooof
+        Bouts
     end
     
     methods
@@ -145,6 +146,58 @@ classdef ThetaPeak
             xlabel('Power');
             ylabel('pdf');
             ax.View=[90 -90];
+        end
+        function [table1]=plotDurationFrequency(obj,ax,color)
+            if ~exist('ax','var')
+                ax=gca;
+            end
+            valf=obj.CF.getValues;
+            valp=obj.Power.getValues;
+            vals=obj.fooof.Info.episode.getValues;
+            obj.Bouts=obj.Bouts;
+            freqarrs=neuro.basic.Oscillation.empty(numel(obj.Bouts)-1, 0);
+            powarrs=neuro.basic.Oscillation.empty(numel(obj.Bouts)-1, 0);
+            signal1=neuro.basic.Oscillation.empty(numel(obj.Bouts)-1, 0);
+            for ibout=1:(numel(obj.Bouts)-1)
+                boutSampleLow=[obj.Bouts(1,ibout) obj.Bouts(1,ibout+1)]*obj.CF.getSampleRate;
+                boutSampleLow(1)=boutSampleLow(1)+1;
+                boutSampleHigh=[obj.Bouts(1,ibout) obj.Bouts(1,ibout+1)]*obj.fooof.Info.episode.getSampleRate;
+                boutSampleHigh(1)=boutSampleHigh(1)+1;
+                try
+                CF1=neuro.basic.Oscillation(valf(1,boutSampleLow(1):boutSampleLow(2)),obj.CF.getSampleRate);
+                PW1=neuro.basic.Oscillation(valp(1,boutSampleLow(1):boutSampleLow(2)),obj.Power.getSampleRate);
+                S1=neuro.basic.Oscillation(vals(1,boutSampleHigh(1):boutSampleHigh(2)),obj.fooof.Info.episode.getSampleRate);
+                catch
+                    if boutSampleLow(2)>numel(valf)
+                        CF1=neuro.basic.Oscillation(valf(1,boutSampleLow(1):numel(valf)),obj.CF.getSampleRate);
+                        PW1=neuro.basic.Oscillation(valp(1,boutSampleLow(1):numel(valp)),obj.Power.getSampleRate);
+                        S1=neuro.basic.Oscillation(vals(1,boutSampleHigh(1):numel(vals)),obj.fooof.Info.episode.getSampleRate);
+                    end
+                end
+                vals1=CF1.getValues;
+                vals2=PW1.getValues;
+                vals3=S1.getValues;
+                vals1(isnan(vals1))=[];
+                vals2(isnan(vals2))=[];
+                vals3(isnan(vals3))=[];
+                CFmeans(ibout)=mean(vals1);
+                PWmeans(ibout)=mean(vals2);
+                Smeans(ibout)=mean(vals3);
+                freqarrs(ibout)=CF1;
+                powarrs(ibout)=PW1;
+                signal1(ibout)=S1;
+            end
+            durations=diff(obj.Bouts);
+            if strcmpi(obj.fooof.Info.Condition,'NSD')
+                cond=ones(size(durations))*1;
+            else
+                cond=ones(size(durations))*2;
+            end
+            z=ones(size(durations))*double(obj.fooof.Info.SubBlock);
+%             s=scatter3(durations,CFmeans,z,10,color,"filled");
+%             s.MarkerFaceAlpha=.5;
+            table1=table(durations',CFmeans',z',cond',freqarrs',powarrs',signal1', ...
+                'VariableNames',{'Duration','Frequency','SubBlock','Condition','Array','PowerArray','Signal'});
         end
         function S=getParams(~)
             sde=experiment.SDExperiment.instance.get;

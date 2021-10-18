@@ -65,7 +65,7 @@ classdef ThetaPeakCombined
             list=obj.thpkList;
             for isub=1:list.length
                 if exist('axs','var')
-                    ax=axes(axs(isub)); %#ok<LAXES>
+                    axes(axs(isub)); %#ok<LAXES>
                     hold on
                 else
                     if exist('col','var')
@@ -83,7 +83,10 @@ classdef ThetaPeakCombined
                     xticks('')
 %                     xticks([]);
                 else
-                    text(ax.x, obj.Info.Session.toString);
+                    try
+                    text(5 ,0 , obj.Info.Session.toString, "Interpreter","none",'VerticalAlignment','bottom');
+                    catch
+                    end
                 end
                 if row<rows
                     ylabel('');
@@ -96,7 +99,7 @@ classdef ThetaPeakCombined
             if ~exist('rows','var')
                 rows=1; 
             else
-                if isa(rows,'matlab.graphics.axis.Axes');
+                if isa(rows,'matlab.graphics.axis.Axes')
                     axs=rows;
                 end
             end
@@ -124,6 +127,11 @@ classdef ThetaPeakCombined
                     xlabel('');
                     xticks('')
 %                     xticks([]);
+                else
+                    try
+                    text(0 ,0 , obj.Info.Session.toString, "Interpreter","none",'VerticalAlignment','bottom');
+                    catch
+                    end
                 end
                 if row<rows
                     ylabel('');
@@ -131,7 +139,29 @@ classdef ThetaPeakCombined
                 yticks([]);
                 axsr(isub)=gca;
             end
+
         end
+
+        function tableall=plotDurationFrequency(obj,ax,colors)
+            if ~exist('ax','var')
+                ax=gca;
+            end
+            list=obj.thpkList;
+            for isub=1:list.length
+                fooof1=obj.Info.fooof(isub);
+                thesub=list.get(isub);
+                if ~isempty(thesub.Signal)
+                    thesub.fooof.Info.episode=fooof1.Info.episode;
+                    table1=thesub.plotDurationFrequency(ax,colors(isub,:));
+                    if exist('tableall','var')
+                        tableall=[tableall;table1];
+                    else
+                        tableall=table1;
+                    end
+                end
+            end
+        end
+
     end
 end
 

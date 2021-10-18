@@ -10,12 +10,15 @@ classdef SessionFactory
         function obj = SessionFactory(varargin)
             %SESIONFACTORY Construct an instance of this class
             %   Detailed explanation goes here
+            l=logging.Logger.getLogger;
             if nargin==0
                 S=experiment.SDExperiment.instance.get();
-                T=readtable(S.FileLocations.General.Sessions,'Delimiter',',');
+                file1=S.FileLocations.General.Sessions;
             else
-                
+                file1=varargin{1};
             end
+            T=readtable(file1,'Delimiter',',');
+            l.info('Session List: %s \n\t%s', file1, strjoin(T.Properties.VariableNames,', '))
             obj.SessionsFile=T;
         end
         function sessions = getSessions(obj,varargin)

@@ -1,7 +1,7 @@
 classdef Oscillation
     %OSCILLATION Summary of this class goes here
     %   Detailed explanation goes here
-    properties (Access=protected)
+    properties (Access=public)
         Values
         SampleRate
     end
@@ -40,8 +40,8 @@ classdef Oscillation
             ts=obj.getTimeStamps;
             vals=obj.getValues;
             p1=plot(ts,vals,varargin{:});
-            ax=gca;
-            ax.XLim=[ts(1) ts(end)];
+%             ax=gca;
+%             ax.XLim=[ts(1) ts(end)];
         end
 
         function obj=getDownSampled(obj,newRate)
@@ -55,6 +55,9 @@ classdef Oscillation
             tsr=ts.resample(ts1);
             sr=1/((ts1(end)-ts1(1))/numel(ts1));
             ets=neuro.basic.EphysTimeSeries(squeeze(tsr.Data),sr);
+        end
+        function obj=getFillMissing(obj,window)    
+            obj.Values=fillmissing(obj.getValues,"movmedian",window*obj.SampleRate);
         end
         function ps=getPSpectrum(obj)
             [pxx,f] = pspectrum(double(obj.Values),obj.getSampleRate,...
@@ -167,11 +170,11 @@ classdef Oscillation
         function idx=gt(obj,num)
             idx=obj.getValues>num;
         end
-        function obj=subsasgn(obj,s,n)
-            va=obj.getValues;
-            va(s.subs{:})=n;
-            obj=obj.setValues(va );
-        end
+%         function obj=subsasgn(obj,s,n)
+%             va=obj.getValues;
+%             va(s.subs{:})=n;
+%             obj=obj.setValues(va );
+%         end
         function samples=subsindex(obj,s)
             error('This function is changed. Make sure it is working properly, then move.')
             idx=s.subs{:};

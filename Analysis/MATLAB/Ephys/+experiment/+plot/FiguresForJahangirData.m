@@ -1,22 +1,17 @@
 classdef FiguresForJahangirData <Singleton
     %FIGURES Summary of this class goes here
     %   Detailed explanation goes here
-    
+
     properties
         Sessions
     end
-    
+
     methods(Access=private)
         function obj = FiguresForJahangirData()
             % Initialise your custom properties.
-            T=readtable('SessionList.txt','Delimiter',',');
-            for ises=1:height(T)
-                ses(ises)=Session(T.PATH{ises});
-            end
-            obj.Sessions=ses;
-%             sf=SessionFactory();
-%             obj.Sessions= sf.getSessions();
-            sde=SDExperiment.instance.get;
+            sf=experiment.SessionFactoryJ;
+            obj.Sessions= sf.getSessions();
+            sde=experiment.SDExperiment.instance.get;
             configureFileSWRRate=fullfile(sde.FileLocations.General.PlotFolder...
                 ,filesep, 'Parameters','SWRRate.xml');
             try
@@ -24,8 +19,11 @@ classdef FiguresForJahangirData <Singleton
             catch
                 S.Blocks.PRE=-3;
                 S.Blocks.SD=5;
+                S.Blocks.NSD=5;
                 S.Blocks.TRACK=1;
+                S.Blocks.RUN=1;
                 S.Blocks.POST=3;
+                S.Blocks.RS=3;
                 S.Plot.SlidingWindowSizeInMinutes=30;
                 S.Plot.SlidingWindowLapsInMinutes=30;
                 writestruct(S,configureFileSWRRate)
@@ -35,7 +33,7 @@ classdef FiguresForJahangirData <Singleton
                 pyenv("ExecutionMode","OutOfProcess");
             catch
             end
-            
+
             configureFileFooof=fullfile(sde.FileLocations.General.PlotFolder...
                 ,filesep, 'Parameters','Fooof.xml');
             try
@@ -43,14 +41,16 @@ classdef FiguresForJahangirData <Singleton
             catch
                 S.Blocks.PRE=-3;
                 S.Blocks.SD=5;
+                S.Blocks.NSD=5;
                 S.Blocks.TRACK=1;
+                S.Blocks.RUN=1;
                 S.Blocks.POST=3;
+                S.Blocks.RS=3;
                 S.Plot.SlidingWindowSizeInMinutes=30;
                 S.Plot.SlidingWindowLapsInMinutes=30;
                 writestruct(S,configureFileFooof)
             end
             structstruct(S);
-
         end
     end
     methods(Static)
@@ -58,7 +58,7 @@ classdef FiguresForJahangirData <Singleton
         function obj = instance()
             persistent uniqueInstance
             if isempty(uniqueInstance)
-                obj = FiguresForJahangirData();
+                obj = experiment.plot.FiguresForJahangirData();
                 uniqueInstance = obj;
             else
                 obj = uniqueInstance;
@@ -67,18 +67,18 @@ classdef FiguresForJahangirData <Singleton
     end
     methods
         function S=getParams(obj)
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperimentJ.instance.get;
             configureFileSWRRate=fullfile(sde.FileLocations.General.PlotFolder...
                 ,filesep, 'Parameters','SWRRate.xml');
             S.SWRRate=readstruct(configureFileSWRRate);
             configureFileFooof=fullfile(sde.FileLocations.General.PlotFolder...
                 ,filesep, 'Parameters','Fooof.xml');
             S.Fooof=readstruct(configureFileFooof);
-            
+
         end
         function S=plotPowers(obj)
-            ff=FigureFactory.instance;
-            sde=SDExperiment.instance.get;
+            ff=logistics.FigureFactory.instance;
+            sde=experiment.SDExperiment.instance.get;
             T=readtable('SessionList.txt','Delimiter',',');
             conditions=unique(T.INJECTION);
             sess=obj.Sessions;
@@ -86,7 +86,7 @@ classdef FiguresForJahangirData <Singleton
                 ,strcat('PlotFoof_Cond', DataHash(sess),'.mat'));
             clear Cond
             if ~isfile(cacheFile)
-                
+
                 for icond=1:numel(conditions)
                     idx=find(ismember(T.INJECTION,conditions{icond}));
                     for isession=1:numel(idx)
@@ -119,7 +119,7 @@ classdef FiguresForJahangirData <Singleton
                             stateRatiosInTime=ss_block.getStateRatios(...
                                 seconds(slidingWindowSize),[],edges);
                             subblocks=ss_block.getStartTime+seconds(edges);
-                            
+
                             thId=sdd.getThetaChannelID;
                             fname=strcat(sprintf('PlotFooof_%s_ses%d_ch%d_',conditions{icond},isession,thId));
                             fnamefull=strcat(fname,'.mat');
@@ -188,9 +188,9 @@ classdef FiguresForJahangirData <Singleton
                                                 if dur<minutes(params.Plot.MinDurationInSubBlockMinutes)
                                                     error('Short');
                                                 end
-                                                
+
                                                 epiFooof(isublock)=episode.getPSpectrumWelch.getFooof(params.Fooof,params.Fooof.f_range);
-                                                
+
                                                 epiFooof(isublock).plot;
                                                 ax=gca;
                                                 ax.XLim=[1 100];
@@ -208,7 +208,7 @@ classdef FiguresForJahangirData <Singleton
                                     try
                                         Cond(iblock).fooof(thestate,:,isession,icond)=epiFooof;
                                     catch
-                                        
+
                                     end
                                     clear epiFooof;
                                 else
@@ -224,7 +224,7 @@ classdef FiguresForJahangirData <Singleton
             else
                 load(cacheFile,'Cond');
             end
-            
+
             obj.plot_FooofInBlocks_CompareConditions(Cond)
         end
         function plotSWRRate(obj)
@@ -239,17 +239,17 @@ classdef FiguresForJahangirData <Singleton
             conditions=unique(tses.Condition);
             clear Cond
             if ~isfile(cacheFile)
-                
+
                 for icond=1:numel(conditions)
                     cond=conditions{icond};
                     filepath=tses.Filepath(  ismember(tses.Condition,cond));
-                    
+
                     tses_cond=sf.getSessions(filepath);
-                    
+
                     clear Ns ts Ns_adj;
-                    
+
                     for isession=1:numel(tses_cond)
-                        
+
                         if numel(tses_cond)>1
                             ses=tses_cond(isession);
                         else
@@ -281,17 +281,17 @@ classdef FiguresForJahangirData <Singleton
                             edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
                             stateRatiosInTime=ss_block.getStateRatios(...
                                 seconds(slidingWindowSize),[],edges);
-                            
+
                             bc=BuzcodeFactory.getBuzcode(file);
                             ripple=bc.calculateSWR;
                             ripple_block=ripple.getWindow(timeWindowadj);
-                            
+
                             stateEpisodes=ss_block.getEpisodes;
                             ripplePeaksInSeconds=ripple_block.getPeakTimes;
                             stateNames=ss_block.getStateNames;
                             clear rippleRates;
                             for istate=1:numel(stateRatiosInTime)
-                                
+
                                 thestate=stateRatiosInTime(istate).state;
                                 stateRatio=stateRatiosInTime(thestate);
                                 try
@@ -312,7 +312,7 @@ classdef FiguresForJahangirData <Singleton
                             edges=stateRatiosInTime.edges;
                             for istate=1:numel(stateRatiosInTime)
                                 thestate=stateRatiosInTime(istate).state;
-                                
+
                                 if sum(ismember([1 2 3 5],thestate))
                                     Cond(iblock).sratio(thestate,:,isession,icond)=stateRatiosInTime(thestate).Ratios;
                                     Cond(iblock).sCount(thestate,:,isession,icond)=stateRatiosInTime(thestate).N;
@@ -331,43 +331,62 @@ classdef FiguresForJahangirData <Singleton
             end
             obj.plot_RippleRatesInBlocks_CompareConditions(Cond)
             obj.plot_RippleRatesInBlocks_CompareStates(Cond)
-            
+
         end
-        function plotFooof(obj)
-            sf=SessionFactory;
-            selected_ses=[1 2 3 4 5 6 7 8 9 10 14 15 16 17];
+        function plotFooof(obj,plotwh)
+            if ~exist('plotwh','var')
+                plotwh=1;
+            end
+            sf=experiment.SessionFactoryJ;
+            selected_ses=[3:14];
+%             selected_ses=[21 23];
             tses=sf.getSessionsTable(selected_ses);
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperimentJ.instance;
+            sdeparams=sde.get;
             params=obj.getParams.Fooof;
-            cacheFile=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
+            cacheFile=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache'...
                 ,strcat('PlotFooof_',DataHash(tses), DataHash(params),'.mat'));
-            conditions=unique(tses.Condition);
-            clear Cond
             if ~isfile(cacheFile)
-                
-                for icond=1:numel(conditions)
-                    cond=conditions{icond};
-                    filepath=tses.Filepath(  ismember(tses.Condition,cond));
-                    
+                conditions=categorical(tses.INJECTION);
+                conditionsCat=categories(conditions);
+                clear Cond
+                for icond=1:numel(conditionsCat)
+                    cond=conditionsCat{icond};
+                    filepath=tses.PATH(ismember(conditions,cond));
                     tses_cond=sf.getSessions(filepath);
                     
                     clear Ns ts Ns_adj;
-                    
+                    sess=ordinal(1:numel(tses_cond));
                     for isession=1:numel(tses_cond)
-                        
+                        theses=sess(isession);
                         if numel(tses_cond)>1
                             ses=tses_cond(isession);
                         else
                             ses=tses_cond;
                         end
                         file=ses.SessionInfo.baseFolder;
-                        sdd=StateDetectionData(file);
+                        sdd=buzcode.sleepDetection.StateDetectionData(file);
+                        sdd.Info.SessionInfo=ses.SessionInfo;
+                        EMG=sdd.getEMG;
+                        ss=sdd.getStateSeries;
+                        thId=sdd.getThetaChannelID;
+                        ctd=neuro.basic.ChannelTimeDataHard(file);
+                        th=ctd.getChannel(thId);
                         blocks=ses.Blocks;
-                        blocksStr=blocks.getBlockNames;
+                        blocksStr1=categorical([1 2 3 4],[1 2 3 4],blocks.getBlockNames,'Ordinal',true);
+                        blocksStr= blocksStr1([1 2 3 4]);
+                        %                         blocksStr= blocksStr1;
                         for iblock=1:numel(blocksStr)
-                            block=blocksStr{iblock};
-                            timeWindow=blocks.get(block);
-                            winDuration=params.Blocks.(block);
+                            boc=neuro.basic.BlockOfChannels();
+                            boc.Info.Condition=cond;
+                            boc.Info.Session=theses;
+                            boc.Info.SessionInfo=ses.SessionInfo;
+                            boc.Info.Animal=ses.Animal;
+                            boc.Info.Probe=ses.Probe;
+                            block=blocksStr(iblock);
+                            boc.Info.Block=block;
+                            timeWindow=blocks.get(char(block));
+                            winDuration=params.Blocks.(char(block));
                             if winDuration>0
                                 timeWindowadj=[timeWindow(1) timeWindow(1)+hours(winDuration)];
                                 if timeWindowadj(2)>timeWindow(2)
@@ -379,78 +398,102 @@ classdef FiguresForJahangirData <Singleton
                                     timeWindowadj(1)=timeWindow(1);
                                 end
                             end
-                            ss=sdd.getStateSeries;
-                            ss_block=ss.getWindow(timeWindowadj);
-                            slidingWindowSize=minutes(params.Plot.SlidingWindowSizeInMinutes);
-                            slidingWindowLaps=minutes(params.Plot.SlidingWindowLapsInMinutes);
-                            edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
-                            stateRatiosInTime=ss_block.getStateRatios(...
-                                seconds(slidingWindowSize),[],edges);
-                            subblocks=ss_block.getStartTime+seconds(edges);
-                            thId=sdd.getThetaChannelID;
-                            ctd=neuro.basic.ChannelTimeDataHard(file);
-                            th=ctd.getChannel(thId);
-                            allBlock=th.getTimeWindowForAbsoluteTime(timeWindowadj);
-                            cacheFilePower=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
-                                ,strcat(sprintf('PlotFooof_afoof_%d_%d_%d_',icond,isession,iblock),DataHash(tses), DataHash(params), DataHash(timeWindowadj),'.mat'));
-                            try
-                                load(cacheFilePower,'fooof');
-                            catch
-                                try
-                                    allBlock=th.getTimeWindowForAbsoluteTime(timeWindowadj);
-                                    psd1=allBlock.getPSpectrumWelch;
-                                    params=obj.getParams.Fooof;
-                                    fooof=psd1.getFooof(params.Fooof,params.Fooof.f_range);
-                                    %                                 fooof.plot
-                                    save(cacheFilePower,'fooof')
-                                catch
-                                    fooof=Fooof();
-                                end
-                            end
-                            stateEpisodes=ss_block.getEpisodes;
-                            stateNames=ss_block.getStateNames;
-                            clear rippleRates;
+                            allBlock=th.getTimeWindow(timeWindowadj);
+                            boc=boc.addChannel(allBlock);
                             
-                            for istate=1:numel(stateRatiosInTime)
-                                thestate=stateRatiosInTime(istate).state;
-                                if sum(ismember([1 2 3 5],thestate))
-                                    cacheFilePower=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
-                                        ,strcat(sprintf('PlotFooof_afoof_%d_%d_%d_%d_',icond,isession,iblock,istate),DataHash(tses), DataHash(params), DataHash(timeWindowadj),'.mat'));
-                                    try
-                                        load(cacheFilePower,'epiFooof')
-                                    catch
-                                        for isublock=1:(numel(subblocks)-1)
-                                            try
-                                                subblock=subblocks([isublock isublock+1]);
-                                                subBlock=th.getTimeWindowForAbsoluteTime(subblock);
-                                                ss_subBlock=ss_block.getWindow(subblock);
-                                                stateEpisodes=ss_subBlock.getEpisodes;
-                                                stateNames=ss_block.getStateNames;
-                                                theStateName=stateNames{istate};
-                                                theEpisode=stateEpisodes.(strcat(theStateName,'state'));
-                                                ticdss=ss_subBlock.TimeIntervalCombined;
-                                                theEpisodeAbs=ticdss.getRealTimeFor(theEpisode);
-                                                episode=subBlock.getTimeWindow(theEpisodeAbs);
-                                                params=obj.getParams.Fooof;
-                                                epiFooof(isublock)=episode.getPSpectrumWelch.getFooof(params.Fooof,params.Fooof.f_range);
-                                            catch
-                                                epiFooof(isublock)=Fooof();
-                                            end
+                            emg=EMG.getTimeWindow(timeWindowadj);
+                            
+                            boc=boc.addChannel(emg);
+                            ss_block=ss.getWindow(timeWindowadj);
+                            boc=boc.addHypnogram(ss_block);
+                            slidingWindowSize=minutes(params.Plot.SlidingWindowSizeInMinutes);
+                            edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
+                            stateRatiosInTime=boc.getStateRatios(...
+                                seconds(slidingWindowSize),[],edges);
+                            statelist=categorical(stateRatiosInTime.getStateList,[1 2 3 5],{'AWAKE','QWAKE','SWS','REM'});
+                            statelistnum=stateRatiosInTime.getStateList;
+                            for istate=1:numel(statelist)
+                                thestate=statelist(istate);
+                                thestateNum=statelistnum(istate);
+                                cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache', DataHash(params)...
+                                    ,strcat(sprintf('PlotFooof_afoof_%s_%s_%s_%s_',cond,ses.toString,block,thestate),'.mat'));
+                                if isfile(cacheFilePower)
+                                    load(cacheFilePower,'thpks','epiFooof')
+                                else
+                                    clear tfms thpks epiFooof
+                                    subblocks=boc.getStartTime+seconds(edges);
+                                    for isublock=1:(numel(subblocks)-1)
+                                        subblock=subblocks([isublock isublock+1]);
+                                        if subblock(1)< boc.getStartTime
+                                            subblock(1)=boc.getStartTime;
                                         end
-                                        save(cacheFilePower,'epiFooof');
-                                    end
-                                    Cond(iblock).sratio(thestate,:,isession,icond)=stateRatiosInTime(thestate).Ratios;
-                                    Cond(iblock).sCount(thestate,:,isession,icond)=stateRatiosInTime(thestate).N;
-                                    Cond(iblock).edges(thestate,:,isession,icond)=stateRatiosInTime(thestate).edges;
-                                    try
-                                        Cond(iblock).fooof(thestate,:,isession,icond)=epiFooof;
-                                    catch
+                                        if subblock(2)> boc.getEndTime
+                                            subblock(2)=boc.getEndTime;
+                                        end
+                                        if subblock(2)>subblock(1)
+                                            boc_sub=boc.getWindow(subblock);
+                                            fooof=neuro.power.Fooof();
+                                            thpk=experiment.plot.thetaPeak.ThetaPeak();
+                                            if ~isempty(boc_sub)
+                                                
+                                                boc_sub.Info.SubBlock=categorical(isublock,1:(numel(subblocks)-1));
+                                                [episode, theEpisodeAbs]=boc_sub.getState(thestateNum);
+                                                if ~isempty(episode) && (episode.getLength>minutes(params.Plot.MinDurationInSubBlockMinutes))
+                                                    durations1=[0 cumsum(seconds(theEpisodeAbs(:,2)-theEpisodeAbs(:,1)))'];
+                                                    thetaFreq=params.BandFrequencies.theta;
+                                                    episode1=episode.getDownSampled(50);
+                                                    thpk=episode1.getFrequencyBandPeak(thetaFreq);
+                                                    fooof=episode.getPSpectrumWelch.getFooof(params.Fooof(2),params.Fooof(2).f_range);
+                                                    fooof.Info=episode.Info;
+                                                    fooof.Info.episode =episode;
+                                                    thpk=thpk.addFooof(fooof);
+                                                    thpk.Bouts=durations1;
+                                                end
+                                            end
+                                            epiFooof(isublock)=fooof; %#ok<AGROW>
+                                            if exist('thpks','var')
+                                                thpks=thpks.add(thpk,isublock);
+                                            else
+                                                thpks=thpk;
+                                            end
+%                                             if strcmpi( char(thestate),'AWAKE')
+%                                                 try close(1); catch, end
+%                                                 f=figure(1);
+%                                                 f.Visible='on';
+%                                                 f.Position=[1441,200,2800,1100];
+%                                                 
+%                                                 obj.plotEpisode(boc_sub,params,thestate);%awake
+%                                                 
+%                                                 fname=strcat(sprintf('/home/ukaya/Desktop/theta-cf/%s/%s/%s/PlotFooof_afoof_ses%d_sub%d_%s',block,thestate,cond,isession,isublock),DataHash(params));
+%                                                 ff=logistics.FigureFactory.instance;
+%                                                 ff.save(fname);
+%                                                 %Plot end
+%                                             end
+                                        end
                                         
                                     end
-                                    clear epiFooof;
-                                else
-                                    Cond(iblock).fooof(4,:,isession,icond)=fooof;
+                                    folder=fileparts(cacheFilePower);
+                                    if ~isfolder(folder), mkdir(folder); end
+                                    save(cacheFilePower,'thpks','epiFooof');
                                 end
+                                %                                     thpks.plotCF
+                                %                                     thpks.plotPW
+                                stt=stateRatiosInTime.State(istate).state;
+                                try
+                                    Cond(iblock).sratio(stt,:,isession,icond)=stateRatiosInTime.State(istate).Ratios; %#ok<AGROW>
+                                    Cond(iblock).sCount(stt,:,isession,icond)=stateRatiosInTime.State(istate).N; %#ok<AGROW>
+                                    Cond(iblock).edges(stt,:,isession,icond)=stateRatiosInTime.State(istate).edges; %#ok<AGROW>
+                                catch
+                                    Cond(iblock).sratio(stt,:,isession,icond)=nan; %#ok<AGROW>
+                                    Cond(iblock).sCount(stt,:,isession,icond)=nan; %#ok<AGROW>
+                                    Cond(iblock).edges(stt,:,isession,icond)=nan; %#ok<AGROW>
+                                end
+                                try
+                                    Cond(iblock).fooof(stt,:,isession,icond)=epiFooof; %#ok<AGROW>
+                                catch
+                                    Cond(iblock).fooof(stt,:,isession,icond)=neuro.power.Fooof(); %#ok<AGROW>
+                                end
+                                clear epiFooof;
                             end
                         end
                     end
@@ -459,11 +502,141 @@ classdef FiguresForJahangirData <Singleton
                 if ~isfolder(folder), mkdir(folder);end
                 save(cacheFile,'Cond');
             else
-                load(cacheFile);
+                load(cacheFile,'Cond');
             end
-            obj.plot_FooofInBlocks_CompareConditions(Cond)
+            obj.plot_FooofInBlocks_CompareConditions(Cond,plotwh)
         end
         
+        %         function plotFooof(obj)
+%             sf=experiment.SessionFactoryJ;
+%             selected_ses=[3:14];
+%             tses=sf.getSessionsTable(selected_ses);
+%             sde=experiment.SDExperimentJ.instance.get;
+%             params=obj.getParams.Fooof;
+%             cacheFile=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
+%                 ,strcat('PlotFooof_',DataHash(tses), DataHash(params),'.mat'));
+%             conditions=unique(tses.INJECTION);
+%             clear Cond
+%             if ~isfile(cacheFile)
+% 
+%                 for icond=1:numel(conditions)
+%                     cond=conditions{icond};
+%                     filepath=tses.PATH(ismember(tses.INJECTION,cond));
+% 
+%                     tses_cond=sf.getSessions(filepath);
+% 
+%                     clear Ns ts Ns_adj;
+% 
+%                     for isession=1:numel(tses_cond)
+% 
+%                         if numel(tses_cond)>1
+%                             ses=tses_cond(isession);
+%                         else
+%                             ses=tses_cond;
+%                         end
+%                         file=ses.SessionInfo.baseFolder;
+%                         sdd=StateDetectionData(file);
+%                         blocks=ses.Blocks;
+%                         blocksStr=blocks.getBlockNames;
+%                         for iblock=1:numel(blocksStr)
+%                             block=blocksStr{iblock};
+%                             timeWindow=blocks.get(block);
+%                             winDuration=params.Blocks.(block);
+%                             if winDuration>0
+%                                 timeWindowadj=[timeWindow(1) timeWindow(1)+hours(winDuration)];
+%                                 if timeWindowadj(2)>timeWindow(2)
+%                                     timeWindowadj(2)=timeWindow(2);
+%                                 end
+%                             else
+%                                 timeWindowadj=[timeWindow(2)+hours(winDuration) timeWindow(2)];
+%                                 if timeWindowadj(1)<timeWindow(1)
+%                                     timeWindowadj(1)=timeWindow(1);
+%                                 end
+%                             end
+%                             ss=sdd.getStateSeries;
+%                             ss_block=ss.getWindow(timeWindowadj);
+%                             slidingWindowSize=minutes(params.Plot.SlidingWindowSizeInMinutes);
+%                             slidingWindowLaps=minutes(params.Plot.SlidingWindowLapsInMinutes);
+%                             edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
+%                             stateRatiosInTime=ss_block.getStateRatios(...
+%                                 seconds(slidingWindowSize),[],edges);
+%                             subblocks=ss_block.getStartTime+seconds(edges);
+%                             thId=sdd.getThetaChannelID;
+%                             ctd=neuro.basic.ChannelTimeDataHard(file);
+%                             th=ctd.getChannel(thId);
+%                             allBlock=th.getTimeWindowForAbsoluteTime(timeWindowadj);
+%                             cacheFilePower=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
+%                                 ,strcat(sprintf('PlotFooof_afoof_%d_%d_%d_',icond,isession,iblock),DataHash(tses), DataHash(params), DataHash(timeWindowadj),'.mat'));
+%                             try
+%                                 load(cacheFilePower,'fooof');
+%                             catch
+%                                 try
+%                                     allBlock=th.getTimeWindowForAbsoluteTime(timeWindowadj);
+%                                     psd1=allBlock.getPSpectrumWelch;
+%                                     params=obj.getParams.Fooof;
+%                                     fooof=psd1.getFooof(params.Fooof,params.Fooof.f_range);
+%                                     %                                 fooof.plot
+%                                     save(cacheFilePower,'fooof')
+%                                 catch
+%                                     fooof=Fooof();
+%                                 end
+%                             end
+%                             stateEpisodes=ss_block.getEpisodes;
+%                             stateNames=ss_block.getStateNames;
+%                             clear rippleRates;
+% 
+%                             for istate=1:numel(stateRatiosInTime)
+%                                 thestate=stateRatiosInTime(istate).state;
+%                                 if sum(ismember([1 2 3 5],thestate))
+%                                     cacheFilePower=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
+%                                         ,strcat(sprintf('PlotFooof_afoof_%d_%d_%d_%d_',icond,isession,iblock,istate),DataHash(tses), DataHash(params), DataHash(timeWindowadj),'.mat'));
+%                                     try
+%                                         load(cacheFilePower,'epiFooof')
+%                                     catch
+%                                         for isublock=1:(numel(subblocks)-1)
+%                                             try
+%                                                 subblock=subblocks([isublock isublock+1]);
+%                                                 subBlock=th.getTimeWindowForAbsoluteTime(subblock);
+%                                                 ss_subBlock=ss_block.getWindow(subblock);
+%                                                 stateEpisodes=ss_subBlock.getEpisodes;
+%                                                 stateNames=ss_block.getStateNames;
+%                                                 theStateName=stateNames{istate};
+%                                                 theEpisode=stateEpisodes.(strcat(theStateName,'state'));
+%                                                 ticdss=ss_subBlock.TimeIntervalCombined;
+%                                                 theEpisodeAbs=ticdss.getRealTimeFor(theEpisode);
+%                                                 episode=subBlock.getTimeWindow(theEpisodeAbs);
+%                                                 params=obj.getParams.Fooof;
+%                                                 epiFooof(isublock)=episode.getPSpectrumWelch.getFooof(params.Fooof,params.Fooof.f_range);
+%                                             catch
+%                                                 epiFooof(isublock)=Fooof();
+%                                             end
+%                                         end
+%                                         save(cacheFilePower,'epiFooof');
+%                                     end
+%                                     Cond(iblock).sratio(thestate,:,isession,icond)=stateRatiosInTime(thestate).Ratios;
+%                                     Cond(iblock).sCount(thestate,:,isession,icond)=stateRatiosInTime(thestate).N;
+%                                     Cond(iblock).edges(thestate,:,isession,icond)=stateRatiosInTime(thestate).edges;
+%                                     try
+%                                         Cond(iblock).fooof(thestate,:,isession,icond)=epiFooof;
+%                                     catch
+% 
+%                                     end
+%                                     clear epiFooof;
+%                                 else
+%                                     Cond(iblock).fooof(4,:,isession,icond)=fooof;
+%                                 end
+%                             end
+%                         end
+%                     end
+%                 end
+%                 folder=fileparts(cacheFile);
+%                 if ~isfolder(folder), mkdir(folder);end
+%                 save(cacheFile,'Cond');
+%             else
+%                 load(cacheFile);
+%             end
+%             obj.plot_FooofInBlocks_CompareConditions(Cond)
+%         end
     end
     methods (Access=private)
         function plot_RippleRatesInBlocks_CompareStates(obj,Conds)
@@ -476,9 +649,9 @@ classdef FiguresForJahangirData <Singleton
             conditions={'NSD','SD'};
             blockstr={'PRE','SD/NSD','TRACK','POST'};
             states=[1 2 3 5];
-            
+
             for icond=1:numel(conditions)
-                
+
                 try close(icond);catch;end; f=figure(icond);f.Units='normalized';f.Position=[1.0000    0.4391    1.4    0.2];
                 lastedge=0;
                 centers_all=[];
@@ -490,10 +663,10 @@ classdef FiguresForJahangirData <Singleton
                     scount(scount<seconds(minutes(1)))=nan;
                     rrate=rcount./scount;
                     numses=size(rcount,3);
-                    
-                    
-                    
-                    
+
+
+
+
                     edges=hours(seconds(Conds(iblock).edges(1,:,1,icond)))+lastedge;
                     lastedge=edges(end);
                     centers=edges(2:end)-(edges(2)-edges(1))/2;
@@ -517,7 +690,7 @@ classdef FiguresForJahangirData <Singleton
                     rrateErr=nanstd(rrate,[],3)/sqrt(size(rrate,3));
                     centersall=repmat(centers,size(rratemean,1),1);
                     p=errorbar(centersall', rratemean',rrateErr','-','Marker','.','MarkerSize',20);
-                    
+
                     centershift=([1 2 3 3 4]-2.5)*.05;
                     for iplot=1:numel(p)
                         rrateSes=squeeze(rrate(iplot,:,:));
@@ -606,7 +779,7 @@ classdef FiguresForJahangirData <Singleton
                     rrateErr=squeeze(nanstd(rrate,[],2))/sqrt(size(rrate,2));
                     centersall=repmat(centers,size(rratemean,2),1)';
                     p=errorbar(centersall, rratemean,rrateErr,'-','Marker','.','MarkerSize',20);
-                    
+
                     centershift=([0 1]-.5)*.05;
                     for iplot=1:numel(p)
                         rrateSes=squeeze(rrate(:,:,iplot));
@@ -691,15 +864,15 @@ classdef FiguresForJahangirData <Singleton
                         for ises=1:size(fooofs,2)
                             for icond=1:size(fooofs,3)
                                 fooof=fooofs(isub,ises,icond);
-%                                 try
-%                                     fooof.plot
-%                                     ax=gca;
-%                                     ax.YLim=[2.5 6.5];
-%                                     ff.save(sprintf('%s_%s_sub%d_ses%d_%s',statestr{thestate},...
-%                                         blockstr{iblock},isub,ises,conditions{icond}));
-%                                 catch
-%                                 end
-%                                 close
+                                %                                 try
+                                %                                     fooof.plot
+                                %                                     ax=gca;
+                                %                                     ax.YLim=[2.5 6.5];
+                                %                                     ff.save(sprintf('%s_%s_sub%d_ses%d_%s',statestr{thestate},...
+                                %                                         blockstr{iblock},isub,ises,conditions{icond}));
+                                %                                 catch
+                                %                                 end
+                                %                                 close
                                 try
                                     sub_ses_cond.thetaPeak.cf(isub,ises,icond)=fooof.getPeak(peaksCF).cf;
                                 catch
@@ -725,19 +898,19 @@ classdef FiguresForJahangirData <Singleton
                                 catch
                                     sub_ses_cond.aperiodic.f(isub,ises,icond)=nan;
                                 end
-                                
+
                             end
                         end
                     end
-%                     var=sub_ses_cond.thetaPeak.cf;
+                    %                     var=sub_ses_cond.thetaPeak.cf;
                     var=sub_ses_cond.thetaPeak.power;
-%                     var=sub_ses_cond.aperiodic.f;
-%                     var=sub_ses_cond.aperiodic.offset;
+                    %                     var=sub_ses_cond.aperiodic.f;
+                    %                     var=sub_ses_cond.aperiodic.offset;
                     meanval=squeeze(nanmean(var,2));
                     errval=squeeze(nanstd(var,[],2))/sqrt(size(var,2));
                     centers2=repmat(centers,size(meanval,2),1)';
                     perrbar=errorbar(centers2, meanval,errval,'-','Marker','.','MarkerSize',20);
-                    clear meanval errval                    
+                    clear meanval errval
                     centershift=([0 1 2 3]-1.5)*.1;
                     for iplot=1:numel(perrbar)
                         varSes=squeeze(var(:,:,iplot));
@@ -754,11 +927,11 @@ classdef FiguresForJahangirData <Singleton
                 title(statestr{thestate});
                 ax=gca;
                 ax.YColor='k';
-%                 ax.YLim=peaksCF;%CF
+                %                 ax.YLim=peaksCF;%CF
                 ax.YLim=[.1 1.4];%power
-%                 ax.YLim=[.1 1.4];%power
-%                 ax.YLim=[1 2.5];%slope
-%                 ax.YLim=[4.5 7.5];%offset
+                %                 ax.YLim=[.1 1.4];%power
+                %                 ax.YLim=[1 2.5];%slope
+                %                 ax.YLim=[4.5 7.5];%offset
                 ax.XLim=[0 edges(end)];
                 ax.XTick=unique(edges_all);
                 it=1;
@@ -769,17 +942,17 @@ classdef FiguresForJahangirData <Singleton
                         it=it+1;
                     end
                 end
-%                 ylabel('Center Frequency (Hz)');
+                %                 ylabel('Center Frequency (Hz)');
                 ylabel('Relative Power');
-%                 ylabel('F');
-%                 ylabel('Offset');
+                %                 ylabel('F');
+                %                 ylabel('Offset');
                 ff=FigureFactory.instance;
-%                 ff.save(strcat('Center Frequency_',statestr{thestate}));
+                %                 ff.save(strcat('Center Frequency_',statestr{thestate}));
                 ff.save(strcat('Power_',statestr{thestate}));
-%                 ff.save(strcat('f_',statestr{thestate}));
-%                 ff.save(strcat('Offset_',statestr{thestate}));
+                %                 ff.save(strcat('f_',statestr{thestate}));
+                %                 ff.save(strcat('Offset_',statestr{thestate}));
             end
         end
     end
-    
+
 end

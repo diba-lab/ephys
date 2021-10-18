@@ -294,14 +294,17 @@ classdef SDFigures2 <Singleton
                                             if ~isempty(boc_sub)
                                                 
                                                 boc_sub.Info.SubBlock=categorical(isublock,1:(numel(subblocks)-1));
-                                                episode=boc_sub.getState(thestateNum);
+                                                [episode, theEpisodeAbs]=boc_sub.getState(thestateNum);
                                                 if ~isempty(episode) && (episode.getLength>minutes(params.Plot.MinDurationInSubBlockMinutes))
+                                                    durations1=[0 cumsum(seconds(theEpisodeAbs(:,2)-theEpisodeAbs(:,1)))'];
                                                     thetaFreq=params.BandFrequencies.theta;
                                                     episode1=episode.getDownSampled(50);
                                                     thpk=episode1.getFrequencyBandPeak(thetaFreq);
                                                     fooof=episode.getPSpectrumWelch.getFooof(params.Fooof(2),params.Fooof(2).f_range);
                                                     fooof.Info=episode.Info;
+                                                    fooof.Info.episode =episode;
                                                     thpk=thpk.addFooof(fooof);
+                                                    thpk.Bouts=durations1;
                                                 end
                                             end
                                             epiFooof(isublock)=fooof; %#ok<AGROW>
@@ -388,15 +391,13 @@ classdef SDFigures2 <Singleton
                         block=blocks(iblock);
                         for istate=1:numel(states)
                             state=states(istate);
-                            cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache', DataHash(params)...
+                            cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache',['' DataHash(params)]...
                                 ,strcat(sprintf('PlotFooof_afoof_%s_%s_%s_%s_',cond,ses.toString,block,state),'.mat'));
                             if isfile(cacheFilePower)
                                 S=load(cacheFilePower,'thpks','epiFooof');
                                 try
                                     S.thpks.Info.Session=ses;
                                     thpks.(char(cond)).(char(block)).(char(state)).(['ses' num2str(isession)])=S.thpks;
-                                    thpks.(char(cond)).(char(block)).(char(state)).(['ses' num2str(isession)])=S.thpks;
-                                    fooof.(char(cond)).(char(block)).(char(state)).(['ses' num2str(isession)])=S.epiFooof;
                                     fooof.(char(cond)).(char(block)).(char(state)).(['ses' num2str(isession)])=S.epiFooof;
                                 catch
                                 end
@@ -410,6 +411,30 @@ classdef SDFigures2 <Singleton
         function plotDist(obj)
             thpkc=obj.getThetaPeaks;
             thpkc.plotPeakFreqDist;
+        end
+        function plotThetaSimulation(obj)
+            try close(4); catch, end
+            figure(4);hold on
+            freq(1,:)=linspace(7.7,6.5,10);
+            freq(2,:)=linspace(7.5,7.2,10);
+            pow(1,:)=linspace(100,600,10);
+            pow(2,:)=linspace(100,600,10);
+            colorcond=[[0 0 1];[1 0 0]];
+            colorcondl=[[0.7 0.7 1];[1 0.7 0.7]];
+            t=linspace(-.5,.5,1000);
+            for icond=1:2
+                subplot(2,1,icond);hold on;
+                for iline=1:size(freq,2)
+                    y=pow(icond,iline)*sin(2*pi*freq(icond,iline)*t);
+                    p=plot(t,y);
+                    if iline==1||iline==size(freq,2)
+                        p.Color=colorcond(icond,:);
+%                         p.LineWidth=1.5;
+                    else
+                        p.Color=colorcondl(icond,:);
+                    end
+                end
+            end
         end
     end
     methods (Access=private)
@@ -770,11 +795,11 @@ classdef SDFigures2 <Singleton
                 t1.Color=sde.getStateColors(double(thestate));
                 durations1=cumsum(seconds(theEpisodeAbs(:,2)-theEpisodeAbs(:,1)))';
                 durations2=[0 durations1];
-                durations=durations2(1:(numel(durations2)-1))+diff(durations2)/2;
+                durationscenter=durations2(1:(numel(durations2)-1))+diff(durations2)/2;
                 for il=1:numel(durations1)
                     l=vline(durations1(il),'w--');
                     l.LineWidth=1;
-                    t1=text(durations(il),ax.YLim(2),num2str(il));
+                    t1=text(durationscenter(il),ax.YLim(2),num2str(il));
                     t1.HorizontalAlignment='center';
                     t1.VerticalAlignment='bottom';
                     t1.Color=sde.getStateColors(double(thestate));
@@ -827,7 +852,7 @@ classdef SDFigures2 <Singleton
                 for il=1:numel(durations1)
                     l=vline(durations1(il),'k');
                     l.LineWidth=1;
-                    t1=text(durations(il),ax.YLim(2),num2str(il));
+                    t1=text(durationscenter(il),ax.YLim(2),num2str(il));
                     t1.HorizontalAlignment='center';
                     t1.VerticalAlignment='bottom';
                     t1.Color=sde.getStateColors(double(thestate));
@@ -900,7 +925,7 @@ classdef SDFigures2 <Singleton
                 for il=1:numel(durations1)
                     l=vline(durations1(il),'k');
                     l.LineWidth=1;
-                    t1=text(durations(il),ax.YLim(2),num2str(il));
+                    t1=text(durationscenter(il),ax.YLim(2),num2str(il));
                     t1.HorizontalAlignment='center';
                     t1.VerticalAlignment='bottom';
                     t1.Color=sde.getStateColors(double(thestate));

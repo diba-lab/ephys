@@ -30,19 +30,19 @@ classdef Fooof
 
             fooofr=Fooof(fooof_results);
         end
-        function plot(obj)
+        function [data,model,ap_fit]=plot(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            fooof_plot(obj.fooof_results);
+            [data,model,ap_fit]=fooof_plot(obj.fooof_results);
             hold on;
-            obj.plotPeaks;
+%             obj.plotPeaks;
         end
         function plotLog(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             fooof_plot(obj.fooof_results,true)
             hold on;
-            obj.plotPeaksLog;
+%             obj.plotPeaksLog;
         end
         function peaksr=getPeaksXY(obj)
             r=obj.fooof_results;

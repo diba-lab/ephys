@@ -1,41 +1,39 @@
-classdef SDExperiment < Singleton
-    %SDEXPERIMENT Summary of this class goes here
+classdef SDExperimentJ < Singleton 
+    %SDEXPER Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
         XMLFile
     end
-    methods(Access=private)
-        % Guard the constructor against external invocation.  We only want
-        % to allow a single instance of this class.  See description in
-        % Singleton superclass.
-        function newObj = SDExperiment(xmlfile)
-            % Initialise your custom properties.
+    
+    methods
+        function obj = SDExperimentJ(varargin)
+            %SDEXPER Construct an instance of this class
+            %   Detailed explanation goes here
             if exist("xmlfile",'var')
-                newObj.XMLFile = xmlfile;
+                obj.XMLFile = xmlfile;
             else
-            newObj.XMLFile = ...
-                './ExperimentSpecific/Configure/Experiment.xml';
+            obj.XMLFile = ...
+                '/data3/SleepDeprivationDataJ/Experiment.xml';
             end
             try
-                S=readstruct(newObj.XMLFile);
+                S=readstruct(obj.XMLFile);
             catch
-                S.FileLocations.General.ExperimentConfig=newObj.XMLFile;
-                writestruct(S,newObj.XMLFile)
+                S.FileLocations.General.ExperimentConfig=obj.XMLFile;
+                writestruct(S,obj.XMLFile)
             end
             try structstruct(S); catch, end
         end
     end
-    
     methods(Static)
         % Concrete implementation.  See Singleton superclass.
         function obj = instance(xmlFile)
             persistent uniqueInstance
             if isempty(uniqueInstance)
                 if exist('xmlFile','var')
-                    obj = experiment.SDExperiment(xmlFile);
+                    obj = experiment.SDExperimentJ(xmlFile);
                 else
-                    obj = experiment.SDExperiment();
+                    obj = experiment.SDExperimentJ();
                 end
                 uniqueInstance = obj;
             else
@@ -43,8 +41,6 @@ classdef SDExperiment < Singleton
             end
         end
     end
-    
-    
     methods
         function S = get(obj)
             S=readstruct(obj.XMLFile);
@@ -92,5 +88,6 @@ classdef SDExperiment < Singleton
             try structstruct(S); catch, end
         end
     end
+
 end
 
