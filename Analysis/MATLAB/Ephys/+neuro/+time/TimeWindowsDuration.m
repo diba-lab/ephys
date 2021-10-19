@@ -14,12 +14,24 @@ classdef TimeWindowsDuration
             if isstruct(timeTable)
                 timeTable=struct2table(timeTable);
             elseif istable(timeTable)
+            elseif isfolder(timeTable)
+                folder=timeTable;
+                try
+                    evtlist=dir(fullfile(folder,'*.evt'));[~,idx]=sort(evtlist.datenum);
+                    evtfile=fullfile(evtlist(idx(1)).folder,evtlist(idx(1)).name);
+                    nevt=neuroscope.EventFile(evtfile);
+                    timeTable=nevt.TimeWindowsDuration.TimeTable;
+                catch
+                    l=logging.Logger.getLogger;
+                    l.warning('Tried to get %s, but did not get.',evtfile)
+                end
             elseif ismatrix(timeTable)
                 if ~isempty(timeTable)
                     timeTable=array2table(timeTable,'VariableNames',{'Start','Stop'});
                 else
                     timeTable=cell2table(cell(0,2),'VariableNames',{'Start','Stop'});
                 end
+                
             end
             obj.TimeTable = timeTable;
         end
@@ -176,18 +188,22 @@ classdef TimeWindowsDuration
             end
             tokens=split(pathname,filesep);
             filename=tokens{end};
-            fid = fopen(sprintf('%s%s%s.%s%02d.evt',pathname,filesep,filename,type,fileN),'w');
-            
-            % convert detections to milliseconds
-            T= obj.TimeTable;
-            start=seconds(T.Start)*1000;
-            stop=seconds(T.Stop)*1000;
-            fprintf(1,'Writing event file ...\n');
-            for ii = 1:size(start,1)
-                fprintf(fid,'%9.1f\tstart\n',start(ii));
-                fprintf(fid,'%9.1f\tstop\n',stop(ii));
+            fname1=sprintf('%s%s%s.%s%02d.evt',pathname,filesep,filename,type,fileN);
+            fid = fopen(fname1,'w');
+            if fid~=-1
+                % convert detections to milliseconds
+                T= obj.TimeTable;
+                start=seconds(T.Start)*1000;
+                stop=seconds(T.Stop)*1000;
+                fprintf(1,'Writing event file ...\n');
+                for ii = 1:size(start,1)
+                    fprintf(fid,'%9.1f\tStart\n',start(ii));
+                    fprintf(fid,'%9.1f\tStop\n',stop(ii));
+                end
+                fclose(fid);
+            else
+                logging.Logger.getLogger.error('Invalid file name %s',fname1)
             end
-            fclose(fid);
         end
         function obj=getReverse(obj,length)
             % convert detections to milliseconds

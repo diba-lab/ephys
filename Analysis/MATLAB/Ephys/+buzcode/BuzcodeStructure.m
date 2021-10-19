@@ -32,7 +32,12 @@ classdef BuzcodeStructure
                 end
             end
             obj.BasePath=filepath;
-            
+            try
+                obj.BadIntervals=neuro.time.TimeWindowsDuration(obj.BasePath);
+            catch
+                logging.Logger.getLogger.warning( ...
+                    'Could not find an evt file in %s',obj.BasePath);
+            end
             obj.Probe=neuro.probe.Probe(obj.BasePath);
             obj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(obj.BasePath);
         end
@@ -107,11 +112,16 @@ classdef BuzcodeStructure
                 try
                     varargin={varargin{:},'ignoretime',params.bad};
                 catch
+                    try
+                        varargin={varargin{:},'ignoretime',obj.BadIntervals.getArrayForBuzcode};
+                    catch
+                        logger.warning('No bad intervals found.')
+                    end
                     logger.warning('No Ignore Times set.')
                 end
                 varargin1=varargin(2:end);
 %                 logger.info(['SleepScoreMaster is callled with the following parameters: ', join(num2str(varargin1))]);
-
+                
                 SleepScoreMaster(obj.BasePath,varargin1{:});
                 sdd=StateDetectionData(obj.BasePath);
             end
