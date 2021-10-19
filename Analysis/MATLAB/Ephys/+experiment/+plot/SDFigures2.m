@@ -250,21 +250,6 @@ classdef SDFigures2 <Singleton
                             boc=boc.addHypnogram(ss_block);
                             slidingWindowSize=minutes(params.Plot.SlidingWindowSizeInMinutes);
                             edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
-                            %                             cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache', DataHash(params)...
-                            %                                 ,strcat(sprintf('PlotFooof_afoof_%s_%d_%s_',cond,isession,block),'.mat'));
-                            %                             try
-                            %                                 load(cacheFilePower,'fooof');
-                            %                             catch
-                            %                                 try
-                            %                                     psd1=allBlock.getPSpectrumWelch;
-                            %                                     fooof=psd1.getFooof(params.Fooof(1),params.Fooof(1).f_range);
-                            %                                     %                                     fooof.plot
-                            %                                     folder=fileparts(cacheFilePower);if ~isfolder(folder), mkdir(folder); end
-                            %                                     save(cacheFilePower,'fooof')
-                            %                                 catch
-                            %                                     fooof=Fooof();
-                            %                                 end
-                            %                             end
                             stateRatiosInTime=boc.getStateRatios(...
                                 seconds(slidingWindowSize),[],edges);
                             statelist=categorical(stateRatiosInTime.getStateList,[1 2 3 5],{'AWAKE','QWAKE','SWS','REM'});
@@ -378,8 +363,6 @@ classdef SDFigures2 <Singleton
             
             conds=condlist(1:2);
             blocks=blocklist(1:5);
-            sesnos{1}=1:9;
-            sesnos{2}=1:10;
             states=statelist(:);
             for icond=1:numel(conds)
                 cond=conds(icond);

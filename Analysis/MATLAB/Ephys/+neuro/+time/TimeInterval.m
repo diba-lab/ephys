@@ -46,7 +46,7 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             %   Detailed explanation goes here
             if startSample <1
                 startSample=1;
-                warning('Start sample is <1, \n\tit is set to ''1''\n')
+                warning(sprintf('Start sample is <1, \n\tit is set to ''1''\n'))
             end
             if endSample > obj.NumberOfPoints
                 endSample=obj.NumberOfPoints;

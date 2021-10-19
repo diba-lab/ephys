@@ -74,7 +74,7 @@ classdef Session
                 probe=neuro.probe.Probe(fullfile(list().folder,list.name));
                 obj.Probe=probe;
                 logger.info('Probe file is loaded.')
-                logger.info(probe.print)
+%                 logger.info(probe.print)
             catch
                 logger.info(strcat('No probe file. ', key))
             end

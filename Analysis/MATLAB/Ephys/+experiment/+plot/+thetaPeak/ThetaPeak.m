@@ -105,6 +105,54 @@ classdef ThetaPeak
             ylabel('pdf');
             ax.View=[90 -90];
         end
+        function plotCF3(obj)
+            ax=gca;
+            xlim=[5 10];
+            thpkcf_fd=obj.CF.getMedianFiltered(1,'omitnan','truncate').getMeanFiltered(1);
+            colors=linspecer(3);
+            switch thpkcf_fd.getInfo.Condition
+                case 'CTRL'
+                    info=1;
+                case 'ROL'
+                    info=2;
+                case 'OCT'
+                    info=3;
+            end
+            params=obj.getParams.Fooof;
+            bands=params.BandFrequencies;
+            bandFreq=bands.theta;
+            
+            h=histogram(thpkcf_fd.getValues,linspace(xlim(1),xlim(2),50),'Normalization','pdf');hold on;
+            h.FaceAlpha=.5;
+            h.FaceColor=colors(double(info),:);
+            h.LineStyle='none';
+            pd = fitdist(thpkcf_fd.getValues','Kernel','Kernel','epanechnikov');
+            x=linspace(xlim(1),xlim(2),50);
+            y = pdf(pd,x);
+            p1=plot(x,y);
+            p1.Color=colors(double(info),:);
+            p1.LineWidth=2.5;
+            l=xline(pd.median);
+            l.LineStyle='-';
+            l.LineWidth=2.5;
+            l.Color=colors(double(info),:)/2;
+%             text(pd.median,0,sprintf('%.2f',pd.median));    
+            ax.XLim=xlim;%bandFreq;
+            t=text(xlim(2),ax.YLim(2),sprintf('%.1fm',minutes(thpkcf_fd.getLength)));
+            t.Color=colors(double(info),:)/2;
+            t.HorizontalAlignment='right';
+            switch info
+                case 1
+                    t.VerticalAlignment='bottom';
+                case 2
+                    t.VerticalAlignment='middle';
+                case 3
+                    t.VerticalAlignment='top';
+            end
+            xlabel('Frequency (Hz)');
+            ylabel('pdf');
+            ax.View=[90 -90];
+        end
         function l=plotPW(obj)
             ax=gca;
             xlim=[0 600];

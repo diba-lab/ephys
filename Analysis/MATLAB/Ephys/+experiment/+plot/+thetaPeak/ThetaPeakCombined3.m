@@ -1,4 +1,4 @@
-classdef ThetaPeakCombined
+classdef ThetaPeakCombined3
     %THETAPEAKCOMBINED Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -8,7 +8,7 @@ classdef ThetaPeakCombined
     end
     
     methods
-        function obj = ThetaPeakCombined(thpk)
+        function obj = ThetaPeakCombined3(thpk)
             %THETAPEAKCOMBINED Construct an instance of this class
             %   Detailed explanation goes here
             obj.thpkList=CellArrayList();
@@ -31,7 +31,7 @@ classdef ThetaPeakCombined
         function newthpks = merge(obj,thpks)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            newthpks=experiment.plot.thetaPeak.ThetaPeakCombined;
+            newthpks=experiment.plot.thetaPeak.ThetaPeakCombined3;
             if isa(thpks,'experiment.plot.thetaPeak.ThetaPeakCombined')
                 for il=1:max(obj.thpkList.length,thpks.thpkList.length)
                     thpk1=obj.thpkList.get(il);
@@ -76,7 +76,7 @@ classdef ThetaPeakCombined
                 end
                 thesub=list.get(isub);
                 if ~isempty(thesub.Signal)
-                    thesub.plotCF3
+                    thesub.plotCF
                 end
                 if isub>1
                     xlabel('');
