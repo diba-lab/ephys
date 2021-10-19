@@ -220,21 +220,11 @@ classdef TimeWindowsDuration
             T=table(Start,Stop);
             obj.TimeTable=T;
         end
-        function ax=getArrayForBuzcode(obj,ax)
+        function arr=getArrayForBuzcode(obj)
             T=obj.TimeTable;
-            start=T.Start;
-            stop=T.Stop;
-            if ~exist('ax','var'), ax=gca;end
-            hold on;
-            for iart=1:numel(start)
-                x=[start(iart) stop(iart)];
-                y=[ax.YLim(2) ax.YLim(2)];
-                p=area(ax,x,y);
-                p.BaseValue=ax.YLim(1);
-                p.FaceAlpha=.5;
-                p.FaceColor='r';
-                p.EdgeColor='none';
-            end
+            start=seconds(T.Start);
+            stop=seconds(T.Stop);
+            arr=[start stop];
         end
     end
 end

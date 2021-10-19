@@ -119,8 +119,11 @@ classdef BuzcodeStructure
                     end
                     logger.warning('No Ignore Times set.')
                 end
+                varargin0=varargin(2:2:end);
                 varargin1=varargin(2:end);
-%                 logger.info(['SleepScoreMaster is callled with the following parameters: ', join(num2str(varargin1))]);
+                logger.info(sprintf('SleepScoreMaster is callled with the following parameters: %s', ...
+                    join(varargin0{:},', ') ...
+                    ));
                 
                 SleepScoreMaster(obj.BasePath,varargin1{:});
                 sdd=StateDetectionData(obj.BasePath);
