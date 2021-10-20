@@ -80,7 +80,7 @@ classdef ThetaPeakCombined
                 end
                 if isub>1
                     xlabel('');
-                    xticks('')
+%                     xticks('')
 %                     xticks([]);
                 else
                     try
@@ -91,7 +91,7 @@ classdef ThetaPeakCombined
                 if row<rows
                     ylabel('');
                 end
-                yticks([]);
+%                 yticks([]);
                 axsr(isub)=gca;
             end            
         end

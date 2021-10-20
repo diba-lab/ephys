@@ -121,8 +121,9 @@ classdef BuzcodeStructure
                 end
                 varargin0=varargin(2:2:end);
                 varargin1=varargin(2:end);
+                joinedstr=join(varargin0,', ');
                 logger.info(sprintf('SleepScoreMaster is callled with the following parameters: %s', ...
-                    join(varargin0{:},', ') ...
+                    joinedstr{:} ...
                     ));
                 
                 SleepScoreMaster(obj.BasePath,varargin1{:});

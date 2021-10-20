@@ -338,7 +338,7 @@ classdef FiguresForJahangirData <Singleton
                 plotwh=1;
             end
             sf=experiment.SessionFactoryJ;
-            selected_ses=[14];
+            selected_ses=[15];
 %             selected_ses=[21 23];
             tses=sf.getSessionsTable(selected_ses);
             sde=experiment.SDExperimentJ.instance;
@@ -517,7 +517,7 @@ classdef FiguresForJahangirData <Singleton
             sdeparams=sde.get;
             params=obj.getParams.Fooof;
              sf=experiment.SessionFactoryJ;
-            selected_ses=[3:14];
+            selected_ses=[3:15];
 %             selected_ses=[21 23];
             tses=sf.getSessionsTable(selected_ses);
            

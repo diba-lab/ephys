@@ -4,6 +4,7 @@ classdef EventFile
     
     properties
         TimeWindowsDuration
+        Location
     end
     
     methods
@@ -21,6 +22,7 @@ classdef EventFile
                     end
                     obj.TimeWindowsDuration=neuro.time.TimeWindowsDuration( ...
                         array2table(all1,VariableNames=evtnames));
+                    obj.Location=file;
                 else
                     l=logging.Logger.getLogger;
                     l.error('Incorrect file.');
@@ -31,10 +33,18 @@ classdef EventFile
             end
         end
         
-        function outputArg = method1(obj,inputArg)
+        function fname=saveTable(obj,location)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            outputArg = obj.Property1 + inputArg;
+            if exist('location','var')
+                fname=location;
+            else
+                [fol,name,~]=fileparts(obj.Location);
+                fname=fullfile(fol,[name '.csv']);
+            end
+            tt=array2table(seconds(table2array(obj.TimeWindowsDuration.getTimeTable)), ...
+                "VariableNames",obj.TimeWindowsDuration.TimeTable.Properties.VariableNames);
+            writetable(tt,fname);
         end
     end
 end

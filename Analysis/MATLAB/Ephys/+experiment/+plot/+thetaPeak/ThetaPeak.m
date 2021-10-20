@@ -107,7 +107,7 @@ classdef ThetaPeak
         end
         function plotCF3(obj)
             ax=gca;
-            xlim=[5 10];
+            xlim=[5 9];
             thpkcf_fd=obj.CF.getMedianFiltered(1,'omitnan','truncate').getMeanFiltered(1);
             colors=linspecer(3);
             switch thpkcf_fd.getInfo.Condition
@@ -152,6 +152,7 @@ classdef ThetaPeak
             xlabel('Frequency (Hz)');
             ylabel('pdf');
             ax.View=[90 -90];
+            grid on
         end
         function l=plotPW(obj)
             ax=gca;
