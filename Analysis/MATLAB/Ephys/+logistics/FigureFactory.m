@@ -32,7 +32,8 @@ classdef FigureFactory < Singleton
                 try obj = logistics.FigureFactory(defpath);catch, obj = logistics.FigureFactory();end
                 uniqueInstance = obj;
             else
-                obj = uniqueInstance;                
+                obj = uniqueInstance;    
+                try obj.DefaultPath=defpath;catch, end
             end
         end
     end

@@ -54,8 +54,11 @@ classdef SessionFactory
             if nargin<2, display(t);
                 
             elseif nargin==2 && isnumeric( varargin{1})
-                    idx_all(:)=false;
-                    idx_all(varargin{1})=true;
+                    try
+                        idx_all=ismember(t.SessionNo,varargin{1});
+                    catch
+                        idx_all=ismember(t.ID,varargin{1});
+                    end
             else
                 for iargin=1:numel(varargin)
                     argin1=varargin{iargin};

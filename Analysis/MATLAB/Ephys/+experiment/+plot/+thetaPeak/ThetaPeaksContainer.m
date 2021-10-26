@@ -20,61 +20,53 @@ classdef ThetaPeaksContainer
             obj.ThetaPeaks = thpks;
             obj.Fooofs = fooof;
             obj.Parameters=params;
-            obj.condlist=categorical({'NSD','SD'});
-            obj.statelist=categorical({'AWAKE','QWAKE','SWS','REM'});
-            obj.blocklist=categorical({'PRE','NSD','SD','TRACK','POST'});
+            conds=fieldnames(obj.ThetaPeaks);
+            blocks=fieldnames(obj.ThetaPeaks.(conds{1}));
+            states=fieldnames(obj.ThetaPeaks.(conds{1}).(blocks{1}));
+            obj.condlist=categorical(conds);
+            obj.statelist=categorical(states);
+            obj.blocklist=categorical(blocks);
         end
         function plotPeakFreqDist(obj, blockstr)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof');
 
-            cols=[6 10 10 3 6];
+            cols=[6 10 3 6];
 
-            conds=obj.condlist(1:2);
+            conds=obj.condlist;
             states=obj.statelist(1);
-            
-            blockidx=ismember(obj.blocklist,blockstr);
-            if any(ismember(find(blockidx),[2 3]))
-                blockidx=logical([0 1 1 0 0]);
+            if any(ismember({'SD','NSD'},blockstr))
+                blockidx=[false; true; false; false];
+            else
+                blockidx=ismember(obj.blocklist,blockstr);
             end
-            blocks=obj.blocklist(blockidx);
+            block=obj.blocklist(blockidx);
             col=unique(cols(blockidx));
-            sesnos{1}=[3 2 4:9];
-            sesnos{2}=[4 1:2 5:10];
-            
+
+
             try close(10); catch, end
             for icond=1:numel(conds)
                 cond=conds(icond);
                 try close(double(cond)+6); catch, end; f=figure(double(cond)+6);f.Position=[1,55,1280/10*col,1267];
-                for isession=1:numel(sesnos{icond})
-                    sesnos1=sesnos{icond};
-                    session=sesnos1(isession);
-                    switch cond
-                        case condlist(1)
-                            if any(ismember( blocks,blocklist(2:3)))
-                                blocks=blocklist(2);
+                if any(ismember({'SD','NSD'},block))
+                    block=cond;
+                end
+                for iblock=1:numel(block)
+                    block=block(iblock);
+                    for istate=1:numel(states)
+                        state=states(istate);
+                        fnames=fieldnames(obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)));
+                        for isession=1:numel(fnames)
+                            sesno=fnames{isession};
+                            thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(sesno);
+                            thpks.plotCF(numel(fnames),isession,col);
+                            if exist('thpksm','var')
+                                thpksm=thpksm.merge(thpks);
+                            else
+                                thpksm=thpks;
                             end
-                        case condlist(2)
-                            if any(ismember( blocks,blocklist(2:3)))
-                                blocks=blocklist(3);
-                            end
-                    end
-                    for iblock=1:numel(blocks)
-                        block=blocks(iblock);
-                        for istate=1:numel(states)
-                            state=states(istate);
-                                try
-                                    thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(['ses' num2str(session)]);
-                                    thpks.plotCF(numel(sesnos1),isession,col);
-                                catch
-                                end
-                                if exist('thpksm','var')
-                                    thpksm=thpksm.merge(thpks);
-                                else
-                                    thpksm=thpks;
-                                end
-                                clear thpks
+                            clear thpks
                         end
                     end
                 end
@@ -97,57 +89,42 @@ classdef ThetaPeaksContainer
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof');
+            cols=[6 10 3 6];
 
-            cols=[6 10 10 3 6];
-            
-            conds=obj.condlist(1:2);
+            conds=obj.condlist;
             states=obj.statelist(1);
-            
-            blockidx=ismember(obj.blocklist,blockstr);
-            if any(ismember(find(blockidx),[2 3]))
-                blockidx=logical([0 1 1 0 0]);
+            if any(ismember({'SD','NSD'},blockstr))
+                blockidx=[false; true; false; false];
+            else
+                blockidx=ismember(obj.blocklist,blockstr);
             end
-            blocks=obj.blocklist(blockidx);
+            block=obj.blocklist(blockidx);
             col=unique(cols(blockidx));
-            sesnos{1}=[3 2 4:9];
-            sesnos{2}=[4 1:2 5:10];
 
-            sesnos{1}=[3 2 4:6 8:9];
-            sesnos{2}=[4 1 5:7 9:10];
 
             try close(10); catch, end
             for icond=1:numel(conds)
                 cond=conds(icond);
-                try close(double(cond)+6); catch, end
-                f=figure(double(cond)+6);f.Position=[1,55,1280/10*col,1267];
-                for isession=1:numel(sesnos{icond})
-                    sesnos1=sesnos{icond};
-                    session=sesnos1(isession);
-                    switch cond
-                        case obj.condlist(1)
-                            if any(ismember( blocks,obj.blocklist(2:3)))
-                                blocks=obj.blocklist(2);
+                try close(double(cond)+6); catch, end; f=figure(double(cond)+6);f.Position=[1,55,1280/10*col,1267];
+                if any(ismember({'SD','NSD'},block))
+                    block=cond;
+                end
+                for iblock=1:numel(block)
+                    block=block(iblock);
+                    for istate=1:numel(states)
+                        state=states(istate);
+                        fnames=fieldnames(obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)));
+                        for isession=1:numel(fnames)
+                            sesno=fnames{isession};
+                            thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(sesno);
+                            thpks.plotPW(numel(fnames),isession,col);
+
+                            if exist('thpksm','var')
+                                thpksm=thpksm.merge(thpks);
+                            else
+                                thpksm=thpks;
                             end
-                        case obj.condlist(2)
-                            if any(ismember( blocks,obj.blocklist(2:3)))
-                                blocks=obj.blocklist(3);
-                            end
-                    end
-                    for iblock=1:numel(blocks)
-                        block=blocks(iblock);
-                        for istate=1:numel(states)
-                            state=states(istate);
-                                try
-                                    thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(['ses' num2str(session)]);
-                                    thpks.plotPW(numel(sesnos1),isession,col);
-                                catch
-                                end
-                                if exist('thpksm','var')
-                                    thpksm=thpksm.merge(thpks);
-                                else
-                                    thpksm=thpks;
-                                end
-                                clear thpks
+                            clear thpks
                         end
                     end
                 end
@@ -169,24 +146,22 @@ classdef ThetaPeaksContainer
         function plotDurationvsFrequency(obj,blockstr)
             ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof');            
             durlim=[3 150];
-            numsubs=[6 10 10 3 6];
-            rotates=[10.5 6 6 25 10.5];
+            numsubs=[6 10 3 6];
+            rotates=[10.5 6 25 10.5];
 
-            conds=obj.condlist(1:2);
+            conds=obj.condlist(:);
             states=obj.statelist(1);
             colorstr1={'Blues7','Oranges7'};
             colorstr2={'RdBu10','RdBu10'};
-            blockidx=ismember(obj.blocklist,blockstr);
-            if any(ismember(find(blockidx),[2 3]))
-                blockidx=logical([0 1 1 0 0]);
+            if any(ismember({'SD','NSD'},blockstr))
+                blockidx=[false; true; false; false];
+            else
+                blockidx=ismember(obj.blocklist,blockstr);
             end
-            blocks=obj.blocklist(blockidx);
+            block=obj.blocklist(blockidx);
             numsub=unique(numsubs(blockidx));
             rotate1=unique(rotates(blockidx));
-            sesnos{1}=[3 2 4:9];
-            sesnos{1}=1:9;
-            sesnos{2}=[4 1:2 5:10];
-            sesnos{2}=1:10;
+
             try close(7); catch, end
             try close(8); catch, end
             try close(9); catch, end
@@ -198,45 +173,30 @@ classdef ThetaPeaksContainer
             f=figure(7);f.Position=[1267,55,1280/5*numsub,1267/3*2];
             f=figure(8);f.Position=[1267/2,55,1280/5*numsub,1267];
             axes(ax1(1));
-            for icond=1:numel(conds)
+            for icond=numel(conds):-1:1
                 cond=conds(icond);
                 colors=flipud(othercolor(colorstr1{icond},10));
                 colors2=flipud(othercolor(colorstr2{icond},10));
-%                 try close(double(cond)+6); catch, end;
-                for isession=1:numel(sesnos{icond})
-                    sesnos1=sesnos{icond};
-                    session=sesnos1(isession);
-                    switch cond
-                        case obj.condlist(1)
-                            if any(ismember( blocks,obj.blocklist(2:3)))
-                                blocks=obj.blocklist(2);
-                            end
-                        case obj.condlist(2)
-                            if any(ismember( blocks,obj.blocklist(2:3)))
-                                blocks=obj.blocklist(3);
-                            end
-                    end
-                    for iblock=1:numel(blocks)
-                        block=blocks(iblock);
-                        for istate=1:numel(states)
-                            state=states(istate);
-                            try
-                                thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(['ses' num2str(session)]);
-                                fooofs=obj.Fooofs.(char(cond)).(char(block)).(char(state)).(['ses' num2str(session)]);
-                                thpks.Info.fooof=fooofs;
-                                hold on
-                                ax=gca;
-                                %                             colors=linspecer(thpks.thpkList.length);
-
-                                table1=thpks.plotDurationFrequency(gca,colors);
-                                if exist('tableall','var')
-                                    tableall=[tableall;table1];
-                                else
-                                    tableall=table1;
-                                end
-                            catch
-                                l=logging.Logger.getLogger;
-                                l.warning(sprintf('No content in %s %s %s %s',char(cond),char(block),char(state),['ses' num2str(session)]))
+                if any(ismember({'SD','NSD'},block))
+                    block=cond;
+                end
+                for iblock=1:numel(block)
+                    block=block(iblock);
+                    for istate=1:numel(states)
+                        state=states(istate);
+                        fnames=fieldnames(obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)));
+                        for isession=1:numel(fnames)
+                            sesno=fnames{isession};
+                            thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(sesno);
+                            fooofs=obj.Fooofs.(char(cond)).(char(block)).(char(state)).(sesno);
+                            thpks.Info.fooof=fooofs;
+                            hold on
+                       
+                            table1=thpks.plotDurationFrequency(gca,colors);
+                            if exist('tableall','var')
+                                tableall=[tableall;table1];
+                            else
+                                tableall=table1;
                             end
                         end
                     end
@@ -251,7 +211,7 @@ classdef ThetaPeaksContainer
             xticklabels(.5:.5:numsub/2),grid on
             conds=unique(tableall.Condition);
             subblocks=unique(tableall.SubBlock);
-            for icond=1:numel(conds)
+            for icond=numel(conds):-1:1
                 cond=conds(icond);
                 colors=flipud(othercolor(colorstr1{icond},10));
                 idx=tableall.Condition==icond;
@@ -303,7 +263,7 @@ classdef ThetaPeaksContainer
                 end
                 for isub=1:numsub
                     tablesub=tablecond(tablecond.SubBlock==isub,:);
-                    numpoints=max(tablesub.Duration)*tablesub(1,:).Array.SampleRate;
+                    numpoints=round(max(tablesub.Duration)*tablesub(1,:).Array.SampleRate);
                     [~,I]=sort(tablesub.Duration);
                     matp=nan(height(tablesub),numpoints);
                     matf=nan(height(tablesub),numpoints);
@@ -347,10 +307,10 @@ classdef ThetaPeaksContainer
                     arrp=arrp1(idx);
                     s3(icond)=scatter(arrp,arrf, ...
                         'filled',MarkerFaceColor=mean(colors), ...
-                        MarkerFaceAlpha=.05, ...
+                        MarkerFaceAlpha=.2, ...
                         SizeData=.5 ...
                         );
-                    xlim([0 600]);
+                    xlim([0 400]);
                     ylim([5 10]);
 
                     [p,S,mu] = polyfit(arrp,arrf,1);
@@ -417,13 +377,13 @@ classdef ThetaPeaksContainer
             ylim([0 1]);
             xlabel('Duration (s)');
 
-            ff.save(sprintf('DurationVsFrequency_%s.png',blockstr))
+            ff.save(sprintf('DurationVsFrequency_%s_%s.png',blockstr,states))
             figure(9);
-            ff.save(sprintf('DurationVsFrequency_raw%s.png',blockstr))
+            ff.save(sprintf('DurationVsFrequency_raw%s_%s.png',blockstr,states))
             figure(8);
-            ff.save(sprintf('DurationVsPower_raw%s.png',blockstr))
+            ff.save(sprintf('DurationVsPower_raw%s_%s.png',blockstr,states))
             figure(7);
-            ff.save(sprintf('PowerVsFrequency_raw%s.png',blockstr))
+            ff.save(sprintf('PowerVsFrequency_raw%s_%s.png',blockstr,states))
 
         end
     end

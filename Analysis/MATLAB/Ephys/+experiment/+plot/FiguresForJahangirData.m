@@ -516,11 +516,11 @@ classdef FiguresForJahangirData <Singleton
             sde=experiment.SDExperimentJ.instance;
             sdeparams=sde.get;
             params=obj.getParams.Fooof;
-             sf=experiment.SessionFactoryJ;
+            sf=experiment.SessionFactoryJ;
             selected_ses=[3:15];
-%             selected_ses=[21 23];
+            %             selected_ses=[21 23];
             tses=sf.getSessionsTable(selected_ses);
-           
+
             statelist=categorical({'AWAKE','QWAKE','SWS','REM'});
             condlist=categorical(unique(tses.INJECTION));
             blocklist=categorical({'PRE','NSD','SD','RUN','RS'});

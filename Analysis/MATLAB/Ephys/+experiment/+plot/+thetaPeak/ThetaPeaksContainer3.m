@@ -30,38 +30,21 @@ classdef ThetaPeaksContainer3
         function plotPeakFreqDist(obj, blockstr)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof');
+            ff=logistics.FigureFactory.instance('/data3/SleepDeprivationDataJ/PlottingRoutines/out');
 
-            cols=[6 10 10 3 6];
             cols=[6 10 2 6];
 
             conds=obj.condlist(:);
-            states=obj.statelist(1);
+            states=obj.statelist(4);
             
             blockidx=ismember(obj.blocklist,blockstr);
-%             if any(ismember(find(blockidx),[2 3]))
-%                 blockidx=logical([0 1 1 0 0]);
-%             end
-%             blocks=obj.blocklist(blockidx);
             blocks=obj.blocklist(blockidx);
             col=unique(cols(blockidx));
-%             sesnos{1}=[3 2 4:9];
-%             sesnos{2}=[4 1:2 5:10];
             
             try close(10); catch, end
             for icond=1:numel(conds)
                 cond=conds(icond);
                 try close(double(cond)+6); catch, end; f=figure(double(cond)+6);f.Position=[1,55,1280/10*col,1267];
-                %                     switch cond
-                %                         case condlist(1)
-                %                             if any(ismember( blocks,blocklist(2:3)))
-                %                                 blocks=blocklist(2);
-                %                             end
-                %                         case condlist(2)
-                %                             if any(ismember( blocks,blocklist(2:3)))
-                %                                 blocks=blocklist(3);
-                %                             end
-                %                     end
                 for iblock=1:numel(blocks)
                     block=blocks(iblock);
                     for istate=1:numel(states)
@@ -71,7 +54,7 @@ classdef ThetaPeaksContainer3
                             ses=sess{isession};
                             try
                                 thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(ses);
-                                thpks.plotCF(numel(sess),isession,col);
+                                thpks.plotCF3(numel(sess),isession,col);
                             catch
                             end
                             if exist('thpksm','var')
@@ -86,11 +69,11 @@ classdef ThetaPeaksContainer3
                 txt=sprintf('ThetaPeak_dist_%s_%s_%s_',cond,block,state);
                 drawnow
                 ff.save(txt)
-                f=figure(10);f.Position=[2096,1844,1280/10*col,200];
+                f=figure(10);f.Position=[2096,1844,1280/10*col,300];
                 if exist('axs','var')
-                    axs=thpksm.plotCF(axs);
+                    axs=thpksm.plotCF3(axs);
                 else
-                    axs=thpksm.plotCF();
+                    axs=thpksm.plotCF3();
                 end
                 drawnow
                 clear thpksm
@@ -101,51 +84,30 @@ classdef ThetaPeaksContainer3
         function plotPowerDist(obj, blockstr)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof');
-            cols=[6 10 10 3 6];        
-            conds=obj.condlist(1:2);
+            ff=logistics.FigureFactory.instance('/data3/SleepDeprivationDataJ/PlottingRoutines/out');
+            cols=[6 10 2 6];
+            conds=obj.condlist(:);
             states=obj.statelist(1);
-            
             blockidx=ismember(obj.blocklist,blockstr);
-            if any(ismember(find(blockidx),[2 3]))
-                blockidx=logical([0 1 1 0 0]);
-            end
             blocks=obj.blocklist(blockidx);
             col=unique(cols(blockidx));
-            sesnos{1}=[3 2 4:9];
-            sesnos{2}=[4 1:2 5:10];
-
-            sesnos{1}=[3 2 4:6 8:9];
-            sesnos{2}=[4 1 5:7 9:10];
-
             try close(10); catch, end
             for icond=1:numel(conds)
                 cond=conds(icond);
-                try close(double(cond)+6); catch, end
-                f=figure(double(cond)+6);f.Position=[1,55,1280/10*col,1267];
-                for isession=1:numel(sesnos{icond})
-                    sesnos1=sesnos{icond};
-                    session=sesnos1(isession);
-                    switch cond
-                        case obj.condlist(1)
-                            if any(ismember( blocks,obj.blocklist(2:3)))
-                                blocks=obj.blocklist(2);
+                try close(double(cond)+6); catch, end; f=figure(double(cond)+6);f.Position=[1,55,1280/10*col,1267];
+                for iblock=1:numel(blocks)
+                    block=blocks(iblock);
+                    for istate=1:numel(states)
+                        state=states(istate);
+                        sess=fieldnames(obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)));
+                        for isession=1:numel(sess)
+                            ses=sess{isession};
+                            try
+                                thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(ses);
+                                thpks.plotPW3(numel(sess),isession,col);
+                            catch
                             end
-                        case obj.condlist(2)
-                            if any(ismember( blocks,obj.blocklist(2:3)))
-                                blocks=obj.blocklist(3);
-                            end
-                    end
-                    for iblock=1:numel(blocks)
-                        block=blocks(iblock);
-                        for istate=1:numel(states)
-                            state=states(istate);
-                                try
-                                    thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(['ses' num2str(session)]);
-                                    thpks.plotPW(numel(sesnos1),isession,col);
-                                catch
-                                end
-                                if exist('thpksm','var')
+                            if exist('thpksm','var')
                                     thpksm=thpksm.merge(thpks);
                                 else
                                     thpksm=thpks;
@@ -157,11 +119,11 @@ classdef ThetaPeaksContainer3
                 txt=sprintf('ThetaPower_dist_%s_%s_%s_',cond,block,state);
                 drawnow
                 ff.save(txt)
-                f=figure(10);f.Position=[2096,1844,1280/10*col,200];
+                f=figure(10);f.Position=[2096,1844,1280/10*col,300];
                 if exist('axs','var')
-                    axs=thpksm.plotPW(axs);
+                    axs=thpksm.plotPW3(axs);
                 else
-                    axs=thpksm.plotPW();
+                    axs=thpksm.plotPW3();
                 end
                 drawnow
                 clear thpksm
@@ -170,26 +132,22 @@ classdef ThetaPeaksContainer3
             ff.save(txt);
         end
         function plotDurationvsFrequency(obj,blockstr)
-            ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof');            
+            ff=logistics.FigureFactory.instance('/data3/SleepDeprivationDataJ/PlottingRoutines/out');            
             durlim=[3 150];
-            numsubs=[6 10 10 3 6];
-            rotates=[10.5 6 6 25 10.5];
+           
+            numsubs=[6 10 2 6];
+            rotates=[10.5 6 25 10.5];
 
-            conds=obj.condlist(1:2);
+            conds=obj.condlist(:);
             states=obj.statelist(1);
-            colorstr1={'Blues7','Oranges7'};
-            colorstr2={'RdBu10','RdBu10'};
+            colorstr1={'Blues7','Reds7','Greens7'};
+            colorstr2={'RdBu10','RdBu10','RdBu10'};
             blockidx=ismember(obj.blocklist,blockstr);
-            if any(ismember(find(blockidx),[2 3]))
-                blockidx=logical([0 1 1 0 0]);
-            end
+
             blocks=obj.blocklist(blockidx);
             numsub=unique(numsubs(blockidx));
             rotate1=unique(rotates(blockidx));
-            sesnos{1}=[3 2 4:9];
-            sesnos{1}=1:9;
-            sesnos{2}=[4 1:2 5:10];
-            sesnos{2}=1:10;
+            
             try close(7); catch, end
             try close(8); catch, end
             try close(9); catch, end
@@ -206,32 +164,21 @@ classdef ThetaPeaksContainer3
                 colors=flipud(othercolor(colorstr1{icond},10));
                 colors2=flipud(othercolor(colorstr2{icond},10));
 %                 try close(double(cond)+6); catch, end;
-                for isession=1:numel(sesnos{icond})
-                    sesnos1=sesnos{icond};
-                    session=sesnos1(isession);
-                    switch cond
-                        case obj.condlist(1)
-                            if any(ismember( blocks,obj.blocklist(2:3)))
-                                blocks=obj.blocklist(2);
-                            end
-                        case obj.condlist(2)
-                            if any(ismember( blocks,obj.blocklist(2:3)))
-                                blocks=obj.blocklist(3);
-                            end
-                    end
-                    for iblock=1:numel(blocks)
-                        block=blocks(iblock);
-                        for istate=1:numel(states)
-                            state=states(istate);
+                for iblock=1:numel(blocks)
+                    block=blocks(iblock);
+                    for istate=1:numel(states)
+                        state=states(istate);
+                        sess=fieldnames(obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)));
+                        for isession=1:numel(sess)
+                            ses=sess{isession};
                             try
-                                thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(['ses' num2str(session)]);
-                                fooofs=obj.Fooofs.(char(cond)).(char(block)).(char(state)).(['ses' num2str(session)]);
+                                thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(ses);
+                                fooofs=obj.Fooofs.(char(cond)).(char(block)).(char(state)).(ses);
                                 thpks.Info.fooof=fooofs;
                                 hold on
-                                ax=gca;
                                 %                             colors=linspecer(thpks.thpkList.length);
 
-                                table1=thpks.plotDurationFrequency(gca,colors);
+                                table1=thpks.plotDurationFrequency3(gca,colors);
                                 if exist('tableall','var')
                                     tableall=[tableall;table1];
                                 else
@@ -306,7 +253,7 @@ classdef ThetaPeaksContainer3
                 end
                 for isub=1:numsub
                     tablesub=tablecond(tablecond.SubBlock==isub,:);
-                    numpoints=max(tablesub.Duration)*tablesub(1,:).Array.SampleRate;
+                    numpoints=round(max(tablesub.Duration)*tablesub(1,:).Array.SampleRate);
                     [~,I]=sort(tablesub.Duration);
                     matp=nan(height(tablesub),numpoints);
                     matf=nan(height(tablesub),numpoints);
@@ -327,14 +274,14 @@ classdef ThetaPeaksContainer3
                         sig1=[sig1 boutarrs.Values];
                     end
                     figure(9)
-                    ax=subplot(2,numsub,(icond-1)*numsub+isub);hold on;
+                    ax=subplot(3,numsub,(icond-1)*numsub+isub);hold on;
                     imagesc(linspace(0,size(matf,2)/boutarrp.SampleRate,size(matf,2)),1:size(matf,1),matf)
                     colormap(ax,colors2);
                     ax=gca;
                     ax.CLim=[5.5 8.5];ax.XLim=[0 60];ax.YLim=[0 size(matf,1)];colorbar("northoutside")
                     drawnow;
                     figure(8)
-                    ax=subplot(2,numsub,(icond-1)*numsub+isub);hold on;
+                    ax=subplot(3,numsub,(icond-1)*numsub+isub);hold on;
                     imagesc(linspace(0,size(matp,2)/boutarrp.SampleRate,size(matp,2)),1:size(matp,1),matp)
                     colormap(ax,colors2);
                     ax=gca;
@@ -350,10 +297,10 @@ classdef ThetaPeaksContainer3
                     arrp=arrp1(idx);
                     s3(icond)=scatter(arrp,arrf, ...
                         'filled',MarkerFaceColor=mean(colors), ...
-                        MarkerFaceAlpha=.05, ...
+                        MarkerFaceAlpha=.1, ...
                         SizeData=.5 ...
                         );
-                    xlim([0 600]);
+                    xlim([50 250]);
                     ylim([5 10]);
 
                     [p,S,mu] = polyfit(arrp,arrf,1);
@@ -402,7 +349,7 @@ classdef ThetaPeaksContainer3
             end
             axes(ax1(1))
             view(rotate1,0);
-            legend(s1,{'NSD','SD'},Location="best")
+            legend(s1,{'CTRL','OCT','ROL'},Location="best")
             title(blockstr);
 
 
@@ -420,16 +367,14 @@ classdef ThetaPeaksContainer3
             ylim([0 1]);
             xlabel('Duration (s)');
 
-            ff.save(sprintf('DurationVsFrequency_%s.png',blockstr))
+            ff.save(sprintf('DurationVsFrequency_%s_%s.png',blockstr,states))
             figure(9);
-            ff.save(sprintf('DurationVsFrequency_raw%s.png',blockstr))
+            ff.save(sprintf('DurationVsFrequency_raw%s_%s.png',blockstr,states))
             figure(8);
-            ff.save(sprintf('DurationVsPower_raw%s.png',blockstr))
+            ff.save(sprintf('DurationVsPower_raw%s_%s.png',blockstr,states))
             figure(7);
-            ff.save(sprintf('PowerVsFrequency_raw%s.png',blockstr))
-
+            ff.save(sprintf('PowerVsFrequency_raw%s_%s.png',blockstr,states))
         end
     end
-
 end
 

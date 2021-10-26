@@ -71,12 +71,13 @@ classdef SDFigures2 <Singleton
             
         end
         function plotSWRRate(obj)
-            sf=SessionFactory;
+            sf=experiment.SessionFactory;
             s=obj.getParams;
             params=s.SWRRate;
-            selected_ses=[1 2 3 4 5 6 7 8 9 10 14 15 16 17];
+            selected_ses=1:23;selected_ses([3 13 16 17])=[];
+
             tses=sf.getSessionsTable(selected_ses);
-            sde=SDExperiment.instance.get;
+            sde=experiment.SDExperiment.instance.get;
             cacheFile=fullfile(sde.FileLocations.General.PlotFolder,'Cache'...
                 ,strcat('PlotSWRRate_',DataHash(tses), DataHash(params),'.mat'));
             conditions=unique(tses.Condition);
@@ -99,7 +100,7 @@ classdef SDFigures2 <Singleton
                             ses=tses_cond;
                         end
                         file=ses.SessionInfo.baseFolder;
-                        sdd=StateDetectionData(file);
+                        sdd=buzcode.sleepDetection.StateDetectionData(file);
                         blocks=ses.Blocks;
                         blocksStr=blocks.getBlockNames;
                         for iblock=1:numel(blocksStr)
@@ -124,7 +125,7 @@ classdef SDFigures2 <Singleton
                             stateRatiosInTime=ss_block.getStateRatios(...
                                 seconds(slidingWindowSize),[],edges);
                             
-                            bc=BuzcodeFactory.getBuzcode(file);
+                            bc=buzcode.BuzcodeFactory.getBuzcode(file);
                             ripple=bc.calculateSWR;
                             ripple_block=ripple.getWindow(timeWindowadj);
                             
@@ -180,8 +181,7 @@ classdef SDFigures2 <Singleton
                 plotwh=1;
             end
             sf=experiment.SessionFactory;
-            selected_ses=[1 2 3 4 5 6 7 8 9 10 11 14 15 16 17 20 21 22 23];
-%             selected_ses=[21 23];
+            selected_ses=[1:12 14:15 18:23 ];
             tses=sf.getSessionsTable(selected_ses);
             sde=experiment.SDExperiment.instance;
             sdeparams=sde.get;
@@ -352,15 +352,15 @@ classdef SDFigures2 <Singleton
             sde=experiment.SDExperiment.instance;
             sdeparams=sde.get;
             params=obj.getParams.Fooof;
-             sf=experiment.SessionFactory;
-            selected_ses=[1:11 14:17 20:23];
-%             selected_ses=[21 23];
+            sf=experiment.SessionFactory;
+            selected_ses=[1:2 4:12 14:17 20:23];
+            %             selected_ses=[21 23];
             tses=sf.getSessionsTable(selected_ses);
-           
+
             statelist=categorical({'AWAKE','QWAKE','SWS','REM'});
             condlist=categorical({'NSD','SD'});
             blocklist=categorical({'PRE','NSD','SD','TRACK','POST'});
-            
+
             conds=condlist(1:2);
             blocks=blocklist(1:5);
             states=statelist(:);
@@ -369,6 +369,7 @@ classdef SDFigures2 <Singleton
                 sesc=tses(ismember(tses.Condition,cond),:);
                 for isession=1:height(sesc)
                     sesfilepath=sesc(isession,"Filepath").Filepath;sesfilepath=sesfilepath{:};
+                    sesno=sesc(isession,"SessionNo").SessionNo;
                     ses=sf.getSessions(sesfilepath);
                     for iblock=1:numel(blocks)
                         block=blocks(iblock);
@@ -380,8 +381,8 @@ classdef SDFigures2 <Singleton
                                 S=load(cacheFilePower,'thpks','epiFooof');
                                 try
                                     S.thpks.Info.Session=ses;
-                                    thpks.(char(cond)).(char(block)).(char(state)).(['ses' num2str(isession)])=S.thpks;
-                                    fooof.(char(cond)).(char(block)).(char(state)).(['ses' num2str(isession)])=S.epiFooof;
+                                    thpks.(char(cond)).(char(block)).(char(state)).(['ses' num2str(sesno)])=S.thpks;
+                                    fooof.(char(cond)).(char(block)).(char(state)).(['ses' num2str(sesno)])=S.epiFooof;
                                 catch
                                 end
                             end
@@ -390,10 +391,6 @@ classdef SDFigures2 <Singleton
                 end
             end
             thpkc=experiment.plot.thetaPeak.ThetaPeaksContainer(thpks,fooof,params);
-        end
-        function plotDist(obj)
-            thpkc=obj.getThetaPeaks;
-            thpkc.plotPeakFreqDist;
         end
         function plotThetaSimulation(obj)
             try close(4); catch, end
