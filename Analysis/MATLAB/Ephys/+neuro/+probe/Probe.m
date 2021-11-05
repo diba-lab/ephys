@@ -7,6 +7,7 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
         Type
         SiteSpatialLayout
         SiteSizesInUm
+        Source
     end
     
     methods
@@ -38,7 +39,9 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
                     fnames=fieldnames(T);
                     lay =T.(fnames{1});
                 catch % if saved csv table
-                    T=readtable(probeFile);
+                    
+                    opts = detectImportOptions(probeFile,"TextType","string");
+                    T=readtable(probeFile,opts);
                     lay=T;
                 end
                 
@@ -54,6 +57,7 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
                 lay=[lay table(ones(height(lay),1),'VariableNames',{'isActive'})];
             end
             newobj.SiteSpatialLayout=lay;
+            newobj.Source=probeFile;
         end
     end
     methods (Access=public)
@@ -132,6 +136,9 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
             siteLayout=obj.SiteSpatialLayout;
             siteLayout=siteLayout.ChannelNumberComingOutPreAmp(siteLayout.isActive==1,:);
         end
+        function source=getSource(obj)
+            source=obj.Source; 
+        end
         function obj=getShank(obj,shankNo)
             siteLayout=obj.SiteSpatialLayout;
             activeIdx=siteLayout.isActive==1;
@@ -141,6 +148,9 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
         end
         function obj=saveProbeTable(obj,filepath)
             siteLayout=obj.SiteSpatialLayout;
+            if ~exist('filepath','var')
+                filepath=obj.Source;
+            end
             writetable(siteLayout,filepath);
         end
         function obj=setActiveChannels(obj,chans)
@@ -168,6 +178,51 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
             siteLayout=obj.SiteSpatialLayout;
             siteLayout.isActive(ismember(siteLayout.ChannelNumberComingOutPreAmp,chans))=1;
             obj.SiteSpatialLayout=siteLayout;
+        end
+        function [obj, channum]=addANewChannel(obj,chan)
+            change=false;
+            chan=string(chan);
+            siteLayout=obj.SiteSpatialLayout;
+            if ismember('Label',siteLayout.Properties.VariableNames)
+                siteLayout.Label=string(siteLayout.Label);
+                idx=ismember(siteLayout.Label,chan);
+                if ~any(idx)
+                    change=true;
+                end
+            else
+                change=true;
+            end 
+            if change
+                numels=height(siteLayout);
+                idx=numels+1;
+                siteLayout.ChannelNumberComingOutFromProbe(idx)=min(siteLayout.ChannelNumberComingOutFromProbe)-1;
+                siteLayout.X(idx)=0;
+                siteLayout.Y(idx)=0;
+                siteLayout.Z(idx)=0;
+                siteLayout.ShankNumber(idx)=0;
+                siteLayout.ChannelNumberComingOutPreAmp(idx)=max(siteLayout.ChannelNumberComingOutPreAmp)+1;
+                siteLayout.isActive(idx)=1;
+                siteLayout.Label(idx)=chan;
+                obj.SiteSpatialLayout=siteLayout;
+            end
+            channum=siteLayout.ChannelNumberComingOutPreAmp(idx);
+        end
+        function [obj, removed]=removeChannel(obj,chan)
+            removed=0;
+            siteLayout=obj.SiteSpatialLayout;
+            if isstring(chan)
+                if ismember('Label',siteLayout.Properties.VariableNames)
+                    siteLayout.Label=string(siteLayout.Label);
+                    idx=ismember(siteLayout.Label,chan);
+                end
+            else
+                idx=ismember(siteLayout.ChannelNumberComingOutPreAmp,chan);
+            end
+            if any(idx)
+                removed=siteLayout.ChannelNumberComingOutPreAmp(idx);
+                siteLayout(idx,:)=[];
+                obj.SiteSpatialLayout=siteLayout;
+            end
         end
         function obj=removeActiveChannels(obj,chans)
             siteLayout=obj.SiteSpatialLayout;

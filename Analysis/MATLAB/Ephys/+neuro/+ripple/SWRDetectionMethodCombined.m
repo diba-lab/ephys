@@ -12,7 +12,7 @@ classdef SWRDetectionMethodCombined < neuro.ripple.SWRDetectionMethod
         
         function rippleFinalCombined = execute(obj)
             conf=obj.Configuration;
-            cachefile=fullfile(obj.BasePath,'cache',strcat('Ripple_',DataHash(conf),'.mat'));
+            cachefile=fullfile(obj.BasePath,'cacheripple',strcat('Combined_',DataHash(conf),'.mat'));
             try
                 load(cachefile,'rippleFinalCombined');
             catch
@@ -23,7 +23,7 @@ classdef SWRDetectionMethodCombined < neuro.ripple.SWRDetectionMethod
                     ashank_rip=shanks_rip(ishank);
                     chansofShank_rip=probe.getShank(ashank_rip).getActiveChannels;
                     chansofShank_rip_sel=unique(round(linspace(min(chansofShank_rip),max(chansofShank_rip),32)));
-                    ripple=methodRip.execute();
+                    ripple=methodRip.execute(chansofShank_rip_sel);
                     try
                         rippleCombinedROnly=rippleCombinedROnly+ripple;
                         display(rippleCombinedROnly)
@@ -34,7 +34,7 @@ classdef SWRDetectionMethodCombined < neuro.ripple.SWRDetectionMethod
                     % (1) by ripple detection
                     % (2) by detectSWR function
                 end
-                rippleCombinedROnly.saveEventsNeuroscope(obj.BasePath);
+                rippleCombinedROnly.saveEventsNeuroscope(obj.BasePath,'RPO');
                 methodSW=neuro.ripple.SWRDetectionMethodSWR(obj.BasePath);
                 shanks_sw=str2double(conf.shanks_sw);
                 for ishank=1:numel(shanks_sw)
@@ -44,9 +44,9 @@ classdef SWRDetectionMethodCombined < neuro.ripple.SWRDetectionMethod
                         % NEUROSCOPE
                         chansofShank_sw=probe.getShank(ashank_sw).getActiveChannels-1;
                     else
-                        chansofShank_sw=str2double(conf.(subfield))';
+                        chansofShank_sw=str2double(conf.(subfield))'+1;
                     end
-                    ripple=methodSW.execute();
+                    ripple=methodSW.execute(chansofShank_sw);
                     try
                         rippleCombinedSW=rippleCombinedSW+ripple;
                         display(rippleCombinedSW);
@@ -55,10 +55,11 @@ classdef SWRDetectionMethodCombined < neuro.ripple.SWRDetectionMethod
                     end
                     
                 end
-                rippleCombinedSW.saveEventsNeuroscope(obj.BasePath)
+                rippleCombinedSW.saveEventsNeuroscope(obj.BasePath,'SWR')
                 rippleFinalCombined=rippleCombinedROnly+rippleCombinedSW;
+                rippleFinalCombined=rippleFinalCombined.mergeOverlappingRipples;
                 save(cachefile,'rippleFinalCombined');
-                rippleFinalCombined.saveEventsNeuroscope(obj.BasePath)
+                rippleFinalCombined.saveEventsNeuroscope(obj.BasePath,'CMB')
             end
         end
         function probe=getProbe(obj)

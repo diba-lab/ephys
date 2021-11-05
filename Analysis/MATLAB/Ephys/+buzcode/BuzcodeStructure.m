@@ -45,13 +45,16 @@ classdef BuzcodeStructure
             import neuro.ripple.*
             folders={'.','..',['..',filesep,'..']};
             for ifolder=1:numel(folders)
-                list=dir(fullfile(obj.BasePath,folders{ifolder},'*.conf'));
+                list=dir(fullfile(obj.BasePath,folders{ifolder},'SWRconfigure.conf'));
                 if ~isempty(list)
                     break
                 end
             end
             if ~isempty(list)
-                conf=readConf(fullfile(list.folder,list.name));
+                try
+                    conf=readConf(fullfile(list.folder,list.name));
+                catch
+                end
             else
                 for ifolder=1:numel(folders)
                 list=dir(fullfile(obj.BasePath,folders{ifolder},'*SWR.conf.xml'));

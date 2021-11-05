@@ -50,11 +50,9 @@ classdef Oscillation
             obj.SampleRate=newRate;
             obj=obj.setTimeInterval(obj.getTimeInterval.getDownsampled(rate));
         end
-        function ets=getReSampled(obj,ts1)    
-            ts=timeseries(obj.getValues,obj.getTimeStamps);
-            tsr=ts.resample(ts1);
-            sr=1/((ts1(end)-ts1(1))/numel(ts1));
-            ets=neuro.basic.EphysTimeSeries(squeeze(tsr.Data),sr);
+        function obj=getReSampled(obj,sr)    
+            obj.Values=resample(obj.getValues, sr,obj.getSampleRate);
+            obj.SampleRate=sr;
         end
         function obj=getFillMissing(obj,window)    
             obj.Values=fillmissing(obj.getValues,"movmedian",window*obj.SampleRate);

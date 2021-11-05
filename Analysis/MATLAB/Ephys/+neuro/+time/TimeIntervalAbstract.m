@@ -10,6 +10,7 @@ classdef TimeIntervalAbstract
         print(obj)
         getTimeIntervalForSamples(obj, startSample, endSample)
         getTimeIntervalForTimes(obj, windows)
+        getTimeIntervalList(obj)
         getRealTimeFor(obj, samples)
         getSampleFor(obj, times)
         getEndTime(obj)
@@ -75,7 +76,6 @@ classdef TimeIntervalAbstract
         function tps=getTimePointsInSamples(obj)
             tps=1:obj.getNumberOfPoints;
         end
-
     end
 end
 

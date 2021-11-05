@@ -1,0 +1,29 @@
+{
+    "_schemaVersion": "1.0.0",
+    "neuro.basic.ChannelTimeDataHard.addChannel":
+    {
+        "inputs":
+        [
+            {"name":"obj", "kind":"required", "type":["neuro.basic.ChannelTimeDataHard"]},
+            {"name":"channel", "kind":"required", "type":["neuro.basic.Channel"], "purpose":"Channel too be added"}
+
+        ]
+    },
+    "neuro.probe.Probe.removeChannel":
+    {
+        "inputs":
+        [
+            {"name":"obj", "kind":"required", "type":["neuro.probe.Probe"]},
+            {"mutuallyExclusiveGroup":
+          [
+            [
+              {"name":"Label",  "kind":"required", "type":[["char"],["string"]]}
+            ],
+            [
+              {"name":"Channel Number",  "kind":"required", "type":["numeric"]}
+            ]
+           ]
+        }
+        ]
+    }
+}

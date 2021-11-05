@@ -140,6 +140,16 @@ classdef Session
             pr=preprocessing.Preprocess(obj);
             data=pr.getDataForClustering;
         end
+        function zt = getZeitgeberTime(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            try
+                ticd=neuro.time.TimeIntervalCombined(obj.SessionInfo.baseFolder);
+                zt=ticd.getZeitgeberTime;
+            catch
+                zt=nan;
+            end
+        end
         
     end
 end

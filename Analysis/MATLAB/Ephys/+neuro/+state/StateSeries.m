@@ -15,6 +15,18 @@ classdef StateSeries
             obj.TimeIntervalCombined=ticd;
             obj.States=states;
         end
+        function obj = getZTCorrected(obj)
+            ticd=obj.TimeIntervalCombined;
+            ztadj=ticd.getStartTime-ticd.getZeitgeberTime;
+            fnames=fieldnames(obj.Episodes);
+            for istate=1:numel(fnames)
+                thestate=fnames{istate};
+                obj.Episodes.(thestate)=hours(seconds(ticd.adjustTimestampsAsIfNotInterrupted( ...
+                    obj.Episodes.(thestate)*ticd.getSampleRate)/ticd.getSampleRate) + ztadj);
+            end
+            obj.TimePoints=hours(seconds(ticd.adjustTimestampsAsIfNotInterrupted( ...
+                    obj.TimePoints*ticd.getSampleRate)/ticd.getSampleRate) + ztadj);
+        end
         function obj = getWindow(obj,window)
             states=obj.States;
             ticd=obj.TimeIntervalCombined;
@@ -93,7 +105,34 @@ classdef StateSeries
             states1=ts1.Data;
             newobj=neuro.state.StateSeries(states1,timeIntervalCombined);
         end
-        function [ps] = plot(obj,colorMap)
+        function [ax] = plot(obj,ax)
+            yShadeRatio=[.2 .8];
+            if ~exist('ax','var')
+                ax=gca;
+            else
+                axes(ax);
+            end
+            hold1=ishold(ax);hold(ax,"on");
+            y=[ax.YLim(1)+diff(ax.YLim)*yShadeRatio(1) ax.YLim(1)+diff(ax.YLim)*yShadeRatio(2)];
+            episodes=obj.Episodes;
+            fnames=fieldnames(episodes);
+            hold on;
+            colors=linspecer(numel(fnames));
+            for istate=1:numel(fnames)
+                thestate=episodes.(fnames{istate});
+                for iepisode=1:size(thestate,1)
+                    episode=thestate(iepisode,:);
+
+                    fl=fill([episode(1) episode(2) episode(2) episode(1)], ...
+                        [y(1) y(1) y(2) y(2)],colors(istate,:));
+                    fl.LineStyle='none';
+                    fl.FaceAlpha=.5;
+                end
+            end   
+            ax.Color='none';
+            if ~hold1,hold(ax,"off");end
+        end
+        function [ps] = plotOBSOLETE(obj,colorMap)
             states1=obj.States;
             ticd=obj.TimeIntervalCombined;
             t=seconds(ticd.getTimePointsInSec)+ticd.getStartTime;
@@ -117,8 +156,6 @@ classdef StateSeries
                 p1.LineWidth=5;
                 ps(state)=p1;
             end
-            
-                
             ax=gca;
 %             ax.XLim=[t(1) t(end)];
             ax.YLim=[0 num-1];
@@ -155,6 +192,8 @@ classdef StateSeries
                     idx=states==thestate;
                     tsforthestate=t(idx);
                     [state(thestate).N,state(thestate).edges] =histcounts(tsforthestate,edges);
+                    state(thestate).N=state(thestate).N';
+                    state(thestate).edges=state(thestate).edges';
                     state(thestate).Ratios=state(thestate).N/slidingWindowSizeInSeconds;
                     state(thestate).state=thestate;
                 end
