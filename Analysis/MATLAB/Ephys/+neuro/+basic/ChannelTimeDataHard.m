@@ -119,33 +119,72 @@ classdef ChannelTimeDataHard < file.BinarySave
             voltageArray=datamat.mapped(index,:);
             ch=neuro.basic.Channel(channelNumber,voltageArray,ticd);
         end
-        function obj = addChannel(obj,channel)
+        function obj = addChannel(obj,channels)
             LFPticd=obj.getTimeIntervalCombined;
-            ch=channel.getReSampled(LFPticd.getSampleRate);
             array=zeros(1,LFPticd.getNumberOfPoints);
-            LFPtil=LFPticd.getTimeIntervalList.createIterator;
-            while LFPtil.hasNext
-                LFPti=LFPtil.next;
-                chsub=ch.getTimeWindow([LFPti.getStartTime LFPti.getEndTime]);
-                idx=LFPticd.getSampleForClosest(chsub.getStartTime):LFPticd.getSampleForClosest(chsub.getEndTime);
-                array(idx)=chsub.Values;
-            end
-            [obj.Probe, channum]=obj.Probe.addANewChannel(channel.ChannelName);
-            probe=obj.Probe;
-            probe.saveProbeTable;
-            [folder,name,~]=fileparts(obj.Filepath);
-            probe.createXMLFile(fullfile(folder,[name '.xml']),LFPti.getSampleRate);
             datamat=obj.Data.Data.mapped;
-            if channum>size(datamat,1)
-                datamat=[datamat; array];
-            else
-                datamat(channum,:)=array;
+            for ichan=1:numel(channels)
+                channel=channels{ichan};
+                ch=channel.getReSampled(LFPticd.getSampleRate);
+
+                LFPtil=LFPticd.getTimeIntervalList.createIterator;
+                while LFPtil.hasNext
+                    LFPti=LFPtil.next;
+                    chsub=ch.getTimeWindow([LFPti.getStartTime LFPti.getEndTime]);
+                    idx=LFPticd.getSampleForClosest(chsub.getStartTime):LFPticd.getSampleForClosest(chsub.getEndTime);
+                    array(1,idx)=chsub.Values;
+                end
+                [obj.Probe, channum]=obj.Probe.addANewChannel(channel.ChannelName);
+                array(isnan(array))=0;
+                array1=int16((normalize(array,'range')-.5) *10000);              
+                if channum>size(datamat,1)
+                    datamat=[datamat; array1];
+                else
+                    datamat(channum,:)=array1;
+                end
             end
-            copyfile(obj.Filepath,strcat(obj.Filepath, '-', string(channel.ChannelName))) 
-            fileID = fopen([obj.Filepath],'w');
+            probe=obj.Probe;
+            [f,n,e]=fileparts(probe.getSource);folder=[f filesep '_LFP'];
+            if ~isfolder(folder), mkdir(folder);end
+            probe.saveProbeTable(fullfile(folder,[n e]));
+            [~,n,e]=fileparts(obj.Filepath);
+            probe.createXMLFile(fullfile(folder,[n '.xml']),LFPti.getSampleRate);
+            
+            fileID = fopen(fullfile(folder,[n e]),'w');
             fwrite(fileID, datamat,'int16');
             fclose(fileID);
-            obj=neuro.basic.ChannelTimeDataHard(obj.Filepath);
+            source=neuro.time.TimeIntervalCombined(f).Source;[~,n,e]=fileparts(source);
+
+            copyfile(source,fullfile(folder,[n e]))
+            obj=neuro.basic.ChannelTimeDataHard(folder);
+        end
+        function filewrite = addPositionFile(obj, channels)
+            freq=1;
+            width=400;linesw=linspace(0, width,20);
+            height=50;linesh=linspace(0, height,numel(channels)+2);
+            LFPticd=obj.getTimeIntervalCombined;
+            fratio=LFPticd.getSampleRate/freq;
+            LFPticdd=LFPticd.getDownsampled(fratio);
+            array=zeros(numel(channels)*2,LFPticdd.getNumberOfPoints);
+            for ichan=1:numel(channels)
+                chan=channels{ichan};
+                ch=chan.getReSampled(freq);
+                LFPtil=LFPticdd.getTimeIntervalList.createIterator;
+                while LFPtil.hasNext
+                    LFPti=LFPtil.next;
+                    chsub=ch.getTimeWindow([LFPti.getStartTime LFPti.getEndTime]);
+                    idx=LFPticdd.getSampleForClosest(chsub.getStartTime):LFPticdd.getSampleForClosest(chsub.getEndTime);
+                    array(ichan*2-1,idx)=chsub.Values;
+                end
+                array(ichan*2,:)=round(linesh(ichan+1));
+                array(ichan*2-1,:)=round(normalize(array(ichan*2-1,:),'range')*linesw(end-2)+linesw(2));
+            end
+            [f,n,e]=fileparts(obj.Filepath);folder=[f filesep '_Position'];
+            if ~isfolder(folder), mkdir(folder);end
+            array(isnan(array))=0;
+            t=array2table(array');
+            filewrite=fullfile(folder,[n '.' chan.getChannelName]);
+            writetable(t,filewrite,FileType="text",WriteVariableNames=false,Delimiter='tab')
         end
         function obj = removeChannel(obj,channel)
             [obj.Probe, removed]=obj.Probe.removeChannel(channel);

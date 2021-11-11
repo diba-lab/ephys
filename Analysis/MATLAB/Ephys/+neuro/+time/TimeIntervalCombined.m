@@ -297,7 +297,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                 end
                 
             end
-            
+            try timeIntervalCombined.Source= obj.Source;catch, end
         end
         function tps=getTimePointsInSec(obj)
             til= obj.timeIntervalList;

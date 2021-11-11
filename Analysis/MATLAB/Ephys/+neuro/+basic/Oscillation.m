@@ -45,14 +45,13 @@ classdef Oscillation
         end
 
         function obj=getDownSampled(obj,newRate)
-            rate=obj.SampleRate/newRate;
-            obj.Values=downsample(obj.getValues,rate);
+            ratio=obj.SampleRate/newRate;
+            obj.Values=downsample(obj.getValues,ratio);
             obj.SampleRate=newRate;
-            obj=obj.setTimeInterval(obj.getTimeInterval.getDownsampled(rate));
         end
-        function obj=getReSampled(obj,sr)    
-            obj.Values=resample(obj.getValues, sr,obj.getSampleRate);
-            obj.SampleRate=sr;
+        function obj=getReSampled(obj,newRate)
+            obj.Values=resample(obj.getValues, newRate,obj.getSampleRate);
+            obj.SampleRate=newRate;
         end
         function obj=getFillMissing(obj,window)    
             obj.Values=fillmissing(obj.getValues,"movmedian",window*obj.SampleRate);

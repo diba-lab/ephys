@@ -72,6 +72,17 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
         function st=getTimeInterval(obj)
             st=obj.TimeIntervalCombined;
         end
+        function obj=getDownSampled(obj,newRate)
+            ratio=obj.SampleRate/newRate;
+            obj=getDownSampled@neuro.basic.Oscillation(obj,newRate);
+            obj=obj.setTimeInterval(obj.getTimeInterval.getDownsampled(ratio));
+        end
+        function obj=getReSampled(obj,newRate)
+            ratio=obj.SampleRate/newRate;
+            obj=getReSampled@neuro.basic.Oscillation(obj,newRate); 
+            obj=obj.setTimeInterval(obj.getTimeInterval.getDownsampled(ratio));
+        end
+
         function ch=setTimeInterval(obj,ti)
             ch=neuro.basic.Channel(obj.ChannelName,obj.Values,ti);
             ch=ch.setInfo(obj.Info);

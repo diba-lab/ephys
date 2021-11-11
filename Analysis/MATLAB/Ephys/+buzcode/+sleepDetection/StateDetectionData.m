@@ -100,7 +100,17 @@ classdef StateDetectionData
         function [LFP]= getThetaLFP(obj)
             ch=double(obj.SleepScoreLFP.thLFP);
             chname=num2str(obj.getThetaChannelID);
-            LFP=neuro.basic.Channel(chname,ch(1:obj.TimeIntervalCombinedDownSampled.getNumberOfPoints),obj.TimeIntervalCombinedDownSampled);
+            factor=obj.TimeIntervalCombinedOriginal.getSampleRate/obj.SleepScoreLFP.sf;
+            ticd=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
+            LFP=neuro.basic.Channel(chname,ch,ticd);
+            LFP=LFP.setInfo(obj.Info);
+        end
+        function [LFP]= getSWLFP(obj)
+            ch=double(obj.SleepScoreLFP.swLFP);
+            chname=num2str(obj.getSWChannelID);
+            factor=obj.TimeIntervalCombinedOriginal.getSampleRate/obj.SleepScoreLFP.sf;
+            ticd=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
+            LFP=neuro.basic.Channel(chname,ch,ticd);
             LFP=LFP.setInfo(obj.Info);
         end
         function [ch]= getThetaChannelID(obj)
@@ -123,10 +133,11 @@ classdef StateDetectionData
             tps=ti.getTimePointsInSec;
         end
         function cht=getEMG(obj)
-            ts1= obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.EMG;
-            ticd=obj.TimeIntervalCombinedDownSampled.getDownsampled(...
-                obj.TimeIntervalCombinedDownSampled.getSampleRate);
-            ch=neuro.basic.Channel('EMG',ts1,ticd);
+            ts1= obj.EMGFromLFP.data;
+            chname='EMG';
+            factor=obj.TimeIntervalCombinedOriginal.getSampleRate/obj.EMGFromLFP.samplingFrequency;
+            ticd=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
+            ch=neuro.basic.Channel(chname,ts1,ticd);
             ch=ch.setInfo(obj.Info);
             cht=neuro.basic.ChannelsThreshold(ch,obj.getEMGThreshold,obj.isEMGSticky);
         end
@@ -140,9 +151,12 @@ classdef StateDetectionData
         end
         function cht=getThetaRatio(obj)
             ts1= obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.thratio;
-            ticd=obj.TimeIntervalCombinedDownSampled.getDownsampled(...
-                obj.TimeIntervalCombinedDownSampled.getSampleRate);
-            ch=neuro.basic.Channel('TH',ts1,ticd);
+            t=obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.t_clus;
+            t1=obj.SleepState.idx.timestamps;
+            tsr=interp1(t,ts1,t1);
+            factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
+            ticd=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
+            ch=neuro.basic.Channel('TH',tsr,ticd);
             ch=ch.setInfo(obj.Info);
             cht=neuro.basic.ChannelsThreshold(ch,obj.getThetaRatioThreshold,obj.isThetaSticky);
         end
@@ -206,9 +220,12 @@ classdef StateDetectionData
         end
         function cht=getSW(obj)
             ts1= obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.broadbandSlowWave;
-            ticd=obj.TimeIntervalCombinedDownSampled.getDownsampled(...
-                obj.TimeIntervalCombinedDownSampled.getSampleRate);
-            ch=neuro.basic.Channel('SW',ts1,ticd);
+            t=obj.SleepState.detectorinfo.detectionparms.SleepScoreMetrics.t_clus;
+            t1=obj.SleepState.idx.timestamps;
+            tsr=interp1(t,ts1,t1);
+            factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
+            ticd=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
+            ch=neuro.basic.Channel('SW',tsr,ticd);
             ch=ch.setInfo(obj.Info);
             cht=neuro.basic.ChannelsThreshold(ch,obj.getSWThreshold,obj.isSWSticky);
         end
@@ -223,12 +240,21 @@ classdef StateDetectionData
         function ss=getStateSeries(obj)
             idx=obj.SleepState.idx;
             states=idx.states;
-            [ticd,res]=obj.TimeIntervalCombinedOriginal.getDownsampled(...
-                obj.TimeIntervalCombinedOriginal.getSampleRate/1);
+            factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
+            ticd=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
             ss=neuro.state.StateSeries(states,ticd);
             ss=ss.setEpisodes(obj.SleepState.ints);
             ss=ss.setStateNames(idx.statenames);
             ss.TimePoints=idx.timestamps;
+        end
+        function ch=getStateSeriesChannel(obj)
+            idx=obj.SleepState.idx;
+            states=idx.states;
+            factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
+            ticd=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
+            ch=neuro.basic.Channel('StS',states,ticd);
+            ch=ch.setInfo(obj.Info);
+            ch.Info.statenames=idx.statenames;
         end
         function probe=getProbe(obj)
             probe=obj.Probe;

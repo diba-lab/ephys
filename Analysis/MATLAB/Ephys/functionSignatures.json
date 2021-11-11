@@ -6,7 +6,14 @@
         [
             {"name":"obj", "kind":"required", "type":["neuro.basic.ChannelTimeDataHard"]},
             {"name":"channel", "kind":"required", "type":["neuro.basic.Channel"], "purpose":"Channel too be added"}
-
+        ]
+    },
+    "neuro.time.TimeIntervalCombined.getDownsampled":
+    {
+        "inputs":
+        [
+            {"name":"obj", "kind":"required", "type":["neuro.time.TimeIntervalCombined"]},
+            {"name":"Downsample Factor", "kind":"required", "type":["numeric"]}
         ]
     },
     "neuro.probe.Probe.removeChannel":
