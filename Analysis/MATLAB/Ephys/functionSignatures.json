@@ -5,7 +5,7 @@
         "inputs":
         [
             {"name":"obj", "kind":"required", "type":["neuro.basic.ChannelTimeDataHard"]},
-            {"name":"channel", "kind":"required", "type":["neuro.basic.Channel"], "purpose":"Channel too be added"}
+            {"name":"channel", "kind":"required", "type":["neuro.basic.Channel"], "purpose":"Channels to be added in cell array"}
         ]
     },
     "neuro.time.TimeIntervalCombined.getDownsampled":

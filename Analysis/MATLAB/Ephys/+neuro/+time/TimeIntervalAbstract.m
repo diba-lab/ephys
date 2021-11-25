@@ -24,6 +24,7 @@ classdef TimeIntervalAbstract
         getSampleRate(obj)
         adjustTimestampsAsIfNotInterrupted(obj, arr)
         saveTable(obj, filePath)
+        shiftTimePoints(obj,duration)
     end
     methods 
         function ts=getTimeSeries(obj)

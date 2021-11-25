@@ -202,15 +202,15 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             
             samples=nan(size(times));
             til= obj.timeIntervalList;
-                lastSample=0;
-                ends=datetime.empty([0 til.length]);
+            lastSample=0;
+            ends=datetime.empty([0 til.length]);
             for iInt=1:til.length
                 theTimeInterval=til.get(iInt);
                 ends((iInt-1)*2+1)=theTimeInterval.getStartTime;
                 ends(iInt*2)=theTimeInterval.getEndTime;
                 idx=times>=theTimeInterval.getStartTime & times<=theTimeInterval.getEndTime;
                 samples(idx)=theTimeInterval.getSampleFor(times(idx))+lastSample;
-                lastSample=lastSample+theTimeInterval.NumberOfPoints;         
+                lastSample=lastSample+theTimeInterval.NumberOfPoints;
             end
             for it=1:numel(samples)
                 if isnan(samples(it))
@@ -403,7 +403,16 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             ti=iter.next;
             zt=ti.getZeitgeberTime;
         end
-        
+        function obj=shiftTimePoints(obj,shift)
+            tilnew=CellArrayList;
+            til= obj.timeIntervalList;
+            for iInt=1:til.length
+                theTimeInterval=til.get(iInt);
+                ti=theTimeInterval.shiftTimePoints(shift);
+                tilnew.add(ti);
+            end
+            obj.timeIntervalList=tilnew;
+        end        
     end
     methods
 

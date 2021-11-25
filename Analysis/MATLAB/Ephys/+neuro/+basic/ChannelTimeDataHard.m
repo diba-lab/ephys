@@ -121,8 +121,8 @@ classdef ChannelTimeDataHard < file.BinarySave
         end
         function obj = addChannel(obj,channels)
             LFPticd=obj.getTimeIntervalCombined;
-            array=zeros(1,LFPticd.getNumberOfPoints);
             datamat=obj.Data.Data.mapped;
+            array=zeros(1,size(datamat,2));
             for ichan=1:numel(channels)
                 channel=channels{ichan};
                 ch=channel.getReSampled(LFPticd.getSampleRate);
@@ -136,7 +136,7 @@ classdef ChannelTimeDataHard < file.BinarySave
                 end
                 [obj.Probe, channum]=obj.Probe.addANewChannel(channel.ChannelName);
                 array(isnan(array))=0;
-                array1=int16((normalize(array,'range')-.5) *10000);              
+                array1=int16((normalize(array,'range')-.5) *5000);              
                 if channum>size(datamat,1)
                     datamat=[datamat; array1];
                 else
@@ -174,7 +174,15 @@ classdef ChannelTimeDataHard < file.BinarySave
                     LFPti=LFPtil.next;
                     chsub=ch.getTimeWindow([LFPti.getStartTime LFPti.getEndTime]);
                     idx=LFPticdd.getSampleForClosest(chsub.getStartTime):LFPticdd.getSampleForClosest(chsub.getEndTime);
-                    array(ichan*2-1,idx)=chsub.Values;
+                    try
+                        array(ichan*2-1,idx)=chsub.Values;
+                    catch e
+                        if strcmp(e.identifier, 'MATLAB:subsassigndimmismatch')&&(numel(chsub.Values)-numel(idx))==1
+                            array(ichan*2-1,idx)=chsub.Values(1:numel(idx));
+                        else
+                            error(e);
+                        end
+                    end
                 end
                 array(ichan*2,:)=round(linesh(ichan+1));
                 array(ichan*2-1,:)=round(normalize(array(ichan*2-1,:),'range')*linesw(end-2)+linesw(2));

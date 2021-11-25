@@ -30,10 +30,10 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             date=datestr(obj.getDate,1);
-            st=datestr( obj.getStartTime,13);
-            en=datestr(obj.getEndTime,13);
+            st=datestr( obj.getStartTime,'HH:MM:SS.FFF');
+            en=datestr(obj.getEndTime,'HH:MM:SS.FFF');
             dur=obj.getEndTime-obj.getStartTime;
-            dur1=datestr(dur,13);
+            dur1=datestr(dur,'HH:MM:SS.FFF');
             sf=obj.getSampleRate;
             np=obj.getNumberOfPoints;
             jf=java.text.DecimalFormat; % comma for thousands, three decimal places
@@ -190,6 +190,10 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             writetable(T,filePath)
             ticd=neuro.time.TimeIntervalCombined(filePath);
         end
+        function obj=shiftTimePoints(obj,shift)
+            obj.StartTime=obj.StartTime+shift.duration;
+        end
+
     end
 end
 

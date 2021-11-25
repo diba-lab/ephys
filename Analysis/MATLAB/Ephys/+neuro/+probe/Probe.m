@@ -18,7 +18,7 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
             logger=logging.Logger.getLogger;
             % load table
             if isstring(probeFile)||ischar(probeFile)
-                
+
                 if isfolder(probeFile)
                     probefile=dir(fullfile(probeFile,sprintf('*Probe*')));
                     if numel(probefile)==1
@@ -47,12 +47,15 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
                 
             elseif istable( probeFile)% if the table is given
                 lay=probeFile;
+            elseif isa(probeFile, 'neuro.probe.Probe') % if loaded mat file is not table
+                newobj.Type=probeFile.Type;
+                newobj.SiteSpatialLayout=probeFile.SiteSpatialLayout;
+                newobj.SiteSizesInUm=probeFile.SiteSizesInUm;
+                newobj.Source=probeFile.Source;
+                probeFile=newobj.Source;
+                lay=newobj.SiteSpatialLayout;
             end
-            if isa(lay, 'Probe') % if loaded mat file is not table
-                probe=lay;
-                newobj=probe;
-                lay=probe.SiteSpatialLayout;
-            end
+
             if ~ismember('isActive',lay.Properties.VariableNames)
                 lay=[lay table(ones(height(lay),1),'VariableNames',{'isActive'})];
             end
