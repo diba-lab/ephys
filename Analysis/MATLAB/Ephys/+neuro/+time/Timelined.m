@@ -42,7 +42,7 @@ classdef (Abstract) Timelined
                 p1(1).MarkerSize=20;
             end
             ax=gca;
-            
+            ax.YLim=[-1 2];
             ax.XAxisLocation='origin';
             ax.Box='off';
             ax.YTick=[];

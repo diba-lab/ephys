@@ -2,36 +2,33 @@ classdef OptiLoader<Singleton
     %OPTILOADER Summary of this class goes here
     %   Detailed explanation goes here
 
-    properties(Access=private)
+    properties(Access=public)
         parameters
-        OptifilesCombined
+        defpath
     end
 
     methods(Access=private)
         % Guard the constructor against external invocation.  We only want
         % to allow a single instance of this class.  See description in
         % Singleton superclass.
-        function newObj = OptiLoader(files)
+        function newObj = OptiLoader(path)
             % Initialise your custom properties.
             s=xml2struct('+optiTrack/configuration.xml');
             fname=fieldnames(s);
             newObj.parameters=s.(fname{1});
-            if exist('files','var')
-                newObj=newObj.loadFile(files);
-            else
-                newObj=newObj.loadFile();
+            if exist('path','var')
+                newObj.defpath=path;
             end
         end
     end
 
     methods(Static)
         % Concrete implementation.  See Singleton superclass.
-        function obj = instance(files)
+        function obj = instance(path)
             persistent uniqueInstance
             if isempty(uniqueInstance)
                 if nargin>0
-
-                    obj = optiTrack.OptiLoader(files);
+                    obj = optiTrack.OptiLoader(path);
                 else
                     obj = optiTrack.OptiLoader();
                 end
@@ -62,15 +59,20 @@ classdef OptiLoader<Singleton
         %             end
         %         end
     end
-    methods (Access=private)
-        function [obj] = loadFile(obj, files)
+    methods 
+        function [ofs] = loadFile(obj, files)
             % Just assign the input value to singletonData.  See Singleton
             % superclass.
             if(nargin<2)
-                [files, path] = uigetfile({'*.csv;*.fbx','Exported Optitrack Files (*.csv,*.fbx)'},...
-                    'Select the folder containing *.csv or *.fbx files.',...
-                    obj.parameters.defaultLocation.Text,'MultiSelect', 'on');
-                
+                try
+                    [files, path] = uigetfile({'*.csv;*.fbx','Exported Optitrack Files (*.csv,*.fbx)'},...
+                        'Select the folder containing *.csv or *.fbx files.',...
+                        obj.defpath,'MultiSelect', 'on');
+                catch
+                    [files, path] = uigetfile({'*.csv;*.fbx','Exported Optitrack Files (*.csv,*.fbx)'},...
+                        'Select the folder containing *.csv or *.fbx files.',...
+                        obj.parameters.defaultLocation.Text,'MultiSelect', 'on');
+                end
                 obj.parameters.defaultLocation.Text = path;
             end
             if ischar(files)
@@ -83,12 +85,27 @@ classdef OptiLoader<Singleton
                 switch ext
                     case '.fbx'
                         of=optiTrack.OptiFBXAsciiFile(fullfile(path,filename));
+                        ofc=optiTrack.OptiCSVFileSingleMarker(fullfile(path,[fname '.csv']));
+                        of.CaptureStartTime=ofc.CaptureStartTime;
                     case '.csv'
-                        %                         of=optiTrack.OptiCSVFileSingleMarker(fullfile(path,files{ifile}));
-                        if exist('path','var')
-                            of=optiTrack.OptiCSVFileRigidBody(fullfile(path,filename));
+                        opts=detectImportOptions(fullfile(path,filename),"ReadVariableNames",false);
+                        for i=1:numel(opts.VariableTypes)
+                            opts.VariableTypes{i}='char';
+                        end
+                        opts.DataLines=[3 5];            
+                        t=readtable(fullfile(path,filename),opts);
+                        if ~strcmpi(t(1,3).Var3,'Marker')
+                            if exist('path','var')
+                                of=optiTrack.OptiCSVFileRigidBody(fullfile(path,filename));
+                            else
+                                of=optiTrack.OptiCSVFileRigidBody(fullfile(path1,filename));
+                            end
                         else
-                            of=optiTrack.OptiCSVFileRigidBody(fullfile(path1,filename));
+                            if exist('path','var')
+                                of=optiTrack.OptiCSVFileSingleMarker(fullfile(path,filename));
+                            else
+                                of=optiTrack.OptiCSVFileSingleMarker(fullfile(path1,filename));
+                            end
                         end
                 end
                 if ~exist('ofs','var')
@@ -97,7 +114,8 @@ classdef OptiLoader<Singleton
                     ofs=ofs+of;
                 end
             end
-            obj.OptifilesCombined=ofs;
+            f=figure;ofs.plotTimeline;pause(3);close(f);
+            ofs.getMergedPositionData.saveInPlainFormat(path);
         end
 
     end

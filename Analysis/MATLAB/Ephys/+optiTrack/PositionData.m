@@ -1,4 +1,4 @@
-classdef LocationData
+classdef PositionData
     %LOCATIONDATA Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -12,7 +12,7 @@ classdef LocationData
     end
     
     methods
-        function obj = LocationData(X,Y,Z,ticd)
+        function obj = PositionData(X,Y,Z,ticd)
             %LOCATIONDATA Construct an instance of this class
             %   Detailed explanation goes here
             if numel(X)==numel(Y)&&numel(Z)==numel(Y)&&numel(X)==ticd.getNumberOfPoints
@@ -27,7 +27,7 @@ classdef LocationData
                 error('Sizes of XYZ or time are not equal.')
             end
         end
-        function [X,Y,Z,idx]= getLocationForTimesBoth(obj,times,speedthreshold)
+        function [X,Y,Z,idx]= getPositionForTimesBoth(obj,times,speedthreshold)
             ticd=obj.timeIntervalCombined;
             speedTrack=obj.getSpeed;
             thresholded=speedTrack.getAboveAbs(speedthreshold);
@@ -286,9 +286,9 @@ classdef LocationData
             y=obj.Y;
             z=obj.Z;
             time=obj.timeIntervalCombined;
-            time.saveTable(fullfile(folder,'location.time.csv'));
+            time.saveTable(fullfile(folder,'position.time.csv'));
             t=array2table([x y z],'VariableNames',{'x','y','z'});
-            file1=fullfile(folder,'location.points.csv');
+            file1=fullfile(folder,'position.points.csv');
             writetable(t,file1);
         end
     end
