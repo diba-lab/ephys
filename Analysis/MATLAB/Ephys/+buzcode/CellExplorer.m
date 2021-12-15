@@ -18,6 +18,11 @@ classdef CellExplorer < buzcode.BuzcodeStructure
             cd(pwd1);
             try
                 obj=obj.loadSpikes;
+            catch er
+                cd(pwd1);
+                er.getReport
+            end
+            try
                 obj=obj.processCellMetrics;
             catch er
                 cd(pwd1);
@@ -34,15 +39,24 @@ classdef CellExplorer < buzcode.BuzcodeStructure
 
             end
             session=obj.Session;
-            
+
             for is=1:numel(sess)
                 ses=sess{is};
                 session.general.basePath=fullfile(obj.BasePath,ses.relativePath);
                 session.spikeSorting{is}.relativePath='';
+                session.extracellular=[];
+                session.channelTags.Bad=[];
+                
+                obj.Session.extracellular.spikeGroups.channels{is}=(1:32)+(is-1)*32;
+                obj.Session.extracellular.electrodeGroups.channels{is}=(1:32)+(is-1)*32;
+                obj.Session.extracellular.spikeGroups.label{is}=['s' num2str(is)];
+                obj.Session.extracellular.electrodeGroups.label{is}=['s' num2str(is)];
                 try
                     spk=buzcode.SpikeArray(loadSpikes( ...
                         'session',session, ...
-                        'labelsToRead',{'good'}));
+                        'forceReload',false,...
+                        'showWaveforms',false, ...
+                        'labelsToRead',{'good','mua'}));
                     spk.Spike.cluID=spk.Spike.cluID+10000*(is-1);
                     spk.Spike.maxWaveformCh=spk.Spike.maxWaveformCh+(is-1)*32;
                     spk.Spike.maxWaveformCh1=spk.Spike.maxWaveformCh1+(is-1)*32;
@@ -57,15 +71,11 @@ classdef CellExplorer < buzcode.BuzcodeStructure
                     else
                         spkR=spk;
                     end
-                    spkR.Spike.basepath=obj.BasePath;
-                    obj.Session.extracellular.spikeGroups.channels{is}=(1:32)+(is-1)*32;
-                    obj.Session.extracellular.electrodeGroups.channels{is}=(1:32)+(is-1)*32;
-                    obj.Session.extracellular.spikeGroups.label{is}=['s' num2str(is)];
-                    obj.Session.extracellular.electrodeGroups.label{is}=['s' num2str(is)];
                 catch er
                     display(er.getReport)
                 end
             end
+            spkR.Spike.basepath=obj.BasePath;
             obj.Session.extracellular.nChannels=max(spkR.Spike.channels_all{end});
             obj.Spikes=spkR.Spike;
         end

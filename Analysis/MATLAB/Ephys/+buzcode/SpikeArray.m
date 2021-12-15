@@ -35,6 +35,7 @@ classdef SpikeArray
                 spkR.shankID=[spkA.shankID spkB.shankID];
                 spkR.rawWaveform=[spkA.rawWaveform spkB.rawWaveform];
                 spkR.filtWaveform=[spkA.filtWaveform spkB.filtWaveform];
+                spkR.label=[spkA.label spkB.label];
                 spkR.rawWaveform_all=[spkA.rawWaveform_all spkB.rawWaveform_all];
                 spkR.rawWaveform_std=[spkA.rawWaveform_std spkB.rawWaveform_std];
                 spkR.filtWaveform_all=[spkA.filtWaveform_all spkB.filtWaveform_all];

@@ -20,8 +20,8 @@ classdef FigureFactory < Singleton
             else
                 obj.DefaultPath = pwd;
             end
-            obj.figtypes={'-dpng'};%,'-depsc'
-            obj.ext={'.png'};%,'.eps'
+            obj.figtypes={'-dpng','-depsc'};%
+            obj.ext={'.png','.eps'};%
             obj.resolution='-r600';
         end
     end

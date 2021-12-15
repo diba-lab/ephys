@@ -375,6 +375,8 @@ classdef SDFigures2 <Singleton
                             state=states(istate);
                             cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache',['' DataHash(params)]...
                                 ,strcat(sprintf('PlotFooof_afoof_%s_%s_%s_%s_',cond,ses.toString,block,state),'.mat'));
+                            cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache',['161cbcc21891015091b0dd678c945b54']...
+                                ,strcat(sprintf('PlotFooof_afoof_%s_%s_%s_%s_',cond,ses.toString,block,state),'.mat'));
                             if isfile(cacheFilePower)
                                 S=load(cacheFilePower,'thpks','epiFooof');
                                 try

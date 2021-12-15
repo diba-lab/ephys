@@ -30,12 +30,13 @@ classdef ThetaPeaksContainer
         function plotPeakFreqDist(obj, blockstr)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            clear ff;
             ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof');
 
             cols=[6 10 3 6];
 
             conds=obj.condlist;
-            states=obj.statelist(1);
+            states=obj.statelist(4);
             if any(ismember({'SD','NSD'},blockstr))
                 blockidx=[false; true; false; false];
             else
