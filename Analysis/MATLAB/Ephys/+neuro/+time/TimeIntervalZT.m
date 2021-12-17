@@ -25,7 +25,20 @@ classdef TimeIntervalZT < neuro.time.TimeInterval
             obj@neuro.time.TimeInterval(startTime, sampleRate, numberOfPoints)
             obj.ZeitgeberTime= zt+obj.getDate;
         end
-        
+        function S=getStruct(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            S=getStruct@neuro.time.TimeInterval(obj);
+            S.ZeitgeberTime=obj.ZeitgeberTime;
+        end        
+        function str=tostring(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            str1=tostring@neuro.time.TimeInterval(obj);
+            str2=datestr(obj.ZeitgeberTime,'HH AM');
+            str=sprintf('\tZT:%s %s',str2,str1);
+        end
+
         function zt=getZeitgeberTime(obj)
             zt=obj.ZeitgeberTime;
         end

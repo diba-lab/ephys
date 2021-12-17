@@ -41,6 +41,13 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             
             str=sprintf('\t%s \t%s - %s\t<%s>\t<%s (%dHz)> \n',date,st,en,dur1,np1,sf);
         end
+        function S=getStruct(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            S.StartTime=obj.StartTime;
+            S.NumberOfPoints=obj.NumberOfPoints;
+            S.SampleRate=obj.SampleRate;
+        end
         function timeInterval=getTimeIntervalForSamples(obj, startSample, endSample)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here

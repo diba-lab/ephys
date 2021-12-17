@@ -8,21 +8,21 @@ classdef PositionData
         Z
         timeIntervalCombined
         units
-        SpeedThreshold
+        source
     end
     
     methods
         function obj = PositionData(X,Y,Z,ticd)
             %LOCATIONDATA Construct an instance of this class
             %   Detailed explanation goes here
-            if numel(X)==numel(Y)&&numel(Z)==numel(Y)&&numel(X)==ticd.getNumberOfPoints
+            if isfolder(X)
+                obj=obj.loadPlainFormat(X);
+            elseif numel(X)==numel(Y)&&numel(Z)==numel(Y)&&numel(X)==ticd.getNumberOfPoints
                 obj.X = X;
                 obj.Y = Y;
                 obj.Z = Z;
                 obj.timeIntervalCombined = ticd;
                 obj.units='cm';
-            elseif isstring(X)||ischar(X)
-%                 T=readtable(X);
             else
                 error('Sizes of XYZ or time are not equal.')
             end
@@ -93,18 +93,18 @@ classdef PositionData
         function outputArg = plot(obj)
             numPointsInPlot=1000;
             ticd=obj.timeIntervalCombined;
-            t_org=ticd.getTimePointsInSec;
+            t_org=ticd.getTimePointsInSec-seconds(ticd.getZeitgeberTime-ticd.getStartTime);
             downsamplefactor=round(numel(t_org)/numPointsInPlot);
             X=downsample(medfilt1(obj.X,ticd.getSampleRate),downsamplefactor);
             Y=downsample(medfilt1(obj.Y,ticd.getSampleRate),downsamplefactor);
             Z=downsample(medfilt1(obj.Z,ticd.getSampleRate),downsamplefactor);
-            t=minutes(seconds(downsample(t_org,downsamplefactor)));
+            t=hours(seconds(downsample(t_org,downsamplefactor)));
             
             plot(t,X);hold on;
             plot(t,Y);
             plot(t,Z);
             legend({'X','Y','Z'});
-            xlabel('Time (minutes)');
+            xlabel('ZT (Hrs)');
             ylabel(['Location (',obj.units,')']);
             ax=gca;
             
@@ -280,7 +280,7 @@ classdef PositionData
                     folder= pwd;
                 end
             else
-                folder= pwd;
+                folder= fileparts(obj.source);
             end
             x=obj.X;
             y=obj.Y;
@@ -290,6 +290,22 @@ classdef PositionData
             t=array2table([x y z],'VariableNames',{'x','y','z'});
             file1=fullfile(folder,'position.points.csv');
             writetable(t,file1);
+        end
+        function obj = loadPlainFormat(obj,folder)
+            if exist('folder','var')
+                if ~isfolder(folder)
+                    folder= pwd;
+                end
+            else
+                folder= pwd;
+            end
+            file1=fullfile(folder,'position.points.csv');
+            t=readtable(file1);
+            obj.source=file1;
+            obj.X=t.x;
+            obj.Y=t.y;
+            obj.Z=t.z;
+            obj.timeIntervalCombined=neuro.time.TimeIntervalCombined(fullfile(folder,'position.time.csv'));
         end
     end
 end

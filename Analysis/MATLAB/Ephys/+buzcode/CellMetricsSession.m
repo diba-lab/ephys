@@ -13,12 +13,15 @@ classdef CellMetricsSession < buzcode.CellMetrics
             obj=obj@buzcode.CellMetrics(basepath)
             obj.Session=experiment.Session(basepath);
         end
-        function obj = processCellMetricsForBlock(obj,blockName)
+
+        function obj = loadCellMetricsForBlock(obj,blockName)
             %UNTITLED Construct an instance of this class
             %   Detailed explanation goes here
-            obj.Session=experiment.Session(basepath);
+            obj.CellMetricsStruct=loadCellMetrics('basepath',obj.CellMetricsStruct.general.basepath, ...
+                'saveAs',['cell_metrics_' blockName] ...
+                );
         end
-        
+
         function [H] = plotFR(obj,ax,groups)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
