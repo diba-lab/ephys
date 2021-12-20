@@ -67,7 +67,7 @@ classdef OptiFileCombined < neuro.time.Timelined
             for iof=1:ofs.length
                 ofssorted.add(ofs.get(I(iof)));
             end
-            obj.OptiFiles=ofs;
+            obj.OptiFiles=ofssorted;
         end
     end
     methods (Access=private)

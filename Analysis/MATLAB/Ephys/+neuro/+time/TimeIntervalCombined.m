@@ -390,7 +390,9 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             while(iter.hasNext)
                 ti=iter.next;
                 zt=ti.getStruct;
-                zt.ZeitgeberTime=datestr(zt.ZeitgeberTime,'HH:MM');
+                if isfield(zt,'ZeitgeberTime')
+                    zt.ZeitgeberTime=datestr(zt.ZeitgeberTime,'HH:MM');
+                end
                 S(count)=zt;count=count+1;
             end
             T=struct2table(S);

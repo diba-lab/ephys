@@ -15,7 +15,7 @@ classdef PositionData
         function obj = PositionData(X,Y,Z,ticd)
             %LOCATIONDATA Construct an instance of this class
             %   Detailed explanation goes here
-            if isfolder(X)
+            if ischar(X)&&isfolder(X)
                 obj=obj.loadPlainFormat(X);
             elseif numel(X)==numel(Y)&&numel(Z)==numel(Y)&&numel(X)==ticd.getNumberOfPoints
                 obj.X = X;
@@ -26,6 +26,17 @@ classdef PositionData
             else
                 error('Sizes of XYZ or time are not equal.')
             end
+        end
+        function pd=getWindow(obj,plsd)
+            ticd=obj.timeIntervalCombined;
+            pd=obj;
+            window=ticd.getTimeIntervalForTimes(plsd);
+            pd.timeIntervalCombined=window;
+            samples=ticd.getSampleForClosest(plsd);
+            idx=samples(1):samples(2);
+            pd.X=obj.X(idx);
+            pd.Y=obj.Y(idx);
+            pd.Z=obj.Z(idx);
         end
         function [X,Y,Z,idx]= getPositionForTimesBoth(obj,times,speedthreshold)
             ticd=obj.timeIntervalCombined;

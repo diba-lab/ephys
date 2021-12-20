@@ -60,7 +60,7 @@ classdef OptiLoader<Singleton
         %         end
     end
     methods 
-        function [ofs] = loadFile(obj, files)
+        function [pd] = loadFile(obj, files)
             % Just assign the input value to singletonData.  See Singleton
             % superclass.
             if(nargin<2)
@@ -115,7 +115,9 @@ classdef OptiLoader<Singleton
                 end
             end
             f=figure;ofs.plotTimeline;pause(3);close(f);
-            ofs.getMergedPositionData.saveInPlainFormat(path);
+            pd=ofs.getMergedPositionData;
+            pd.source=path;
+            pd.saveInPlainFormat(path);
         end
 
     end
