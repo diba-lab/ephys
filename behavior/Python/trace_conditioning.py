@@ -51,6 +51,7 @@ params = {
         "alias": "Gilmartin2013",
         "training_tone": {
             "type": "white",
+            "duration": 10,
         },
         "control_tone": None,
         "training_params": {
@@ -197,7 +198,6 @@ class Trace:
             + " parameters"
         )
         self.tone_freq = tone_freq
-        self.tone_freq_p = tone_freq_p
         self.tone_type = tone_type
         self.arduino_port = arduino_port
         self.volume = volume
@@ -211,6 +211,13 @@ class Trace:
         # Next create tone for training
         self.tone_samples = self.create_tone(
             tone_type=tone_type,
+            duration=params[paradigm]["training_params"]["tone_dur"],
+            freq=tone_freq,
+        )
+
+        if self.params["control_tone"] is not None:
+            self.control_tone_samples = self.create_tone(
+            tone_type=self.params["control_tone"]["tone_type"],
             duration=params[paradigm]["training_params"]["tone_dur"],
             freq=tone_freq,
         )
