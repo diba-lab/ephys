@@ -105,12 +105,12 @@ params = {
         "alias": "Misc",
         "training_params": {"tone_dur": 10},
         "ctx+tone_recall_params": {
-            "baseline_time": 8*60,
+            "baseline_time": 8 * 60,
             "CStimes": [10],
             "ITI": 120,
             "ITI_range": 0,
-        }
-    }
+        },
+    },
 }
 
 default_port = {
@@ -148,6 +148,7 @@ class Trace:
         # self.initialize_arduino(self.arduino_port)
 
         # Next create tone for training
+        # NRK change this to CS+, change other below to CS-
         self.tone_samples = self.create_tone(
             tone_type=tone_type,
             duration=params[paradigm]["training_params"]["tone_dur"],
@@ -278,7 +279,7 @@ class Trace:
         return ITI + np.random.random_integers(low=-ITI_range, high=ITI_range)
 
     def send_recording_sync(self, length_min):
-        """Send sync signal out to recording system(s) """
+        """Send sync signal out to recording system(s)"""
 
         self.initialize_arduino()
         print("Sending recording sync signal")
@@ -300,7 +301,7 @@ class Trace:
             "training",
             "ctx_recall",
             "tone_recall",
-            "ctx+tone_recall"
+            "ctx+tone_recall",
         ]  # Make sure session is properly named
         if not test_run:
             self.session = session
@@ -408,9 +409,13 @@ class Trace:
         self.write_event("trace" + str(trial) + "_end")
 
         # administer shock
-        print('Degrounding shock floor')
-        self.board.digital[self.shock_relay_pin].write(0)  # signal to solid-state relay - send to floating ground
-        time.sleep(0.05) # make sure you give enough time for relay to switch over before shocking.
+        print("Degrounding shock floor")
+        self.board.digital[self.shock_relay_pin].write(
+            0
+        )  # signal to solid-state relay - send to floating ground
+        time.sleep(
+            0.05
+        )  # make sure you give enough time for relay to switch over before shocking.
         print("Shock!")
         self.write_event("shock" + str(trial) + "_start")
         self.board.digital[self.shock_box_pin].write(1)  # signal to shock box
@@ -418,9 +423,10 @@ class Trace:
         self.board.digital[self.shock_box_pin].write(0)  # stop shock signal
         self.write_event("shock" + str(trial) + "_end")
         time.sleep(0.05)
-        self.board.digital[self.shock_relay_pin].write(1)  # signal to solid-state relay - send to floating ground
-        print('Shock floor re-grounded')
-
+        self.board.digital[self.shock_relay_pin].write(
+            1
+        )  # signal to solid-state relay - send to floating ground
+        print("Shock floor re-grounded")
 
     def initialize_arduino(
         self,
@@ -452,7 +458,7 @@ class Trace:
         self.record_sync_pin = record_sync_pin
 
         # Make sure you always start out setting shock_relay_pin to 1 to ground box.
-        print('Grounding shock floor')
+        print("Grounding shock floor")
         self.board.digital[self.shock_relay_pin].write(1)
 
         # initialize cleanup function
