@@ -36,6 +36,10 @@ classdef Session
             end
             obj.SessionInfoFile=sessionInfoFile;
             obj.SessionInfo=sessionInfo;
+            if ~strcmp(sessionInfo.baseFolder,baseFolder)
+                sessionInfo.baseFolder=baseFolder;
+                obj=obj.setSessionInfo(sessionInfo);
+            end
             %% Blocks
             blockFile=fullfile(baseFolder,params.FileLocations.Session.Blocks);
             try 
@@ -55,10 +59,10 @@ classdef Session
             end
             sdblock=experiment.SDBlocks(obj.SessionInfo.Date,blockstt);
             obj.Blocks=sdblock;
-            logger.info(sdblock.print)
-            %% Location
-            LocFile=fullfile(baseFolder,params.FileLocations.Session.Location);
             try
+                logger.info(sdblock.print)
+                %% Location
+                LocFile=fullfile(baseFolder,params.FileLocations.Session.Location);
                 
             catch
                 
@@ -70,7 +74,7 @@ classdef Session
                 probe=neuro.probe.Probe(fullfile(list().folder,list.name));
                 obj.Probe=probe;
                 logger.info('Probe file is loaded.')
-                logger.info(probe.print)
+%                 logger.info(probe.print)
             catch
                 logger.info(strcat('No probe file. ', key))
             end
@@ -81,6 +85,11 @@ classdef Session
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             obj.Animal = animal;
+        end
+        function sesstr = toString(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            sesstr=strcat(obj.Animal.Code, '_' ,datestr(obj.SessionInfo.Date,29));
         end
         function obj = setProbe(obj,probe)
             %METHOD1 Summary of this method goes here
@@ -130,6 +139,16 @@ classdef Session
             %   Detailed explanation goes here
             pr=preprocessing.Preprocess(obj);
             data=pr.getDataForClustering;
+        end
+        function zt = getZeitgeberTime(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            try
+                ticd=neuro.time.TimeIntervalCombined(obj.SessionInfo.baseFolder);
+                zt=ticd.getZeitgeberTime;
+            catch
+                zt=nan;
+            end
         end
         
     end

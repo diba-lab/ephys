@@ -32,7 +32,12 @@ classdef BuzcodeStructure
                 end
             end
             obj.BasePath=filepath;
-            
+            try
+                obj.BadIntervals=neuro.time.TimeWindowsDuration(obj.BasePath);
+            catch
+                logging.Logger.getLogger.warning( ...
+                    'Could not find an evt file in %s',obj.BasePath);
+            end
             obj.Probe=neuro.probe.Probe(obj.BasePath);
             obj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(obj.BasePath);
         end
@@ -40,12 +45,28 @@ classdef BuzcodeStructure
             import neuro.ripple.*
             folders={'.','..',['..',filesep,'..']};
             for ifolder=1:numel(folders)
-                list=dir(fullfile(obj.BasePath,folders{ifolder},'*.conf'));
+                list=dir(fullfile(obj.BasePath,folders{ifolder},'SWRconfigure.conf'));
                 if ~isempty(list)
                     break
                 end
             end
-            conf=readConf(fullfile(list.folder,list.name));
+            if ~isempty(list)
+                try
+                    conf=readConf(fullfile(list.folder,list.name));
+                catch
+                end
+            else
+                for ifolder=1:numel(folders)
+                list=dir(fullfile(obj.BasePath,folders{ifolder},'*SWR.conf.xml'));
+                if ~isempty(list)
+                    break
+                end
+                if ~isempty(list)
+                    conf=readstruct(fullfile(list.folder,list.name));
+                end
+            end
+
+            end
             switch str2double(conf.detectiontype)
                 case 1
                     method=neuro.ripple.SWRDetectionMethodRippleOnly(obj.BasePath);
@@ -54,13 +75,10 @@ classdef BuzcodeStructure
                 case 3
                     method=neuro.ripple.SWRDetectionMethodCombined(obj.BasePath);
                 otherwise
-                    error('Incorrect Detection Type. Should be 1,2, or 3.')
+                    error('Incorrect Detection Type. Should be 1, 2, or 3.')
             end
-            ripple1=method.execute;
+            ripple1=method.execute();
             ripple1=ripple1.setTimeIntervalCombined(obj.TimeIntervalCombined);
-        end
-        function [] = calculateRipple(obj)
-            warning('Depricated! Use calculateSWR() and change configure.conf file. Set detection type=1.')
         end
         function sdd = detectStates(obj,params)
             import buzcode.sleepDetection.*
@@ -68,8 +86,6 @@ classdef BuzcodeStructure
             try
                 sdd=StateDetectionData(obj.BasePath);
             catch
-                
-                if params.Overwrite, overwrite=true; else, overwrite=false;end
                 varargin=cell(1,1);
                 try
                     if ~(isempty(params.Channels.BestSW)||strcmp(params.Channels.BestSW,""))
@@ -94,21 +110,25 @@ classdef BuzcodeStructure
                 catch
                     logger.warning('No EMG Channels set.')                    
                 end
-                try varargin={varargin{:},'overwrite',overwrite};catch; end
+                try varargin={varargin{:},'overwrite',logical(params.Overwrite)};catch; end
+                try varargin={varargin{:},'NotchHVS',logical(params.HVSFilter)};catch; end
                 try
-                    bad=struct2table( params.bad.Time);
-                    sampleRate=obj.TimeIntervalCombined.getSampleRate;
-                    start=obj.TimeIntervalCombined.getSampleFor(bad.Start)/sampleRate;
-                    stop=obj.TimeIntervalCombined.getSampleFor(bad.Stop)/sampleRate;
-                    bad1(:,1)=start;
-                    bad1(:,2)=stop;
-                    varargin={varargin{:},'ignoretime',bad1};
+                    varargin={varargin{:},'ignoretime',params.bad};
                 catch
+                    try
+                        varargin={varargin{:},'ignoretime',obj.BadIntervals.getArrayForBuzcode};
+                    catch
+                        logger.warning('No bad intervals found.')
+                    end
                     logger.warning('No Ignore Times set.')
                 end
+                varargin0=varargin(2:2:end);
                 varargin1=varargin(2:end);
-                logger.info(['SleepScoreMaster is callled with the following parameters: ', strjoin(varargin1)]);
-
+                joinedstr=join(varargin0,', ');
+                logger.info(sprintf('SleepScoreMaster is callled with the following parameters: %s', ...
+                    joinedstr{:} ...
+                    ));
+                
                 SleepScoreMaster(obj.BasePath,varargin1{:});
                 sdd=StateDetectionData(obj.BasePath);
             end

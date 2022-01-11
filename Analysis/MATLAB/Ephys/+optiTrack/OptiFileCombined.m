@@ -22,6 +22,7 @@ classdef OptiFileCombined < neuro.time.Timelined
                 assert(isa(optifile,'optiTrack.OptiFile'));
                 obj.OptiFiles.add(optifile);
             end
+            obj=obj.getSorted;
         end
         function tls=getTimeline(obj)
             iter=obj.getIterator();
@@ -36,28 +37,29 @@ classdef OptiFileCombined < neuro.time.Timelined
         function ofs=getOptiFiles(obj)
             ofs=obj.OptiFiles;
         end
-        function locationData=getMergedLocationData(obj)
+        function positionData=getMergedPositionData(obj)
             ofs=obj.getSorted;
-            for iof=1:ofs.length
-                of=ofs.get(iof);
+            for iof=1:ofs.OptiFiles.length
+                of=ofs.OptiFiles.get(iof);
                 ti1=of.getTimeInterval;
                 if exist('table1','var')
-                    table1=[table1;of.table];
+                    table1=[table1;of.table(:,{'X','Y','Z'})];
                     tic1=tic1+ti1;
                 else
-                    table1=of.table;
+                    table1=of.table(:,{'X','Y','Z'});
                     tic1=ti1;
                 end
             end
             X=table1.X;
             Y=table1.Y;
             Z=table1.Z;
-            locationData=optiTrack.LocationData(X,Y,Z,tic1);
+            positionData=optiTrack.PositionData(X,Y,Z,tic1);
+            
         end
-        function ofssorted=getSorted(obj)
+        function obj=getSorted(obj)
             ofs=obj.OptiFiles;
             for iof=1:ofs.length
-                of=ofs.get(iof)
+                of=ofs.get(iof);
                 list(iof)=datenum(of.getStartTime);
             end
             [B,I] = sort(list);
@@ -65,6 +67,7 @@ classdef OptiFileCombined < neuro.time.Timelined
             for iof=1:ofs.length
                 ofssorted.add(ofs.get(I(iof)));
             end
+            obj.OptiFiles=ofs;
         end
     end
     methods (Access=private)

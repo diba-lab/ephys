@@ -13,7 +13,7 @@ classdef (Abstract) SWRDetectionMethod
         function obj=SWRDetectionMethod(basepath)
             folders={'.','..',['..',filesep,'..']};
             for ifolder=1:numel(folders)
-                list=dir(fullfile(basepath,folders{ifolder},'*.conf'));
+                list=dir(fullfile(basepath,folders{ifolder},'SWRconfigure.conf'));
                 if ~isempty(list)
                     break
                 end
@@ -21,7 +21,7 @@ classdef (Abstract) SWRDetectionMethod
             obj.Configuration=readConf(fullfile(list.folder,list.name));
             obj.BasePath=basepath;
         end
-        function channel=getBestRippleChannel(obj,LFP, frequencyBand)
+        function channel=getBestRippleChannel(obj, LFP, frequencyBand)
             %[chan] = bz_GetBestRippleChan(lfp)
             %eventually this will detect which lfp channel has the highest SNR for the
             % ripple componenent of SPWR events....

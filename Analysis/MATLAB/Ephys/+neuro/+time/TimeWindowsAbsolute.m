@@ -129,7 +129,6 @@ classdef TimeWindowsAbsolute<neuro.time.TimeWindows
             time=obj.TimeIntervalCombined;
             for it=1:height(t)
                 t1=t(it,1:2);
-                
                 samples=time.getSampleForClosest([t1.Start t1.Stop]);
                 timeMS(it,:)= (samples/time.getSampleRate)*1000;
             end

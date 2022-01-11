@@ -3,6 +3,7 @@ classdef SWRDetectionMethodSWR < neuro.ripple.SWRDetectionMethod
     %   Detailed explanation goes here
     
     properties
+        Epochs
     end
     
     methods
@@ -11,28 +12,32 @@ classdef SWRDetectionMethodSWR < neuro.ripple.SWRDetectionMethod
             %   Detailed explanation goes here
             
             obj@neuro.ripple.SWRDetectionMethod(basepath)
+            conf=obj.Configuration;
+            if isfield(conf,'bad_file')
+                bad=fullfile(basepath, conf.bad_file);
+                ticd=neuro.basic.ChannelTimeDataHard(obj.BasePath).getTimeIntervalCombined;
+                dur=seconds(ticd.getNumberOfPoints/ticd.getSampleRate);
+                arts_rev=neuro.time.TimeWindowsDuration(readtable(bad)).getReverse(dur);
+                obj.Epochs=table2array( arts_rev.getTimeTable);
+            else
+                obj.Epochs=[];
+            end            
         end
         
-        function ripple1 = execute(obj, chans, epochs)
+        function ripple1 = execute(obj, chans)
             conf=obj.Configuration;
             if ~exist('chans','var')||isempty(chans)
                 chans=str2double( conf.swr_channnels);
+                chans=chans+1;% NOT NEUROSCOPE
             end
             list1=dir(fullfile(obj.BasePath,'*.xml'));
-            if ~exist('epochs','var')
-                ctdd=neuro.basic.ChannelTimeDataHard(obj.BasePath);
-                ctda=preprocessing.ChannelTimeDataArtifact(ctdd);
-                arts=ctda.getArtifactsAllCombined;
-                arts_rev=arts.getReverse(ctda.getTimeIntervalCombined.getEndTime-ctda.getTimeIntervalCombined.getStartTime);
-                epochs=seconds(table2array( arts_rev.getTimeTable));
-            end
-            chans=chans+1;% NOT NEUROSCOPE
+
             conf.chans=chans;
             str=DataHash(conf);
-            cacheFileName=fullfile(obj.BasePath,'cache',[str '.mat']);
+            cacheFileName=fullfile(obj.BasePath,'cacheripple',['sw_' num2str(chans(1)) '_' str '.mat']);
             [folder,~,~]=fileparts(cacheFileName);if ~isfolder(folder), mkdir(folder); end
             if ~exist(cacheFileName,'file')
-                ripple=detect_swr(fullfile(list1.folder,list1.name),chans,epochs...
+                ripple=detect_swr(fullfile(list1.folder,list1.name),chans,obj.Epochs...
                     ,'EVENTFILE',str2double( conf.eventfile)...
                     ,'FIGS',str2double( conf.figs)...
                     ,'swBP',str2double( conf.swbp)...
@@ -54,6 +59,7 @@ classdef SWRDetectionMethodSWR < neuro.ripple.SWRDetectionMethod
                 ripple=S.(fnames{1});
             end
             ripple1=neuro.ripple.SWRipple(ripple);
+            ripple1.DetectorInfo.BasePath=obj.BasePath;
         end
         function objnew= plus(obj,newRiple)
             pt_base=obj.getPeakTimes;

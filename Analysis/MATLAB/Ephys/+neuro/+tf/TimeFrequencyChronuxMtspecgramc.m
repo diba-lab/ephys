@@ -46,6 +46,8 @@ classdef TimeFrequencyChronuxMtspecgramc < neuro.tf.TimeFrequencyMethod
             movingwin=obj.movingWindow;
             params.fpass=[obj.FrequencyInterest(1) obj.FrequencyInterest(end)];
             params.Fs=Fs;
+            l=logging.Logger.getLogger;
+            l.info(sprintf('go'));
             [matrix,t,f]=mtspecgramc(data,movingwin,params);
             aTimeFrequencyMap=neuro.tf.TimeFrequencyMapChronuxMtspecgramc(...
                 matrix, seconds(t), f);

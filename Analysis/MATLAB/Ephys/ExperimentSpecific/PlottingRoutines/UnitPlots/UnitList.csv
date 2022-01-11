@@ -6,29 +6,29 @@ PATH,SLEEP,ANIMAL,SESSIONNO,LOCATION,SHANKNO
 /data2/gdrive/ephys/AG/clustered/AG_day1/shank5/merged_2019-Dec-22__04-01-10_18-45-27/merged_2019-Dec-22__04-01-10_18-45-27crs-merged.GUI,SD,AG,1,CA3,5
 /data2/gdrive/ephys/AG/clustered/AG_day1/shank6/merged_2019-Dec-22__04-01-10_18-45-27/merged_2019-Dec-22__04-01-10_18-45-27crs-merged.GUI,SD,AG,1,CA3,6
 
-/data2/temp/AG_day3/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA1,1
-/data2/temp/AG_day3/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA1,2
-/data2/temp/AG_day3/shank3/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA1,3
-/data2/temp/AG_day3/shank4/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA1,4
-/data2/temp/AG_day3/shank5/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA3,5
-/data2/temp/AG_day3/shank6/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA3,6
+/data1/EphysAnalysis/cluster/AG_day3/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA1,1
+/data1/EphysAnalysis/cluster/AG_day3/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA1,2
+/data1/EphysAnalysis/cluster/AG_day3/shank3/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA1,3
+/data1/EphysAnalysis/cluster/AG_day3/shank4/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA1,4
+/data1/EphysAnalysis/cluster/AG_day3/shank5/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA3,5
+/data1/EphysAnalysis/cluster/AG_day3/shank6/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,2,CA3,6
 
-/data/EphysAnalysis/cluster/AE_day2/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AE,3,CA1,1
-/data/EphysAnalysis/cluster/AE_day2/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AE,3,CA1,2
-/data/EphysAnalysis/cluster/AE_day2/shank3/MergedRaw/MergedRawcrs-merged.GUI,SD,AE,3,CA1,3
-/data/EphysAnalysis/cluster/AE_day2/shank4/MergedRaw/MergedRawcrs-merged.GUI,SD,AE,3,CA1,4
+/data1/EphysAnalysis/cluster/AE_day2/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AE,3,CA1,1
+/data1/EphysAnalysis/cluster/AE_day2/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AE,3,CA1,2
+/data1/EphysAnalysis/cluster/AE_day2/shank3/MergedRaw/MergedRawcrs-merged.GUI,SD,AE,3,CA1,3
+/data1/EphysAnalysis/cluster/AE_day2/shank4/MergedRaw/MergedRawcrs-merged.GUI,SD,AE,3,CA1,4
 
-/data/EphysAnalysis/cluster/AF_day1/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,4,CA1,1
-/data/EphysAnalysis/cluster/AF_day1/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,4,CA1,2
+/data1/EphysAnalysis/cluster/AF_day1/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,4,CA1,1
+/data1/EphysAnalysis/cluster/AF_day1/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,4,CA1,2
 
-/data/EphysAnalysis/cluster/AF_day3/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,5,CA1,1
-/data/EphysAnalysis/cluster/AF_day3/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,5,CA1,2
-/data/EphysAnalysis/cluster/AF_day3/shank3/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,5,CA1,3
-/data/EphysAnalysis/cluster/AF_day3/shank4/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,5,CA1,4
+/data1/EphysAnalysis/cluster/AF_day3/shank1/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,5,CA1,1
+/data1/EphysAnalysis/cluster/AF_day3/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,5,CA1,2
+/data1/EphysAnalysis/cluster/AF_day3/shank3/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,5,CA1,3
+/data1/EphysAnalysis/cluster/AF_day3/shank4/MergedRaw/MergedRawcrs-merged.GUI,SD,AF,5,CA1,4
 
-/data/EphysAnalysis/cluster/AG_day5/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,6,CA3,2
-/data/EphysAnalysis/cluster/AG_day5/shank3/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,6,CA3,3
-/data/EphysAnalysis/cluster/AG_day5/shank4/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,6,CA3,4
+/data1/EphysAnalysis/cluster/AG_day5/shank2/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,6,CA3,2
+/data1/EphysAnalysis/cluster/AG_day5/shank3/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,6,CA3,3
+/data1/EphysAnalysis/cluster/AG_day5/shank4/MergedRaw/MergedRawcrs-merged.GUI,SD,AG,6,CA3,4
 
 
 
@@ -40,22 +40,22 @@ PATH,SLEEP,ANIMAL,SESSIONNO,LOCATION,SHANKNO
 /data2/gdrive/ephys/AG/clustered/AG_day2/shank5/merged_2019-Dec-23__05-00-08_18-27-11/merged_2019-Dec-23__05-00-08_18-27-11crs-merged.GUI,NSD,AG,11,CA3,5
 /data2/gdrive/ephys/AG/clustered/AG_day2/shank6/merged_2019-Dec-23__05-00-08_18-27-11/merged_2019-Dec-23__05-00-08_18-27-11crs-merged.GUI,NSD,AG,11,CA3,6
 
-/data2/temp/AG_day4/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA1,1
-/data2/temp/AG_day4/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA1,2
-/data2/temp/AG_day4/shank3/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA1,3
-/data2/temp/AG_day4/shank4/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA1,4
-/data2/temp/AG_day4/shank5/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA3,5
-/data2/temp/AG_day4/shank6/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA3,6
+/data1/EphysAnalysis/cluster/AG_day4/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA1,1
+/data1/EphysAnalysis/cluster/AG_day4/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA1,2
+/data1/EphysAnalysis/cluster/AG_day4/shank3/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA1,3
+/data1/EphysAnalysis/cluster/AG_day4/shank4/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA1,4
+/data1/EphysAnalysis/cluster/AG_day4/shank5/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA3,5
+/data1/EphysAnalysis/cluster/AG_day4/shank6/MergedRaw/MergedRawcrs-merged.GUI,NSD,AG,12,CA3,6
 
-/data/EphysAnalysis/cluster/AE_day1/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,13,CA1,1
-/data/EphysAnalysis/cluster/AE_day1/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,13,CA1,2
-/data/EphysAnalysis/cluster/AE_day1/shank3/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,13,CA1,3
-/data/EphysAnalysis/cluster/AE_day1/shank4/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,13,CA1,4
+/data1/EphysAnalysis/cluster/AE_day1/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,13,CA1,1
+/data1/EphysAnalysis/cluster/AE_day1/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,13,CA1,2
+/data1/EphysAnalysis/cluster/AE_day1/shank3/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,13,CA1,3
+/data1/EphysAnalysis/cluster/AE_day1/shank4/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,13,CA1,4
 
-/data/EphysAnalysis/cluster/AE_day3/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,14,CA1,1
-/data/EphysAnalysis/cluster/AE_day3/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,14,CA1,2
+/data1/EphysAnalysis/cluster/AE_day3/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,14,CA1,1
+/data1/EphysAnalysis/cluster/AE_day3/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AE,14,CA1,2
 
-/data/EphysAnalysis/cluster/AF_day2/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AF,15,CA1,1
-/data/EphysAnalysis/cluster/AF_day2/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AF,15,CA1,2
-/data/EphysAnalysis/cluster/AF_day2/shank3/MergedRaw/MergedRawcrs-merged.GUI,NSD,AF,15,CA1,3
-/data/EphysAnalysis/cluster/AF_day2/shank4/MergedRaw/MergedRawcrs-merged.GUI,NSD,AF,15,CA1,4
+/data1/EphysAnalysis/cluster/AF_day2/shank1/MergedRaw/MergedRawcrs-merged.GUI,NSD,AF,15,CA1,1
+/data1/EphysAnalysis/cluster/AF_day2/shank2/MergedRaw/MergedRawcrs-merged.GUI,NSD,AF,15,CA1,2
+/data1/EphysAnalysis/cluster/AF_day2/shank3/MergedRaw/MergedRawcrs-merged.GUI,NSD,AF,15,CA1,3
+/data1/EphysAnalysis/cluster/AF_day2/shank4/MergedRaw/MergedRawcrs-merged.GUI,NSD,AF,15,CA1,4

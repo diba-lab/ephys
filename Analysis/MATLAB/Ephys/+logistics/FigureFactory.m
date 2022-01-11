@@ -18,10 +18,10 @@ classdef FigureFactory < Singleton
                     obj.DefaultPath =defpath;
                 end
             else
-                obj.DefaultPath = '/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof';
+                obj.DefaultPath = pwd;
             end
-            obj.figtypes={'-dpng'};%,'-depsc'
-            obj.ext={'.png'};%,'.eps'
+            obj.figtypes={'-dpng','-depsc'};%
+            obj.ext={'.png','.eps'};%
             obj.resolution='-r600';
         end
     end
@@ -31,11 +31,9 @@ classdef FigureFactory < Singleton
             if isempty(uniqueInstance)
                 try obj = logistics.FigureFactory(defpath);catch, obj = logistics.FigureFactory();end
                 uniqueInstance = obj;
-            elseif ~strcmp( uniqueInstance.DefaultPath, defpath)
-                uniqueInstance.DefaultPath=defpath;
-                obj = uniqueInstance;
             else
-                obj = uniqueInstance;                
+                obj = uniqueInstance;    
+                try obj.DefaultPath=defpath;catch, end
             end
         end
     end

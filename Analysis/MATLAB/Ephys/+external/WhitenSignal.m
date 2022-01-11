@@ -8,7 +8,7 @@
 % filter with filtfilt , instead.
 function [y, A] = WhitenSignal(x,varargin)
 
-[window,CommonAR, ARmodel] = DefaultArgs(varargin,{[],0,[]});
+[window,CommonAR, ARmodel] = external.DefaultArgs(varargin,{[],0,[]});
 Trans = 1;
 if size(x,1)<size(x,2)
     x = x';
@@ -31,20 +31,20 @@ for j=1:nwin
     if ~isempty(ARmodel)
     A = ARmodel;
         for i=1:nCh
-	    y(seg(j,1):seg(j,2),i) = Filter0([1 -A], x(seg(j,1):seg(j,2),i));
+	    y(seg(j,1):seg(j,2),i) = external.Filter0([1 -A], x(seg(j,1):seg(j,2),i));
         end
     else    
 	if CommonAR 
 		for i=1:nCh
 		if  j==1
-			[w A] = arfit(x(seg(j,1):seg(j,2),i),2,2);
+			[w A] = external.arfit(x(seg(j,1):seg(j,2),i),2,2);
 		end
-		y(seg(j,1):seg(j,2),i) = Filter0([1 -A], x(seg(j,1):seg(j,2),i));
+		y(seg(j,1):seg(j,2),i) = external.Filter0([1 -A], x(seg(j,1):seg(j,2),i));
 		end
 	else
 		for i=1:nCh
-		[w A] = arfit(x(seg(j,1):seg(j,2),i),2,2);
-		y(seg(j,1):seg(j,2),i) = Filter0([1 -A], x(seg(j,1):seg(j,2),i));
+		[w A] = external.arfit(x(seg(j,1):seg(j,2),i),2,2);
+		y(seg(j,1):seg(j,2),i) = external.Filter0([1 -A], x(seg(j,1):seg(j,2),i));
 		end
 	end
     end

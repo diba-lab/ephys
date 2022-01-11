@@ -9,10 +9,14 @@ classdef SDExperiment < Singleton
         % Guard the constructor against external invocation.  We only want
         % to allow a single instance of this class.  See description in
         % Singleton superclass.
-        function newObj = SDExperiment()
+        function newObj = SDExperiment(xmlfile)
             % Initialise your custom properties.
+            if exist("xmlfile",'var')
+                newObj.XMLFile = xmlfile;
+            else
             newObj.XMLFile = ...
                 './ExperimentSpecific/Configure/Experiment.xml';
+            end
             try
                 S=readstruct(newObj.XMLFile);
             catch
@@ -25,10 +29,14 @@ classdef SDExperiment < Singleton
     
     methods(Static)
         % Concrete implementation.  See Singleton superclass.
-        function obj = instance()
+        function obj = instance(xmlFile)
             persistent uniqueInstance
             if isempty(uniqueInstance)
-                obj = experiment.SDExperiment();
+                if exist('xmlFile','var')
+                    obj = experiment.SDExperiment(xmlFile);
+                else
+                    obj = experiment.SDExperiment();
+                end
                 uniqueInstance = obj;
             else
                 obj = uniqueInstance;
@@ -73,7 +81,8 @@ classdef SDExperiment < Singleton
                     state1=states(state);
                     
                 else
-                    state1=S.StateCodes.(state);
+                    idx=ismember(sc,state);
+                    state1=statecodes(idx);
                 end
             end
         end

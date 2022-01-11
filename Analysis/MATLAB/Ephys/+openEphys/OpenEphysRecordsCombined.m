@@ -34,9 +34,18 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
         function obj=plus(obj,varargin)
             for iArgIn=1:(nargin-1)
                 theOpenEphysRecord=varargin{iArgIn};
-                assert(isa(theOpenEphysRecord,'openEphys.OpenEphysRecord'));
-                obj.OpenEphysRecords.add(theOpenEphysRecord);
-                fprintf('Record addded:\n%s\n', theOpenEphysRecord.getFile);
+                if isa(theOpenEphysRecord,'openEphys.OpenEphysRecord')
+                    obj.OpenEphysRecords.add(theOpenEphysRecord);
+                    fprintf('Record addded:\n%s\n', theOpenEphysRecord.getFile);
+                elseif isa(theOpenEphysRecord,'openEphys.OpenEphysRecordsCombined')
+                    oers=theOpenEphysRecord.OpenEphysRecords;
+                    iter=oers.createIterator;
+                    for ioer=1:oers.length
+                        oer=iter.next;
+                        obj.OpenEphysRecords.add(oer);
+
+                    end
+                end
                 try
                     if isempty(obj.Probe)
                         obj.Probe=theOpenEphysRecord.getProbe;
@@ -77,17 +86,19 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
             %   Detailed explanation goes here
             
             evts=obj.getEvents;
-            evets.sa
+%             evets.sa
             
             iter=obj.getIterator();
             first=true;
-            fname=sprintf('MergedRaw');
+            tokens=strsplit(path,'/');
+            fname=tokens{end};
             fileout=fullfile(path, [fname '.dat']);
             dataForClustering=preprocessing.DataForClustering(fileout);
             [folder,fname,ext]=fileparts(fileout);
             probe=obj.getProbe;
             probe=probe.setActiveChannels(channels);
             probe=probe.renameChannelsByOrder(channels);
+            if ~isfolder(folder),mkdir(folder);end
             probe.saveProbeTable(fullfile(folder,'Probe.csv'));
             ticd=obj.getTimeIntervalCombined;
             dataForClustering=dataForClustering.setTimeIntervalCombined(ticd);

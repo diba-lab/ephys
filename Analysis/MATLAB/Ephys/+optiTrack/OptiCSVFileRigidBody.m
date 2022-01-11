@@ -19,7 +19,7 @@ classdef OptiCSVFileRigidBody<optiTrack.OptiCSVFile
             %   Detailed explanation goes here
             %% Rigid Body
             
-            opts = delimitedTextImportOptions('NumVariables', 9);
+            opts = detectImportOptions(file,"ReadVariableNames",true,"ExpectedNumVariables",9,VariableNamesLine=7);
             
             % Specify range and delimiter
             opts.DataLines = [8, Inf];
@@ -33,6 +33,15 @@ classdef OptiCSVFileRigidBody<optiTrack.OptiCSVFile
             
             % Import the data
             obj.table = readtable(file, opts);
+        end
+        function st=getStartTime(obj)
+            st=obj.CaptureStartTime;
+        end
+        function sr=getSampleRate(obj)
+            sr=obj.ExportFrameRate;
+        end
+        function nf=getNumFrames(obj)
+            nf=obj.TotalExportedFrames;
         end
 
     end

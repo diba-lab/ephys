@@ -38,19 +38,54 @@ classdef RippleAbs
             
         end
         function [p2] = plotHistCount(obj, TimeBinsInSec)
-            if ~exist('TimeBinsInSec','var')
-                TimeBinsInSec=30;
+            if ~exist('TimeBinsInSec','var')||isempty(TimeBinsInSec)
+                TimeBinsInSec=600;
             end
             ticd=obj.TimeIntervalCombined;
+            ztshift=ticd.getStartTime-ticd.getZeitgeberTime;
             peaktimestamps=obj.getPeakTimes*ticd.getSampleRate;
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
             peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
             [N,edges]=histcounts(peakTimesAdjusted,1:TimeBinsInSec:max(peakTimesAdjusted));
-            t=hours(seconds(edges(1:(numel(edges)-1))+15));
-            t1=linspace(min(t),max(t),numel(t)*10);
+            t=hours(seconds(edges(1:(numel(edges)-1))+TimeBinsInSec/2))+hours(ztshift);
+            t1=linspace(min(t),max(t),numel(t)*1);
             N=N/TimeBinsInSec;
-            N=interp1(t,N,t1,'spline','extrap');
+            N=interp1(t,N,t1,'linear','extrap');
             p2=plot(t1,N,'LineWidth',1);
+        end
+        function [p2] = plotSWAmplitudeHistCount(obj, TimeBinsInSec)
+            if ~exist('TimeBinsInSec','var')||isempty(TimeBinsInSec)
+                TimeBinsInSec=600;
+            end
+            ticd=obj.TimeIntervalCombined;
+            ztshift=ticd.getStartTime-ticd.getZeitgeberTime;
+            peaktimestamps=obj.getPeakTimes*ticd.getSampleRate;
+            peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
+            peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
+            SWAmplitude=obj.SwMax;
+            t=hours(seconds(peakTimesAdjusted))+hours(ztshift);
+            t1=linspace(min(t),max(t),seconds(hours(range(t)))*1);
+            N=interp1(t,SWAmplitude,t1,'nearest');
+%             p2=plot(t,SWAmplitude,'LineWidth',1);p2.LineWidth=2;
+%             p2=plot(t1,N,'LineWidth',1);
+            p2=plot(t1,medfilt1(N,TimeBinsInSec, 'omitnan'),'LineWidth',1.5);
+        end
+        function [p2] = plotRippleAmplitudeHistCount(obj, TimeBinsInSec)
+            if ~exist('TimeBinsInSec','var')||isempty(TimeBinsInSec)
+                TimeBinsInSec=600;
+            end
+            ticd=obj.TimeIntervalCombined;
+            ztshift=ticd.getStartTime-ticd.getZeitgeberTime;
+            peaktimestamps=obj.getPeakTimes*ticd.getSampleRate;
+            peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
+            peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
+            RipAmplitude=obj.getRipMax;
+            t=hours(seconds(peakTimesAdjusted))+hours(ztshift);
+            t1=linspace(min(t),max(t),seconds(hours(range(t)))*1);
+            N=interp1(t,RipAmplitude,t1,'nearest');
+%             p2=plot(t,SWAmplitude,'LineWidth',1);p2.LineWidth=2;
+%             p2=plot(t1,N,'LineWidth',1);
+            p2=plot(t1,medfilt1(N,TimeBinsInSec, 'omitnan'),'LineWidth',1.5);
         end
         
         function [ripples, y]=getRipplesTimesInWindow(obj,toi)
@@ -112,14 +147,20 @@ classdef RippleAbs
             peaktimes.start=peaktimes.start-blockInSec(1);
             peaktimes.stop=peaktimes.stop-blockInSec(1);
             obj.PeakTimes=peaktimes;
-            obj.SwMax=obj.SwMax(idx);
-            obj.RipMax=obj.RipMax(idx);
+            try obj.SwMax=obj.SwMax(idx);catch, end
+            try obj.RipMax=obj.RipMax(idx);catch,end
             obj.TimeIntervalCombined=ticd_new;
         end
-        function []= saveEventsNeuroscope(obj,pathname)
+        function []= saveEventsNeuroscope(obj,pathname,ext)
+            if ~exist('pathname','var')
+                pathname=obj.DetectorInfo.BasePath;
+            end
+            if ~exist('ext','var')
+                ext='SWR';
+            end
             tokens=split(pathname,filesep);
             filename=tokens{end};
-            fid = fopen(sprintf('%s%s%s.R%02d.evt',pathname,filesep,filename,1),'w');
+            fid = fopen(sprintf('%s%s%s.%s.evt',pathname,filesep,filename,ext),'w');
             
             % convert detections to milliseconds
             peakTimes= obj.getPeakTimes*1000;
@@ -233,7 +274,7 @@ classdef RippleAbs
         end
         
         function obj=mergeOverlappingRipples(obj)
-                    
+                    mergewind=0;
             firstPass=[obj.PeakTimes.start obj.PeakTimes.stop];
             secondPassRipple=[];
             secondPassPeak=[];
@@ -244,7 +285,7 @@ classdef RippleAbs
             thePeakTime=obj.PeakTimes.peak(1);
             theSw=obj.SwMax(1);
             for i = 2:size(firstPass,1)
-                if firstPass(i,1) - theRipple(2) < 0
+                if firstPass(i,1) - theRipple(2) < mergewind
                     % Merge
                     theRipple = [theRipple(1) firstPass(i,2)];
                     if thePower<obj.RipMax(i)

@@ -18,34 +18,28 @@ classdef OptiCSVFileSingleMarker<optiTrack.OptiCSVFile
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             %% Single Marker
-            
-            fid = fopen(file);
-            for i=1:8
-                line_ex = fgetl(fid);  % read line excluding newline character
+            if ~exist("file","var")
+                file=obj.file;
             end
-            T=table('Size',[obj.TotalExportedFrames 5],'VariableTypes',{'uint32','double','double','double','double'},...
-                'VariableNames',{'Frame','Time','X','Y','Z'});
-            for i=1:(obj.TotalExportedFrames)
-                line_ex = fgetl(fid);
-                cols=strsplit(line_ex,',');
-                T.Frame(i)=uint32(str2double(cols{1}));
-                T.('Time')(i)=str2double(cols{2});
-                try
-                    T.X(i)=str2double(cols{3});
-                    T.Y(i)=str2double(cols{4});
-                    T.Z(i)=str2double(cols{5});
-                catch
-                    T.X(i)=nan;
-                    T.Y(i)=nan;
-                    T.Z(i)=nan;
-                end
-                if(mod(i,1000)==0)
-                    fprintf('done: %d/%d\n',i,obj.TotalExportedFrames);
-                end
-            end
-            fclose(fid);
+            opts = detectImportOptions(file,"ReadVariableNames",true,"ExpectedNumVariables",5,VariableNamesLine=7);
+            opts.VariableNames = {'Frame', 'Time', 'X', 'Y', 'Z'};
+            opts.VariableTypes={'uint32','double','double','double','double'};
+            opts.DataLines=[8 inf];
+            opts.ExtraColumnsRule = 'ignore';
+            opts.EmptyLineRule = 'read';
+            T=readtable(file,opts);
             obj.table = T;
         end
+        function st=getStartTime(obj)
+            st=obj.CaptureStartTime;
+        end
+        function sr=getSampleRate(obj)
+            sr=obj.ExportFrameRate;
+        end
+        function nf=getNumFrames(obj)
+            nf=obj.TotalExportedFrames;
+        end
+
     end
 end
 

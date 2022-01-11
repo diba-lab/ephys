@@ -32,7 +32,12 @@ classdef (Abstract)OpenEphysRecord < neuro.time.Timelined & file.BinarySave
                     
             end
             obj.FileLoaderMethod=fileLoaderMethod;
-            obj.Probe=neuro.probe.Probe([filepath filesep '..' filesep '..' ]);
+            try 
+                obj.Probe=neuro.probe.Probe([filepath filesep '..' filesep '..' ]);
+            catch
+                l=logging.Logger.getLogger;
+                l.error('You should provide a probe file in %s',[filepath filesep '..' filesep '..' ]);
+            end
             obj.Events=[];
         end
         %% Functions

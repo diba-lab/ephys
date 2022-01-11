@@ -1,7 +1,7 @@
 classdef Oscillation
     %OSCILLATION Summary of this class goes here
     %   Detailed explanation goes here
-    properties (Access=protected)
+    properties (Access=public)
         Values
         SampleRate
     end
@@ -10,6 +10,10 @@ classdef Oscillation
             %OSCILLATION Construct an instance of this class
             %   Detailed explanation goes here
             obj.SampleRate=sampleRate;
+            sz=size(values);
+            if sz(1)>sz(2)
+                values=values';
+            end
             if ~isa(values,'double')
                 obj.Values=double(values);
             else
@@ -24,7 +28,7 @@ classdef Oscillation
                 [ticd1, res]=obj.getTimeIntervalCombined.getDownsampled(...
                     obj.getTimeIntervalCombined.getSampleRate*...
                     timeFrequencyMethod.movingWindow(2));
-                obj.Values(res)=[];
+                obj.Values(end-res+1:end)=[];
             catch
                 ticd1=obj.getTimeIntervalCombined;
             end
@@ -36,39 +40,42 @@ classdef Oscillation
             ts=obj.getTimeStamps;
             vals=obj.getValues;
             p1=plot(ts,vals,varargin{:});
-            ax=gca;
-            ax.XLim=[ts(1) ts(end)];
+%             ax=gca;
+%             ax.XLim=[ts(1) ts(end)];
         end
 
         function obj=getDownSampled(obj,newRate)
-            rate=obj.SampleRate/newRate;
-            obj.Values=downsample(obj.getValues,rate);
+            ratio=obj.SampleRate/newRate;
+            obj.Values=downsample(obj.getValues,ratio);
             obj.SampleRate=newRate;
-            obj=obj.setTimeInterval(obj.getTimeInterval.getDownsampled(rate));
         end
-        function ets=getReSampled(obj,ts1)    
-            ts=timeseries(obj.getValues,obj.getTimeStamps);
-            tsr=ts.resample(ts1);
-            sr=1/((ts1(end)-ts1(1))/numel(ts1));
-            ets=EphysTimeSeries(squeeze(tsr.Data),sr);
+        function obj=getReSampled(obj,newRate)
+            obj.Values=resample(obj.getValues, newRate,obj.getSampleRate);
+            obj.SampleRate=newRate;
+        end
+        function obj=getFillMissing(obj,window)    
+            obj.Values=fillmissing(obj.getValues,"movmedian",window*obj.SampleRate);
         end
         function ps=getPSpectrum(obj)
             [pxx,f] = pspectrum(double(obj.Values),obj.getSampleRate,...
                 'FrequencyLimits',[1 250]);
-            ps=PowerSpectrum(pxx,f);
+            ps=neuro.power.PowerSpectrum(pxx,f);
+        end
+        function l=getLength(obj)
+            l=seconds(obj.getNumberOfPoints/obj.getSampleRate);
         end
         function ps=getPSpectrumChronux(obj)
 %             params.tapers=[3 5];
             params.Fs=obj.getSampleRate;
             params.fpass=[1 250];
             [S,f] = mtspectrumc( obj.Values, params );
-            ps=PowerSpectrum(S,f);
+            ps=neuro.power.PowerSpectrum(S,f);
         end
         function ps=getPSpectrumWelch(osc)
             window=2*osc.getSampleRate;
             overlap=window/2;
             [psd, freqs] = pwelch(osc.Values, window, overlap, [], osc.getSampleRate);
-            ps=PowerSpectrum(psd,freqs);
+            ps=neuro.power.PowerSpectrum(psd,freqs);
         end
         function specslope=getPSpectrumSlope(osc)
             LFP.data=osc.Values;
@@ -95,30 +102,33 @@ classdef Oscillation
             obj.Values=x_whitened';
         end
         function obj=getWhitened(obj)
-            obj.Values = reshape(WhitenSignal(obj.Values,[],1),size(obj.Values));
+            obj.Values = reshape(external.WhitenSignal(obj.Values,[],1),size(obj.Values));
         end
         function obj=getLowpassFiltered(obj,filterFreq)
             obj.Values=ft_preproc_lowpassfilter(...
-                obj.Values',obj.SampleRate,filterFreq);
+                obj.Values,obj.SampleRate,filterFreq);
         end
         function obj=getHighpassFiltered(obj,filterFreqBand)
             obj.Values=ft_preproc_highpassfilter(...
-                obj.Values',obj.SampleRate,filterFreqBand,[],[],[]);
+                obj.Values,obj.SampleRate,filterFreqBand,[],[],[]);
         end
         function obj=getBandpassFiltered(obj,filterFreqBand)
             obj.Values=ft_preproc_bandpassfilter(...
-                obj.Values',obj.SampleRate,filterFreqBand,[],[],[]);
+                obj.Values,obj.SampleRate,filterFreqBand,[],[],[]);
+        end
+        function obj=getEnvelope(obj)
+            obj.Values=ft_preproc_hilbert(obj.Values,'abs');
         end
         function obj=getMedianFiltered(obj,windowInSeconds,varargin)
-            obj.Values=medfilt1(obj.Values',...
+            obj.Values=medfilt1(obj.Values,...
                 obj.getSampleRate*windowInSeconds,varargin{:});
         end
         function obj=getMeanFiltered(obj,windowInSeconds)
-            obj.Values=smoothdata(obj.Values',...
+            obj.Values=smoothdata(obj.Values,...
                 'movmean', obj.getSampleRate*windowInSeconds);
         end
         function obj=getZScored(obj)
-            obj.Values=zscore(obj.Values');
+            obj.Values=zscore(obj.Values);
         end
         function vals=getValues(obj)
             vals = obj.Values;
@@ -157,11 +167,11 @@ classdef Oscillation
         function idx=gt(obj,num)
             idx=obj.getValues>num;
         end
-        function obj=subsasgn(obj,s,n)
-            va=obj.getValues;
-            va(s.subs{:})=n;
-            obj=obj.setValues(va );
-        end
+%         function obj=subsasgn(obj,s,n)
+%             va=obj.getValues;
+%             va(s.subs{:})=n;
+%             obj=obj.setValues(va );
+%         end
         function samples=subsindex(obj,s)
             error('This function is changed. Make sure it is working properly, then move.')
             idx=s.subs{:};
