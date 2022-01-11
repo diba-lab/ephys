@@ -57,8 +57,6 @@ classdef FileLoaderOpenEphys < FileLoaderMethod
                     channelFiles{ichan}=memmapfile(chfile,'Format',...
                         {'int16',[1 numel(timestamps)],'voltageArray'});
                 end
-                
-                
                 numchunk=ceil(size(timestamps,1)/obj.chunksize);
                 for ichunk=1:numchunk
                     tic

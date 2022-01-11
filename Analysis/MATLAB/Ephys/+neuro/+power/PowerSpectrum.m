@@ -52,7 +52,6 @@ classdef PowerSpectrum
             else
                 ax.XLim=[obj.Frequency(1) obj.Frequency(end)];
             end
-            
             try
                 ax.YLim=ylim;
             catch
@@ -63,17 +62,17 @@ classdef PowerSpectrum
             title('Default Frequency Resolution')
         end
         function fooofr=getFooof(powerSpectrum,settings,f_range)
-            
             % FOOOF settings
             if ~exist('settings','var')
                 settings = struct();  % Use defaults
+            else
+                settings.aperiodic_mode=char(settings.aperiodic_mode);
             end
             if ~exist('f_range','var')
                 f_range = [0, 250];
             end
             fooof_results = fooof(powerSpectrum.Frequency, powerSpectrum.Power, f_range, settings, true);
-
-            fooofr=Fooof(fooof_results);
+            fooofr=neuro.power.Fooof(fooof_results);
         end
         function [freq, pwr]=getPeak(powerSpectrum,f_range)
             [~,idx(1)]=min(abs(powerSpectrum.Frequency-f_range(1)));

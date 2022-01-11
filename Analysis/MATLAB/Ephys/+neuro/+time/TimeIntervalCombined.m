@@ -5,6 +5,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
     
     properties
         timeIntervalList
+        Source
     end
     
     methods
@@ -34,12 +35,24 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                     else
                         timefilepath=el;
                     end
+                    % try to find zeitgebver time
+                    try
+                        sf=experiment.SessionFactory;
+                        folder=fileparts(timefilepath);
+                        ses=sf.getSessions(folder);
+                        zt=ses.SessionInfo.ZeitgeberTime;
+                    catch
+                    end
+
                     try
                         T=readtable(timefilepath);
                         obj=TimeIntervalCombined;
                         for iti=1:height(T)
                             tiRow=T(iti,:);
                             theTimeInterval=TimeInterval(tiRow.StartTime,tiRow.SampleRate,tiRow.NumberOfPoints);
+                            if exist('zt','var')
+                                theTimeInterval=neuro.time.TimeIntervalZT(theTimeInterval,zt);
+                            end
                             timeIntervalList.add(theTimeInterval);
                             logger.fine('ti added.');
                         end
@@ -58,6 +71,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                     end
                 end
             end
+            try obj.Source=timefilepath;catch,end
             obj.timeIntervalList=timeIntervalList;
             obj.Format='uuuu-MM-dd HH:mm:ss.SSS';
         end
@@ -65,12 +79,12 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
         function []=print(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-          
-                til=obj.timeIntervalList;
-                for iInt=1:til.length
-                    theTimeInterval=til.get(iInt);
-                    theTimeInterval.print
-                end
+
+            til=obj.timeIntervalList;
+            for iInt=1:til.length
+                theTimeInterval=til.get(iInt);
+                theTimeInterval.print
+            end
         end
         function str=tostring(obj)
             %METHOD1 Summary of this method goes here
@@ -85,6 +99,11 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             jf=java.text.DecimalFormat; % comma for thousands, three decimal places
             np1= char(jf.format(np)); % omit "char" if you want a string out
             str=sprintf('\t%s \t%s - %s\t<%s>\t<%s (%dHz)>',date,st,en,dur1,np1,sf);
+        end
+        function tostringList(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            obj.print;
         end
         function new_timeIntervalCombined=getTimeIntervalForSamples(obj, times)
             %METHOD1 Summary of this method goes here
@@ -121,8 +140,13 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                 end
             end
         end
-        
-        
+
+        function timeIntervalList=getTimeIntervalList(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            timeIntervalList=obj.timeIntervalList;
+        end
+
         function timeIntervalCombined=getTimeIntervalForTimes(obj, times)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -178,15 +202,15 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             
             samples=nan(size(times));
             til= obj.timeIntervalList;
-                lastSample=0;
-                ends=datetime.empty([0 til.length]);
+            lastSample=0;
+            ends=datetime.empty([0 til.length]);
             for iInt=1:til.length
                 theTimeInterval=til.get(iInt);
                 ends((iInt-1)*2+1)=theTimeInterval.getStartTime;
                 ends(iInt*2)=theTimeInterval.getEndTime;
                 idx=times>=theTimeInterval.getStartTime & times<=theTimeInterval.getEndTime;
                 samples(idx)=theTimeInterval.getSampleFor(times(idx))+lastSample;
-                lastSample=lastSample+theTimeInterval.NumberOfPoints;         
+                lastSample=lastSample+theTimeInterval.NumberOfPoints;
             end
             for it=1:numel(samples)
                 if isnan(samples(it))
@@ -273,7 +297,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                 end
                 
             end
-            
+            try timeIntervalCombined.Source= obj.Source;catch, end
         end
         function tps=getTimePointsInSec(obj)
             til= obj.timeIntervalList;
@@ -342,7 +366,9 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
         function ticd=saveTable(obj,filePath)
             iter=obj.timeIntervalList.createIterator;
             count=1;
-            
+            if ~exist('filePath','var')
+                filePath=obj.Source;
+            end
             while(iter.hasNext)
                 ti=iter.next;
                 S(count).StartTime=ti.StartTime;
@@ -375,9 +401,18 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
         function zt=getZeitgeberTime(obj)
             iter=obj.timeIntervalList.createIterator;
             ti=iter.next;
-            zt=ti.ZeitgeberTime;
+            zt=ti.getZeitgeberTime;
         end
-        
+        function obj=shiftTimePoints(obj,shift)
+            tilnew=CellArrayList;
+            til= obj.timeIntervalList;
+            for iInt=1:til.length
+                theTimeInterval=til.get(iInt);
+                ti=theTimeInterval.shiftTimePoints(shift);
+                tilnew.add(ti);
+            end
+            obj.timeIntervalList=tilnew;
+        end        
     end
     methods
 

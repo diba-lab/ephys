@@ -1,4 +1,4 @@
-classdef TimeFrequencyWavelet < TimeFrequencyMethod
+classdef TimeFrequencyWavelet < neuro.tf.TimeFrequencyMethod
     %TIMEFREQUENCYPROPERTIESWAVELET Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -13,7 +13,7 @@ classdef TimeFrequencyWavelet < TimeFrequencyMethod
                 centralFrequency, scalingExponent)
             %TIMEFREQUENCYPROPERTIESWAVELET Construct an instance of this class
             %   Detailed explanation goes here
-            obj = obj@TimeFrequencyMethod(frequencyInterests);
+            obj = obj@neuro.tf.TimeFrequencyMethod(frequencyInterests);
             if nargin>2
                 obj.scalingExponent = scalingExponent;
             else
@@ -37,7 +37,7 @@ classdef TimeFrequencyWavelet < TimeFrequencyMethod
                 obj.scalingExponent);
             l=logging.Logger.getLogger;
             l.info(sprintf('go'));
-            aTimeFrequencyMap=TimeFrequencyMapWavelet(...
+            aTimeFrequencyMap=neuro.tf.TimeFrequencyMapWavelet(...
                 matrix, (1:numel(data))/sampleRate, obj.FrequencyInterest);
         end
     end

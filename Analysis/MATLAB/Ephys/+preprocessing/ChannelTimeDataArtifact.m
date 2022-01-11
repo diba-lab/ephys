@@ -50,9 +50,9 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
                 cfg.artfctdef.zvalue.channel      ='all';
                 cfg.artfctdef.zvalue.cutoff     = 50;
                 cfg.artfctdef.zvalue.artpadding = .01;
-                cfg.artfctdef.zvalue.hilbert    ='yes';
-                cfg.artfctdef.zvalue.bpfilter      = 'yes';
-                cfg.artfctdef.zvalue.bpfreq        = [300 600];
+%                 cfg.artfctdef.zvalue.hilbert    ='yes';
+%                 cfg.artfctdef.zvalue.bpfilter      = 'yes';
+%                 cfg.artfctdef.zvalue.bpfreq        = [500 600];
                 cfg.artfctdef.zvalue.interactive = 'yes';
                 
                 cfg.artfctdef.threshold.channel   = 'all';
@@ -149,7 +149,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
             end
             cfg1.artfctdef.zvalue=[];
             cfg1.artfctdef.zvalue.channel      ='all';
-            cfg1.artfctdef.zvalue.cutoff     = 7;
+            cfg1.artfctdef.zvalue.cutoff     = 20;
             cfg1.artfctdef.zvalue.artpadding = .01;
             cfg1.artfctdef.zvalue.interactive = 'yes';
             
@@ -165,7 +165,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
             end
             tws1=neuro.time.TimeWindowsSample(artifact);
             twd1=tws1.getDuration(obj.getTimeIntervalCombined.getSampleRate);
-            cfg1.artfctdef.zvalue.cutoff     = -5;
+            cfg1.artfctdef.zvalue.cutoff     = -20;
             cachefile=fullfile(obj.getFolder,'cache',[DataHash(cfg1.artfctdef.zvalue) '.mat']);
             try
                 load(cachefile,'artifact');

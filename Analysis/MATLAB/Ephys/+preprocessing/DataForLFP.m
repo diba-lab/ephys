@@ -60,15 +60,23 @@ classdef DataForLFP
                 writestruct(S,analysisFile);
             end
             obj.EventsFile=fullfile(baseFolder,sde.FileLocations.Session.Events);
-%             try
-%                 S=readstruct(obj.EventsFile);
-%             catch
-%                 S=[];
-%                 S.HVS='HVS';
-%                 S.SWR='SWR';
-%                 writestruct(S, obj.EventsFile);
-%             end
-% 
+            %             try
+            %                 S=readstruct(obj.EventsFile);
+            %             catch
+            %                 S=[];
+            %                 S.HVS='HVS';
+            %                 S.SWR='SWR';
+            %                 writestruct(S, obj.EventsFile);
+            %             end
+            %
+            try
+                obj.Probe=neuro.probe.Probe(baseFolder);
+            catch
+            end
+            try
+                obj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(baseFolder);
+            catch
+            end
             obj.AnalysisParameters=S;
         end
         

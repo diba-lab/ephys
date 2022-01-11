@@ -48,7 +48,7 @@ classdef BlockOfChannels
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             channels=obj.Channels;
-            newboc=BlockOfChannels();
+            newboc=neuro.basic.BlockOfChannels();
             iter=channels.createIterator;
             while iter.hasNext
                 chan1=iter.next;
@@ -56,10 +56,9 @@ classdef BlockOfChannels
                 newboc=newboc.addChannel(chan);
             end
             hyp=obj.getHypnogram;
-            try
+            if ~isempty(hyp)
                 hyp1=hyp.getWindow(window);
                 newboc=newboc.addHypnogram(hyp1);
-            catch
             end
             newboc.Info=obj.Info;
         end

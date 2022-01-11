@@ -34,7 +34,7 @@ classdef SWRDetectionMethodSWR < neuro.ripple.SWRDetectionMethod
 
             conf.chans=chans;
             str=DataHash(conf);
-            cacheFileName=fullfile(obj.BasePath,'cache',[str '.mat']);
+            cacheFileName=fullfile(obj.BasePath,'cacheripple',['sw_' num2str(chans(1)) '_' str '.mat']);
             [folder,~,~]=fileparts(cacheFileName);if ~isfolder(folder), mkdir(folder); end
             if ~exist(cacheFileName,'file')
                 ripple=detect_swr(fullfile(list1.folder,list1.name),chans,obj.Epochs...

@@ -7,13 +7,23 @@ classdef AnimalFactory
     end
     
     methods
-        function obj = AnimalFactory()
+        function obj = AnimalFactory(varargin)
             %SESIONFACTORY Construct an instance of this class
             %   Detailed explanation goes here
-            
-            Sde=experiment.SDExperiment.instance.get();
+            l=logging.Logger.getLogger;
+            if nargin>0
+                if isfile(varargin{1})
+                    file1=varargin{1};
+                else
+                    l.error('Animal file is incorrect. %s',file1);
+                end
+            else
+                Sde=experiment.SDExperiment.instance.get();
+                file1=Sde.FileLocations.General.Animals;
+            end
             try
-                S1=readstruct(Sde.FileLocations.General.Animals);
+                S1=readstruct(file1);
+                l.info('File loaded. %s',file1)
             catch
                 animal.Age='';
                 animal.Analgesics='';
@@ -35,7 +45,8 @@ classdef AnimalFactory
                 animal.ProbeName='';
                 S1.animals(1)=animal;
                 S1.animals(2)=animal;
-                writestruct(S1,Sde.FileLocations.General.Animals);
+                writestruct(S1,file1);
+                l.warning('File Created. %s',file1)
             end
             obj.AnimalsStruct=S1.animals;
         end

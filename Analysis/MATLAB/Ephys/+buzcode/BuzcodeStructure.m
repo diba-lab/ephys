@@ -32,7 +32,12 @@ classdef BuzcodeStructure
                 end
             end
             obj.BasePath=filepath;
-            
+            try
+                obj.BadIntervals=neuro.time.TimeWindowsDuration(obj.BasePath);
+            catch
+                logging.Logger.getLogger.warning( ...
+                    'Could not find an evt file in %s',obj.BasePath);
+            end
             obj.Probe=neuro.probe.Probe(obj.BasePath);
             obj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(obj.BasePath);
         end
@@ -40,13 +45,16 @@ classdef BuzcodeStructure
             import neuro.ripple.*
             folders={'.','..',['..',filesep,'..']};
             for ifolder=1:numel(folders)
-                list=dir(fullfile(obj.BasePath,folders{ifolder},'*.conf'));
+                list=dir(fullfile(obj.BasePath,folders{ifolder},'SWRconfigure.conf'));
                 if ~isempty(list)
                     break
                 end
             end
             if ~isempty(list)
-                conf=readConf(fullfile(list.folder,list.name));
+                try
+                    conf=readConf(fullfile(list.folder,list.name));
+                catch
+                end
             else
                 for ifolder=1:numel(folders)
                 list=dir(fullfile(obj.BasePath,folders{ifolder},'*SWR.conf.xml'));
@@ -107,11 +115,20 @@ classdef BuzcodeStructure
                 try
                     varargin={varargin{:},'ignoretime',params.bad};
                 catch
+                    try
+                        varargin={varargin{:},'ignoretime',obj.BadIntervals.getArrayForBuzcode};
+                    catch
+                        logger.warning('No bad intervals found.')
+                    end
                     logger.warning('No Ignore Times set.')
                 end
+                varargin0=varargin(2:2:end);
                 varargin1=varargin(2:end);
-%                 logger.info(['SleepScoreMaster is callled with the following parameters: ', join(num2str(varargin1))]);
-
+                joinedstr=join(varargin0,', ');
+                logger.info(sprintf('SleepScoreMaster is callled with the following parameters: %s', ...
+                    joinedstr{:} ...
+                    ));
+                
                 SleepScoreMaster(obj.BasePath,varargin1{:});
                 sdd=StateDetectionData(obj.BasePath);
             end

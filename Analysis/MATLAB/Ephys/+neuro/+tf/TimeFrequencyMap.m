@@ -49,7 +49,7 @@ classdef (Abstract) TimeFrequencyMap < neuro.tf.Topography2D
             thpkfreq=nan(1,size(mat,2));
             thpkpower=nan(1,size(mat,2));
             for it=1:size(mat,2)
-                psd1=PowerSpectrum( abs(mat(:,it)),freq);
+                psd1=neuro.power.PowerSpectrum( abs(mat(:,it)),freq);
                 [pk,pwr]=psd1.getPeak(freqRange);
                 if ~isempty(pk)
                     thpkfreq(it)=pk;
@@ -57,8 +57,8 @@ classdef (Abstract) TimeFrequencyMap < neuro.tf.Topography2D
                 end
                 
             end
-            thpkfreq=neuro.basic.   EphysTimeSeries(thpkfreq,obj.getSampleRate);
-            thpkpower=EphysTimeSeries(thpkpower,obj.getSampleRate);
+            thpkfreq=neuro.basic.EphysTimeSeries(thpkfreq,obj.getSampleRate);
+            thpkpower=neuro.basic.EphysTimeSeries(thpkpower,obj.getSampleRate);
         end
         function [obj] = setTimeintervalCombined(obj,ticd)
             %METHOD1 Summary of this method goes here

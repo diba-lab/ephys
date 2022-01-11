@@ -13,7 +13,7 @@ classdef (Abstract) SWRDetectionMethod
         function obj=SWRDetectionMethod(basepath)
             folders={'.','..',['..',filesep,'..']};
             for ifolder=1:numel(folders)
-                list=dir(fullfile(basepath,folders{ifolder},'*.conf'));
+                list=dir(fullfile(basepath,folders{ifolder},'SWRconfigure.conf'));
                 if ~isempty(list)
                     break
                 end

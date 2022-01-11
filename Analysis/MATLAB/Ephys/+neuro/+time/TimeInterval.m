@@ -30,10 +30,10 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             date=datestr(obj.getDate,1);
-            st=datestr( obj.getStartTime,13);
-            en=datestr(obj.getEndTime,13);
+            st=datestr( obj.getStartTime,'HH:MM:SS.FFF');
+            en=datestr(obj.getEndTime,'HH:MM:SS.FFF');
             dur=obj.getEndTime-obj.getStartTime;
-            dur1=datestr(dur,13);
+            dur1=datestr(dur,'HH:MM:SS.FFF');
             sf=obj.getSampleRate;
             np=obj.getNumberOfPoints;
             jf=java.text.DecimalFormat; % comma for thousands, three decimal places
@@ -46,7 +46,7 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             %   Detailed explanation goes here
             if startSample <1
                 startSample=1;
-                warning('Start sample is <1, \n\tit is set to ''1''\n')
+                warning(sprintf('Start sample is <1, \n\tit is set to ''1''\n'))
             end
             if endSample > obj.NumberOfPoints
                 endSample=obj.NumberOfPoints;
@@ -133,19 +133,23 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             time=obj.StartTime+seconds((obj.NumberOfPoints-1)/obj.SampleRate);
             time.Format=obj.Format;
         end
+        function timeIntervalList=getTimeIntervalList(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            timeIntervalList=CellArrayList();
+            timeIntervalList.add(obj);
+        end
         function timeIntervalCombined=plus(obj,timeInterval)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             timeIntervalCombined=neuro.time.TimeIntervalCombined(obj,timeInterval);
         end
-        function [timeInterval,residual]=getDownsampled(obj,downsampleFactor)
+        function [obj,residual]=getDownsampled(obj,downsampleFactor)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            newnumPoints=floor(obj.NumberOfPoints/downsampleFactor);
+            obj.NumberOfPoints=floor(obj.NumberOfPoints/downsampleFactor);
             residual=mod(obj.NumberOfPoints,downsampleFactor);
-            timeInterval=neuro.time.TimeInterval(obj.StartTime,...
-                round(obj.SampleRate/downsampleFactor),...
-                newnumPoints);
+            obj.SampleRate=round(obj.SampleRate/downsampleFactor);
         end
         function plot(obj)
             %METHOD1 Summary of this method goes here
@@ -176,7 +180,7 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
         end
         function arrnew=adjustTimestampsAsIfNotInterrupted(obj,arr)
             arrnew=arr;
-            error('Make sure if you really need this function?');
+            logging.Logger.getLogger.error('Make sure if you really need this function?');
         end
         function ticd=saveTable(obj,filePath)
             S.StartTime=obj.StartTime;
@@ -186,6 +190,10 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             writetable(T,filePath)
             ticd=neuro.time.TimeIntervalCombined(filePath);
         end
+        function obj=shiftTimePoints(obj,shift)
+            obj.StartTime=obj.StartTime+shift.duration;
+        end
+
     end
 end
 

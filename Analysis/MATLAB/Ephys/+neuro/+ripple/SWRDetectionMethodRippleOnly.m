@@ -22,14 +22,14 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
         function ripple1 = execute(obj,varargin)
             conf=obj.Configuration;
             ctd=neuro.basic.ChannelTimeDataHard(obj.BasePath);
-            if nargin>1
+            if nargin > 1
                 chans=varargin{1};
             else
                 chans=str2double( conf.ripple_channel);
             end
             passband=str2double(conf.ripple_passband);
             paramFile=fullfile(obj.BasePath,'Parameters','RippleDetection.xml');
-            [folder,~,~]=fileparts(paramFile); if ~isfolder(folder), mkdir(folder);end
+            [folder, ~, ~]=fileparts(paramFile); if ~isfolder(folder), mkdir(folder);end
             if size(chans,1)>1, chans=chans';end
             chasStr=genvarname(['ch' num2str(chans,'_%d')]);
             try
@@ -60,7 +60,7 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
             end
             conf.chan=chan;
             str=DataHash(conf);
-            cacheFileName=fullfile(obj.BasePath,'cacheripple',[str '.mat']);
+            cacheFileName=fullfile(obj.BasePath,'cacheripple',['ro_' num2str(chan) '_' str '.mat']);
             [folder,~,~]=fileparts(cacheFileName);if ~isfolder(folder), mkdir(folder); end
             if ~exist(cacheFileName,'file')
                 %% ~~~Convert the Channels into Neuroscope~~~
