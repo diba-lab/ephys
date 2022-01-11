@@ -49,6 +49,10 @@ params_archive = {
 params = {
     "Pilot1": {
         "alias": "Gilmartin2013",
+        "training_tone": {
+            "type": "white",
+        },
+        "control_tone": None,
         "training_params": {
             "tone_dur": 10,
             "trace_dur": 20,
@@ -67,6 +71,10 @@ params = {
     },
     "Pilot2": {
         "alias": "Pilot2",
+        "training_tone": {
+            "type": "white",
+        },
+        "control_tone": None,
         "training_params": {
             "tone_dur": 10,
             "trace_dur": 20,
@@ -85,6 +93,10 @@ params = {
     },
     "Pilot2test": {
         "alias": "Pilot2",
+        "training_tone": {
+            "type": "white",
+        },
+        "control_tone": None,
         "training_params": {
             "tone_dur": 3,
             "trace_dur": 2,
@@ -99,6 +111,54 @@ params = {
             "CStimes": [3, 3, 3, 3, 3, 3],
             "ITI": 3,
             "ITI_range": 1,
+        },
+    },
+    "Round3": {
+        "alias": "Round3",
+        "training_tone": {
+            "type": "pure_tone",
+            "f": 7000,
+            "fp": 10,
+        },
+        "control_tone": {
+            "type": "pure_tone",
+            "f": 1000,
+            "fp": None,
+        },
+        "homecage_params": {
+            "baseline_time": 180,
+            "f": 1000,
+            "fp": 10,
+            "volume": 1,
+            "tone_dur": 10,
+            "CStimes": [10, 10, 10, 10, 10, 10],
+            "ITI": 60,
+            "ITI_range": 10,
+        },
+        "training_params": {
+            "f": 7000,
+            "tone_dur": 10,
+            "trace_dur": 20,
+            "shock_dur": 1,
+            "ITI": 240,
+            "ITI_range": 20,
+            "nshocks": 6,
+            "start_buffer": 6 * 60,
+        },
+        "recall_params": {
+            "f": 7000,
+            "baseline_time": 60,
+            "CStimes": [10, 10, 10, 10, 10, 10],
+            "ITI": 60,
+            "ITI_range": 10,
+        },
+        "control_recall_params": {
+            "f": 1000,
+            "fp": 10,
+            "baseline_time": 60,
+            "CStimes": [10, 10, 10, 10, 10, 10],
+            "ITI": 60,
+            "ITI_range": 10,
         },
     },
     "Misc": {
@@ -124,7 +184,7 @@ class Trace:
         self,
         arduino_port="COM7",
         tone_type="white",
-        paradigm="Pilot2",
+        paradigm="Round3",
         tone_freq=None,
         volume=1.0,
         base_dir=Path.home(),
@@ -137,8 +197,9 @@ class Trace:
             + " parameters"
         )
         self.tone_freq = tone_freq
-        self.arduino_port = arduino_port
+        self.tone_freq_p = tone_freq_p
         self.tone_type = tone_type
+        self.arduino_port = arduino_port
         self.volume = volume
         self.base_dir = base_dir
         self.p, self.stream = tones.initialize_player(channels=1, rate=20100)
