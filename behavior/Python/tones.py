@@ -74,6 +74,14 @@ def play_tone(stream, samples, volume):
     # return p
 
 
+# def generate_tone(duration, f, fp=None):
+#     "Generates a pure or pulsed tone"
+#     if fp is None:
+#         return generate_pure_tone(duration, f)
+#     elif fp is not None:
+#         return generate_pulse_tone(duration, f, fp)
+
+
 def generate_pulse_tone(duration, f, fp):
     """Generate a pure tone with underlying frequency f that pulses at frequency fp"""
     return (
