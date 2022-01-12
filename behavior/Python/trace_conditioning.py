@@ -55,6 +55,7 @@ params = {
         },
         "control_tone": None,
         "training_params": {
+            "tone_use": "training",
             "tone_dur": 10,
             "trace_dur": 20,
             "shock_dur": 1,
@@ -77,6 +78,7 @@ params = {
         },
         "control_tone": None,
         "training_params": {
+            "tone_use": "training",
             "tone_dur": 10,
             "trace_dur": 20,
             "shock_dur": 1,
@@ -99,6 +101,7 @@ params = {
         },
         "control_tone": None,
         "training_params": {
+            "tone_use": "training",
             "tone_dur": 3,
             "trace_dur": 2,
             "shock_dur": 1,
@@ -120,24 +123,24 @@ params = {
             "type": "pure_tone",
             "f": 7000,
             "fp": 10,
+            "volume": 1,
         },
         "control_tone": {
             "type": "pure_tone",
             "f": 1000,
             "fp": None,
+            "volume": 0.1,
         },
         "homecage_params": {
             "baseline_time": 180,
-            "f": 1000,
-            "fp": 10,
-            "volume": 1,
+            "tone_use": "control",
             "tone_dur": 10,
             "CStimes": [10, 10, 10, 10, 10, 10],
             "ITI": 60,
             "ITI_range": 10,
         },
         "training_params": {
-            "f": 7000,
+            "tone_use": "training",
             "tone_dur": 10,
             "trace_dur": 20,
             "shock_dur": 1,
@@ -147,15 +150,14 @@ params = {
             "start_buffer": 6 * 60,
         },
         "recall_params": {
-            "f": 7000,
+            "tone_use": "training",
             "baseline_time": 60,
             "CStimes": [10, 10, 10, 10, 10, 10],
             "ITI": 60,
             "ITI_range": 10,
         },
         "control_recall_params": {
-            "f": 1000,
-            "fp": 10,
+            "tone_use": "control",
             "baseline_time": 60,
             "CStimes": [10, 10, 10, 10, 10, 10],
             "ITI": 60,
@@ -218,10 +220,10 @@ class Trace:
 
         if self.params["control_tone"] is not None:
             self.control_tone_samples = self.create_tone(
-            tone_type=self.params["control_tone"]["tone_type"],
-            duration=params[paradigm]["training_params"]["tone_dur"],
-            freq=tone_freq,
-        )
+                tone_type=self.params["control_tone"]["tone_type"],
+                duration=params[paradigm]["training_params"]["tone_dur"],
+                freq=tone_freq,
+            )
 
     def run_training_session(self, test=False):
         """Runs training session."""
