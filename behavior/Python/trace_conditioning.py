@@ -49,11 +49,15 @@ params_archive = {
 params = {
     "Pilot1": {
         "alias": "Gilmartin2013",
-        "training_tone": {
-            "type": "white",
-            "duration": 10,
+        "tones": {
+            "training": {
+                "type": "white",
+                "duration": 10,
+                "fp": None,
+                "f": "white",
+            },
+            "control": None,
         },
-        "control_tone": None,
         "training_params": {
             "tone_use": "training",
             "tone_dur": 10,
@@ -73,10 +77,15 @@ params = {
     },
     "Pilot2": {
         "alias": "Pilot2",
-        "training_tone": {
-            "type": "white",
+        "tones": {
+            "training": {
+                "type": "white",
+                "duration": 10,
+                "fp": None,
+                "f": "white",
+            },
+            "control": None,
         },
-        "control_tone": None,
         "training_params": {
             "tone_use": "training",
             "tone_dur": 10,
@@ -96,10 +105,15 @@ params = {
     },
     "Pilot2test": {
         "alias": "Pilot2",
-        "training_tone": {
-            "type": "white",
+        "tones": {
+            "training": {
+                "type": "white",
+                "duration": 3,
+                "fp": None,
+                "f": "white",
+            },
+            "control": None,
         },
-        "control_tone": None,
         "training_params": {
             "tone_use": "training",
             "tone_dur": 3,
@@ -119,17 +133,21 @@ params = {
     },
     "Round3": {
         "alias": "Round3",
-        "training_tone": {
-            "type": "pure_tone",
-            "f": 7000,
-            "fp": 10,
-            "volume": 1,
-        },
-        "control_tone": {
-            "type": "pure_tone",
-            "f": 1000,
-            "fp": None,
-            "volume": 0.1,
+        "tone": {
+            "training": {
+                "type": "pure_tone",
+                "f": 7000,
+                "fp": 10,
+                "volume": 1,
+                "duration": 10,
+            },
+            "control": {
+                "type": "pure_tone",
+                "f": 1000,
+                "fp": None,
+                "volume": 0.1,
+                "duration": 10,
+            },
         },
         "homecage_params": {
             "baseline_time": 180,
@@ -155,6 +173,8 @@ params = {
             "CStimes": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
             "ITI": 60,
             "ITI_range": 10,
+            "end_tone": "control",
+            "end_CStimes": [10],
         },
         "control_recall_params": {
             "tone_use": "control",
@@ -162,6 +182,8 @@ params = {
             "CStimes": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
             "ITI": 60,
             "ITI_range": 10,
+            "end_tone": "training",
+            "end_CStimes": [10]
         },
     },
     "Misc": {
@@ -212,17 +234,17 @@ class Trace:
 
         # Next create tone for training
         # NRK change this to CS+, change other below to CS-
-        self.tone_samples = self.create_tone(
-            tone_type=tone_type,
-            duration=params[paradigm]["training_params"]["tone_dur"],
-            freq=tone_freq,
+        self.tone_samples = tones.generate_tone(
+            f=self.params["tone"]["training"]["f"],
+            duration=self.params["tone"]["training"]["duration"],
+            fp=self.params["tone"]["training"]["fp"],
         )
 
         if self.params["control_tone"] is not None:
-            self.control_tone_samples = self.create_tone(
-                tone_type=self.params["control_tone"]["tone_type"],
-                duration=params[paradigm]["training_params"]["tone_dur"],
-                freq=tone_freq,
+            self.control_tone_samples = tones.generate_tone(
+                f=self.params["tone"]["control"]["f"],
+                duration=self.params["tone"]["control"]["duration"],
+                freq=self.params["tone"]["control"]["fp"],
             )
 
     def run_training_session(self, test=False):
@@ -534,13 +556,15 @@ class Trace:
         # initialize cleanup function
         atexit.register(shutdown_arduino, self.board)
 
-    def create_tone(self, tone_type="white", duration=1.0, freq=None):
-        """Create a pure tone, tone_sweep, or noise.
+    def create_tone(self, f="white", duration=1.0, fp=None):
+        """Create a pure tone, tone_sweep, or noise.  Not used as of 2022_01_12.
         20210202: Only white noise working. freq input needs to be a float or list of floats for tone sweep"""
-        if tone_type == "white":
+        if f == "white":
             tone_samples = tones.generate_white_noise(duration)
-        elif tone_type == "pure_tone":
-            tone_samples = tones.generate_pure_tone(duration, self.tone_freq)
+        elif type(f) in [int, float] and fp is None:
+            tone_samples = tones.generate_pure_tone(duration, f)
+        elif type(f) in [int, float] and fp is not None:
+            tone_samples = tones.generate_pulse_tone(duration, f, fp)
         else:
             tone_samples = None
 
