@@ -55,6 +55,7 @@ params = {
         },
         "control_tone": None,
         "training_params": {
+            "tone_use": "training",
             "tone_dur": 10,
             "trace_dur": 20,
             "shock_dur": 1,
@@ -77,6 +78,7 @@ params = {
         },
         "control_tone": None,
         "training_params": {
+            "tone_use": "training",
             "tone_dur": 10,
             "trace_dur": 20,
             "shock_dur": 1,
@@ -99,6 +101,7 @@ params = {
         },
         "control_tone": None,
         "training_params": {
+            "tone_use": "training",
             "tone_dur": 3,
             "trace_dur": 2,
             "shock_dur": 1,
@@ -120,22 +123,24 @@ params = {
             "type": "pure_tone",
             "f": 7000,
             "fp": 10,
+            "volume": 1,
         },
         "control_tone": {
             "type": "pure_tone",
             "f": 1000,
             "fp": None,
+            "volume": 0.1,
         },
         "homecage_params": {
-            "baseline_time": 60,
-            "volume": 1,
+            "baseline_time": 180,
+            "tone_use": "control",
             "tone_dur": 10,
             "CStimes": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
             "ITI": 60,
             "ITI_range": 10,
         },
         "training_params": {
-            "f": 7000,
+            "tone_use": "training",
             "tone_dur": 10,
             "trace_dur": 20,
             "shock_dur": 1,
@@ -145,15 +150,14 @@ params = {
             "start_buffer": 6 * 60,
         },
         "recall_params": {
-            "f": 7000,
+            "tone_use": "training",
             "baseline_time": 60,
             "CStimes": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
             "ITI": 60,
             "ITI_range": 10,
         },
         "control_recall_params": {
-            "f": 1000,
-            "fp": 10,
+            "tone_use": "control",
             "baseline_time": 60,
             "CStimes": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
             "ITI": 60,
@@ -164,12 +168,12 @@ params = {
         "alias": "Misc",
         "training_params": {"tone_dur": 10},
         "ctx+tone_recall_params": {
-            "baseline_time": 8*60,
+            "baseline_time": 8 * 60,
             "CStimes": [10],
             "ITI": 120,
             "ITI_range": 0,
-        }
-    }
+        },
+    },
 }
 
 default_port = {
@@ -207,6 +211,7 @@ class Trace:
         # self.initialize_arduino(self.arduino_port)
 
         # Next create tone for training
+        # NRK change this to CS+, change other below to CS-
         self.tone_samples = self.create_tone(
             tone_type=tone_type,
             duration=params[paradigm]["training_params"]["tone_dur"],
@@ -215,10 +220,10 @@ class Trace:
 
         if self.params["control_tone"] is not None:
             self.control_tone_samples = self.create_tone(
-            tone_type=self.params["control_tone"]["tone_type"],
-            duration=params[paradigm]["training_params"]["tone_dur"],
-            freq=tone_freq,
-        )
+                tone_type=self.params["control_tone"]["tone_type"],
+                duration=params[paradigm]["training_params"]["tone_dur"],
+                freq=tone_freq,
+            )
 
     def run_training_session(self, test=False):
         """Runs training session."""
@@ -344,7 +349,7 @@ class Trace:
         return ITI + np.random.random_integers(low=-ITI_range, high=ITI_range)
 
     def send_recording_sync(self, length_min):
-        """Send sync signal out to recording system(s) """
+        """Send sync signal out to recording system(s)"""
 
         self.initialize_arduino()
         print("Sending recording sync signal")
@@ -366,7 +371,7 @@ class Trace:
             "training",
             "ctx_recall",
             "tone_recall",
-            "ctx+tone_recall"
+            "ctx+tone_recall",
         ]  # Make sure session is properly named
         if not test_run:
             self.session = session
@@ -474,9 +479,13 @@ class Trace:
         self.write_event("trace" + str(trial) + "_end")
 
         # administer shock
-        print('Degrounding shock floor')
-        self.board.digital[self.shock_relay_pin].write(0)  # signal to solid-state relay - send to floating ground
-        time.sleep(0.05) # make sure you give enough time for relay to switch over before shocking.
+        print("Degrounding shock floor")
+        self.board.digital[self.shock_relay_pin].write(
+            0
+        )  # signal to solid-state relay - send to floating ground
+        time.sleep(
+            0.05
+        )  # make sure you give enough time for relay to switch over before shocking.
         print("Shock!")
         self.write_event("shock" + str(trial) + "_start")
         self.board.digital[self.shock_box_pin].write(1)  # signal to shock box
@@ -484,9 +493,10 @@ class Trace:
         self.board.digital[self.shock_box_pin].write(0)  # stop shock signal
         self.write_event("shock" + str(trial) + "_end")
         time.sleep(0.05)
-        self.board.digital[self.shock_relay_pin].write(1)  # signal to solid-state relay - send to floating ground
-        print('Shock floor re-grounded')
-
+        self.board.digital[self.shock_relay_pin].write(
+            1
+        )  # signal to solid-state relay - send to floating ground
+        print("Shock floor re-grounded")
 
     def initialize_arduino(
         self,
@@ -518,7 +528,7 @@ class Trace:
         self.record_sync_pin = record_sync_pin
 
         # Make sure you always start out setting shock_relay_pin to 1 to ground box.
-        print('Grounding shock floor')
+        print("Grounding shock floor")
         self.board.digital[self.shock_relay_pin].write(1)
 
         # initialize cleanup function

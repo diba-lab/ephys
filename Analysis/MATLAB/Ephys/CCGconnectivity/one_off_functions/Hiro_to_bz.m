@@ -8,7 +8,8 @@ function [spikes] = Hiro_to_bz(spike_data, session_name, stable_filter)
 % 4 and 9 are filtered out by default.
 %
 %   INPUTS
-%   spike_data: spikes data loaded from .m file from Hiro Miyawaki data
+%   spike_data: spikes data loaded from .m file from Hiro Miyawaki data,
+%   e.g. "load('wake-spikes.mat')
 %   session_name: e.g. 'RoySleep0' or 'KevinMaze1'. Note that wake
 %       v sleep can be un-ambiguously determined from this ('Rest =
 %       pre-maze during dark cycle, 'Sleep' = post-maze sleep during light
@@ -42,7 +43,7 @@ catch ME
 end
 
 
-% Filter out unstable neurons
+% Filter out unstable neurospikns
 stable_bool = true(1,length(spike_data));
 if any(stable_filter)
     stability_all = cat(1, spike_data.isStable);
@@ -62,7 +63,7 @@ nneurons = length(spikes_file_filt);
 spikes.times = cellfun(@(a) a'*time_to_msec, stimes_sec, ...
     'UniformOutput', false); % make row array
 
-% spinindices
+% spindices
 UIDs_cell = arrayfun(@(a) ones(size(spikes.times{a}))*spikes.UID(a), ...
     1:nneurons, 'UniformOutput', false);
 times_unsorted = cat(1, spikes.times{:});
