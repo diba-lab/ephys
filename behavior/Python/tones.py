@@ -7,7 +7,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # Keep this up top for now, can easily put into a function later if it seems like I need to do so...
-fs = 20100  # sampling rate, Hz, must be integer
+# fs = 20100  # sampling rate, Hz, must be integer
+fs = 44000
 
 
 class tones:
@@ -73,14 +74,32 @@ def play_tone(stream, samples, volume):
     # return p
 
 
+# def generate_tone(duration, f, fp=None):
+#     "Generates a pure or pulsed tone"
+#     if fp is None:
+#         return generate_pure_tone(duration, f)
+#     elif fp is not None:
+#         return generate_pulse_tone(duration, f, fp)
+
+
+def generate_pulse_tone(duration, f, fp):
+    """Generate a pure tone with underlying frequency f that pulses at frequency fp"""
+    return (
+        np.sin(2 * np.pi * np.arange(fs * duration) * f / fs)
+        * np.sin(np.pi * np.arange(fs * duration) * fp / fs)
+    ).astype(np.float32)
+
+
 def generate_pure_tone(duration, f):
     return (np.sin(2 * np.pi * np.arange(fs * duration) * f / fs)).astype(
         np.float32
     )  # note conversion to float32 array
 
 
-def play_flat_tone(duration=10.0, f=700.0, volume=1.0, stream=None, plot=False):
-    """Play a flat tone at a certain frequency"""
+def play_flat_tone(
+    duration=10.0, f=700.0, volume=1.0, fp=None, stream=None, plot=False
+):
+    """Play a flat tone at a certain frequency f. Pulses at frequency fp if specified"""
     # duration = 1.0   # in seconds, may be float
     # f = 700.0        # sine frequency, Hz, may be float
 
@@ -90,8 +109,10 @@ def play_flat_tone(duration=10.0, f=700.0, volume=1.0, stream=None, plot=False):
         close_stream = True
 
     # generate samples for tone
-    samples = generate_pure_tone(duration, f)
-
+    if fp is None:
+        samples = generate_pure_tone(duration, f)
+    else:  # generate pulsed tone if fp is specified.
+        samples = generate_pulse_tone(duration, f, fp)
     # play tone
     play_tone(stream, samples, volume)
 
