@@ -131,17 +131,21 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
         function p=plot(obj,varargin)
             va=obj.getValues;
             t=obj.TimeIntervalCombined;
-            if isa(t,'TimeIntervalCombined')
+            if isa(t,'neuro.time.TimeIntervalCombined')
                 hold on
                 tis=t.timeIntervalList;
                 index_va=1;
                 for iti=1:tis.length
                     ati=tis.get(iti);
-                    t_s=ati.getTimePointsInSec;
+                    try
+                        diff1=seconds(ati.getStartTime-ati.getZeitgeberTime);
+                    catch
+                        diff1=0;
+                    end
+                    t_s=hours(seconds(ati.getTimePointsInSec+diff1));
                     ava=va(index_va:(index_va+ati.getNumberOfPoints-1));
                     index_va=index_va+ati.getNumberOfPoints;
-                    t_s=ati.getStartTime+seconds(t_s);
-                    p(iti)=plot(t_s,ava(1:numel(t_s)),varargin{:});
+                    p(iti)=plot(t_s,ava(1:numel(t_s)),LineWidth=1.5);
                 end
             else
                 t_s=t.getTimePointsInSec;

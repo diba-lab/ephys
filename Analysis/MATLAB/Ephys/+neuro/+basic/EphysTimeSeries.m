@@ -52,6 +52,7 @@ classdef EphysTimeSeries < neuro.basic.Oscillation
             if ets.getSampleRate==etsnew.getSampleRate
                 ets.Values=horzcat(ets.getValues, etsnew.getValues);
             else
+                
                 error('Sample Rates...')
             end
         end

@@ -26,7 +26,7 @@ classdef OptiLoader<Singleton
         % Concrete implementation.  See Singleton superclass.
         function obj = instance(path)
             persistent uniqueInstance
-            if isempty(uniqueInstance)
+            if isempty(uniqueInstance)||nargin>0
                 if nargin>0
                     obj = optiTrack.OptiLoader(path);
                 else

@@ -100,11 +100,11 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
 
             til=obj.timeIntervalList;
             for iInt=1:til.length
-                theTimeInterval(iInt)=til.get(iInt);
-                st(iInt)=theTimeInterval(iInt).getStartTime;
+                theTimeInterval(iInt)=til.get(iInt);  
+                st(iInt)=theTimeInterval(iInt).getStartTime;  
             end
             [~,I]=sort(st);
-            til.remove(1:numel(I))
+            til.remove(1:numel(I));
             for iInt=1:numel(I)
                 til.add(theTimeInterval(I(iInt)));
             end
@@ -198,7 +198,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                         end
                     end
                     time.Format=obj.Format;
-                    times(isample)=time;
+                    times(isample)=time;  
                 end
             end
         end
@@ -329,7 +329,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                 theTimeInterval=til.get(iInt);
                 tp=theTimeInterval.getTimePointsInSec+seconds(theTimeInterval.getStartTime-st);
                 if exist('tps','var')
-                    tps=horzcat(tps, tp);
+                    tps=horzcat(tps, tp); %#ok<*AGROW> 
                 else
                     tps=tp;
                 end
@@ -344,11 +344,8 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
         function arrnew=adjustTimestampsAsIfNotInterrupted(obj,arr)
             arrnew=arr;
             til= obj.timeIntervalList;
-            st=obj.getStartTime;
             for iAdj=1:til.length
                 theTimeInterval=til.get(iAdj);
-                tistart=theTimeInterval.getStartTime;
-                
                 if iAdj==1
                     sample(iAdj).adj=0;
                     sample(iAdj).begin=1;
@@ -390,6 +387,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             while(iter.hasNext)
                 ti=iter.next;
                 zt=ti.getStruct;
+                zt.StartTime.Format='uuuu-MM-dd HH:mm:ss.SSS';
                 if isfield(zt,'ZeitgeberTime')
                     zt.ZeitgeberTime=datestr(zt.ZeitgeberTime,'HH:MM');
                 end
@@ -399,7 +397,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             writetable(T,filePath);
             ticd=neuro.time.TimeIntervalCombined(filePath);
         end
-        function ticd=readTimeIntervalTable(obj,table)
+        function ticd=readTimeIntervalTable(~,table)
             T=readtable(table);
             ticd=neuro.time.TimeIntervalCombined;
             for iti=1:height(T)
@@ -421,7 +419,11 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
         function zt=getZeitgeberTime(obj)
             iter=obj.timeIntervalList.createIterator;
             ti=iter.next;
-            zt=ti.getZeitgeberTime;
+            if isa(ti,"neuro.time.TimeIntervalZT")
+                zt=ti.getZeitgeberTime;
+            else
+                zt=[];
+            end
         end
         function obj=shiftTimePoints(obj,shift)
             tilnew=CellArrayList;

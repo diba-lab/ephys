@@ -36,7 +36,7 @@ classdef ThetaPeaksContainer
             cols=[6 10 3 6];
 
             conds=obj.condlist;
-            states=obj.statelist(4);
+            states=obj.statelist(2);
             if any(ismember({'SD','NSD'},blockstr))
                 blockidx=[false; true; false; false];
             else
@@ -84,6 +84,69 @@ classdef ThetaPeaksContainer
                 clear thpksm
             end
             txt=sprintf('ThetaPeak_dist_Comparison_%s_%s_',block,state);
+            ff.save(txt);
+        end
+        function plotSpeed(obj, blockstr)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            clear ff;
+            ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof');
+
+            cols=[6 10 3 6];
+
+            conds=obj.condlist;
+            states=obj.statelist(1);
+            if any(ismember({'SD','NSD'},blockstr))
+                blockidx=[false; true; false; false];
+            else
+                blockidx=ismember(obj.blocklist,blockstr);
+            end
+            blockidx=1;
+            block=obj.blocklist(blockidx);
+            col=unique(cols(blockidx));
+
+
+            try close(10); catch, end
+            for icond=1:numel(conds)
+                cond=conds(icond);
+                try close(double(cond)+6); catch, end; f=figure(double(cond)+6);f.Position=[1,55,1280/10*col,1267];
+                if any(ismember({'SD','NSD'},block))
+                    block=cond;
+                end
+                for iblock=1:numel(block)
+                    block=block(iblock);
+                    for istate=1:numel(states)
+                        state=states(istate);
+                        fnames=fieldnames(obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)));
+                        for isession=1:numel(fnames)
+                            sesno=fnames{isession};
+                            try
+                                thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(sesno);
+                                thpks.plotSpeed(numel(fnames),isession,col);
+                                if exist('thpksm','var')
+                                    thpksm=thpksm.merge(thpks);
+                                else
+                                    thpksm=thpks;
+                                end
+                            catch
+                            end
+                            clear thpks
+                        end
+                    end
+                end
+                txt=sprintf('Speed_dist_%s_%s_%s_',cond,block,state);
+                drawnow
+                ff.save(txt)
+                f=figure(10);f.Position=[2096,1844,1280/10*col,200];
+                if exist('axs','var')
+                    axs=thpksm.plotSpeed(axs);
+                else
+                    axs=thpksm.plotSpeed();
+                end
+                drawnow
+                clear thpksm
+            end
+            txt=sprintf('Speed_dist_Comparison_%s_%s_',block,state);
             ff.save(txt);
         end
         function plotPowerDist(obj, blockstr)

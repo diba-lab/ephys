@@ -76,7 +76,7 @@ classdef ChannelTimeDataHard < file.BinarySave
                     ticd=neuro.time.TimeIntervalCombined;
                     ticd.Source=newObj.TimeIntervalCombined.Source;
                     til=newObj.TimeIntervalCombined.getTimeIntervalList;
-                    for iti=1:til.length
+                    for iti=til.length
 
                         ti=til.get(iti);
                         ti.NumberOfPoints=ti.NumberOfPoints-1;

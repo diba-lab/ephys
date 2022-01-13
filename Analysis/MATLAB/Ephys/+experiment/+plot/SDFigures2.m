@@ -1,4 +1,4 @@
-classdef SDFigures2 <Singleton
+ classdef SDFigures2 <Singleton
     %FIGURES Summary of this class goes here
     %   Detailed explanation goes here
 
@@ -180,6 +180,7 @@ classdef SDFigures2 <Singleton
             end
             sf=experiment.SessionFactory;
             selected_ses=[1:12 14:15 18:23 ];
+%             selected_ses=[1 2 11 12 21 22 ];
             tses=sf.getSessionsTable(selected_ses);
             sde=experiment.SDExperiment.instance;
             sdeparams=sde.get;
@@ -205,6 +206,10 @@ classdef SDFigures2 <Singleton
                             ses=tses_cond;
                         end
                         file=ses.SessionInfo.baseFolder;
+                        try
+                            SPD=ses.getPosition.getSpeed;
+                        catch
+                        end
                         sdd=buzcode.sleepDetection.StateDetectionData(file);
                         sdd.Info.SessionInfo=ses.SessionInfo;
                         EMG=sdd.getEMG;
@@ -215,6 +220,7 @@ classdef SDFigures2 <Singleton
                         blocks=ses.Blocks;
                         blocksStr1=categorical([1 2 3 4],[1 2 3 4],blocks.getBlockNames,'Ordinal',true);
                         blocksStr= blocksStr1([1 2 3 4]);
+                        blocksStr= blocksStr1([2]);
                         %                         blocksStr= blocksStr1;
                         for iblock=1:numel(blocksStr)
                             boc=neuro.basic.BlockOfChannels();
@@ -240,10 +246,13 @@ classdef SDFigures2 <Singleton
                             end
                             allBlock=th.getTimeWindow(timeWindowadj);
                             boc=boc.addChannel(allBlock);
-
                             emg=EMG.getTimeWindow(timeWindowadj);
-
                             boc=boc.addChannel(emg);
+                            try
+                                spd=SPD.getTimeWindow(timeWindowadj);
+                                boc=boc.addChannel(spd);
+                            catch
+                            end
                             ss_block=ss.getWindow(timeWindowadj);
                             boc=boc.addHypnogram(ss_block);
                             slidingWindowSize=minutes(params.Plot.SlidingWindowSizeInMinutes);
@@ -278,16 +287,21 @@ classdef SDFigures2 <Singleton
 
                                                 boc_sub.Info.SubBlock=categorical(isublock,1:(numel(subblocks)-1));
                                                 [episode, theEpisodeAbs]=boc_sub.getState(thestateNum);
-                                                if ~isempty(episode) && (episode.getLength>minutes(params.Plot.MinDurationInSubBlockMinutes))
+                                                if ~isempty(episode) && (episode{1}.getLength>minutes(params.Plot.MinDurationInSubBlockMinutes))
                                                     durations1=[0 cumsum(seconds(theEpisodeAbs(:,2)-theEpisodeAbs(:,1)))'];
                                                     thetaFreq=params.BandFrequencies.theta;
-                                                    episode1=episode.getDownSampled(50);
+                                                    episode1=episode{1}.getDownSampled(50);
                                                     thpk=episode1.getFrequencyBandPeak(thetaFreq);
-                                                    fooof=episode.getPSpectrumWelch.getFooof(params.Fooof(2),params.Fooof(2).f_range);
-                                                    fooof.Info=episode.Info;
-                                                    fooof.Info.episode =episode;
+                                                    fooof=episode{1}.getPSpectrumWelch.getFooof(params.Fooof(2),params.Fooof(2).f_range);
+                                                    fooof.Info=episode{1}.Info;
+                                                    fooof.Info.episode =episode{1};
                                                     thpk=thpk.addFooof(fooof);
                                                     thpk.Bouts=durations1;
+                                                    thpk.EMG=episode{2};
+                                                    try
+                                                        thpk.Speed=episode{3};
+                                                    catch
+                                                    end
                                                 end
                                             end
                                             epiFooof(isublock)=fooof; %#ok<AGROW>
@@ -352,7 +366,7 @@ classdef SDFigures2 <Singleton
             params=obj.getParams.Fooof;
             sf=experiment.SessionFactory;
             selected_ses=[1:2 4:12 14:17 20:23];
-            %             selected_ses=[21 23];
+            selected_ses=[1 2 11 12 21 22 ];
             tses=sf.getSessionsTable(selected_ses);
 
             statelist=categorical({'AWAKE','QWAKE','SWS','REM'});
@@ -414,6 +428,17 @@ classdef SDFigures2 <Singleton
                         p.Color=colorcondl(icond,:);
                     end
                 end
+            end
+        end
+        function pos=getPosition(obj)
+            sf=experiment.SessionFactory;
+            sest=sf.getSessionsTable;
+            sess=sf.getSessions;
+            for ises=1:numel(sess)
+                ses=sess(ises);
+                pos{ises}=ses.getPosition;
+                dlfp=ses.getDataLFP;
+                sdd=dlfp.getStateDetectionData
             end
         end
     end
@@ -948,4 +973,4 @@ classdef SDFigures2 <Singleton
         end
     end
 
-end
+ end

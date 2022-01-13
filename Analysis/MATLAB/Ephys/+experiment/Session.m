@@ -150,6 +150,17 @@ classdef Session
                 zt=nan;
             end
         end
+        function pos = getPosition(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            relativePath='_Position';
+            try
+                relpath=fullfile(obj.SessionInfo.baseFolder,relativePath);
+                pos=optiTrack.PositionData(relpath);
+            catch
+                pos=[];
+            end
+        end
         
     end
 end
