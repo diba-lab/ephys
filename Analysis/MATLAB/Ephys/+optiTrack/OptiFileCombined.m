@@ -41,6 +41,10 @@ classdef OptiFileCombined < neuro.time.Timelined
             ofs=obj.getSorted;
             for iof=1:ofs.OptiFiles.length
                 of=ofs.OptiFiles.get(iof);
+                if isa(of,'optiTrack.OptiCSVFileSingleMarker')
+                    pd=of.getMergedPositionData;
+                    of.table=pd.data;
+                end
                 ti1=of.getTimeInterval;
                 if exist('table1','var')
                     table1=[table1;of.table(:,{'X','Y','Z'})];
@@ -53,8 +57,13 @@ classdef OptiFileCombined < neuro.time.Timelined
             X=table1.X;
             Y=table1.Y;
             Z=table1.Z;
+            prompt = {'Zeitgeber Time:'};
+            dlgtitle = datestr(tic1.getDate);
+            dims = [1 10];
+            definput = {'08:00'};
+            zt = duration(inputdlg(prompt,dlgtitle,dims,definput),'InputFormat','hh:mm');
+            tic1=tic1.setZeitgeberTime(zt);
             positionData=optiTrack.PositionData(X,Y,Z,tic1);
-            
         end
         function obj=getSorted(obj)
             ofs=obj.OptiFiles;
@@ -67,7 +76,7 @@ classdef OptiFileCombined < neuro.time.Timelined
             for iof=1:ofs.length
                 ofssorted.add(ofs.get(I(iof)));
             end
-            obj.OptiFiles=ofs;
+            obj.OptiFiles=ofssorted;
         end
     end
     methods (Access=private)

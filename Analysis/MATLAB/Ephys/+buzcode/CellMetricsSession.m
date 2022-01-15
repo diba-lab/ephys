@@ -13,12 +13,64 @@ classdef CellMetricsSession < buzcode.CellMetrics
             obj=obj@buzcode.CellMetrics(basepath)
             obj.Session=experiment.Session(basepath);
         end
-        function obj = processCellMetricsForBlock(obj,blockName)
+
+        function obj = loadCellMetricsForBlock(obj,blockName)
             %UNTITLED Construct an instance of this class
             %   Detailed explanation goes here
-            obj.Session=experiment.Session(basepath);
+            obj.CellMetricsStruct=loadCellMetrics('basepath',obj.CellMetricsStruct.general.basepath, ...
+                'saveAs',['cell_metrics_' blockName] ...
+                );
         end
-        
+        function str = toString(obj)
+            %UNTITLED Construct an instance of this class
+            %   Detailed explanation goes here
+            str=sprintf('%s, %s',datestr(obj.Session.SessionInfo.Date), ...
+                obj.Session.SessionInfo.Condition);
+            str=strcat(str,sprintf('\n- %d Units',numel(obj.CellMetricsStruct.UID)));
+            types={'label','putativeCellType','synapticEffect'};
+            for itype=1:numel(types)
+                type=types{itype};
+                [C,~,ic]=unique(obj.CellMetricsStruct.(type));
+                for it=1:numel(C)
+                    if it==1
+                        str=strcat(str, sprintf('\n.. '));
+                    else
+                        str=strcat(str, ', ');
+                    end
+                    str=strcat(str, sprintf(' %d %s',sum(ic==it),C{it}));
+                end
+            end
+        end
+        function sa = getSpikeArray(obj)
+            %UNTITLED Construct an instance of this class
+            %   Detailed explanation goes here
+            uid=obj.CellMetricsStruct.UID;
+            spikeCluster=[];
+            spikeTime=[];
+            for iuid=1:numel(uid)
+                spkt=obj.CellMetricsStruct.spikes.times{uid(iuid)};
+                spikeTime=[spikeTime; spkt];
+                clu=ones(size(spkt))*uid(iuid);
+                spikeCluster=[spikeCluster; clu];
+            end
+            [spikeTimesrt,idx]=sort(spikeTime);
+            spikeClustersrt=spikeCluster(idx);
+            ticd=obj.Session.getDataLFP.TimeIntervalCombined;
+            spikeTimesrt=spikeTimesrt*ticd.getSampleRate;
+            sa=neuro.spike.SpikeArray(spikeClustersrt,spikeTimesrt);
+            sa=sa.setTimeIntervalCombined(ticd);
+            id=obj.CellMetricsStruct.UID';
+            group=obj.CellMetricsStruct.label';
+            sh=obj.CellMetricsStruct.shankID';
+            ch=obj.CellMetricsStruct.maxWaveformCh1';
+            cellType=obj.CellMetricsStruct.putativeCellType';
+            synapticEffect=obj.CellMetricsStruct.synapticEffect';
+            polarity=obj.CellMetricsStruct.polarity';
+            brainRegion=obj.CellMetricsStruct.brainRegion';
+            cluinfo=table(id,group,sh,ch,cellType,synapticEffect,polarity,brainRegion);
+            sa=sa.setClusterInfo(cluinfo);
+        end
+
         function [H] = plotFR(obj,ax,groups)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here

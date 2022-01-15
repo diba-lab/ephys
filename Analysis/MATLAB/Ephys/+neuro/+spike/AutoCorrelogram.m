@@ -5,6 +5,7 @@ classdef AutoCorrelogram
     properties
         Count
         Time
+        Info
     end
     
     methods
@@ -14,21 +15,28 @@ classdef AutoCorrelogram
             duration=1.4;
             binsize=.01;
             obj.Count=nan(numel(spikeUnits),duration/binsize+1);
+            sucount=1;
             for isu=1:numel(spikeUnits)
                 spikeUnit=spikeUnits(isu);
                 sample=spikeUnit.getTimes;
-                if numel(sample.Samples)>0
+                if numel(sample.sample)>0
                     times=seconds(sample.getDuration);
                     try
-                    [obj.Count(isu,:),obj.Time]=CCG(times,ones(size(times)),...
-                        'duration', duration,...
-                        'binSize', binsize,...
-                        'Fs',1/30000,...
-                        'normtype', 'count');
+                        [obj.Count(sucount,:),obj.Time]=CCG(times,ones(size(times)),...
+                            'duration', duration,...
+                            'binSize', binsize,...
+                            'Fs',1/sample.rate,...
+                            'normtype', 'count');
+                        sucount=sucount+1;
+                        obj.Info=[obj.Info;spikeUnit.Info];
                     catch
                     end
                 end
             end
+        end
+        function obj=plus(obj, new)
+            obj.Count=[obj.Count; new.Count];
+            obj.Info=[obj.Info; new.Info];
         end
         function obj=getNormalized(obj, win)
             mat=obj.Count;
@@ -46,6 +54,7 @@ classdef AutoCorrelogram
             idx=t>.070&t>.200;
             idx2=mean(mat(:,idx),2)<count;
             obj.Count=mat(idx2,:);
+            obj.Info =obj.Info(idx2,:);            
         end
         function obj=getACGWithCountBiggerThan(obj, count)
             mat=obj.Count;
@@ -53,6 +62,7 @@ classdef AutoCorrelogram
             idx=t>.070&t>.200;
             idx2=mean(mat(:,idx),2)>=count;
             obj.Count=mat(idx2,:);
+            obj.Info =obj.Info(idx2,:);
         end
         
         function [thetaMod] = getThetaModulations(obj)
@@ -102,26 +112,36 @@ classdef AutoCorrelogram
             count=obj.Count;
             t=obj.Time;
         end
-        function [theta]=plot(obj)
+        function [tbl]=plot(obj,group,sort1)
+            tbl=obj.Info;
+            [type,~,gr]=unique(tbl(:,group));
+            colors_peak=linspecer(height(type));
+
+            for ig=1:numel(gr)
+                colors(ig,:)=colors_peak(gr(ig),:);
+            end
+            tbl.color=colors;
 %             thetaMod= obj.getThetaModulations;
 %             t_mag=thetaMod.getThetaModulationMagnitudes;
-            colors_peak=linspecer(2);
             mat1=obj.Count;
             [t_freq1, t_pow]=obj.getThetaPeaksLocalmax;
+            tbl.thetaFreq(:)=t_freq1(:);
 
             unit_interst=t_pow>.05;
             mat=mat1(unit_interst,:);
-            t_freq=t_freq1(unit_interst);
+            tbl=tbl(unit_interst,:);
 %             t_freq=thetaMod.getThetaFrequency;
 %             [t_mag,ind]=sort(t_mag,'ascend');
 %                       t_freq=t_freq(ind);
-
-            [t_freq,ind]=sort(t_freq,'descend');
+            if exist("sort1","var")
+                [tbl,ind]=sortrows(tbl,[sort1 "thetaFreq"]);
+            else
+                [tbl,ind]=sortrows(tbl,"thetaFreq");
+            end
 %             t_mag=t_mag(ind);
             %             [~,idx]=sort(mean(mat,2));
-
             mat=mat(ind,:);
-            peak=double(1)./t_freq;
+            peak=double(1)./tbl.thetaFreq;
             mat=imgaussfilt(mat,.5);
             imagesc(obj.Time,1:size(mat,1),mat)
             ax=gca;
@@ -131,10 +151,10 @@ classdef AutoCorrelogram
             new_t=min(obj.Time):.001:max(obj.Time);
             popmean=spline(obj.Time,popmean,new_t);
             hold on;
-            s1=scatter(peak,1:size(mat,1),15);
-            s1.MarkerEdgeColor=colors_peak(1,:);s1.MarkerEdgeAlpha=.7;
-            s2=scatter(2*peak,1:size(mat,1),10);
-            s2.MarkerEdgeColor=colors_peak(1,:);s2.MarkerEdgeAlpha=.7;
+            s1=scatter(peak,1:size(mat,1),15,tbl.color);
+            s1.MarkerEdgeAlpha=.7;
+            s2=scatter(2*peak,1:size(mat,1),10,tbl.color);
+            s2.MarkerEdgeAlpha=.7;
 
             t_interest=new_t>.05&new_t<.200;
             [pks,locs] =findpeaks(popmean(:,t_interest),new_t(t_interest),'NPeaks',1);
@@ -147,21 +167,26 @@ classdef AutoCorrelogram
             t=text(locs,pks,sprintf('%.2fHz',freq),'VerticalAlignment','bottom','HorizontalAlignment','center');
             t.FontSize=10;
             t.Color='#A2142F';
-            units_interest=1:numel(t_freq);
-            mean_inter_freq=t_freq(units_interest);
+            units_interest=1:numel(tbl.thetaFreq);
             mean_inter_peak=peak(units_interest);
-            treq_mean=mean(mean_inter_freq);
             treq_mean_peak=mean(mean_inter_peak);            
 %             eb=errorbar(treq_mean_peak,numel(t_freq)/2,std(mean_inter_peak)/sqrt(numel(mean_inter_peak)),'horizontal');
             xl=xline(treq_mean_peak);
-            xl.Color=s1.MarkerEdgeColor;
+            xl.Color=colors_peak(1,:);
             xl.LineWidth=1;
-            t2=text(treq_mean_peak,numel(t_freq)/2,sprintf('%.2fHz',median(mean_inter_freq)),'VerticalAlignment','bottom','HorizontalAlignment','center');
+            t2=text(treq_mean_peak,numel(tbl.thetaFreq)/2,sprintf('%.2fHz',1/treq_mean_peak),'VerticalAlignment','bottom','HorizontalAlignment','center');
             t2.Color=xl.Color;
             t2.FontSize=10;
-            theta.freq=t_freq;
-            theta.cum_freq_peak=freq;
             ax.XLim=[0 .400];
+            for ity=1:height(type)
+                txt2=table2cell(type(ity,:));
+                try
+                    for it=1:numel(txt2),txt2{it}=txt2{it}(1:3);end
+                catch
+                end
+                txt=strjoin(txt2);
+                text(1,.5-.1*(mean(1:height(type))-ity),txt,'Color',colors_peak(ity,:),Units='normalized')
+            end
         end
     end
 end

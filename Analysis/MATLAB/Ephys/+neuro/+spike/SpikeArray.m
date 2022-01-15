@@ -1,14 +1,14 @@
 classdef SpikeArray < neuro.spike.SpikeNeuroscope
     %SPIKEARRAY Summary of this class goes here
     %   Detailed explanation goes here
-    
+
     properties
         SpikeTable
         TimeIntervalCombined
         ClusterInfo
         Info
     end
-    
+
     methods
         function obj = SpikeArray(spikeClusters,spikeTimes)
             %SPIKEARRAY Construct an instance of this class
@@ -23,7 +23,7 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
                 obj.Info=spikeClusters.Info;
             end
         end
-        
+
         function obj = getSpikeArrayWithAdjustedTimestamps(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -90,24 +90,24 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             end
             tbl=array2table(horzcat(spikeIDs,spikecounts'),'VariableNames',{'ID','count'});
         end
-%         function fr=getMeanFireRate(obj)
-%             sus=obj.getSpikeUnits;
-%             for isu=1:numel(sus)
-%                 su=sus(isu);
-%                 frs=su.getFireRate;
-%                 try
-%                     vals(isu,:)=frs.getValues;
-%                 catch
-%                 end
-%             end
-%             val_m=mean(vals,1);
-%             fr=Channel('Mean Over Units',val_m,frs.getTimeInterval);
-%         end
-        function [frm, fre]=getMeanFireRateQuintiles(obj,nquintiles,timebin,order)
+        %         function fr=getMeanFireRate(obj)
+        %             sus=obj.getSpikeUnits;
+        %             for isu=1:numel(sus)
+        %                 su=sus(isu);
+        %                 frs=su.getFireRate;
+        %                 try
+        %                     vals(isu,:)=frs.getValues;
+        %                 catch
+        %                 end
+        %             end
+        %             val_m=mean(vals,1);
+        %             fr=Channel('Mean Over Units',val_m,frs.getTimeInterval);
+        %         end
+        function [frm, fre]=getMeanFireRateQuintiles(obj,nquintiles,timebininsec,order)
             sus=obj.getSpikeUnits;
             for isu=1:numel(sus)
                 su=sus(isu);
-                frs=su.getFireRate(timebin);
+                frs=su.getFireRate(timebininsec);
                 try
                     vals1(isu,:)=frs.getValues;
                 catch
@@ -126,9 +126,9 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
                 thequint=vals(idx,:);
                 themeanquint=mean(thequint,1);
                 thesterrquint=std(thequint,1)/sqrt(size(thequint,1));
-                frm{iquint}=Channel(sprintf('Mean Over Units Quint, %d',iquint),...
+                frm{iquint}=neuro.basic.Channel(sprintf('Mean Over Units Quint, %d',iquint),...
                     themeanquint,frs.getTimeInterval);
-                fre{iquint}=Channel(sprintf('Mean Over Units Quint, %d',iquint),...
+                fre{iquint}=neuro.basic.Channel(sprintf('Mean Over Units Quint, %d',iquint),...
                     thesterrquint,frs.getTimeInterval);
             end
         end
@@ -148,7 +148,7 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
                 themeanquint,frs.getTimeInterval);
             fre=neuro.basic.Channel(sprintf('Mean Over Units'),...
                 thesterrquint,frs.getTimeInterval);
-            
+
         end
         function frs=getFireRates(obj,timebininsec)
             sus=obj.getSpikeUnits;
@@ -200,12 +200,12 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
                     s=scatter(arr,ones(size(arr))*iunit,ones(size(arr))*30,c,'|');
                     s.LineWidth=4;
                     s.MarkerEdgeAlpha=.8;
-%                     p1=plot(arr,iunit...
-%                         ,'Marker','|'...
-%                         ,'LineWidth',2 ...
-%                         ,'Color',colors(idx_location,:)...
-%                         ,'MarkerSize',3,...
-%                         'MarkerEdgeColor',colors(idx_location,:));
+                    %                     p1=plot(arr,iunit...
+                    %                         ,'Marker','|'...
+                    %                         ,'LineWidth',2 ...
+                    %                         ,'Color',colors(idx_location,:)...
+                    %                         ,'MarkerSize',3,...
+                    %                         'MarkerEdgeColor',colors(idx_location,:));
                     %                 s1=scatter(arr,ones(size(arr))*iunit,20,[0 0 0],'filled');
                     %                 s1.MarkerEdgeAlpha=.1;
                     %                 s1.MarkerFaceAlpha=.1;
@@ -216,7 +216,7 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             ax.YTick=2:5:height(clustinfo1);
             ax.YTickLabel=clustinfo1.sh(ax.YTick);
             locs = find(diff(sign(angles1))>0);
-%             [~,locs]=findpeaks(angles1);
+            %             [~,locs]=findpeaks(angles1);
             t1=t(locs);
             for iline=1:numel(locs)
                 xline(t1(iline));
@@ -252,7 +252,7 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
                         ,'Color',colors(idx_location,:)...
                         ,'MarkerSize',3,...
                         'MarkerEdgeColor',colors(idx_location,:));
-%                     s1=scatter(arr,ones(size(arr))*iunit,20,[0 0 0],'filled');
+                    %                     s1=scatter(arr,ones(size(arr))*iunit,20,[0 0 0],'filled');
                     s1.MarkerEdgeAlpha=.1;
                     s1.MarkerFaceAlpha=.1;
                 end
@@ -284,8 +284,8 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             for isid=1:height(ci_sub)
                 aci=ci_sub(isid,:);
                 spktimes=tbl.SpikeTimes(tbl.SpikeCluster==aci.id);
-                spikeUnits(isid)=neuro.spike.SpikeUnit(aci.id,spktimes,obj.TimeIntervalCombined,...
-                    aci.amp,aci.ch,aci.fr,aci.group,aci.n_spikes,aci.purity);
+                spikeUnits(isid)=neuro.spike.SpikeUnit(aci.id,spktimes,obj.TimeIntervalCombined);
+                spikeUnits(isid)=spikeUnits(isid).setInfo(aci);
             end
         end
         function obj=get(obj,varargin)
@@ -334,7 +334,7 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             sa.ClusterInfo.id=sa.ClusterInfo.id+shift;
             sa.SpikeTable.SpikeCluster=sa.SpikeTable.SpikeCluster+shift;
             sa.ClusterInfo=sortrows([obj.ClusterInfo; sa.ClusterInfo],{'group','sh','ch'});
-            
+
             sa.SpikeTable=sortrows([obj.SpikeTable; sa.SpikeTable],{'SpikeTimes'});
         end
         function [obj]=setShank(obj,shankno)

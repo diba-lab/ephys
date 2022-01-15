@@ -39,7 +39,6 @@ classdef ChannelTimeData
             if ~exist('time','var')|| isempty(time)
                 time=[obj.Time.getStartTime obj.Time.getEndTime];
             end
-            
         end
     end
 end
