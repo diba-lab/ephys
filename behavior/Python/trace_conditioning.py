@@ -208,9 +208,7 @@ class Trace:
     def __init__(
         self,
         arduino_port="COM7",
-        tone_type="white",
         paradigm="Round3",
-        tone_freq=None,
         volume=1.0,
         base_dir=Path.home(),
     ):
@@ -221,8 +219,6 @@ class Trace:
             + str(self.params["alias"])
             + " parameters"
         )
-        self.tone_freq = tone_freq
-        self.tone_type = tone_type
         self.arduino_port = arduino_port
         self.volume = volume
         self.base_dir = base_dir
@@ -234,14 +230,14 @@ class Trace:
 
         # Next create tone for training
         # NRK change this to CS+, change other below to CS-
-        self.tone_samples = tones.generate_tone(
+        self.tone_samples = self.create_tone(
             f=self.params["tone"]["training"]["f"],
             duration=self.params["tone"]["training"]["duration"],
             fp=self.params["tone"]["training"]["fp"],
         )
 
         if self.params["control_tone"] is not None:
-            self.control_tone_samples = tones.generate_tone(
+            self.control_tone_samples = self.create_tone(
                 f=self.params["tone"]["control"]["f"],
                 duration=self.params["tone"]["control"]["duration"],
                 freq=self.params["tone"]["control"]["fp"],
@@ -291,10 +287,11 @@ class Trace:
 
         # Next, create tones
         tones_use = [
-            self.create_tone(
-                tone_type=self.tone_type, duration=CStime, freq=self.tone_freq
+            tones.generate_tone(
+                f=self.params["training"]["f"], duration=self.params["tone"]["training"]["duration"],
+                fp=self.params["training"]["fp"],
             )
-            for CStime in recall_params["CStimes"]
+            for _ in recall_params["CStimes"]
         ]
 
         # Last, generate ITIs
@@ -484,7 +481,7 @@ class Trace:
             test_run
         ):  # Run test with 1 second tone, 2 second trace, and 3 second shock
             tone_use = self.create_tone(
-                tone_type=self.tone_type, duration=1, freq=self.tone_freq
+                f=self.params["tone"]["training"]["f"], duration=1, fp=self.params["tone"]["training"]["fp"],
             )
             trace_dur_use = 2
             shock_dur_use = 1
