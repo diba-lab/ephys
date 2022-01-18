@@ -153,11 +153,11 @@ params = {
             "duration": 15,
         },
         "tone_habituation_params": {
-            "baseline_time": 180,
+            "baseline_time": 60,
             "tone_use": "control",
             "tone_dur": 10,
             "CStimes": None,
-            "nCS": 10,
+            "nCS": 15,
             "ITI": 60,
             "ITI_range": 10,
         },
@@ -216,9 +216,10 @@ class Trace:
         arduino_port="COM6",
         paradigm="Round3",
         volume=1.0,
-        base_dir=Path.home(),
+        base_dir=r'F:\Nat\Trace_FC\Recording_Rats\Finn',
     ):
         assert paradigm in params.keys()
+        assert Path(base_dir).exists(), "Base path does not exist - create directory!"
         self.params = params[paradigm]
         print(
             "Initializing trace fc class with "
@@ -227,8 +228,8 @@ class Trace:
         )
         self.arduino_port = arduino_port
         self.volume = volume
-        self.base_dir = base_dir
-        self.p, self.stream = tones.initialize_player(channels=1, rate=20100)
+        self.base_dir = Path(base_dir)
+        self.p, self.stream = tones.initialize_player(channels=1, rate=fs)
         self.csv_path = None
 
         # # First connect to the Arduino - super important
@@ -676,7 +677,7 @@ def sleep_timer(duration):
 
 
 def write_csv(filename, timestamp, event_id):
-    "Write time of event and event_id (int or str) to csv file"
+    """Write time of event and event_id (int or str) to csv file"""
 
     # Create file with header if file does not exist
     if not filename.exists():
