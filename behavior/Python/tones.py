@@ -165,6 +165,6 @@ def freq_to_pitch(freq):
 
 # Test run when importing to ensure speaker is hooked up!
 print("Playing a quick 400Hz tone - check speaker setup if you don" "t hear it!")
-play_flat_tone(duration=0.5, f=400)
+play_flat_tone(duration=0.5, f=400, volume=0.2)
 
 # NRK Todo: 1) Make all pure tones and sweeps use pysinewave and same inputs (frequencies)
