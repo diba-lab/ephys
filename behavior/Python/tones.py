@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 # fs = 20100  # sampling rate, Hz, must be integer
 fs = 44000
 
-
 class tones:
     """Class to play tones/noise.  Initializes with a 1 second 400 Hz tone and 10 second white noise ready to go."""
 
