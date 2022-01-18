@@ -138,14 +138,12 @@ params = {
                 "type": "pure_tone",
                 "f": 7000,
                 "fp": 10,
-                "volume": 1,
                 "duration": 10,
             },
             "control": {
                 "type": "pure_tone",
                 "f": 1000,
                 "fp": None,
-                "volume": 0.1,
                 "duration": 10,
             },
         },
@@ -155,6 +153,7 @@ params = {
         "tone_habituation_params": {
             "baseline_time": 60,
             "tone_use": "control",
+            "volume": 0.06,
             "tone_dur": 10,
             "CStimes": None,
             "nCS": 15,
@@ -164,6 +163,7 @@ params = {
         "training_params": {
             "tone_use": "training",
             "tone_dur": 10,
+            "volume": 0.55,
             "trace_dur": 20,
             "shock_dur": 1,
             "ITI": 240,
@@ -173,22 +173,26 @@ params = {
         },
         "tone_recall_params": {
             "tone_use": "training",
+            "volume": 1,
             "baseline_time": 60,
             "CStimes": None,
             "nCS": 15,
             "ITI": 60,
             "ITI_range": 10,
             "end_tone": "control",
+            "end_volume": 0.03,
             "nCS_end": 0,
         },
         "control_tone_recall_params": {
             "tone_use": "control",
+            "volume": 0.03,
             "baseline_time": 60,
             "CStimes": None,
             "nCS": 15,
             "ITI": 60,
             "ITI_range": 10,
             "end_tone": "training",
+            "end_volume": 0.7,
             "nCS_end": 0,
         },
     },
@@ -474,7 +478,7 @@ class Trace:
 
                 # play tones for synchronization
                 self.write_event("start_sync_tone")
-                tones.play_flat_tone(duration=0.5, f=500.0)
+                tones.play_flat_tone(duration=0.5, f=500.0, volume=0.3)
                 self.write_event("end_sync_tone")
 
                 self.write_event(
@@ -545,7 +549,7 @@ class Trace:
         # play tone
         self.write_event("CS" + str(trial) + "_start")
         self.board.digital[self.CS_pin].write(1)
-        tones.play_tone(self.stream, tone_use, self.volume)
+        tones.play_tone(self.stream, tone_use, self.params["training_params"]["volume"])
         self.board.digital[self.CS_pin].write(0)
         self.write_event("CS" + str(trial) + "_end")
 
