@@ -167,32 +167,31 @@ def freq_to_pitch(freq):
     return pitch_piano
 
 
-def get_system_volume():
-    """Returns system volume level on a WINDOWS machine. 0 = max"""
+class SysVol:
+    """Use this class to easily check and manipulate system volume"""
+    def __init__(self):
+        self.devices = AudioUtilities.GetSpeakers()
+        self.interface = self.devices.Activate(
+            IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+        self.volume = cast(self.interface, POINTER(IAudioEndpointVolume))
 
-    assert "OS" in os.environ and "windows" in os.environ["OS"].lower(), "tones.get_system_volume only works on Windows"
-    devices = AudioUtilities.GetSpeakers()
-    interface = devices.Activate(
-        IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-    volume = cast(interface, POINTER(IAudioEndpointVolume))
+    def get_system_volume(self):
+        """Returns system volume level on a WINDOWS machine. 0 = max"""
 
-    return volume.GetMasterVolumeLevel()
+        assert "OS" in os.environ and "windows" in os.environ["OS"].lower(), "tones.get_system_volume only works on Windows"
 
+        return self.volume.GetMasterVolumeLevel()
 
-def set_system_volume(level=0):
-    """Sets Windows system volume. Default = max (0), min = -65.25 (on one machine, not rigorously verified)"""
+    def set_system_volume(self, level=0):
+        """Sets Windows system volume. Default = max (0), min = -65.25 (on one machine, not rigorously verified)"""
 
-    assert "OS" in os.environ and "windows" in os.environ["OS"].lower(), "tones.get_system_volume only works on Windows"
-    devices = AudioUtilities.GetSpeakers()
-    interface = devices.Activate(
-        IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-    volume = cast(interface, POINTER(IAudioEndpointVolume))
-    vol_range = volume.GetVolumeRange()
+        assert "OS" in os.environ and "windows" in os.environ["OS"].lower(), "tones.get_system_volume only works on Windows"
+        vol_range = self.volume.GetVolumeRange()
 
-    assert level >= vol_range[0] and level <= vol_range[1], "Specified volume level outside of input range"
-    volume.SetMasterVolumeLevel(level, None)
+        assert level >= vol_range[0] and level <= vol_range[1], "Specified volume level outside of input range"
+        self.volume.SetMasterVolumeLevel(level, None)
 
-    pass
+        pass
 
 # def play_color():
 

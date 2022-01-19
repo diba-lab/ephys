@@ -163,7 +163,7 @@ params = {
         "training_params": {
             "tone_use": "training",
             "tone_dur": 10,
-            "volume": 0.55,
+            "volume": 0.50,
             "trace_dur": 20,
             "shock_dur": 1,
             "ITI": 240,
@@ -173,19 +173,19 @@ params = {
         },
         "tone_recall_params": {
             "tone_use": "training",
-            "volume": 1,
+            "volume": 0.45,
             "baseline_time": 60,
             "CStimes": None,
             "nCS": 15,
             "ITI": 60,
             "ITI_range": 10,
             "end_tone": "control",
-            "end_volume": 0.03,
+            "end_volume": 0.025,
             "nCS_end": 0,
         },
         "control_tone_recall_params": {
             "tone_use": "control",
-            "volume": 0.03,
+            "volume": 0.025,
             "baseline_time": 60,
             "CStimes": None,
             "nCS": 15,
@@ -219,7 +219,6 @@ class Trace:
         self,
         arduino_port="COM6",
         paradigm="Round3",
-        volume=1.0,
         base_dir=r'F:\Nat\Trace_FC\Recording_Rats\Finn',
     ):
         assert paradigm in params.keys()
@@ -233,8 +232,9 @@ class Trace:
         self.arduino_port = arduino_port
 
         # Set system volume level to max!
-        if tones.get_system_volume() < -0.5:
-            tones.set_system_volume(0)
+        SysVol = tones.SysVol()
+        if SysVol.get_system_volume() < -0.5:
+            SysVol.set_system_volume(0)
             print('System volume set to 100%')
 
         # Initialize things
@@ -296,13 +296,24 @@ class Trace:
         if not test:
             self.ITIdata = ITIuse
 
-    def run_tone_recall(self):
+    def run_tone_recall(self, test=False):
         """Run tone recall or habituation session using params in specified paradigm"""
 
         # Grab correct parameters
         recall_params = self.params[self.session + "_params"]
         tone_type = recall_params["tone_use"]
-        tone_dur = self.params["tone"][tone_type]["duration"]
+        volume = recall_params["volume"]
+        end_volume = recall_params["end_volume"]
+        if not test:
+            tone_dur = self.params["tone"][tone_type]["duration"]
+            ITI = recall_params["ITI"]
+            ITI_range = recall_params["ITI_range"]
+            baseline_time = recall_params["baseline_time"]
+        elif test:
+            tone_dur = 5
+            ITI = 3
+            ITI_range = 1
+            baseline_time = 5
 
         # Fill in CS times for code below, kept as is for backwards compatibility with earlier Pilots
         if recall_params["CStimes"] is None:
@@ -332,17 +343,16 @@ class Trace:
                         fp=self.params["tone"][end_tone_type]["fp"],
                     ) for _ in range(recall_params["nCS_end"])]
                 end_ITIuse = [
-                    self.generate_ITI(recall_params["ITI"], recall_params["ITI_range"])
+                    self.generate_ITI(ITI, ITI_range)
                     for _ in range(recall_params["nCS_end"])]
 
         # Last, generate ITIs
         ITIuse = [
-            self.generate_ITI(recall_params["ITI"], recall_params["ITI_range"])
+            self.generate_ITI(ITI, ITI_range)
             for _ in recall_params["CStimes"]
         ]
 
         # Start with baseline exploration period
-        baseline_time = recall_params["baseline_time"]
         print("Starting " + str(baseline_time) + " sec baseline exploration period")
         self.write_event("baseline_start")
         sleep_timer(baseline_time)
@@ -455,8 +465,10 @@ class Trace:
         ]  # Make sure session is properly named
         if not test_run:
             self.session = session
+            self.session_name = session
         elif test_run:
-            self.session = session + "_test"
+            self.session = session
+            self.session_name = session + "_test"
 
         # First connect to the Arduino - super important
         print("Initializing arduino")
@@ -479,7 +491,7 @@ class Trace:
                 self.start_time = time.time()
                 self.start_datetime = datetime.now()
                 self.csv_path = self.base_dir / (
-                    self.session
+                    self.session_name
                     + self.start_datetime.strftime("%m_%d_%Y-%H_%M_%S")
                     + ".csv"
                 )  # Make csv file with start time appended
@@ -504,7 +516,7 @@ class Trace:
                     "ctx+tone_recall",
                 ]:
                     if session in ["tone_recall", "ctx+tone_recall", "control_tone_recall", "tone_habituation"]:
-                        self.run_tone_recall()
+                        self.run_tone_recall(test=test_run)
                     elif session == "ctx_recall":
                         if "ctx_recall_params" in self.params:
                             duration = self.params["ctx_recall_params"]["duration"]
@@ -549,7 +561,7 @@ class Trace:
             test_run
         ):  # Run test with 1 second tone, 2 second trace, and 3 second shock
             tone_use = self.create_tone(
-                f=self.params["tone"]["training"]["f"], duration=1, fp=self.params["tone"]["training"]["fp"],
+                f=self.params["tone"]["training"]["f"], duration=5, fp=self.params["tone"]["training"]["fp"],
             )
             trace_dur_use = 2
             shock_dur_use = 1
