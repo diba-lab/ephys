@@ -5,6 +5,12 @@ import pyaudio
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import os
+
+# For system volume detection
+from ctypes import cast, POINTER
+from comtypes import CLSCTX_ALL
+from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
 # Keep this up top for now, can easily put into a function later if it seems like I need to do so...
 # fs = 20100  # sampling rate, Hz, must be integer
@@ -161,10 +167,38 @@ def freq_to_pitch(freq):
     return pitch_piano
 
 
+def get_system_volume():
+    """Returns system volume level on a WINDOWS machine. 0 = max"""
+
+    assert "OS" in os.environ and "windows" in os.environ["OS"].lower(), "tones.get_system_volume only works on Windows"
+    devices = AudioUtilities.GetSpeakers()
+    interface = devices.Activate(
+        IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+    volume = cast(interface, POINTER(IAudioEndpointVolume))
+
+    return volume.GetMasterVolumeLevel()
+
+
+def set_system_volume(level=0):
+    """Sets Windows system volume. Default = max (0), min = -65.25 (on one machine, not rigorously verified)"""
+
+    assert "OS" in os.environ and "windows" in os.environ["OS"].lower(), "tones.get_system_volume only works on Windows"
+    devices = AudioUtilities.GetSpeakers()
+    interface = devices.Activate(
+        IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+    volume = cast(interface, POINTER(IAudioEndpointVolume))
+    vol_range = volume.GetVolumeRange()
+
+    assert level >= vol_range[0] and level <= vol_range[1], "Specified volume level outside of input range"
+    volume.SetMasterVolumeLevel(level, None)
+
+    pass
+
 # def play_color():
 
 # Test run when importing to ensure speaker is hooked up!
 print("Playing a quick 400Hz tone - check speaker setup if you don" "t hear it!")
+print('Make sure system volume at 100%!!!')
 play_flat_tone(duration=0.5, f=400, volume=0.2)
 
 # NRK Todo: 1) Make all pure tones and sweeps use pysinewave and same inputs (frequencies)
