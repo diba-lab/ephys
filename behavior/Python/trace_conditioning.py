@@ -18,7 +18,7 @@ import atexit
 tone_dur_default = 10  # seconds
 trace_dur_default = 20  # seconds
 shock_dur_default = 1  # seconds at 1mA
-fs = 44100
+fs = 44000
 ITI_range = 20  # +/- this many seconds for each ITI
 
 # Define dictionaries for experimental parameters
@@ -153,7 +153,7 @@ params = {
         "tone_habituation_params": {
             "baseline_time": 60,
             "tone_use": "control",
-            "volume": 0.06,
+            "volume": 0.07,
             "tone_dur": 10,
             "CStimes": None,
             "nCS": 15,
@@ -231,12 +231,18 @@ class Trace:
             + " parameters"
         )
         self.arduino_port = arduino_port
-        self.volume = volume
+
+        # Set system volume level to max!
+        if tones.get_system_volume() < -0.5:
+            tones.set_system_volume(0)
+            print('System volume set to 100%')
+
+        # Initialize things
         self.base_dir = Path(base_dir)
         self.p, self.stream = tones.initialize_player(channels=1, rate=fs)
         self.csv_path = None
 
-        # # First connect to the Arduino - super important
+        # # First connect to the Arduino - super important - now done in separate code below to minimize connected time.
         # self.initialize_arduino(self.arduino_port)
 
         # Next create tone for training
@@ -315,7 +321,7 @@ class Trace:
         play_end = False
         if "nCS_end" in recall_params:
             if recall_params["nCS_end"] > 0:
-                play_end=True
+                play_end = True
                 end_tone_type = recall_params["end_tone"]
                 end_tone_dur = self.params[end_tone_type]["duration"]
                 recall_params["CStimes_end"] = [end_tone_dur for _ in range(recall_params["nCS_end"])]
@@ -350,7 +356,8 @@ class Trace:
             print(str(CStime) + " sec tone playing now")
             self.write_event("CS" + str(idt + 1) + "_start")
             self.board.digital[self.CS_pin].write(1)
-            tones.play_tone(self.stream, tone, self.volume)
+            print('Playing tone at volume ' + str(recall_params["volume"]))
+            tones.play_tone(self.stream, tone, recall_params["volume"])
             self.board.digital[self.CS_pin].write(0)
             self.write_event("CS" + str(idt + 1) + "_end")
 
@@ -365,7 +372,7 @@ class Trace:
                 print(str(endCStime) + " sec tone playing now")
                 self.write_event("CS_end_" + str(idt + 1) + "_start")
                 self.board.digital[self.CS_pin].write(1)
-                tones.play_tone(self.stream, endtone, self.volume)
+                tones.play_tone(self.stream, endtone, recall_params["end_volume"])
                 self.board.digital[self.CS_pin].write(0)
                 self.write_event("CS_end_" + str(idt + 1) + "_end")
 
@@ -377,43 +384,44 @@ class Trace:
     ):
         """Run tone recall session with baseline exploration time, short CS, ITI, and long CS - legacy from first version
         of class for Pilot1(Gilmartin2013) only"""
-        self.tone_recall_params = {
-            "baseline_time": baseline_time,
-            "CSshort": CSshort,
-            "ITI": ITI,
-            "CSlong": CSlong,
-        }
-
-        CStone_short = self.create_tone(
-            tone_type=self.tone_type, duration=CSshort, freq=self.tone_freq
-        )
-
-        CStone_long = self.create_tone(
-            tone_type=self.tone_type, duration=CSlong, freq=self.tone_freq
-        )
-
-        print("Starting " + str(baseline_time) + " sec baseline exploration period")
-        self.write_event("baseline_start")
-        sleep_timer(baseline_time)
-        self.write_event("baseline_end")
-
-        print(str(CSshort) + " sec short tone playing now")
-        self.write_event("CSshort_start")
-        tones.play_tone(self.stream, CStone_short, self.volume)
-        self.write_event("CSshort_end")
-
-        print(str(ITI) + " sec ITI starting now")
-        sleep_timer(ITI)
-
-        print(str(CSlong) + " sec long tone playing now")
-        self.write_event("CSlong_start")
-        tones.play_tone(self.stream, CStone_long, self.volume)
-        self.write_event("CSlong_end")
-
-        print("Final 1 minute exploration period starting now")
-        self.write_event("final_explore_start")
-        sleep_timer(60)
-        self.write_event("final_explore_end")
+        pass
+        # self.tone_recall_params = {
+        #     "baseline_time": baseline_time,
+        #     "CSshort": CSshort,
+        #     "ITI": ITI,
+        #     "CSlong": CSlong,
+        # }
+        #
+        # CStone_short = self.create_tone(
+        #     tone_type=self.tone_type, duration=CSshort, freq=self.tone_freq
+        # )
+        #
+        # CStone_long = self.create_tone(
+        #     tone_type=self.tone_type, duration=CSlong, freq=self.tone_freq
+        # )
+        #
+        # print("Starting " + str(baseline_time) + " sec baseline exploration period")
+        # self.write_event("baseline_start")
+        # sleep_timer(baseline_time)
+        # self.write_event("baseline_end")
+        #
+        # print(str(CSshort) + " sec short tone playing now")
+        # self.write_event("CSshort_start")
+        # tones.play_tone(self.stream, CStone_short, self.volume)
+        # self.write_event("CSshort_end")
+        #
+        # print(str(ITI) + " sec ITI starting now")
+        # sleep_timer(ITI)
+        #
+        # print(str(CSlong) + " sec long tone playing now")
+        # self.write_event("CSlong_start")
+        # tones.play_tone(self.stream, CStone_long, self.volume)
+        # self.write_event("CSlong_end")
+        #
+        # print("Final 1 minute exploration period starting now")
+        # self.write_event("final_explore_start")
+        # sleep_timer(60)
+        # self.write_event("final_explore_end")
 
     def generate_ITI(self, ITI, ITI_range):
         return ITI + np.random.random_integers(low=-ITI_range, high=ITI_range)
