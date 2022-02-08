@@ -577,7 +577,7 @@ class Trace:
 
 
 def shutdown_arduino(board):
-    """cleanup function to shutdown arduino in case of suddent exit"""
+    """cleanup function to shut down arduino in case of sudden exit"""
     if isinstance(board, pyfirmata.Arduino):
         print("Shutting down arduino")
         board.exit()
