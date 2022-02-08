@@ -18,7 +18,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
             ft_defaults
             cfg=[];
             if ~exist('cfg1','var')||isempty(cfg1)
-                cfg.channel=97:128;
+%                 cfg.channel=1:10;
                 cfg.trialdef.triallength = 60;%seconds(hours(1));
             else
                 cfg.channel=cfg1.channel;
@@ -27,10 +27,10 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
             cfg.trialdef.ntrials     = inf;
             cfg.trialfun   =  'ft_trialfun_general';
             cfg.dataset     = newobj.getFilepath;
-            cfg.headerformat='openephys_binary';
+            cfg.headerformat='neuroscope_bin';
             [cfg] = ft_definetrial(cfg);
             
-            cfg.dataformat='openephys_binary';
+            cfg.dataformat='neuroscope_bin';
             newobj.data=ft_preprocessing(cfg);
             
             cfg=[];

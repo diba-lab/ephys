@@ -18,7 +18,7 @@ import atexit
 tone_dur_default = 10  # seconds
 trace_dur_default = 20  # seconds
 shock_dur_default = 1  # seconds at 1mA
-fs = 44100
+fs = 44000
 ITI_range = 20  # +/- this many seconds for each ITI
 
 # Define dictionaries for experimental parameters
@@ -49,11 +49,15 @@ params_archive = {
 params = {
     "Pilot1": {
         "alias": "Gilmartin2013",
-        "training_tone": {
-            "type": "white",
-            "duration": 10,
+        "tones": {
+            "training": {
+                "type": "white",
+                "duration": 10,
+                "fp": None,
+                "f": "white",
+            },
+            "control": None,
         },
-        "control_tone": None,
         "training_params": {
             "tone_use": "training",
             "tone_dur": 10,
@@ -73,10 +77,15 @@ params = {
     },
     "Pilot2": {
         "alias": "Pilot2",
-        "training_tone": {
-            "type": "white",
+        "tones": {
+            "training": {
+                "type": "white",
+                "duration": 10,
+                "fp": None,
+                "f": "white",
+            },
+            "control": None,
         },
-        "control_tone": None,
         "training_params": {
             "tone_use": "training",
             "tone_dur": 10,
@@ -96,10 +105,15 @@ params = {
     },
     "Pilot2test": {
         "alias": "Pilot2",
-        "training_tone": {
-            "type": "white",
+        "tones": {
+            "training": {
+                "type": "white",
+                "duration": 3,
+                "fp": None,
+                "f": "white",
+            },
+            "control": None,
         },
-        "control_tone": None,
         "training_params": {
             "tone_use": "training",
             "tone_dur": 3,
@@ -119,29 +133,37 @@ params = {
     },
     "Round3": {
         "alias": "Round3",
-        "training_tone": {
-            "type": "pure_tone",
-            "f": 7000,
-            "fp": 10,
-            "volume": 1,
+        "tone": {
+            "training": {
+                "type": "pure_tone",
+                "f": 7000,
+                "fp": 10,
+                "duration": 10,
+            },
+            "control": {
+                "type": "pure_tone",
+                "f": 1000,
+                "fp": None,
+                "duration": 10,
+            },
         },
-        "control_tone": {
-            "type": "pure_tone",
-            "f": 1000,
-            "fp": None,
-            "volume": 0.1,
+        "ctx_recall_params": {
+            "duration": 15,
         },
-        "homecage_params": {
-            "baseline_time": 180,
+        "tone_habituation_params": {
+            "baseline_time": 60,
             "tone_use": "control",
+            "volume": 0.07,
             "tone_dur": 10,
-            "CStimes": [10, 10, 10, 10, 10, 10],
+            "CStimes": None,
+            "nCS": 15,
             "ITI": 60,
             "ITI_range": 10,
         },
         "training_params": {
             "tone_use": "training",
             "tone_dur": 10,
+            "volume": 0.50,
             "trace_dur": 20,
             "shock_dur": 1,
             "ITI": 240,
@@ -149,19 +171,29 @@ params = {
             "nshocks": 6,
             "start_buffer": 6 * 60,
         },
-        "recall_params": {
+        "tone_recall_params": {
             "tone_use": "training",
+            "volume": 0.45,
             "baseline_time": 60,
-            "CStimes": [10, 10, 10, 10, 10, 10],
+            "CStimes": None,
+            "nCS": 15,
             "ITI": 60,
             "ITI_range": 10,
+            "end_tone": "control",
+            "end_volume": 0.025,
+            "nCS_end": 0,
         },
-        "control_recall_params": {
+        "control_tone_recall_params": {
             "tone_use": "control",
+            "volume": 0.025,
             "baseline_time": 60,
-            "CStimes": [10, 10, 10, 10, 10, 10],
+            "CStimes": None,
+            "nCS": 15,
             "ITI": 60,
             "ITI_range": 10,
+            "end_tone": "training",
+            "end_volume": 0.7,
+            "nCS_end": 0,
         },
     },
     "Misc": {
@@ -185,44 +217,47 @@ default_port = {
 class Trace:
     def __init__(
         self,
-        arduino_port="COM7",
-        tone_type="white",
+        arduino_port="COM6",
         paradigm="Round3",
-        tone_freq=None,
-        volume=1.0,
-        base_dir=Path.home(),
+        base_dir=r'F:\Nat\Trace_FC\Recording_Rats\Finn',
     ):
         assert paradigm in params.keys()
+        assert Path(base_dir).exists(), "Base path does not exist - create directory!"
         self.params = params[paradigm]
         print(
             "Initializing trace fc class with "
             + str(self.params["alias"])
             + " parameters"
         )
-        self.tone_freq = tone_freq
-        self.tone_type = tone_type
         self.arduino_port = arduino_port
-        self.volume = volume
-        self.base_dir = base_dir
-        self.p, self.stream = tones.initialize_player(channels=1, rate=20100)
+
+        # Set system volume level to max!
+        SysVol = tones.SysVol()
+        if SysVol.get_system_volume() < -0.5:
+            SysVol.set_system_volume(0)
+            print('System volume set to 100%')
+
+        # Initialize things
+        self.base_dir = Path(base_dir)
+        self.p, self.stream = tones.initialize_player(channels=1, rate=fs)
         self.csv_path = None
 
-        # # First connect to the Arduino - super important
+        # # First connect to the Arduino - super important - now done in separate code below to minimize connected time.
         # self.initialize_arduino(self.arduino_port)
 
         # Next create tone for training
         # NRK change this to CS+, change other below to CS-
         self.tone_samples = self.create_tone(
-            tone_type=tone_type,
-            duration=params[paradigm]["training_params"]["tone_dur"],
-            freq=tone_freq,
+            f=self.params["tone"]["training"]["f"],
+            duration=self.params["tone"]["training"]["duration"],
+            fp=self.params["tone"]["training"]["fp"],
         )
 
-        if self.params["control_tone"] is not None:
+        if self.params["tone"]["control"] is not None:
             self.control_tone_samples = self.create_tone(
-                tone_type=self.params["control_tone"]["tone_type"],
-                duration=params[paradigm]["training_params"]["tone_dur"],
-                freq=tone_freq,
+                f=self.params["tone"]["control"]["f"],
+                duration=self.params["tone"]["control"]["duration"],
+                fp=self.params["tone"]["control"]["fp"],
             )
 
     def run_training_session(self, test=False):
@@ -261,28 +296,63 @@ class Trace:
         if not test:
             self.ITIdata = ITIuse
 
-    def run_tone_recall(self):
-        """Run tone recall session using params in specified paradigm"""
+    def run_tone_recall(self, test=False):
+        """Run tone recall or habituation session using params in specified paradigm"""
 
         # Grab correct parameters
         recall_params = self.params[self.session + "_params"]
+        tone_type = recall_params["tone_use"]
+        volume = recall_params["volume"]
+        end_volume = recall_params["end_volume"]
+        if not test:
+            tone_dur = self.params["tone"][tone_type]["duration"]
+            ITI = recall_params["ITI"]
+            ITI_range = recall_params["ITI_range"]
+            baseline_time = recall_params["baseline_time"]
+        elif test:
+            tone_dur = 5
+            ITI = 3
+            ITI_range = 1
+            baseline_time = 5
+
+        # Fill in CS times for code below, kept as is for backwards compatibility with earlier Pilots
+        if recall_params["CStimes"] is None:
+            recall_params["CStimes"] = [tone_dur for _ in range(recall_params["nCS"])]
 
         # Next, create tones
         tones_use = [
             self.create_tone(
-                tone_type=self.tone_type, duration=CStime, freq=self.tone_freq
+                f=self.params["tone"][tone_type]["f"], duration=self.params["tone"][tone_type]["duration"],
+                fp=self.params["tone"][tone_type]["fp"],
             )
-            for CStime in recall_params["CStimes"]
+            for _ in recall_params["CStimes"]
         ]
+
+        # Last, create probe tones at end if specified
+        play_end = False
+        if "nCS_end" in recall_params:
+            if recall_params["nCS_end"] > 0:
+                play_end = True
+                end_tone_type = recall_params["end_tone"]
+                end_tone_dur = self.params[end_tone_type]["duration"]
+                recall_params["CStimes_end"] = [end_tone_dur for _ in range(recall_params["nCS_end"])]
+                end_tones_use = [
+                    self.create_tone(
+                        f=self.params["tone"][end_tone_type]["f"],
+                        duration=self.params["tone"][end_tone_type]["duration"],
+                        fp=self.params["tone"][end_tone_type]["fp"],
+                    ) for _ in range(recall_params["nCS_end"])]
+                end_ITIuse = [
+                    self.generate_ITI(ITI, ITI_range)
+                    for _ in range(recall_params["nCS_end"])]
 
         # Last, generate ITIs
         ITIuse = [
-            self.generate_ITI(recall_params["ITI"], recall_params["ITI_range"])
+            self.generate_ITI(ITI, ITI_range)
             for _ in recall_params["CStimes"]
         ]
 
         # Start with baseline exploration period
-        baseline_time = recall_params["baseline_time"]
         print("Starting " + str(baseline_time) + " sec baseline exploration period")
         self.write_event("baseline_start")
         sleep_timer(baseline_time)
@@ -295,55 +365,73 @@ class Trace:
             print("Starting trial " + str(idt + 1))
             print(str(CStime) + " sec tone playing now")
             self.write_event("CS" + str(idt + 1) + "_start")
-
-            tones.play_tone(self.stream, tone, self.volume)
+            self.board.digital[self.CS_pin].write(1)
+            print('Playing tone at volume ' + str(recall_params["volume"]))
+            tones.play_tone(self.stream, tone, recall_params["volume"])
+            self.board.digital[self.CS_pin].write(0)
             self.write_event("CS" + str(idt + 1) + "_end")
 
             print(str(ITIdur) + " sec ITI starting now")
             sleep_timer(ITIdur)
+
+        if play_end:
+            for idt, (endtone, endCStime, endITIdur) in enumerate(
+                    zip(end_tones_use, recall_params["CStimes_end"], end_ITIuse)
+            ):
+                print("Starting end trial " + str(idt + 1))
+                print(str(endCStime) + " sec tone playing now")
+                self.write_event("CS_end_" + str(idt + 1) + "_start")
+                self.board.digital[self.CS_pin].write(1)
+                tones.play_tone(self.stream, endtone, recall_params["end_volume"])
+                self.board.digital[self.CS_pin].write(0)
+                self.write_event("CS_end_" + str(idt + 1) + "_end")
+
+                print(str(endITIdur) + " sec ITI starting now")
+                sleep_timer(endITIdur)
 
     def run_tone_recall_archive(
         self, baseline_time=120, CSshort=10, ITI=120, CSlong=300
     ):
         """Run tone recall session with baseline exploration time, short CS, ITI, and long CS - legacy from first version
         of class for Pilot1(Gilmartin2013) only"""
-        self.tone_recall_params = {
-            "baseline_time": baseline_time,
-            "CSshort": CSshort,
-            "ITI": ITI,
-            "CSlong": CSlong,
-        }
-
-        CStone_short = self.create_tone(
-            tone_type=self.tone_type, duration=CSshort, freq=self.tone_freq
-        )
-
-        CStone_long = self.create_tone(
-            tone_type=self.tone_type, duration=CSlong, freq=self.tone_freq
-        )
-
-        print("Starting " + str(baseline_time) + " sec baseline exploration period")
-        self.write_event("baseline_start")
-        sleep_timer(baseline_time)
-        self.write_event("baseline_end")
-
-        print(str(CSshort) + " sec short tone playing now")
-        self.write_event("CSshort_start")
-        tones.play_tone(self.stream, CStone_short, self.volume)
-        self.write_event("CSshort_end")
-
-        print(str(ITI) + " sec ITI starting now")
-        sleep_timer(ITI)
-
-        print(str(CSlong) + " sec long tone playing now")
-        self.write_event("CSlong_start")
-        tones.play_tone(self.stream, CStone_long, self.volume)
-        self.write_event("CSlong_end")
-
-        print("Final 1 minute exploration period starting now")
-        self.write_event("final_explore_start")
-        sleep_timer(60)
-        self.write_event("final_explore_end")
+        pass
+        # self.tone_recall_params = {
+        #     "baseline_time": baseline_time,
+        #     "CSshort": CSshort,
+        #     "ITI": ITI,
+        #     "CSlong": CSlong,
+        # }
+        #
+        # CStone_short = self.create_tone(
+        #     tone_type=self.tone_type, duration=CSshort, freq=self.tone_freq
+        # )
+        #
+        # CStone_long = self.create_tone(
+        #     tone_type=self.tone_type, duration=CSlong, freq=self.tone_freq
+        # )
+        #
+        # print("Starting " + str(baseline_time) + " sec baseline exploration period")
+        # self.write_event("baseline_start")
+        # sleep_timer(baseline_time)
+        # self.write_event("baseline_end")
+        #
+        # print(str(CSshort) + " sec short tone playing now")
+        # self.write_event("CSshort_start")
+        # tones.play_tone(self.stream, CStone_short, self.volume)
+        # self.write_event("CSshort_end")
+        #
+        # print(str(ITI) + " sec ITI starting now")
+        # sleep_timer(ITI)
+        #
+        # print(str(CSlong) + " sec long tone playing now")
+        # self.write_event("CSlong_start")
+        # tones.play_tone(self.stream, CStone_long, self.volume)
+        # self.write_event("CSlong_end")
+        #
+        # print("Final 1 minute exploration period starting now")
+        # self.write_event("final_explore_start")
+        # sleep_timer(60)
+        # self.write_event("final_explore_end")
 
     def generate_ITI(self, ITI, ITI_range):
         return ITI + np.random.random_integers(low=-ITI_range, high=ITI_range)
@@ -367,16 +455,20 @@ class Trace:
         assert session in [
             "pre",
             "post",
+            "tone_habituation",
             "habituation",
             "training",
             "ctx_recall",
             "tone_recall",
             "ctx+tone_recall",
+            "control_tone_recall"
         ]  # Make sure session is properly named
         if not test_run:
             self.session = session
+            self.session_name = session
         elif test_run:
-            self.session = session + "_test"
+            self.session = session
+            self.session_name = session + "_test"
 
         # First connect to the Arduino - super important
         print("Initializing arduino")
@@ -399,14 +491,14 @@ class Trace:
                 self.start_time = time.time()
                 self.start_datetime = datetime.now()
                 self.csv_path = self.base_dir / (
-                    self.session
+                    self.session_name
                     + self.start_datetime.strftime("%m_%d_%Y-%H_%M_%S")
                     + ".csv"
                 )  # Make csv file with start time appended
 
                 # play tones for synchronization
                 self.write_event("start_sync_tone")
-                tones.play_flat_tone(duration=0.5, f=1000.0)
+                tones.play_flat_tone(duration=0.5, f=500.0, volume=0.3)
                 self.write_event("end_sync_tone")
 
                 self.write_event(
@@ -417,18 +509,25 @@ class Trace:
                 elif session in [
                     "pre",
                     "habituation",
+                    "tone_habituation",
                     "post",
                     "ctx_recall",
                     "tone_recall",
                     "ctx+tone_recall",
                 ]:
-                    if session in ["tone_recall", "ctx+tone_recall"]:
-                        self.run_tone_recall()
+                    if session in ["tone_recall", "ctx+tone_recall", "control_tone_recall", "tone_habituation"]:
+                        self.run_tone_recall(test=test_run)
                     elif session == "ctx_recall":
+                        if "ctx_recall_params" in self.params:
+                            duration = self.params["ctx_recall_params"]["duration"]
+                        else:
+                            duration = 10
                         print("Starting context recall session")
                         self.write_event("ctx_explore_start")
-                        sleep_timer(60 * 10)
+                        sleep_timer(60 * duration)
                         self.write_event("ctx_explore_end")
+                else:
+                    print('Specified session not in code - double check!')
 
                 started = True  # exit while loop after this!
             # elif KeyboardInterrupt:
@@ -462,15 +561,17 @@ class Trace:
             test_run
         ):  # Run test with 1 second tone, 2 second trace, and 3 second shock
             tone_use = self.create_tone(
-                tone_type=self.tone_type, duration=1, freq=self.tone_freq
+                f=self.params["tone"]["training"]["f"], duration=5, fp=self.params["tone"]["training"]["fp"],
             )
             trace_dur_use = 2
             shock_dur_use = 1
 
         # play tone
-        self.write_event("tone" + str(trial) + "_start")
-        tones.play_tone(self.stream, tone_use, self.volume)
-        self.write_event("tone" + str(trial) + "_end")
+        self.write_event("CS" + str(trial) + "_start")
+        self.board.digital[self.CS_pin].write(1)
+        tones.play_tone(self.stream, tone_use, self.params["training_params"]["volume"])
+        self.board.digital[self.CS_pin].write(0)
+        self.write_event("CS" + str(trial) + "_end")
 
         # start trace period
         print(str(trace_dur_use) + " sec trace period started")
@@ -505,6 +606,7 @@ class Trace:
         shock_relay_pin=7,
         video_io_pin=9,
         record_sync_pin=12,
+        CS_pin = 11,
         video_start=True,
     ):
         """20210202: No try/except for now because I want to see an error when setting things up for now!"""
@@ -526,6 +628,7 @@ class Trace:
         self.shock_relay_pin = shock_relay_pin
         self.video_io_pin = video_io_pin
         self.record_sync_pin = record_sync_pin
+        self.CS_pin = CS_pin
 
         # Make sure you always start out setting shock_relay_pin to 1 to ground box.
         print("Grounding shock floor")
@@ -534,13 +637,15 @@ class Trace:
         # initialize cleanup function
         atexit.register(shutdown_arduino, self.board)
 
-    def create_tone(self, tone_type="white", duration=1.0, freq=None):
-        """Create a pure tone, tone_sweep, or noise.
+    def create_tone(self, f="white", duration=1.0, fp=None):
+        """Create a pure tone, tone_sweep, or noise.  Not used as of 2022_01_12.
         20210202: Only white noise working. freq input needs to be a float or list of floats for tone sweep"""
-        if tone_type == "white":
+        if f == "white":
             tone_samples = tones.generate_white_noise(duration)
-        elif tone_type == "pure_tone":
-            tone_samples = tones.generate_pure_tone(duration, self.tone_freq)
+        elif type(f) in [int, float] and fp is None:
+            tone_samples = tones.generate_pure_tone(duration, f)
+        elif type(f) in [int, float] and fp is not None:
+            tone_samples = tones.generate_pulse_tone(duration, f, fp)
         else:
             tone_samples = None
 
@@ -596,7 +701,7 @@ def sleep_timer(duration):
 
 
 def write_csv(filename, timestamp, event_id):
-    "Write time of event and event_id (int or str) to csv file"
+    """Write time of event and event_id (int or str) to csv file"""
 
     # Create file with header if file does not exist
     if not filename.exists():

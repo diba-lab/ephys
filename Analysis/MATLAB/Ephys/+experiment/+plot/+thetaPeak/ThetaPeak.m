@@ -8,6 +8,8 @@ classdef ThetaPeak
         Power
         fooof
         Bouts
+        Speed
+        EMG
     end
     
     methods
@@ -47,11 +49,19 @@ classdef ThetaPeak
             thpks=thpks.add(thpk,num);
         end
         function thpkres=merge(obj,thpk)
-            if ~isempty(thpk)&&~isempty(obj.Signal)&&~isempty(thpk.Signal)
+            if ~isempty(thpk)&&~isempty(obj.Signal)&&~isempty(thpk.Signal)&&~isempty(thpk.Signal)
                     thpkres=obj;
                     thpkres.Signal=thpkres.Signal.getEphysTimeSeries+thpk.Signal.getEphysTimeSeries;
                     thpkres.CF=thpkres.CF.getEphysTimeSeries+thpk.CF.getEphysTimeSeries;
                     thpkres.Power=thpkres.Power.getEphysTimeSeries+thpk.Power.getEphysTimeSeries;
+                    try
+                        if thpk.Speed.getSampleRate~=thpkres.Speed.getSampleRate
+                            thpk.Speed=thpk.Speed.getDownSampled(thpkres.Speed.getSampleRate);
+                        end
+                        thpkres.Speed=thpkres.Speed.getEphysTimeSeries+thpk.Speed.getEphysTimeSeries;
+                        thpkres.EMG=thpkres.EMG.getEphysTimeSeries+thpk.EMG.getEphysTimeSeries;
+                    catch
+                    end
             elseif ~isempty(obj.Signal)
                 thpkres=obj;
             elseif ~isempty(thpk)&&~isempty(thpk.Signal)
@@ -99,6 +109,48 @@ classdef ThetaPeak
                     t.VerticalAlignment='top';
             end
             xlabel('Frequency (Hz)');
+            ylabel('pdf');
+            ax.View=[90 -90];
+            grid on
+        end
+        function plotSpeed(obj)
+            ax=gca;
+            xlim=[0 15];
+            thpkcf_fd=obj.Speed.getMedianFiltered(1,'omitnan','truncate').getMeanFiltered(1);
+            colors=linspecer(2);
+            switch thpkcf_fd.getInfo.Condition
+                case 'NSD'
+                    info=1;
+                case 'SD'
+                    info=2;
+            end
+            xedge=linspace(xlim(1),xlim(2),51);
+            x=linspace(xlim(1),xlim(2),50);
+            h=histogram(thpkcf_fd.getValues,xedge,'Normalization','pdf');hold on;
+            h.FaceAlpha=.5;
+            h.FaceColor=colors(double(info),:);
+            h.LineStyle='none';
+            y = h.Values;
+            p1=plot(x,y);
+            p1.Color=colors(double(info),:);
+            p1.LineWidth=2.5;
+            l=xline(median(y));
+            l.LineStyle='-';
+            l.LineWidth=2.5;
+            l.Color=colors(double(info),:)/2;
+            text(median(y),0,sprintf('%.2f',median(y)));    
+            ax.XLim=xlim;%bandFreq;
+            ax.YLim=[0 .5];
+            t=text(xlim(2),ax.YLim(2),sprintf('%.1fm',minutes(thpkcf_fd.getLength)));
+            t.Color=colors(double(info),:)/2;
+            t.HorizontalAlignment='right';
+            switch info
+                case 1
+                    t.VerticalAlignment='bottom';
+                case 2
+                    t.VerticalAlignment='top';
+            end
+            xlabel('Speed (cm/s)');
             ylabel('pdf');
             ax.View=[90 -90];
             grid on

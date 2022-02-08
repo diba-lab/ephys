@@ -11,6 +11,9 @@ classdef VideoFile < VideoReader
             %VIDEOFILE Construct an instance of this class
             %   Detailed explanation goes here
             obj=obj@VideoReader(filename);
+            [~,name,~]=fileparts(obj.Name);
+            timecsv=strcat(name,'.csv');
+            ti=neuro.time.TimeInterval([],obj.FrameRate,obj.NumFrames)
         end
         
         function startTime = getStartTime(obj)

@@ -131,17 +131,21 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
         function p=plot(obj,varargin)
             va=obj.getValues;
             t=obj.TimeIntervalCombined;
-            if isa(t,'TimeIntervalCombined')
+            if isa(t,'neuro.time.TimeIntervalCombined')
                 hold on
                 tis=t.timeIntervalList;
                 index_va=1;
                 for iti=1:tis.length
                     ati=tis.get(iti);
-                    t_s=ati.getTimePointsInSec;
+                    try
+                        diff1=seconds(ati.getStartTime-ati.getZeitgeberTime);
+                    catch
+                        diff1=0;
+                    end
+                    t_s=hours(seconds(ati.getTimePointsInSec+diff1));
                     ava=va(index_va:(index_va+ati.getNumberOfPoints-1));
                     index_va=index_va+ati.getNumberOfPoints;
-                    t_s=ati.getStartTime+seconds(t_s);
-                    p(iti)=plot(t_s,ava(1:numel(t_s)),varargin{:});
+                    p(iti)=plot(t_s,ava(1:numel(t_s)),LineWidth=1.5,LineStyle="-");
                 end
             else
                 t_s=t.getTimePointsInSec;
@@ -151,9 +155,13 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                 p=plot(t_s,va(1:numel(t_s)),varargin{:});
             end
         end
-        function obj=plus(obj,aChan)
-            obj.TimeIntervalCombined=obj.TimeIntervalCombined+aChan.getTimeInterval;
-            obj.voltageArray=[obj.getVoltageArray ;aChan.voltageArray];
+        function obj=plus(obj,val)
+            if isa(val,'neuro.basic.Channel')
+                obj.TimeIntervalCombined=obj.TimeIntervalCombined+val.getTimeInterval;
+                obj.Values=[obj.Values ;val.Values];
+            elseif isnumeric(val)
+                obj.Values=obj.Values+val;
+            end
         end
         function ets=getTimeSeries(obj)
             ets=neuro.basic.EphysTimeSeries(obj.getValues,obj.getSampleRate,obj.ChannelName);

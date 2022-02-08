@@ -41,6 +41,13 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             
             str=sprintf('\t%s \t%s - %s\t<%s>\t<%s (%dHz)> \n',date,st,en,dur1,np1,sf);
         end
+        function S=getStruct(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            S.StartTime=obj.StartTime;
+            S.NumberOfPoints=obj.NumberOfPoints;
+            S.SampleRate=obj.SampleRate;
+        end
         function timeInterval=getTimeIntervalForSamples(obj, startSample, endSample)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -52,7 +59,9 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
                 endSample=obj.NumberOfPoints;
             end
             if startSample>0 && startSample<=endSample && endSample<=obj.NumberOfPoints
-                timeInterval=neuro.time.TimeInterval(obj.getRealTimeFor(startSample),obj.SampleRate, endSample-startSample+1);
+                obj.StartTime=obj.getRealTimeFor(startSample);
+                obj.NumberOfPoints=endSample-startSample+1;
+                timeInterval=obj;
             else
                 timeInterval=[];
             end
@@ -127,6 +136,11 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             samples=obj.getSampleFor(times);
         end
         
+        function tiz=setZeitgeberTime(obj,zt)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            tiz=neuro.time.TimeIntervalZT(obj,zt);
+        end
         function time=getEndTime(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -184,8 +198,13 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
         end
         function ticd=saveTable(obj,filePath)
             S.StartTime=obj.StartTime;
+            S.StartTime.Format='uuuu-MM-dd HH:mm:ss.SSS';
             S.NumberOfPoints=obj.NumberOfPoints;
             S.SampleRate=obj.SampleRate;
+            try
+                S.ZeitgeberTime=datestr(obj.ZeitgeberTime,'HH:MM');
+            catch
+            end
             T=struct2table(S);
             writetable(T,filePath)
             ticd=neuro.time.TimeIntervalCombined(filePath);

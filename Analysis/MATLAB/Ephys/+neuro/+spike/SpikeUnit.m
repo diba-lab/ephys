@@ -6,28 +6,16 @@ classdef SpikeUnit
         Id
         Times
         TimeIntervalCombined
-        Amplitude
-        Channel
-        Frequency
-        Group
-        NSpikes
-        Purity
+        Info
     end
     
     methods
-        function obj = SpikeUnit(spikeId,spikeTimes,timeIntervalCombined,...
-                amp,ch,fr,gr,nspikes,purity)
+        function obj = SpikeUnit(spikeId,spikeTimes,timeIntervalCombined)
             %SPIKEUNIT Construct an instance of this class
             %   Detailed explanation goes here
             obj.Id = spikeId;
             obj.Times=spikeTimes;
             obj.TimeIntervalCombined=timeIntervalCombined;
-            obj.Amplitude=amp;
-            obj.Channel=ch;
-            obj.Frequency=fr;
-            obj.Group=gr;
-            obj.NSpikes=nspikes;
-            obj.Purity=purity;
         end
         
         function timesnew = getAbsoluteSpikeTimes(obj)
@@ -40,6 +28,11 @@ classdef SpikeUnit
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             times=neuro.time.Sample(obj.Times, obj.TimeIntervalCombined.getSampleRate);
+        end
+        function obj = setInfo(obj,info)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            obj.Info=info;
         end
         function fireRate = getFireRate(obj,timebininsec)
             %METHOD1 Summary of this method goes here
