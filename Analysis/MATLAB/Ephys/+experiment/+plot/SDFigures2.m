@@ -215,7 +215,10 @@
                         EMG=sdd.getEMG;
                         ss=sdd.getStateSeries;
                         thId=sdd.getThetaChannelID;
-                        ctd=neuro.basic.ChannelTimeDataHard(file);
+                        try
+                            ctd=neuro.basic.ChannelTimeDataHard(file);
+                        catch
+                        end
                         th=ctd.getChannel(thId);
                         blocks=ses.Blocks;
                         blocksStr1=categorical([1 2 3 4],[1 2 3 4],blocks.getBlockNames,'Ordinal',true);
@@ -366,7 +369,7 @@
             params=obj.getParams.Fooof;
             sf=experiment.SessionFactory;
             selected_ses=[1:2 4:12 14:17 20:23];
-            selected_ses=[1 2 11 12 21 22 ];
+%             selected_ses=[1 2 11 12 21 22 ];
             tses=sf.getSessionsTable(selected_ses);
 
             statelist=categorical({'AWAKE','QWAKE','SWS','REM'});
@@ -389,7 +392,7 @@
                             state=states(istate);
                             cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache',['' DataHash(params)]...
                                 ,strcat(sprintf('PlotFooof_afoof_%s_%s_%s_%s_',cond,ses.toString,block,state),'.mat'));
-                            cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache',['161cbcc21891015091b0dd678c945b54']...
+                            cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache',['dd0ec70abdf774dc65dbfe6051420a73']...
                                 ,strcat(sprintf('PlotFooof_afoof_%s_%s_%s_%s_',cond,ses.toString,block,state),'.mat'));
                             if isfile(cacheFilePower)
                                 S=load(cacheFilePower,'thpks','epiFooof');

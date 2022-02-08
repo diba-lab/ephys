@@ -67,7 +67,11 @@ classdef CellMetricsSession < buzcode.CellMetrics
             synapticEffect=obj.CellMetricsStruct.synapticEffect';
             polarity=obj.CellMetricsStruct.polarity';
             brainRegion=obj.CellMetricsStruct.brainRegion';
-            cluinfo=table(id,group,sh,ch,cellType,synapticEffect,polarity,brainRegion);
+            firingRateGiniCoeff=obj.CellMetricsStruct.firingRateGiniCoeff';
+            firingRateCV=obj.CellMetricsStruct.firingRateCV';
+            firingRateInstability=obj.CellMetricsStruct.firingRateInstability';
+            cluinfo=table(id,group,sh,ch,cellType,synapticEffect,polarity,...
+                brainRegion,firingRateGiniCoeff,firingRateCV,firingRateInstability);
             sa=sa.setClusterInfo(cluinfo);
         end
 

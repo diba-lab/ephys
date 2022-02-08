@@ -10,6 +10,7 @@ classdef SDBlocks
     properties
         Date
         TimeTable
+        ZeitgeberTime
     end
     
     methods

@@ -113,7 +113,7 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
                 catch
                 end
             end
-            if isempty(order)
+            if ~exist('order','var')||isempty(order)
                 vals=sort(vals1,1);
             else
                 vals=vals1(order,:);
@@ -264,14 +264,16 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
         end
         function obj=getTimeInterval(obj,timeWindow)
             if isdatetime(timeWindow)
-                s=obj.TimeIntervalCombined.getSampleFor(timeWindow);
+                s=obj.TimeIntervalCombined.getSampleForClosest(timeWindow);
             elseif isduration(timeWindow)
-                s=seconds(timeWindow)*obj.TimeIntervalCombined.getSampleRate;
+                s=obj.TimeIntervalCombined.getSampleForClosest(obj.TimeIntervalCombined.getDate+timeWindow);
             end
             tbl=obj.SpikeTable;
             tbl((tbl.SpikeTimes<s(1))|(tbl.SpikeTimes>=s(2)),:)=[];
+            tbl.SpikeTimes=tbl.SpikeTimes-s(1);
             obj.SpikeTable=tbl;
             obj.Info.TimeFrame=timeWindow;
+            obj.TimeIntervalCombined=obj.TimeIntervalCombined.getTimeIntervalForTimes(timeWindow);
         end
         function spikeUnits=getSpikeUnits(obj,idx)
             tbl=obj.SpikeTable;
@@ -291,7 +293,7 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
         function obj=get(obj,varargin)
             selected=true(height(obj.ClusterInfo),1);
             if nargin==1
-            elseif nargin==2&& isnumeric(varargin{1})
+            elseif nargin==2&& (isnumeric(varargin{1})||islogical(varargin{1}))
                 selected=varargin{1};
             else
                 cluinf=obj.ClusterInfo;

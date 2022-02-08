@@ -36,9 +36,13 @@ classdef ThetaPeaksContainer
             cols=[6 10 3 6];
 
             conds=obj.condlist;
-            states=obj.statelist(2);
+            states=obj.statelist(4);
             if any(ismember({'SD','NSD'},blockstr))
-                blockidx=[false; true; false; false];
+                if numel(obj.blocklist)==4
+                    blockidx=[false; true; false; false];
+                else
+                    blockidx=true;
+                end
             else
                 blockidx=ismember(obj.blocklist,blockstr);
             end
@@ -94,14 +98,17 @@ classdef ThetaPeaksContainer
 
             cols=[6 10 3 6];
 
-            conds=obj.condlist;
-            states=obj.statelist(1);
+            conds=flipud(obj.condlist);
+            states=obj.statelist(1 );
             if any(ismember({'SD','NSD'},blockstr))
-                blockidx=[false; true; false; false];
+                if numel(obj.blocklist)==4
+                    blockidx=[false; true; false; false];
+                else
+                    blockidx=true;
+                end
             else
                 blockidx=ismember(obj.blocklist,blockstr);
             end
-            blockidx=1;
             block=obj.blocklist(blockidx);
             col=unique(cols(blockidx));
 
@@ -156,9 +163,13 @@ classdef ThetaPeaksContainer
             cols=[6 10 3 6];
 
             conds=obj.condlist;
-            states=obj.statelist(1);
+            states=obj.statelist(4);
             if any(ismember({'SD','NSD'},blockstr))
-                blockidx=[false; true; false; false];
+                if numel(obj.blocklist)==4
+                    blockidx=[false; true; false; false];
+                else
+                    blockidx=true;
+                end
             else
                 blockidx=ismember(obj.blocklist,blockstr);
             end
@@ -214,11 +225,15 @@ classdef ThetaPeaksContainer
             rotates=[10.5 6 25 10.5];
 
             conds=obj.condlist(:);
-            states=obj.statelist(1);
+            states=obj.statelist(4);
             colorstr1={'Blues7','Oranges7'};
             colorstr2={'RdBu10','RdBu10'};
             if any(ismember({'SD','NSD'},blockstr))
-                blockidx=[false; true; false; false];
+                if numel(obj.blocklist)==4
+                    blockidx=[false; true; false; false];
+                else
+                    blockidx=true;
+                end
             else
                 blockidx=ismember(obj.blocklist,blockstr);
             end

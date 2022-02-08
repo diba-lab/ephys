@@ -58,6 +58,7 @@ classdef Session
                 logger.info(strcat('No experimental blocks file. It is created.\t', blockFile))
             end
             sdblock=experiment.SDBlocks(obj.SessionInfo.Date,blockstt);
+            try sdblock.ZeitgeberTime=obj.SessionInfo.ZeitgeberTime; catch,end
             obj.Blocks=sdblock;
             try
                 logger.info(sdblock.print)
