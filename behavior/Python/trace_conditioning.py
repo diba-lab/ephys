@@ -209,7 +209,7 @@ params = {
 }
 
 params["Round3_unpaired"] = params["Round3"].copy()
-params["Round3_unpaired"]["training"]["unpaired_control"] = True
+params["Round3_unpaired"]["training_params"]["unpaired_control"] = True
 
 default_port = {
     "linux": "/dev/ttyACM0",
@@ -284,6 +284,7 @@ class Trace:
         ITIdiff = np.asarray(ITIpaired) - np.asarray(ITIunpaired)
         ITIuse, tone_type = [], []
         for idt, (ITIup, ITId) in enumerate(zip(ITIunpaired, ITIdiff)):
+            print("Starting trial " + str(idt + 1))
             ITIuse.append([ITIup, ITId])
             # Run trial
             self.write_event("trial_" + str(idt + 1) + "_start")
@@ -294,11 +295,12 @@ class Trace:
             print("Starting " + str(ITIup) + " second unpaired ITI")
             self.write_event("unpaired_ITI_" + str(idt + 1) + "_start")
             sleep_timer(ITIup)
+            print('Playing CS- tone')
             tones.play_tone(self.stream, control_tone_use, self.params["control_tone_recall_params"]["volume"])
             self.write_event("unpaired_ITI_" + str(idt + 1) + "_end")
+            print("Starting " + str(ITId) + " ITI")
             self.write_event("ITI_" + str(idt + 1) + "_start")
             sleep_timer(ITId)
-            tones.play_tone(self.stream, control_tone_use, self.params["control_tone_recall_params"]["volume"])
             self.write_event("ITI_" + str(idt + 1) + "_end")
 
         if not test:
@@ -551,7 +553,11 @@ class Trace:
                     "video_start"
                 )  # write first line to csv - note this is off - should be same as start tone time.
                 if session == "training":
-                    self.run_training_session(test=test_run)
+                    if "unpaired_control" in self.params["training_params"].keys() \
+                            and self.params["training_params"]["unpaired_control"]:
+                        self.run_unpaired_training_session(test=test_run)
+                    else:
+                        self.run_training_session(test=test_run)
                 else:
                     if session in ["tone_recall", "ctx+tone_recall", "control_tone_recall", "tone_habituation"]:
                         self.run_tone_recall(test=test_run)
