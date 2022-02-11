@@ -145,7 +145,7 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                     t_s=hours(seconds(ati.getTimePointsInSec+diff1));
                     ava=va(index_va:(index_va+ati.getNumberOfPoints-1));
                     index_va=index_va+ati.getNumberOfPoints;
-                    p(iti)=plot(t_s,ava(1:numel(t_s)),LineWidth=1.5);
+                    p(iti)=plot(t_s,ava(1:numel(t_s)),LineWidth=1.5,LineStyle="-");
                 end
             else
                 t_s=t.getTimePointsInSec;
@@ -155,9 +155,13 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                 p=plot(t_s,va(1:numel(t_s)),varargin{:});
             end
         end
-        function obj=plus(obj,aChan)
-            obj.TimeIntervalCombined=obj.TimeIntervalCombined+aChan.getTimeInterval;
-            obj.voltageArray=[obj.getVoltageArray ;aChan.voltageArray];
+        function obj=plus(obj,val)
+            if isa(val,'neuro.basic.Channel')
+                obj.TimeIntervalCombined=obj.TimeIntervalCombined+val.getTimeInterval;
+                obj.Values=[obj.Values ;val.Values];
+            elseif isnumeric(val)
+                obj.Values=obj.Values+val;
+            end
         end
         function ets=getTimeSeries(obj)
             ets=neuro.basic.EphysTimeSeries(obj.getValues,obj.getSampleRate,obj.ChannelName);

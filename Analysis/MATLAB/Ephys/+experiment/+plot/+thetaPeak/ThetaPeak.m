@@ -115,7 +115,7 @@ classdef ThetaPeak
         end
         function plotSpeed(obj)
             ax=gca;
-            xlim=[0 30];
+            xlim=[0 15];
             thpkcf_fd=obj.Speed.getMedianFiltered(1,'omitnan','truncate').getMeanFiltered(1);
             colors=linspecer(2);
             switch thpkcf_fd.getInfo.Condition

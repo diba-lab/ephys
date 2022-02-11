@@ -13,7 +13,14 @@ classdef TimeWindowsDuration
             % two datetime value columns: Start, Stop
             if isstruct(timeTable)
                 timeTable=struct2table(timeTable);
-            elseif istable(timeTable)
+            elseif istimetable(timeTable)
+                timeTable=timetable2table(timeTable);
+            elseif ismatrix(timeTable)
+                if ~isempty(timeTable)
+                    timeTable=array2table(timeTable,'VariableNames',{'Start','Stop'});
+                else
+                    timeTable=cell2table(cell(0,2),'VariableNames',{'Start','Stop'});
+                end
             elseif isfolder(timeTable)
                 folder=timeTable;
                 try
@@ -25,13 +32,6 @@ classdef TimeWindowsDuration
                     l=logging.Logger.getLogger;
                     l.warning('Tried to get %s, but did not get.',evtfile)
                 end
-            elseif ismatrix(timeTable)
-                if ~isempty(timeTable)
-                    timeTable=array2table(timeTable,'VariableNames',{'Start','Stop'});
-                else
-                    timeTable=cell2table(cell(0,2),'VariableNames',{'Start','Stop'});
-                end
-                
             end
             obj.TimeTable = timeTable;
         end

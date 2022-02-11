@@ -208,6 +208,9 @@ params = {
     },
 }
 
+params["Round3_unpaired"] = params["Round3"].copy()
+params["Round3_unpaired"]["training"]["unpaired_control"] = True
+
 default_port = {
     "linux": "/dev/ttyACM0",
     "windows": "COM7",
@@ -219,7 +222,7 @@ class Trace:
         self,
         arduino_port="COM6",
         paradigm="Round3",
-        base_dir=r'F:\Nat\Trace_FC\Recording_Rats\Finn',
+        base_dir=r"F:\Nat\Trace_FC\Recording_Rats\Finn",
     ):
         assert paradigm in params.keys()
         assert Path(base_dir).exists(), "Base path does not exist - create directory!"
@@ -231,7 +234,8 @@ class Trace:
         )
         self.arduino_port = arduino_port
 
-        # Set system volume level to max!
+        # Set system volume level to max!  Note this causes other port connection issues that prevent the arduino from working.
+
         # SysVol = tones.SysVol()
         # if SysVol.get_system_volume() < -0.5:
         #     SysVol.set_system_volume(0)
@@ -259,6 +263,46 @@ class Trace:
                 duration=self.params["tone"]["control"]["duration"],
                 fp=self.params["tone"]["control"]["fp"],
             )
+
+    def run_unpaired_training_session(self, test=False):
+        """Runs training session."""
+        training_params = self.params["training_params"]
+        control_tone_use = self.control_tone_samples
+        if not test:
+            ITIpaired = [
+                self.generate_ITI(training_params["ITI"], training_params["ITI_range"])
+                for _ in range(0, training_params["nshocks"])
+            ]
+            ITIunpaired = [
+                self.generate_ITI(120, 10) for _ in range(0, training_params["nshocks"])
+            ]
+        elif test:  # generate 3 second ITI
+            ITIpaired = np.ones(training_params["nshocks"]).astype("int") * 6
+            ITIunpaired = np.ones(training_params["nshocks"]).astype("int") * 3
+
+        # Now combine ITIs
+        ITIdiff = np.asarray(ITIpaired) - np.asarray(ITIunpaired)
+        ITIuse, tone_type = [], []
+        for idt, (ITIup, ITId) in enumerate(zip(ITIunpaired, ITIdiff)):
+            ITIuse.append([ITIup, ITId])
+            # Run trial
+            self.write_event("trial_" + str(idt + 1) + "_start")
+            self.run_trial(test_run=test, trial=idt + 1)
+            self.write_event("trial_" + str(idt + 1) + "_end")
+
+            # Run ITIs
+            print("Starting " + str(ITIup) + " second unpaired ITI")
+            self.write_event("unpaired_ITI_" + str(idt + 1) + "_start")
+            sleep_timer(ITIup)
+            tones.play_tone(self.stream, control_tone_use, self.params["control_tone_recall_params"]["volume"])
+            self.write_event("unpaired_ITI_" + str(idt + 1) + "_end")
+            self.write_event("ITI_" + str(idt + 1) + "_start")
+            sleep_timer(ITId)
+            tones.play_tone(self.stream, control_tone_use, self.params["control_tone_recall_params"]["volume"])
+            self.write_event("ITI_" + str(idt + 1) + "_end")
+
+        if not test:
+            self.ITIdata = ITIuse
 
     def run_training_session(self, test=False):
         """Runs training session."""
@@ -322,7 +366,8 @@ class Trace:
         # Next, create tones
         tones_use = [
             self.create_tone(
-                f=self.params["tone"][tone_type]["f"], duration=self.params["tone"][tone_type]["duration"],
+                f=self.params["tone"][tone_type]["f"],
+                duration=self.params["tone"][tone_type]["duration"],
                 fp=self.params["tone"][tone_type]["fp"],
             )
             for _ in recall_params["CStimes"]
@@ -341,16 +386,16 @@ class Trace:
                         f=self.params["tone"][end_tone_type]["f"],
                         duration=self.params["tone"][end_tone_type]["duration"],
                         fp=self.params["tone"][end_tone_type]["fp"],
-                    ) for _ in range(recall_params["nCS_end"])]
+                    )
+                    for _ in range(recall_params["nCS_end"])
+                ]
                 end_ITIuse = [
                     self.generate_ITI(ITI, ITI_range)
-                    for _ in range(recall_params["nCS_end"])]
+                    for _ in range(recall_params["nCS_end"])
+                ]
 
         # Last, generate ITIs
-        ITIuse = [
-            self.generate_ITI(ITI, ITI_range)
-            for _ in recall_params["CStimes"]
-        ]
+        ITIuse = [self.generate_ITI(ITI, ITI_range) for _ in recall_params["CStimes"]]
 
         # Start with baseline exploration period
         print("Starting " + str(baseline_time) + " sec baseline exploration period")
@@ -368,6 +413,7 @@ class Trace:
             self.board.digital[self.CS_pin].write(1)
             print('Playing tone at volume ' + str(volume))
             tones.play_tone(self.stream, tone, volume)
+
             self.board.digital[self.CS_pin].write(0)
             self.write_event("CS" + str(idt + 1) + "_end")
 
@@ -376,7 +422,7 @@ class Trace:
 
         if play_end:
             for idt, (endtone, endCStime, endITIdur) in enumerate(
-                    zip(end_tones_use, recall_params["CStimes_end"], end_ITIuse)
+                zip(end_tones_use, recall_params["CStimes_end"], end_ITIuse)
             ):
                 print("Starting end trial " + str(idt + 1))
                 print(str(endCStime) + " sec tone playing now")
@@ -461,7 +507,7 @@ class Trace:
             "ctx_recall",
             "tone_recall",
             "ctx+tone_recall",
-            "control_tone_recall"
+            "control_tone_recall",
         ]  # Make sure session is properly named
         if not test_run:
             self.session = session
@@ -551,7 +597,9 @@ class Trace:
             test_run
         ):  # Run test with 1 second tone, 2 second trace, and 3 second shock
             tone_use = self.create_tone(
-                f=self.params["tone"]["training"]["f"], duration=5, fp=self.params["tone"]["training"]["fp"],
+                f=self.params["tone"]["training"]["f"],
+                duration=5,
+                fp=self.params["tone"]["training"]["fp"],
             )
             trace_dur_use = 2
             shock_dur_use = 1
@@ -596,7 +644,7 @@ class Trace:
         shock_relay_pin=7,
         video_io_pin=9,
         record_sync_pin=12,
-        CS_pin = 11,
+        CS_pin=11,
         video_start=True,
     ):
         """20210202: No try/except for now because I want to see an error when setting things up for now!"""
@@ -672,7 +720,7 @@ class Trace:
 
 
 def shutdown_arduino(board):
-    """cleanup function to shutdown arduino in case of suddent exit"""
+    """cleanup function to shut down arduino in case of sudden exit"""
     if isinstance(board, pyfirmata.Arduino):
         print("Shutting down arduino")
         board.exit()
