@@ -12,8 +12,34 @@ classdef VideoFile < VideoReader
             %   Detailed explanation goes here
             obj=obj@VideoReader(filename);
             [~,name,~]=fileparts(obj.Name);
-            timecsv=strcat(name,'.csv');
-            ti=neuro.time.TimeInterval([],obj.FrameRate,obj.NumFrames)
+            file1=dir(fullfile(obj.Path,'*.csv'));
+            file2=file1(contains({file1.name},'time',IgnoreCase=true));
+            file3=file2(contains({file2.name},name,IgnoreCase=true));
+            if isempty(file3)
+                prompt = {'StartTime:','ZeitgeberTime'};
+                dlgtitle = 'Time interval';
+                dims = [1 25];
+                try
+                    a=split(name,{'-Cam'});
+                    file3=file1(contains({file1.name},[a{1} '.csv'],IgnoreCase=true));
+                    filenameres=fullfile(file3.folder,file3.name);
+                    cell1=readcell(filenameres);
+                    time1=datetime(cell1{1,12},'InputFormat','uuuu-MM-dd hh.mm.ss.SSS a', ...
+                        "Format","uuuu-MM-dd HH:mm:ss.SSS");
+                catch
+                    time1="now";
+                end
+                time1=datetime(time1,"Format","uuuu-MM-dd HH:mm:ss.SSS");
+                definput = {datestr(time1,'yyyy-mm-dd HH:MM:SS.FFF'),'08:00'};
+                answer = inputdlg(prompt,dlgtitle,dims,definput);
+                startTime=datetime(answer{1},"Format","uuuu-MM-dd HH:mm:ss.SSS");
+                zt=duration(answer{2},"Format","hh:mm");
+                ti=neuro.time.TimeIntervalZT(startTime,obj.FrameRate,obj.NumFrames,zt);
+                ti.saveTable(fullfile(obj.Path,[name '.time.csv']));
+            else
+                ti=neuro.time.TimeInterval(fullfile(file3.folder,file3.name));
+            end
+            obj.StartTime=ti.getStartTime;
         end
         
         function startTime = getStartTime(obj)

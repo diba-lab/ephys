@@ -43,64 +43,106 @@ classdef FiguresUnitCE
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
 
-            try close(1);catch,end;f1=figure(1);f1.Position=[1 1 560 1350];
-            try close(2);catch,end;f2=figure(2);f2.Position=[561 1 560 1350];
-            fsd=1;fnsd=1;
+            try close(1);catch,end;f1=figure(1);f1.Position=[1 1 700 1350];
+            try close(2);catch,end;f2=figure(2);f2.Position=[561 1 700 1350];
+            try close(103);catch,end;f103=figure(103);f103.Position=[1800 1 213 1350];
+            try close(104);catch,end;f104=figure(104);f104.Position=[2020 1 213 1350];
+            fsd=1;fnsd=1;numrow=5;
+            frbin=.25;frbinmean=5*60;
             for ises=1:numel(obj.CellMetricsSessions)
                 % try
                 try close(2 + ises);catch,end
                 fx=figure(2 + ises);fx.Position=[100 1 560*3 1350];
                 ses=obj.CellMetricsSessions(ises);
+                sesstr1=split( ses.Session.SessionInfo.baseFolder,{'/','_'});
+                sesstr=strjoin(sesstr1(end-2:end),' ');
                 sa1=ses.getSpikeArray;
                 dlfp=ses.Session.getDataLFP;
                 sdd=dlfp.getStateDetectionData;
                 tbl=sa1.ClusterInfo;
-                aidx=~ismember(tbl.brainRegion,'CA3')&tbl.firingRateGiniCoeff<.5;
+                aidxpy=...
+                    ~ismember(tbl.brainRegion,'CA3')...
+                    &tbl.firingRateGiniCoeff<.5...
+                    &ismember(tbl.cellType,'Pyramidal Cell')...
+...%                     &ismember(tbl.group,'good')...
+                    ;
+                aidxin=~ismember(tbl.brainRegion,'CA3')...
+                    &tbl.firingRateGiniCoeff<.5...
+                    &~ismember(tbl.cellType,'Pyramidal Cell')...
+...%                     &ismember(tbl.group,'good')...
+                    ;
+                aidx=...
+                    ~ismember(tbl.brainRegion,'CA3')...
+                    &tbl.firingRateGiniCoeff<.5...
+...%                     &~ismember(tbl.cellType,'Pyramidal Cell')...
+...%                     &ismember(tbl.group,'good')...
+                    ;
+                sa2py=sa1.get(aidxpy);
+                sa2in=sa1.get(aidxin);
                 sa2=sa1.get(aidx);
                 bls=ses.Session.Blocks;
                 blnames=bls.getBlockNames;
                 window= [15 15 15 15]'*60;
                 shift=  [5 5  5  5]'*60;
                 tblbl=table(blnames,window,shift);
-                try
+%                 try
                     if height(sa2.ClusterInfo)>10
-                    fr2=sa2.getFireRates(.25);
-                    subplot(4,1,1);
-                    cb=fr2.plotFireRates;
-                    sw=sdd.getSWLFP.getBandpassFiltered([.5 4]).getZScored+size(fr2.Data,1)/10;
-                    p1=sw.plot;
-                    for il=1:numel(p1)
-                        p1(il).Color=[1 1 1]-.2;
-                        p1(il).LineWidth=.3;
-                    end
-                    cb.Position(2)=.8;cb.Position(4)=.1;
-                    axfr=gca;
+                    fr2=sa2.getFireRates(frbin);
+                    subplot(5,1,1:2);hold on;
+                    axfr=fr2.plotFireRates;
+
+%                     sw=sdd.getSWLFP.getBandpassFiltered([.5 4]).getZScored+size(fr2.Data,1)/10;
+%                     p1=sw.plot;
+%                     for il=1:numel(p1)
+%                         p1(il).Color=[1 1 1]-.2;
+%                         p1(il).LineWidth=.3;
+%                     end
                     axfr.CLim=[0 2];
-                    axfr.XLim=[-4 12];
-                    axfr.Color=[0 0 0];
+                    axfr.XLim=[-3 11];
                     axfr.YDir='normal';
                     ylabel('Unit #')
-%                     pwc1=fr2.getPairwiseCorrelation(tblbl(1,:).window,tblbl(1,:).shift);
-%                     idx=~isnan(pwc1.R);
-                    nquint=5;
-                    binformean=.25*60;
-                    [frm,fre]=sa2.getMeanFireRateQuintiles(nquint,binformean);
-                    t1=seconds(frm{1}.getTimeInterval.getTimePointsInSec)+frm{1}.getTimeInterval.getStartTime-frm{1}.getTimeInterval.getDate;
-                    t=hours(t1-ses.Session.SessionInfo.ZeitgeberTime);
-                    for iq=1:nquint
-                        step=size(fr2.Data,1)/nquint;
-%                         shadedErrorBar(t,normalize(frm{iq}.Values,'range')*step+step*(iq-1),fre{iq}.Values,'lineprops',{'w-'})
-                        pf=plot(t,normalize(frm{iq}.Values,'range')*step+step*(iq-1),'Color',[1 1 1]-.6+iq/2/nquint);
-                        pf.LineWidth=1;
+
+%                     nquint=5;
+%                     [frm,fre]=sa2.getMeanFireRateQuintiles(nquint,frbin);
+%                     t1=seconds(frm{1}.getTimeInterval.getTimePointsInSec)+frm{1}.getTimeInterval.getStartTime-frm{1}.getTimeInterval.getDate;
+%                     t=hours(t1-ses.Session.SessionInfo.ZeitgeberTime);
+%                     for iq=1:nquint
+%                         step=size(fr2.Data,1)/nquint;
+% %                         shadedErrorBar(t,normalize(frm{iq}.Values,'range')*step+step*(iq-1),fre{iq}.Values,'lineprops',{'w-'})
+%                         pf=plot(t,normalize(frm{iq}.Values,'range')*step+step*(iq-1),'Color',[1 1 1]-.6+iq/2/nquint);
+%                         pf.LineWidth=1;
+%                     end
+
+%                     sdd.getStateSeries.plot(gca,[0 .1]);
+                    sas=[sa2 sa2py sa2in];
+                    colorsfr=linspecer(4);colorsfr=colorsfr([1 3],:);colorsfr=[.5 .5 .5 ;colorsfr];
+                    linestr={'All','Pyr','Int'};
+                    yyaxis('right');axfrr=gca;ylim([-1 1]);ylabel('FR normalized');
+                    axfrr.LineStyleOrder='-';
+                    for ifr=1:numel(sas)
+                        sax=sas(ifr);
+                        mfr1=sax.getMeanFireRate(frbin);
+                        mfr1.Values=movmean(mfr1.Values,frbinmean/frbin);
+                        pre=mfr1.getTimeWindow(bls.get('PRE'));
+                        mfr1.Values=(mfr1.Values-mean(pre.Values))/mean(pre.Values);
+                        mfr=mfr1.getMeanFiltered(5*60);
+                        p.fr=mfr.plot;mfrall(ifr)=mfr;
+                        p.frall(ifr)=p.fr(1);
+                        for ip=1:numel(p.fr)
+                                p.fr(ip).Color=colorsfr(ifr,:);
+                        end
                     end
-                    mfr=sa2.getMeanFireRate(binformean);
-                    p=plot(t,normalize(mfr.Values,'range')*size(fr2.Data,1),Color=[1 1 1],LineWidth=2);
+                    l=legend(p.frall,linestr{:});l.TextColor='w';
+                    text(0,1,sesstr, Units="normalized",VerticalAlignment="bottom")
                     %% in for create the table that holds PRE, SD, RUN, and POST
+                    fr2.Data(:,zscore(mean(fr2.Data,1))>4)=nan;
+                    fr2.Data(:,mean(fr2.Data,1)<.01)=nan;
                     for ibl=1:numel(blnames)
                         blockname=blnames{ibl};
                         wind=bls.get(blockname);
-                        %                     frm=sa.getMeanFireRate(.25);
+                        %                     frm=sa.getMeanFireRate(frbin);
                         fr=fr2.getWindow(wind);
+
                         pwc=fr.getPairwiseCorrelation(tblbl(ibl,:).window,tblbl(ibl,:).shift);
                         pwc.block(:,1)={blockname};
                         pwc.timeZT=pwc.time+seconds(wind(1)-ses.Session.SessionInfo.ZeitgeberTime);
@@ -111,6 +153,7 @@ classdef FiguresUnitCE
                         end
                         if ibl==3
                             window1=seconds(fr.Time.getEndTime-fr.Time.getStartTime);
+                            
                             pwc=fr.getPairwiseCorrelation(window1,window);
                             pwc.block(:,1)={[blockname 'b']};
                             pwc.timeZT=pwc.time+seconds(wind(1)-ses.Session.SessionInfo.ZeitgeberTime);
@@ -119,6 +162,7 @@ classdef FiguresUnitCE
                     end
 %                     pwcall=pwcall1(idx,:);
                     pwcall=obj.removeNAN(pwcall);
+
                     post=pwcall(ismember(pwcall.block,'POST'),:);
                     pre=pwcall(ismember(pwcall.block,'PRE'),:);
                     if strcmp(ses.Session.SessionInfo.Condition,'SD')
@@ -129,22 +173,34 @@ classdef FiguresUnitCE
                     maze=pwcall(ismember(pwcall.block,'TRACK'),:);
                     mazeb=pwcall(ismember(pwcall.block,'TRACKb'),:);
 
-                    axpwc=subplot(4,1,2:4);hold on;
+                    axpwc=subplot(5,1,3:5);hold on;
 %                     obj.plotPWC(pwcall(~ismember(pwcall.block,'TRACKb'),:));
                     cb=colorbar(axpwc,'Location','manual');
                     cb.Position=[.94 .2 .01 .3];
                     cb.Label.String='R';
-                    obj.plotPWC(axpwc,pre);
+                    npairs=obj.plotPWC(axpwc,pre);
                     obj.plotPWC(axpwc,sd);
                     obj.plotPWC(axpwc,maze);
                     obj.plotPWC(axpwc,post);
                     axpw=gca;
-                    axpw.CLim=[-.5 .5];
-                    axpw.XLim=[-4 12];
+                    axpw.CLim=[-.3 .3];
+                    axpw.XLim=[-3 11];
                     axpw.Color=[1 1 1];
                     ylabel('Pair #');
-                    ctrl=sd;
-%                     ctrl=pre;
+                    if strcmp(ses.Session.SessionInfo.Condition,'SD')
+                        figure(103);
+                        axpwcmat=subplot(numrow,1,fsd);
+                        ltxt={'SD'};
+                    else
+                        figure(104);
+                        axpwcmat=subplot(numrow,1,fnsd);
+                        ltxt={'NSD'};
+                    end
+                    obj.plotPWCMatrix(axpwcmat,pwcall)
+                    text(axpwcmat,0,1.04,sesstr, Units="normalized",VerticalAlignment="bottom")
+
+%                     ctrl=sd;
+                    ctrl=pre;
                     evtblses=obj.getEVtbl(post,mazeb,ctrl);
                     evtblses=[evtblses;obj.getEVtbl(sd,mazeb,ctrl)];
                     evtblses=[evtblses;obj.getEVtbl(maze,mazeb,ctrl)];
@@ -157,46 +213,59 @@ classdef FiguresUnitCE
 
                     if strcmpi(evtblses(1,:).sessionType,'SD')
                         figure(1);
-                        axs=subplot(5,1,fsd);fsd=fsd+1;
-                        [p_ev, p_rev]=obj.plotEV(evtblses,rd);
-                        legend([p_ev.mainLine p_rev.mainLine],{'SD-EV','SD-REV'},Location="northwest")
-                        axes(axpwc);yyaxis("right");
-                        [p_ev, p_rev]=obj.plotEV(evtblses,rd);
-                        legend([p_ev.mainLine p_rev.mainLine],{'SD-EV','SD-REV'},Location="northwest")
+                        axs=subplot(numrow,1,fsd);fsd=fsd+1;
+                        ltxt={'SD-EV','SD-REV'};
                     else
                         figure(2);
-                        axs=subplot(5,1,fnsd);fnsd=fnsd+1;
-                        [p_ev, p_rev]=obj.plotEV(evtblses,bl);
-                        legend([p_ev.mainLine p_rev.mainLine],{'NSD-EV','NSD-REV'},Location="northwest")
-                        axes(axpwc);yyaxis("right");
-                        [p_ev, p_rev]=obj.plotEV(evtblses,bl);
-                        legend([p_ev.mainLine p_rev.mainLine],{'NSD-EV','NSD-REV'},Location="northwest")
-
+                        axs=subplot(numrow,1,fnsd);fnsd=fnsd+1;
+                        ltxt={'NSD-EV','NSD-REV'};
                     end
+                    axs.XLim=[-3 11];hold on
+                    [p_ev, p_rev]=obj.plotEV(evtblses,rd);
+                    sdd.getStateSeries.plot(gca,[.55 .8]);
+                    bls.plot(gca,[.85 1]);
+%                     legend([],ltxt,Location="eastoutside")
+                    axes(axpwc);yyaxis("right");
+                    [p_ev, p_rev]=obj.plotEV(evtblses,rd);
+
+
                     ylabel('R');
-%                     axfr=gca;
-%                     axfr.XLim=[-4 12];
+                    text(0,1,sesstr, Units="normalized",VerticalAlignment="bottom")
+                    text(axs,.8,.6,sprintf("#Units:%d\n#Pairs:%d",height(fr2.ClusterInfo),npairs),'Units','normalized');
+%                     axes(axs);
 %                     axpw.addlistener('XLim','PostSet',@(src,evnt)disp('Color changed'));
 %                     ax.YLim=[0 .3];
-                    if ises==1
-                        evtbl=evtblses;
-                    else
-                        evtbl=[evtbl;evtblses];
-                    end
+%                     if ises==1
+%                         evtbl=evtblses;
+%                     else
+%                         evtbl=[evtbl;evtblses];
+%                     end
                     axes(axs);
                     yyaxis("right");
-                    p=plot(t,normalize(mfr.Values,'range')*size(fr2.Data,1),Color=[1 1 1]*.4,LineWidth=2);
-                    ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
-                    ff.save(['ses' num2str(ises)]);
+                    getfr=2:3;
+                    for ifr=getfr
+                        p.fr=mfrall(ifr).plot;
+                        p.frall(ifr)=p.fr(1);
+                        for ip=1:numel(p.fr)
+                                p.fr(ip).Color=colorsfr(ifr,:);
+                                p.fr(ip).LineWidth =.5;
+                        end
                     end
-                catch
-                end
+                    l=legend(axs,[p_ev.mainLine p_rev.mainLine p.frall(getfr)],{ltxt{:} linestr{getfr}},Location="westoutside");       
+                    drawnow
+                    text(0,1,sesstr, Units="normalized",VerticalAlignment="bottom")
+
+%                     ff=logistics.FigureFactory.instance(  '/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
+%                     ff.save(['ses' num2str(ises)]);
+                    end
+%                 catch
+%                 end
             end
             ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
             figure(1);ff.save('sdpost')
             figure(2);ff.save('nsdpost')
         end
-        function [cb]=plotPWC(obj,ax,pwc)
+        function [npairs]=plotPWC(obj,ax,pwc)
             [a,b,c]=unique(pwc(:,{'timeZT','block','timeNo'}));
             for i=1:height(a)
                 if i==1
@@ -206,10 +275,57 @@ classdef FiguresUnitCE
                 end
             end
             t=hours(seconds(mean(a.timeZT,2)));
+            npairs=size(arr1,1);
             imagesc(ax,t,1:size(arr1,1),arr1);
             xlabel('ZT (Hrs)')
             colormap(ax,flipud(othercolor('RdBu11',40)));
             ax.YLim=[0 size(arr1,1)];
+        end
+        function [npairs]=plotPWCMatrix(obj,ax,pwcall)
+            pwcall=pwcall(ismember(pwcall.block,{'PRE' 'SD' 'NSD' 'TRACK' 'POST'}),:);
+            axes(ax);
+            [a,b,c]=unique(pwcall(:,{'timeZT','block','timeNo'}));
+            for i=1:height(a)
+                if i==1
+                    arr1=pwcall(c==i,"R").R;
+                else
+                    arr1=[arr1 pwcall(c==i,"R").R];
+                end
+            end
+            R=corrcoef(arr1);
+            t=hours(seconds(mean(a.timeZT,2)));
+            imagesc(ax,t,t,R);
+            xlabel('ZT (Hrs)')
+            colormap(ax,flipud(othercolor('RdBu10',40)));
+            ax.Color='none';
+            
+            %             clim([0 1]);
+            lim=[-3 11];xlim(lim);ylim(lim);
+            cb=colorbar(ax,"south",Units="normalized");cb.Position(3)=cb.Position(3)/2
+            [a1,b1,c1]=unique(a(:,'block'),'stable');
+            axo=ax;
+            x=axo.Position(1);
+            w=axo.Position(3);
+            ho=axo.Position(4);
+            h=axo.Position(4)/40;
+            y=axo.Position(2)+ho+h;
+            ax1=axes('Position',[x y w h]);
+            imagesc(t,t,c1');colormap(ax1,linspecer(height(a1)))
+            xlim(lim);
+            ax1.Box='off';ax1.Color='none';
+            ax1.XAxis.Visible='off';
+            ax1.YAxis.Visible='off';
+            wo=axo.Position(3);
+            w=axo.Position(3)/40;
+            x=axo.Position(1)+wo+w;
+            y=axo.Position(2);
+            h=axo.Position(4);
+            ax1=axes('Position',[x y w h]);
+            imagesc(t,t,c1);colormap(ax1,linspecer(height(a1)))
+            ylim(lim);
+            ax1.Box='off';ax1.Color='none';
+            ax1.XAxis.Visible='off';
+            ax1.YAxis.Visible='off';
         end
         function pwc=removeNAN(obj,pwc)
             [a,b,c]=unique(pwc(:,{'timeZT','block','timeNo'}));
