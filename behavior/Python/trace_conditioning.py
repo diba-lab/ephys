@@ -293,11 +293,19 @@ class Trace:
             print("Starting " + str(ITIup) + " second unpaired ITI")
             self.write_event("unpaired_ITI_" + str(idt + 1) + "_start")
             sleep_timer(ITIup)
-            tones.play_tone(self.stream, control_tone_use, self.params["control_tone_recall_params"]["volume"])
+            tones.play_tone(
+                self.stream,
+                control_tone_use,
+                self.params["control_tone_recall_params"]["volume"],
+            )
             self.write_event("unpaired_ITI_" + str(idt + 1) + "_end")
             self.write_event("ITI_" + str(idt + 1) + "_start")
             sleep_timer(ITId)
-            tones.play_tone(self.stream, control_tone_use, self.params["control_tone_recall_params"]["volume"]
+            tones.play_tone(
+                self.stream,
+                control_tone_use,
+                self.params["control_tone_recall_params"]["volume"],
+            )
             self.write_event("ITI_" + str(idt + 1) + "_end")
 
         if not test:
