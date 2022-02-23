@@ -37,7 +37,7 @@ classdef VideoFile < VideoReader
                 ti=neuro.time.TimeIntervalZT(startTime,obj.FrameRate,obj.NumFrames,zt);
                 ti.saveTable(fullfile(obj.Path,[name '.time.csv']));
             else
-                ti=neuro.time.TimeInterval(fullfile(file3.folder,file3.name));
+                ti=neuro.time.TimeIntervalCombined(fullfile(file3.folder,file3.name));
             end
             obj.StartTime=ti.getStartTime;
         end
@@ -48,8 +48,12 @@ classdef VideoFile < VideoReader
         function obj = setStartTime(obj,startTime)
             obj.startTime = startTime;
         end
-        function newVideoFilesCombined = plus(obj,videoFiletoAdd)
-            newVideoFilesCombined=VideoFilesCombined(obj,videoFiletoAdd);
+        function newVideoFilesCombined = plus(obj,add1)
+            if isa(add1,'video.VideoFile')
+                newVideoFilesCombined=VideoFilesCombined(obj,add1);
+            elseif isa(add1,'video.DLCPositionEstimationFile')
+                
+            end
         end
         function ts = getTimestamps(obj)
             filename=obj.Name;
