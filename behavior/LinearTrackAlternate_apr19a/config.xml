@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<struct>
+    <marker>
+        <lengthMS>10</lengthMS>
+    </marker>
+    <port>
+        <address>8184</address>
+    </port>
+</struct>

@@ -18,14 +18,14 @@ classdef MagicalGarden
             end
             for i=1:nargin
                 aWell=obj.waterWells(i);
-                l=aWell.addlistener('Watered',@(srcobj,wateredEvent)obj.updateStates());
+                l=aWell.addlistener('Watered',@(srcobj,wateredEvent)obj.flipStates());
                 l=aWell.addlistener('Watered',@(srcobj,wateredEvent)tr.add(2,wateredEvent));
                 l=aWell.addlistener('Touched',@(srcobj,touchedEvent)tr.add(1,touchedEvent));
             end
             fprintf('Magical Garden with %d wells is created.\n',nargin)
         end
         function []=start(obj)
-            fprintf('The magical garden was started.\n')
+            fprintf('The magical garden is started.\n')
             while true
                 for i=1:numel(obj.waterWells)
                     theWell=obj.waterWells(i);
@@ -36,7 +36,7 @@ classdef MagicalGarden
             end
         end
         
-        function [obj]=updateStates(obj)
+        function [obj]=flipStates(obj)
             states=obj.getStates();
             obj=obj.setStates(flip(states));
         end
@@ -52,12 +52,15 @@ classdef MagicalGarden
                 aWaterWell=obj.waterWells(i);
                 if states(i)
                     aWaterWell.activate();
+                    theactive=aWaterWell;
                 else
                     aWaterWell.deactivate();
                 end
                 obj.waterWells(i)=aWaterWell;
             end
-            fprintf('States updated.\n   %d %d\n',states);
+            fprintf('States updated.\n   %s -> %s active\n', ...
+                theactive.getSensorPin,theactive.getMotorPin);
+            
         end
         function obj = giveWater(obj)
             %giveWater Summary of this method goes here
