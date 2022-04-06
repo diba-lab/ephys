@@ -88,6 +88,11 @@ classdef FiguresUnitCE
 %                 try
                     if height(sa2.ClusterInfo)>10
                     fr2=sa2.getFireRates(frbin);
+                    fr2f=neuro.spike.FireRatesFilter(fr2);
+                    durationInsec=60*60;%1 hour
+                    ratio=1/3;
+                    slidingAmount=5*60;
+%                     fr2f.getRatioFilter(durationInsec, slidingAmount, ratio);
                     subplot(5,1,1:2);hold on;
                     axfr=fr2.plotFireRates;
 
@@ -240,6 +245,9 @@ classdef FiguresUnitCE
 %                     else
 %                         evtbl=[evtbl;evtblses];
 %                     end
+                    ff=logistics.FigureFactory.instance(  '/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
+                    ff.save(['ses' num2str(ises)]);
+                    
                     axes(axs);
                     yyaxis("right");
                     getfr=2:3;
@@ -255,8 +263,7 @@ classdef FiguresUnitCE
                     drawnow
                     text(0,1,sesstr, Units="normalized",VerticalAlignment="bottom")
 
-%                     ff=logistics.FigureFactory.instance(  '/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
-%                     ff.save(['ses' num2str(ises)]);
+
                     end
 %                 catch
 %                 end

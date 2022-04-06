@@ -97,7 +97,6 @@ classdef FireRates
                     end
                 end
             end
-
         end
         
     end

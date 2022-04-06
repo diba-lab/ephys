@@ -19,7 +19,7 @@ classdef DLCPositionEstimationFile
 
                 t=readtable(filename,'NumHeaderLines',2,'ReadVariableNames',true);
                 tx=readcell(filename,'Range',[1 2 3 width(t)]);
-                obj.Markers=unique(tx(2,:));
+                obj.Markers=unique(tx(2,:),'stable');
                 obj.Dims=unique(tx(3,:),'stable');
                 obj.TrainExtension=unique(tx(1,:),'stable');
                 marker1=t.Properties.VariableNames;

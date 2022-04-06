@@ -48,11 +48,11 @@ classdef VideoFile < VideoReader
         function obj = setStartTime(obj,startTime)
             obj.startTime = startTime;
         end
-        function newVideoFilesCombined = plus(obj,add1)
+        function returnedval = plus(obj,add1)
             if isa(add1,'video.VideoFile')
                 newVideoFilesCombined=VideoFilesCombined(obj,add1);
             elseif isa(add1,'video.DLCPositionEstimationFile')
-                
+                returnedval=video.VideoPlusPosition(obj,add1);
             end
         end
         function ts = getTimestamps(obj)
