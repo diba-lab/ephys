@@ -14,6 +14,7 @@ from pathlib import Path
 import csv
 from datetime import datetime
 import atexit
+from copy import deepcopy
 
 tone_dur_default = 10  # seconds
 trace_dur_default = 20  # seconds
@@ -208,7 +209,7 @@ params = {
     },
 }
 
-params["Round3_unpaired"] = params["Round3"].copy()
+params["Round3_unpaired"] = deepcopy(params["Round3"])
 params["Round3_unpaired"]["training_params"]["unpaired_control"] = True
 
 default_port = {
@@ -222,7 +223,7 @@ class Trace:
         self,
         arduino_port="COM6",
         paradigm="Round3",
-        base_dir=r"F:\Nat\Trace_FC\Recording_Rats\Finn",
+        base_dir=r"E:\Nat\Trace_FC\Rey",
     ):
         assert paradigm in params.keys()
         assert Path(base_dir).exists(), "Base path does not exist - create directory!"
@@ -276,6 +277,11 @@ class Trace:
             ITIunpaired = [
                 self.generate_ITI(120, 10) for _ in range(0, training_params["nshocks"])
             ]
+
+            print("Initial exploration period started")
+            self.write_event("start_exploration")
+            sleep_timer(training_params["start_buffer"])
+            self.write_event("end_exploration")
         elif test:  # generate 3 second ITI
             ITIpaired = np.ones(training_params["nshocks"]).astype("int") * 6
             ITIunpaired = np.ones(training_params["nshocks"]).astype("int") * 3
@@ -645,7 +651,7 @@ class Trace:
 
     def initialize_arduino(
         self,
-        port="COM7",
+        port="COM6",
         shock_box_pin=2,
         shock_relay_pin=7,
         video_io_pin=9,
