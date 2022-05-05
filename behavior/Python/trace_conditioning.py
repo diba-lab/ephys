@@ -301,8 +301,12 @@ class Trace:
             print("Starting " + str(ITIup) + " second unpaired ITI")
             self.write_event("unpaired_ITI_" + str(idt + 1) + "_start")
             sleep_timer(ITIup)
-            print('Playing CS- tone')
-            tones.play_tone(self.stream, control_tone_use, self.params["control_tone_recall_params"]["volume"])
+            print("Playing CS- tone")
+            tones.play_tone(
+                self.stream,
+                control_tone_use,
+                self.params["control_tone_recall_params"]["volume"],
+            )
             self.write_event("unpaired_ITI_" + str(idt + 1) + "_end")
             print("Starting " + str(ITId) + " ITI")
             self.write_event("ITI_" + str(idt + 1) + "_start")
@@ -355,7 +359,9 @@ class Trace:
         recall_params = self.params[self.session + "_params"]
         tone_type = recall_params["tone_use"]
         volume = recall_params["volume"]
-        end_volume = recall_params["end_volume"] if "end_volume" in recall_params else None
+        end_volume = (
+            recall_params["end_volume"] if "end_volume" in recall_params else None
+        )
         if not test:
             tone_dur = self.params["tone"][tone_type]["duration"]
             ITI = recall_params["ITI"]
@@ -388,7 +394,9 @@ class Trace:
                 play_end = True
                 end_tone_type = recall_params["end_tone"]
                 end_tone_dur = self.params["tone"][end_tone_type]["duration"]
-                recall_params["CStimes_end"] = [end_tone_dur for _ in range(recall_params["nCS_end"])]
+                recall_params["CStimes_end"] = [
+                    end_tone_dur for _ in range(recall_params["nCS_end"])
+                ]
                 end_tones_use = [
                     self.create_tone(
                         f=self.params["tone"][end_tone_type]["f"],
@@ -419,7 +427,7 @@ class Trace:
             print(str(CStime) + " sec tone playing now")
             self.write_event("CS" + str(idt + 1) + "_start")
             self.board.digital[self.CS_pin].write(1)
-            print('Playing tone at volume ' + str(volume))
+            print("Playing tone at volume " + str(volume))
             tones.play_tone(self.stream, tone, volume)
 
             self.board.digital[self.CS_pin].write(0)
@@ -559,13 +567,20 @@ class Trace:
                     "video_start"
                 )  # write first line to csv - note this is off - should be same as start tone time.
                 if session == "training":
-                    if "unpaired_control" in self.params["training_params"].keys() \
-                            and self.params["training_params"]["unpaired_control"]:
+                    if (
+                        "unpaired_control" in self.params["training_params"].keys()
+                        and self.params["training_params"]["unpaired_control"]
+                    ):
                         self.run_unpaired_training_session(test=test_run)
                     else:
                         self.run_training_session(test=test_run)
                 else:
-                    if session in ["tone_recall", "ctx+tone_recall", "control_tone_recall", "tone_habituation"]:
+                    if session in [
+                        "tone_recall",
+                        "ctx+tone_recall",
+                        "control_tone_recall",
+                        "tone_habituation",
+                    ]:
                         self.run_tone_recall(test=test_run)
                     elif session == "ctx_recall":
                         if "ctx_recall_params" in self.params:

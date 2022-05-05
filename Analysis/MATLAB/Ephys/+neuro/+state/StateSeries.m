@@ -105,8 +105,8 @@ classdef StateSeries
             states1=ts1.Data;
             newobj=neuro.state.StateSeries(states1,timeIntervalCombined);
         end
-        function [ax] = plot(obj,ax)
-            yShadeRatio=[.2 .8];
+        function [ax] = plot(obj,ax,yShadeRatio)
+%             yShadeRatio=[.55 .8];
             if ~exist('ax','var')
                 ax=gca;
             else
@@ -115,14 +115,16 @@ classdef StateSeries
             hold1=ishold(ax);hold(ax,"on");
             y=[ax.YLim(1)+diff(ax.YLim)*yShadeRatio(1) ax.YLim(1)+diff(ax.YLim)*yShadeRatio(2)];
             episodes=obj.Episodes;
+            ztcorrection=seconds(obj.TimeIntervalCombined.getZeitgeberTime-obj.TimeIntervalCombined.getStartTime);
             fnames=fieldnames(episodes);
             hold on;
             colors=linspecer(numel(fnames));
             for istate=1:numel(fnames)
                 thestate=episodes.(fnames{istate});
                 for iepisode=1:size(thestate,1)
-                    episode=thestate(iepisode,:);
-
+                    episode1=thestate(iepisode,:);
+                    episode=hours(seconds(...
+                        obj.TimeIntervalCombined.adjustTimestampsAsIfNotInterrupted(episode1)-ztcorrection));
                     fl=fill([episode(1) episode(2) episode(2) episode(1)], ...
                         [y(1) y(1) y(2) y(2)],colors(istate,:));
                     fl.LineStyle='none';

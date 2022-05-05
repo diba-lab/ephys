@@ -23,7 +23,11 @@ classdef TimeIntervalZT < neuro.time.TimeInterval
                 zt=varargin{4};
             end
             obj@neuro.time.TimeInterval(startTime, sampleRate, numberOfPoints)
-            obj.ZeitgeberTime= zt+obj.getDate;
+            if isduration(zt)
+                obj.ZeitgeberTime= zt+obj.getDate;
+            elseif isdatetime(zt)
+                obj.ZeitgeberTime= zt;
+            end
         end
         function S=getStruct(obj)
             %METHOD1 Summary of this method goes here
@@ -40,7 +44,11 @@ classdef TimeIntervalZT < neuro.time.TimeInterval
         end
 
         function zt=getZeitgeberTime(obj)
-            zt=obj.ZeitgeberTime;
+            if isduration(obj.ZeitgeberTime)
+                zt=obj.ZeitgeberTime+obj.getDate;
+            elseif isdatetime(obj.ZeitgeberTime)
+                zt=obj.ZeitgeberTime;
+            end
         end
     end
 end
