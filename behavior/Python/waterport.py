@@ -1,5 +1,5 @@
 import time
-import tones
+# import tones
 import pyfirmata
 import numpy as np
 import sys
@@ -14,8 +14,8 @@ class Waterport:
         self,
         port_open_ms=50,
         port="COM7",
-        left_sensor_pin=3,
-        right_sensor_pin=5,
+        left_sensor_pin=5,
+        right_sensor_pin=3,
         left_port_pin=10,
         right_port_pin=8,
         OE_pin=7,
@@ -69,8 +69,8 @@ class Waterport:
                 time.sleep(self.port_open_ms / 1000)
                 self.board.digital[self.OE_pin].write(0)
                 self.board.digital[self.left_port_pin].write(0)
-                lick = True
                 print("Lick left detected")
+                lick = True
             # maybe this helps prevent arduino stop reading inputs on Windows after awhile?
             time.sleep(0.01)
 
