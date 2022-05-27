@@ -145,9 +145,9 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             themeanquint=mean(vals,1);
             thesterrquint=std(vals,1)/sqrt(size(vals,1));
             frm=neuro.basic.Channel(sprintf('Mean Over Units'),...
-                themeanquint,frs.getTimeInterval);
+                themeanquint,frs.getTimeIntervalCombined);
             fre=neuro.basic.Channel(sprintf('Mean Over Units'),...
-                thesterrquint,frs.getTimeInterval);
+                thesterrquint,frs.getTimeIntervalCombined);
 
         end
         function frs=getFireRates(obj,timebininsec)
@@ -160,7 +160,7 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
                 catch
                 end
             end
-            frs=neuro.spike.FireRates(vals,[sus.Id],frs.getTimeInterval);
+            frs=neuro.spike.FireRates(vals,[sus.Id],frs.getTimeIntervalCombined);
             frs.Info.TimebinInSec=timebininsec;
             frs.ClusterInfo=obj.ClusterInfo;
         end

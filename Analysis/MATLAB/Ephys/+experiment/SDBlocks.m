@@ -65,8 +65,8 @@ classdef SDBlocks
             obj.TimeTable=t;
             obj.Date=zt;
         end
-        function plot(obj,ax)
-            yShadeRatio=[0 1];
+        function plot(obj,ax,yShadeRatio)
+%             yShadeRatio=[.85 1];
             t=obj.TimeTable;
             if exist('ax','var')
                 axes(ax);
@@ -79,8 +79,8 @@ classdef SDBlocks
                 t1=t.t1+obj.Date;
                 t2=t.t2+obj.Date;
             else
-                t1=hours(t.t1);
-                t2=hours(t.t2);
+                t1=hours(t.t1-obj.ZeitgeberTime);
+                t2=hours(t.t2-obj.ZeitgeberTime);
             end
             colors=linspecer(height(t));
             for ib=1:height(t)

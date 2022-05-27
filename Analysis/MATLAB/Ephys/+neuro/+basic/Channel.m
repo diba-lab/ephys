@@ -145,7 +145,13 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                     t_s=hours(seconds(ati.getTimePointsInSec+diff1));
                     ava=va(index_va:(index_va+ati.getNumberOfPoints-1));
                     index_va=index_va+ati.getNumberOfPoints;
-                    p(iti)=plot(t_s,ava(1:numel(t_s)),LineWidth=1.5,LineStyle="-");
+                    p(iti)=plot(t_s,ava(1:numel(t_s)));
+                    p(iti).LineWidth=1.5;
+                    p(iti).Marker='none';
+                    p(iti).LineStyle="-";
+                    if iti>1
+                        p(iti).Color=p(iti-1).Color;
+                    end
                 end
             else
                 t_s=t.getTimePointsInSec;

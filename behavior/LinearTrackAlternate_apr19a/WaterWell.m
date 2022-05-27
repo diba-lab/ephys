@@ -11,12 +11,20 @@ classdef WaterWell < handle
         sensorPin
         motorPin
         configFile
+        markerPin
     end
     
     methods
-        function obj = WaterWell(sensorPin, motorPin, configFile)
+        function sp=getSensorPin(obj)
+            sp=obj.sensorPin;
+        end
+        function mp=getMotorPin(obj)
+            mp=obj.motorPin;
+        end
+        function obj = WaterWell(sensorPin, motorPin, configFile, markerPin)
             obj.sensorPin = sensorPin;
             obj.motorPin = motorPin;
+            obj.markerPin=markerPin;
             
             obj.configFile = configFile;
             obj.isActive1=true;
@@ -34,9 +42,7 @@ classdef WaterWell < handle
                     T=readtable(obj.configFile);
                     ind1=strcmpi(T.MotorPin,obj.motorPin);
                     amountOfWaterProvidedAtATimeInMs=T(ind1,:).WaterAmount;
-                    theArduino.writeDigitalPin(obj.motorPin, 1);
-                    pause(amountOfWaterProvidedAtATimeInMs/1000);
-                    theArduino.writeDigitalPin(obj.motorPin,0);
+                    obj.water(amountOfWaterProvidedAtATimeInMs);
                     we=WateredEventData(obj.motorPin,amountOfWaterProvidedAtATimeInMs);
                     obj.notify('Watered',we);
                 end
@@ -59,11 +65,13 @@ classdef WaterWell < handle
             isActive=obj.isActive1;
         end
         
-        function [] = water(obj)
+        function [] = water(obj,timeInMs)
+            theArduino=ArduinoWrapper.instance.getArduino;
+            theArduino.writeDigitalPin(obj.markerPin,1);
             theArduino.writeDigitalPin(obj.motorPin,1);
-            startat(t,fTime);
-            theArduino.writeDigitalPin(obj.motorPin,1);
-            obj.notify('Watered');
+            pause(timeInMs/1000);
+            theArduino.writeDigitalPin(obj.markerPin,0);
+            theArduino.writeDigitalPin(obj.motorPin,0);
         end
     end
 end
