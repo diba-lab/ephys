@@ -221,9 +221,9 @@ default_port = {
 class Trace:
     def __init__(
         self,
-        arduino_port="COM6",
+        arduino_port="COM7",
         paradigm="Round3",
-        base_dir=r"E:\Nat\Trace_FC\Rey",
+        base_dir=r"E:\Nat\Trace_FC\Recording_Rats\Jyn",
     ):
         assert paradigm in params.keys()
         assert Path(base_dir).exists(), "Base path does not exist - create directory!"
