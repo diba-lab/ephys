@@ -13,9 +13,6 @@ classdef OptiLoader<Singleton
         % Singleton superclass.
         function newObj = OptiLoader(path)
             % Initialise your custom properties.
-            s=xml2struct('+optiTrack/configuration.xml');
-            fname=fieldnames(s);
-            newObj.parameters=s.(fname{1});
             if exist('path','var')
                 newObj.defpath=path;
             end
@@ -60,7 +57,7 @@ classdef OptiLoader<Singleton
         %         end
     end
     methods 
-        function [pd] = loadFile(obj, files)
+        function [ofs] = loadFile(obj, files)
             % Just assign the input value to singletonData.  See Singleton
             % superclass.
             if(nargin<2)
@@ -114,10 +111,6 @@ classdef OptiLoader<Singleton
                     ofs=ofs+of;
                 end
             end
-            f=figure;ofs.plotTimeline;pause(3);close(f);
-            pd=ofs.getMergedPositionData;
-            pd.source=path;
-            pd.saveInPlainFormat(path);
         end
 
     end

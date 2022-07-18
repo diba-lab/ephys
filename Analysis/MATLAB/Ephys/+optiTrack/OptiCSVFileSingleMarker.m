@@ -41,13 +41,15 @@ classdef OptiCSVFileSingleMarker<optiTrack.OptiCSVFile
         function nf=getNumFrames(obj)
             nf=obj.TotalExportedFrames;
         end
-        function positionData=getMergedPositionData(obj)
+        function positionData=getMergedPositionData(obj,scale,zt)
             tic1=obj.getTimeInterval;
-            prompt = {'Scale cm:'};
-            dlgtitle = datestr(tic1.getDate);
-            dims = [1 10];
-            definput = {'0.5'};
-            scale = str2double(inputdlg(prompt,dlgtitle,dims,definput));
+            if nargin<2
+                prompt = {'Scale cm:'};
+                dlgtitle = datestr(tic1.getDate);
+                dims = [1 10];
+                definput = {'0.5'};
+                scale = str2double(inputdlg(prompt,dlgtitle,dims,definput));
+            end
             table1=obj.table;
             dims={'X','Y','Z'};
             reflectionpoints={[-15 inf; 97.8 98.4; 115 130], [60 95; -inf 6; -6 30], [-75 -49; 12 18; 58 70], ...
@@ -92,11 +94,13 @@ classdef OptiCSVFileSingleMarker<optiTrack.OptiCSVFile
             X=dim1filt2(1,:);
             Y=dim1filt2(2,:);
             Z=dim1filt2(3,:);
-            prompt = {'Zeitgeber Time:'};
-            dlgtitle = datestr(tic1.getDate);
-            dims = [1 10];
-            definput = {'08:00'};
-            zt = duration(inputdlg(prompt,dlgtitle,dims,definput),'InputFormat','hh:mm');
+            if nargin<3
+                prompt = {'Zeitgeber Time:'};
+                dlgtitle = datestr(tic1.getDate);
+                dims = [1 10];
+                definput = {'12:00'};
+                zt = duration(inputdlg(prompt,dlgtitle,dims,definput),'InputFormat','hh:mm');
+            end
             tic1=tic1.setZeitgeberTime(zt);
             positionData=optiTrack.PositionData(X,Y,Z,tic1);
         end

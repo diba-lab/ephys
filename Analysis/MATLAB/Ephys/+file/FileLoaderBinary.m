@@ -42,6 +42,15 @@ classdef FileLoaderBinary < file.FileLoaderMethod
             try
                 S = xml2struct(obj.xmlfile);
                 starttime=datetime(S.SETTINGS.INFO.DATE.Text ,'InputFormat','dd MMM yyyy HH:mm:ss');
+                ps=S.SETTINGS.SIGNALCHAIN{1,1}.PROCESSOR;
+                for ipro=1:numel(ps)
+                    p=ps{ipro};
+                    if ismember('PhoStartTimestampPlugin',fieldnames(ps{ipro}))
+                        starttime1=p.PhoStartTimestampPlugin.RecordingStartTimestamp.Attributes.startTime;
+                        starttime=datetime(starttime1 ,'InputFormat','yyyy-MM-dd_HH:mm:ss.SSSSSSS');
+                        fprintf('\t-->\tStart time of the record read by milisecond accuracy %.7f.\n',starttime.Second);
+                    end
+                end
             catch
                 warning('Start time of the record couldn''t be read properly.\n')
                 starttime=[];
@@ -56,7 +65,10 @@ classdef FileLoaderBinary < file.FileLoaderMethod
             log=logging.Logger.getLogger;
             
             starttime1=obj.getRecordStartTime();
-            fprintf('Start Time in .xml file: %s\n',datestr(starttime1));
+            fprintf('Start Time in .xml file: %s\n',datestr(starttime1,'dd-mmm-yyyy HH:MM:SS.FFF'));
+%             file=dir(obj.OEBinFile);            
+%             samples=file.bytes/2/header.num_channels;
+
             fprintf('Loading binary file...\n');tic
             D= load_open_ephys_binary(obj.OEBinFile,'continuous',1,'mmap','.dat');toc
             log.fine(sprintf('Binary continuous loaded. %s',obj.OEBinFile))

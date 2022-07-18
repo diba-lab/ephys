@@ -82,7 +82,7 @@ classdef FiguresUnitCE
                 sa2=sa1.get(aidx);
                 bls=ses.Session.Blocks;
                 blnames=bls.getBlockNames;
-                window= [15 15 15 15]'*60;
+                window= [15 15 15 15]'*60*2;
                 shift=  [5 5  5  5]'*60;
                 tblbl=table(blnames,window,shift);
 %                 try

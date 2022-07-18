@@ -35,7 +35,7 @@ classdef ThetaPeaksContainer3
             cols=[6 10 2 6];
 
             conds=obj.condlist(:);
-            states=obj.statelist(4);
+            states=obj.statelist(1);
             
             blockidx=ismember(obj.blocklist,blockstr);
             blocks=obj.blocklist(blockidx);
@@ -69,7 +69,7 @@ classdef ThetaPeaksContainer3
                 txt=sprintf('ThetaPeak_dist_%s_%s_%s_',cond,block,state);
                 drawnow
                 ff.save(txt)
-                f=figure(10);f.Position=[2096,1844,1280/10*col,300];
+                f=figure(10);f.Position=[2096,1844,1280/10*col,200];
                 if exist('axs','var')
                     axs=thpksm.plotCF3(axs);
                 else

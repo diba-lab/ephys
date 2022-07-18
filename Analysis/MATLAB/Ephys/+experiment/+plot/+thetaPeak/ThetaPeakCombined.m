@@ -50,6 +50,26 @@ classdef ThetaPeakCombined
             %             try close(8);catch, end;figure(8);thpks.plotCF
             %             try close(9);catch, end;figure(9);newthpks.plotCF
         end
+        function cmp = compare(obj,thpks)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            if isa(thpks,'experiment.plot.thetaPeak.ThetaPeakCombined')
+                for il=1:max(obj.thpkList.length,thpks.thpkList.length)
+                    thpk1=obj.thpkList.get(il);
+                    thpk2=thpks.thpkList.get(il);
+                    try
+                        cmp(il)=thpk1.compare(thpk2);
+                    catch
+                        cmp(il)=thpk2.compare(thpk1);
+                    end
+                end
+            else
+                newthpks=obj;
+            end
+            %             try close(7);catch, end; figure(7);obj.plotCF
+            %             try close(8);catch, end;figure(8);thpks.plotCF
+            %             try close(9);catch, end;figure(9);newthpks.plotCF
+        end
         function axsr=plotCF(obj,rows,row,col)
             if ~exist('rows','var')
                 rows=1;
