@@ -55,6 +55,21 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
                 end
             end
         end
+        function obj=sort(obj)
+            openEphysRecords=CellArrayList();
+            iter=obj.getIterator();
+            i=1;
+            while(iter.hasNext())
+                anOpenEphysRecord=iter.next();
+                st(i)=anOpenEphysRecord.getRecordStartTime;i=i+1;
+            end
+            [B,I] =sort(st);
+            ors=obj.getOpenEphysRecords;
+            for ir=1:numel(I)
+                openEphysRecords.add(ors.get(I(ir)));
+            end
+            obj.OpenEphysRecords=openEphysRecords;
+        end
         
         function obj = removeAnOpenEphysRecord(obj,theNumberOfTheRecord)
             %METHOD1 Summary of this method goes here
@@ -69,7 +84,7 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
             iter=obj.getIterator();
             while(iter.hasNext())
                 anOpenEphysRecord=iter.next();
-                
+                anOpenEphysRecord.display
             end
         end
         function saveChannels(obj,channels)
@@ -115,13 +130,13 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
                     if first
                         fprintf('\nFile\t %s is being added\n\tin file  %s\n',fileIn,fileout)
                         tic
-                        system(sprintf('cat %s>%s',...
+                        system(sprintf('cat "%s">"%s"',...
                             fileIn,fileout),'-echo');toc
                         first=false;
                     else
                         fprintf('\nFile\t %s is being added\n\tin file  %s\n',fileIn,fileout)
                         tic
-                        system(sprintf('cat %s>>%s',...
+                        system(sprintf('cat "%s">>"%s"',...
                             fileIn,fileout),'-echo');toc
                         fprintf('Done.\n')
                         
@@ -168,15 +183,16 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
     end
     %% GETTERS AND SETTERS
     methods (Access=public)
-        function tls=getTimeline(obj)
+        function T=getTimeline(obj)
             iter=obj.getIterator();
-            tls=[];
             i=1;
             while(iter.hasNext)
                 anOpenEphysRecord=iter.next();
-                tl=anOpenEphysRecord.getTimeline();
-                tls{i}=tl;i=i+1;
+                tl={anOpenEphysRecord.getRecordStartTime anOpenEphysRecord.getRecordEndTime 'Ephys'};
+                tls(i,:)=tl;i=i+1;
             end
+            T = cell2table(tls,...
+                "VariableNames",["Start" "Stop" "Type"]);
         end
         function timeIntervalCombined=getTimeIntervalCombined(obj)
             iter=obj.getIterator();

@@ -55,11 +55,14 @@ classdef DataForClustering
             %   Detailed explanation goes here
             t=obj.TimeIntervalCombined;
         end
-        function SykingCircusOutputFolder = runSpyKingCircus(obj)
+        function SykingCircusOutputFolder = prepareSpyKingCircusFiles(obj,folder)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             %% TODO 
-            
+            prb=obj.Probe;
+            fold=fileparts(obj.DataFile);
+            prb.saveSpykingCircusPrbFile(fold);
+            prb.saveSpykingCircusParamFile(fold);
         end
         function [] = runKilosort3(obj)
             %METHOD1 Summary of this method goes here

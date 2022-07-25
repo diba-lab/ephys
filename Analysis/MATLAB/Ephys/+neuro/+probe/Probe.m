@@ -29,7 +29,7 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
                         probefilefinal=probefiles(1);
                         logger.warning('\nMultiple probe files. Selecting the latest.\n  -->\t%s\n\t%s',probefiles.name)
                     else
-                        logger.error('\nNo probe file found in\n\t\%s',probeFile);
+                        logger.error('\nNo probe file found in\n\t %s',probeFile);
                     end
                     probeFile=fullfile(probefilefinal.folder,probefilefinal.name);
                 end

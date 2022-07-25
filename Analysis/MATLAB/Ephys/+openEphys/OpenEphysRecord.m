@@ -86,7 +86,10 @@ classdef (Abstract)OpenEphysRecord < neuro.time.Timelined & file.BinarySave
             % additionalrecording properties can be listed here.
             file=obj.Data.Filename;
             ti=obj.getTimeInterval;
-            %             fprintf('%s\n   %d channels @ %d Hz\n',file,numel(obj.getChannelNames),ti.ge)
+            fprintf('\n%s\n\t %s-%s (%s), %d channels @%d Hz\n', ...
+                file, datestr(ti.getStartTime,0), datestr(ti.getEndTime,13), ...
+                duration(ti.getEndTime-ti.getStartTime,"Format","hh:mm:ss.SSS"), ...
+                numel(obj.getChannelNames),ti.getSampleRate)
             
         end
     end
