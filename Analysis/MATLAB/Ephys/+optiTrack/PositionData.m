@@ -12,7 +12,7 @@ classdef PositionData
     methods
         function obj = PositionData(X,Y,Z,ticd)
             %LOCATIONDATA Construct an instance of this class
-            %   Detailed explanation goes here
+            %   ticd should be in TimeIntervalCombined foormat
             if (isstring(X)||ischar(X))&&isfolder(X)
                 obj=obj.loadPlainFormat(X);
             elseif isa(X,'optiTrack.PositionData')
