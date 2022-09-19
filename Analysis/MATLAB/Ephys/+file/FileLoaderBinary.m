@@ -42,15 +42,21 @@ classdef FileLoaderBinary < file.FileLoaderMethod
             try
                 S = xml2struct(obj.xmlfile);
                 starttime=datetime(S.SETTINGS.INFO.DATE.Text ,'InputFormat','dd MMM yyyy HH:mm:ss');
-%                 ps=S.SETTINGS.SIGNALCHAIN{1,1}.PROCESSOR;
-%                 for ipro=1:numel(ps)
-%                     p=ps{ipro};
-%                     if ismember('PhoStartTimestampPlugin',fieldnames(ps{ipro}))
-%                         starttime1=p.PhoStartTimestampPlugin.RecordingStartTimestamp.Attributes.startTime;
-%                         starttime=datetime(starttime1 ,'InputFormat','yyyy-MM-dd_HH:mm:ss.SSSSSSS');
-%                         fprintf('\t-->\tStart time of the record read by milisecond accuracy %.7f.\n',starttime.Second);
-%                     end
-%                 end
+                ps=S.SETTINGS.SIGNALCHAIN{1,1}.PROCESSOR;
+                for ipro=1:numel(ps)
+                    p=ps{ipro};
+                    if ismember('PhoStartTimestampPlugin',fieldnames(ps{ipro}))
+                        starttime1=p.PhoStartTimestampPlugin.RecordingStartTimestamp.Attributes.startTime;
+                        starttime2=datetime(starttime1 ,'InputFormat','yyyy-MM-dd_HH:mm:ss.SSSSSSS');
+                        if starttime.Minute==starttime2.Minute&&starttime.Year==starttime2.Year...
+                            &&starttime.Month==starttime2.Month...
+                            &&starttime.Day==starttime2.Day
+                            starttime.Second=starttime2.Second;
+                            starttime.Second=starttime2.Second;
+                        end
+                        fprintf('\t-->\tStart time of the record read by milisecond accuracy %.7f.\n',starttime2.Second);
+                    end
+                end
             catch
                 warning('Start time of the record couldn''t be read properly.\n')
                 starttime=[];
@@ -68,7 +74,13 @@ classdef FileLoaderBinary < file.FileLoaderMethod
             fprintf('Start Time in .xml file: %s\n',datestr(starttime1,'dd-mmm-yyyy HH:MM:SS.FFF'));
             %             file=dir(obj.OEBinFile);
             %             samples=file.bytes/2/header.num_channels;
-            datFileSize=obj.calculateDatFileSize;
+            
+                datFileSize=obj.calculateDatFileSize;
+                [ts,file]=obj.getTimeStamps;
+%                 log.info(num2str(file.bytes))
+%                 log.info(num2str(obj.calculateTimestampsFileSize))
+%                 log.info(num2str(obj.calculateTimestampsFileSize-file.bytes))
+           
             
             if datFileSize<=obj.getDatFile.bytes
                 fprintf('Loading binary file...\n');tic
@@ -78,21 +90,36 @@ classdef FileLoaderBinary < file.FileLoaderMethod
                 log.error(sprintf('\n%s\n\t should be --> %d bytes.',fullfile(obj.getDatFile.folder,obj.getDatFile.name),datFileSize))
                 return
             end
-            recLatency=double(D.Timestamps(1))/D.Header.sample_rate;
+            recLatency=double(ts(1))/D.Header.sample_rate;
             fprintf('First time stamp %.5f s.\n',recLatency)
             [filepath,name,ext] = fileparts(obj.OEBinFile);
-            C=strsplit(filepath,filesep);
+            C=split(filepath,filesep);
             rec=C{end};cs=strsplit(rec,'recording');recno=str2double(cs{2});
             if recno==1
                 obj.Record1Lantency=seconds(recLatency);
             else
-                filepath(end)='1';
-                T=readtable(fullfile(filepath,'sync_messages.txt'),VariableNamingRule="preserve");
-                c=table2cell(T);txt=c{1};tokens=tokenize(txt,' @Hz');
-                time=str2double(tokens{end-1-2});sampleRate=str2double(tokens{end-2});
-                obj.Record1Lantency=seconds(time/sampleRate);
+                a=fullfile(filepath,'..','recording1');
+                f1=java.io.File(a);
+                a1=f1.getCanonicalPath;
+                try
+                    T=readtable(fullfile(char(a1),'sync_messages.txt'),VariableNamingRule="preserve");
+                    c=table2cell(T);txt=c{1};tokens=tokenize(txt,' @Hz');
+                    time=str2double(tokens{end-1-2});sampleRate=str2double(tokens{end-2});
+                    obj.Record1Lantency=seconds(time/sampleRate);
+                catch
+                    a=fullfile(filepath,'..','recording1LatencyInSec.txt');
+                    f1=java.io.File(a);
+                    a1=char(f1.getCanonicalPath);
+                    try
+                        obj.Record1Lantency=seconds(readmatrix(a1));
+                    catch
+                        est=starttime1+seconds(recLatency);
+                        log.error(sprintf(['%s \n\t is not found in the location. \n\t provide the difference' ...
+                            ' for rec %d, estimation was %s'],a1, recno,est))
+                    end
+                end
             end
-            starttime=starttime1+seconds(recLatency);%-obj.Record1Lantency;
+            starttime=starttime1+seconds(recLatency)-obj.Record1Lantency;
             fprintf('Real start time of the record: %s\n',datestr(starttime));
             hdr=D.Header;
             S = xml2struct(obj.xmlfile);
@@ -108,8 +135,11 @@ classdef FileLoaderBinary < file.FileLoaderMethod
             
             openEphysRecord.TimeInterval=neuro.time.TimeInterval(starttime,D.Header.sample_rate,samples);
             openEphysRecord.DataFile=D.Data.Filename;
-            
-            openEphysRecord.evts= load_open_ephys_binary(obj.OEBinFile,'events',1,'mmap','.dat');toc
+            try
+                openEphysRecord.evts= load_open_ephys_binary(obj.OEBinFile,'events',1,'mmap','.dat');toc
+            catch
+                log.warning('No event data.')
+            end
             try
                 openEphysRecord.spks= load_open_ephys_binary(obj.OEBinFile,'spikes',1,'mmap','.dat');toc
             catch
@@ -128,13 +158,31 @@ classdef FileLoaderBinary < file.FileLoaderMethod
                 error('Data folder not found');
             end
             folder = char(f.getCanonicalPath());
-            ts = readNPY(fullfile(folder,'timestamps.npy'));
             file=dir(fullfile(folder,'timestamps.npy'));
+            try
+                ts = readNPY(fullfile(folder,'timestamps.npy'));
+            catch
+                log=logging.Logger.getLogger;
+                try
+                    log.error('\nFile %s \n\tFile size is %d bytes, should be %d bytes.\n',...
+                    fullfile(file.folder,file.name), file.bytes, obj.calculateTimestampsFileSize);
+                catch
+                    if isempty(file)
+                        log.error('\n No file \n\t%s\n\twill be created.', fullfile(folder,'timestamps.npy'));
+                    end
+                end
+                filepath = fileparts(obj.OEBinFile);
+                T=readtable(fullfile(filepath,'sync_messages.txt'),VariableNamingRule="preserve");
+                c=table2cell(T);txt=c{1};tokens=tokenize(txt,' @Hz');
+                startsample=str2double(tokens{end-1-2});
+                obj.createTimestamps(fullfile(folder,'timestamps.npy'),startsample);
+                ts = readNPY(fullfile(folder,'timestamps.npy'));
+            end
         end
         function [recordLength]=getRecordLength(obj)
             %Look for folder
             json=jsondecode(fileread(obj.OEBinFile));
-            numel(obj.getTimeStamps)/json.continuous.sample_rate;
+            recordLength=numel(obj.getTimeStamps)/json.continuous.sample_rate;
         end
         function file=getDatFile(obj)
             %Look for folder
@@ -156,6 +204,22 @@ classdef FileLoaderBinary < file.FileLoaderMethod
             json=jsondecode(fileread(obj.OEBinFile));
             nchannnels=json.continuous.num_channels;
             fileSize=nchannnels*samplesize*2;
+        end
+        function filesize=calculateTimestampsFileSize(obj)
+            json=jsondecode(fileread(obj.OEBinFile));
+            nchannnels=json.continuous.num_channels;
+            filesize=obj.getDatFile.bytes/nchannnels/2*8+128;
+        end
+        function samplesize=calculateTimestampsSampleSize(obj)
+            json=jsondecode(fileread(obj.OEBinFile));
+            nchannnels=json.continuous.num_channels;
+            samplesize=obj.getDatFile.bytes/nchannnels/2;
+        end
+        function file=createTimestamps(obj,file,startSample)
+            samplesize=obj.calculateTimestampsSampleSize;
+            arr=zeros(samplesize,1,'int64');
+            arr(1:samplesize)=startSample:(startSample+samplesize-1);
+            writeNPY(arr,file);
         end
     end
 end

@@ -100,7 +100,7 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             
-            evts=obj.getEvents;
+%             evts=obj.getEvents;
 %             evets.sa
             
             iter=obj.getIterator();
