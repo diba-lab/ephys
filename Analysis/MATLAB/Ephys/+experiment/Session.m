@@ -90,7 +90,12 @@ classdef Session
         function sesstr = toString(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            sesstr=strcat(obj.Animal.Code, '_' ,datestr(obj.SessionInfo.Date,29));
+            an=sprintf('%s\t -->',obj.Animal.Code);
+            sesstr=sprintf('%s\t%s\nZT %s%s\n%s',an,obj.SessionInfo.Condition, ...
+                obj.SessionInfo.ZeitgeberTime, ...
+                obj.Blocks.print, ...
+                obj.Probe.toString ...
+                );
         end
         function obj = setProbe(obj,probe)
             %METHOD1 Summary of this method goes here

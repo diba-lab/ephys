@@ -202,9 +202,7 @@ classdef PositionData
             [file1, uni]=obj.getFile(folder,ext1);
             obj.source=file1;
             obj.data=readtable(obj.source);
-            if isfile(folder)
-                folder=fileparts(folder);
-            end
+            folder=fileparts(file1);
             obj.timeIntervalCombined=neuro.time.TimeIntervalCombined( ...
                 fullfile(folder,[uni extt]));
         end
