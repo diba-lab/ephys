@@ -1,4 +1,4 @@
-classdef PositionData
+classdef PositionDataTimeLoaded< position.PositionData
     %LOCATIONDATA Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -10,7 +10,7 @@ classdef PositionData
     end
     
     methods
-        function obj = PositionData(X,Y,Z,ticd)
+        function obj = PositionDataTimeLoaded(X,Y,Z,ticd)
             %LOCATIONDATA Construct an instance of this class
             %   ticd should be in TimeIntervalCombined foormat
             if (isstring(X)||ischar(X))&&isfolder(X)

@@ -1,4 +1,4 @@
-classdef PositionDataManifold < optiTrack.PositionData
+classdef PositionDataManifold < position.PositionData
     %POSITIONDATAMANIFOLD Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -12,7 +12,7 @@ classdef PositionDataManifold < optiTrack.PositionData
         function obj = PositionDataManifold(positionData,manifold)
             %POSITIONDATAMANIFOLD Construct an instance of this class
             %   Detailed explanation goes here
-            obj=obj@optiTrack.PositionData(positionData);
+            obj=obj@position.PositionData(positionData);
             data1=table2array(obj.data)';
             data2=manifold.map(data1);
             obj.datamapped=array2table(data2,"VariableNames",{'X','Z'});

@@ -25,9 +25,9 @@ classdef OptiLoader<Singleton
             persistent uniqueInstance
             if isempty(uniqueInstance)||nargin>0
                 if nargin>0
-                    obj = optiTrack.OptiLoader(path);
+                    obj = position.optiTrack.OptiLoader(path);
                 else
-                    obj = optiTrack.OptiLoader();
+                    obj = position.optiTrack.OptiLoader();
                 end
                 uniqueInstance = obj;
             else
@@ -81,8 +81,8 @@ classdef OptiLoader<Singleton
                 filename=[fname ext];
                 switch ext
                     case '.fbx'
-                        of=optiTrack.OptiFBXAsciiFile(fullfile(path,filename));
-                        ofc=optiTrack.OptiCSVFileSingleMarker(fullfile(path,[fname '.csv']));
+                        of=position.optiTrack.OptiFBXAsciiFile(fullfile(path,filename));
+                        ofc=position.optiTrack.OptiCSVFileSingleMarker(fullfile(path,[fname '.csv']));
                         of.CaptureStartTime=ofc.CaptureStartTime;
                     case '.csv'
                         opts=detectImportOptions(fullfile(path,filename),"ReadVariableNames",false);
@@ -93,15 +93,15 @@ classdef OptiLoader<Singleton
                         t=readtable(fullfile(path,filename),opts);
                         if ~strcmpi(t(1,3).Var3,'Marker')
                             if exist('path','var')
-                                of=optiTrack.OptiCSVFileRigidBody(fullfile(path,filename));
+                                of=position.optiTrack.OptiCSVFileRigidBody(fullfile(path,filename));
                             else
-                                of=optiTrack.OptiCSVFileRigidBody(fullfile(path1,filename));
+                                of=position.optiTrack.OptiCSVFileRigidBody(fullfile(path1,filename));
                             end
                         else
                             if exist('path','var')
-                                of=optiTrack.OptiCSVFileSingleMarker(fullfile(path,filename));
+                                of=position.optiTrack.OptiCSVFileSingleMarker(fullfile(path,filename));
                             else
-                                of=optiTrack.OptiCSVFileSingleMarker(fullfile(path1,filename));
+                                of=position.optiTrack.OptiCSVFileSingleMarker(fullfile(path1,filename));
                             end
                         end
                 end
