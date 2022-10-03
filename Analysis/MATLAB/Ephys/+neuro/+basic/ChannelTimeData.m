@@ -3,9 +3,9 @@ classdef ChannelTimeData
     %   Detailed explanation goes here
     
     properties
-        Channels
-        Time
-        Data
+        channels
+        time
+        data
     end
     
     methods
@@ -13,20 +13,22 @@ classdef ChannelTimeData
             %CHANNELTIMEDATA Construct an instance of this class
             %   Detailed explanation goes here
             l= logging.Logger.getLogger;
-            if isa(ch,'neuro.probe.Probe')
-                obj.Channels = ch;
-            else
-                l.error('Provide neuro.probe.Probe object.')
-            end
-            if isa(time,'neuro.time.TimeIntervalCombined')
-                obj.Time = time;
-            else
-                l.error('Provide neuro.time.TimeIntervalCombined object.')
-            end
-            if isequal(size(data),[numel(ch.getActiveChannels) time.getNumberOfPoints])
-                obj.Data=data;
-            else
-                l.error('Data size is not compatible with channel and time info.')
+            if nargin==3
+                if isstring(ch)||iscellstr(ch)||isinteger(ch)
+                    obj.Channels=ch;
+                else
+                    l.error('Provide string or scalar.')
+                end
+                if isa(time,'neuro.time.TimeIntervalCombined')||isa(time,'neuro.time.TimeInterval')
+                    obj.Time = time;
+                else
+                    l.error('Provide neuro.time.TimeIntervalCombined object.')
+                end
+                if isequal(size(data),[numel(ch.getActiveChannels) time.getNumberOfPoints])
+                    obj.Data=data;
+                else
+                    l.error('Data size is not compatible with channel and time info.')
+                end
             end
         end
         

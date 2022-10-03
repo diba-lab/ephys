@@ -1,21 +1,30 @@
-classdef PositionData
+classdef PositionData < neuro.basic.ChannelTimeData
     %POSITIONDATA Summary of this class goes here
     %   Detailed explanation goes here
     
      properties
-        data
-        time
         units
     end
     
     methods
-        function obj = PositionDataTimeLoaded(obj,folder)
+        function obj = PositionData(X,Y,Z,time)
             %LOCATIONDATA Construct an instance of this class
             %   ticd should be in TimeIntervalCombined foormat
-            if (isstring(folder)||ischar(folder))&&isfolder(folder)
-                obj=obj.loadPlainFormat(X);
-            else
-                error('\nCannot load.\n')
+            if nargin>0
+                if isa(X,'optiTrack.PositionData')
+                    obj.data=X.data;
+                    obj.time=X.timeIntervalCombined;
+                    obj.units=X.units;
+                elseif numel(X)==numel(Y)&&numel(Z)==numel(Y)&&numel(X)==ticd.getNumberOfPoints
+                    data(1,:)=X;
+                    data(2,:)=Y;
+                    data(3,:)=Z;
+                    obj.data=array2table(data','VariableNames',{'X','Y','Z'});
+                    obj.time = time;
+                    obj.units='cm';
+                else
+                    error('Sizes of XYZ or time are not equal.')
+                end
             end
         end
         function pd=getWindow(obj,plsd)
@@ -95,7 +104,8 @@ classdef PositionData
             t=hours(seconds(downsample(t_org,downsamplefactor)));
             vel=obj.getSpeed.getMeanFiltered(1);
             vel1=downsample(vel.Values,downsamplefactor);
-            scatter(t,data2,vel1*5,'filled','MarkerFaceAlpha',.2,'MarkerEdgeAlpha',.2,'SizeData',5);
+            vel1(isnan(vel1)|vel1==0)=0.001;
+            scatter(t,data2,abs(vel1)*5000,'filled','MarkerFaceAlpha',.2,'MarkerEdgeAlpha',.2,'SizeData',5);
             legend(obj.data.Properties.VariableNames);
             xlabel('ZT (Hrs)');
             ylabel(['Location (',obj.units,')']);
@@ -146,14 +156,15 @@ classdef PositionData
             cb=colorbar;cb.Ticks=[0 1];cb.TickLabels={'Earlier','Later'};cb.Location='northoutside';
             cb.Position(1)=cb.Position(1)+cb.Position(3)/3*2;cb.Position(3)=cb.Position(3)/3;
         end
-        function newLocData = getTimeWindow(obj,timeWindow)
+        function obj = getTimeWindow(obj,timeWindow)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             ticd=obj.time;
-            ticdnew=ticd.getTimeIntervalForTimes(timeWindow(1),timeWindow(2));
+            ticdnew=ticd.getTimeIntervalForTimes(timeWindow);
             s1=ticd.getSampleFor(ticdnew.getStartTime);
             s2=ticd.getSampleFor(ticdnew.getEndTime);
-            newLocData=LocationData(obj.X(s1:s2),obj.Y(s1:s2),obj.Z(s1:s2),ticdnew);
+            obj.time=ticdnew;
+            obj.data=obj.data(s1:s2,:);
         end
         function obj = getDownsampled(obj,dsfactor)
             %METHOD1 Summary of this method goes here
@@ -167,7 +178,7 @@ classdef PositionData
             obj.time=ticd.getDownsampled(dsfactor);
         end
 
-        function [file1, folder]= saveInPlainFormat(obj,folder)
+        function [obj, folder]= saveInPlainFormat(obj,folder)
             ext1='position.points.csv';
             extt='position.time.csv';
             if exist('folder','var')
@@ -177,11 +188,12 @@ classdef PositionData
             else
                 folder= fileparts(obj.source);
             end
-            time=obj.time;
+            time=obj.time; %#ok<*PROPLC> 
             timestr=matlab.lang.makeValidName(time.tostring);
             time.saveTable(fullfile(folder,[timestr extt]));
             file1=fullfile(folder,[timestr ext1]);
             writetable(obj.data,file1);
+            obj=obj.loadPlainFormat(folder);
         end
         function obj= loadPlainFormat(obj,folder)
             ext1='position.points.csv';
