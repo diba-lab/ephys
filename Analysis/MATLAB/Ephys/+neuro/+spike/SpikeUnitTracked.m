@@ -46,7 +46,7 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
             %   Detailed explanation goes here
 
             alpha=.1;
-
+            track=obj.PositionData;
             track.plot2Dabove(speedthreshold);hold on
             times=obj.getAbsoluteSpikeTimes;
             timeratio=minutes(times-track.timeIntervalCombined.getStartTime)./...
