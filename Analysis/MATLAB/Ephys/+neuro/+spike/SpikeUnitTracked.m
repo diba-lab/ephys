@@ -41,33 +41,30 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
             s2.MarkerEdgeAlpha=alpha/3;
             str=obj.addInfo(idx);
         end
-        function [] = plotOnTrack(obj,speedthreshold)
+        function [] = plotOnTrack(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-
+            numPointsInPlot=50000;
             alpha=.1;
             track=obj.PositionData;
-            track.plot2Dabove(speedthreshold);hold on
+            track.plot3D(numPointsInPlot);hold on
+
             times=obj.getAbsoluteSpikeTimes;
-            timeratio=minutes(times-track.timeIntervalCombined.getStartTime)./...
-                minutes(track.timeIntervalCombined.getEndTime-track.timeIntervalCombined.getStartTime);
-            [X,Y,Z,idx]=track.getLocationForTimesBoth(times,speedthreshold);
-            color=linspecer(11);
-            try
-                s=scatter(Z(idx),X(idx),50,color(round(timeratio(idx)*10)+1,:),'filled');
-            catch
-                error
-            end
+            
+            [data,idx]=track.getPositionForTimes(times);
+            
+            track.plot3DMark(idx);hold on
+           
             ax=gca;
-            try
-                ax.YLim=[min(track.X) max(track.X)];
-                ax.XLim=[min(track.Z) max(track.Z)];
-            catch
-                error
-            end
-            s.MarkerFaceAlpha=alpha;
-            s.MarkerEdgeAlpha=alpha;
-            str=obj.addInfo(idx);
+            ticd=obj.PositionData.time;
+            t_org=ticd.getTimePointsInSec;
+
+            ax.ZLim=[t_org(2)-t_org(end) 0];
+            str=obj.tostring;
+            t=annotation('textbox','String', str);
+            t.Position=[0 0 .1 .1;];
+            t.VerticalAlignment="bottom";
+            t.HorizontalAlignment="left";
         end
         function [] = plotPlaceFieldBoth(obj,speedthreshold)
             %METHOD1 Summary of this method goes here
