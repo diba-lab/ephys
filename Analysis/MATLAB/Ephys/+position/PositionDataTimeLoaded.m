@@ -26,7 +26,7 @@ classdef PositionDataTimeLoaded< position.PositionData
             else
                 folder= fileparts(obj.source);
             end
-            time=obj.timeIntervalCombined;
+            time=obj.time;
             timestr=matlab.lang.makeValidName(time.tostring);
             time.saveTable(fullfile(folder,[timestr extt]));
             file1=fullfile(folder,[timestr ext1]);

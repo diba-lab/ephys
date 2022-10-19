@@ -31,6 +31,7 @@ classdef SpikeFactory
             logger=logging.Logger.getLogger;
             import neuro.time.*
             import neuro.spike.*
+            import external.npymatlab.*
             defaultloc='/data/EphysAnalysis/cluster';
             title='Select folder for spike data';
             if ~exist('foldername','var')
@@ -68,8 +69,9 @@ classdef SpikeFactory
                 temps{ifile}=readNPY(fullfile(theFile.folder, theFile.name));
                 logger.info([aFile '.npy is loaded'])
             end
-            paramfile='./ExperimentSpecific/PlottingRoutines/UnitPlots/UnitGroups.xml';
+            paramfile='./+neuro/+spike/UnitGroups.xml';
             params=readstruct(paramfile);
+            idx=true(size(cluster_info.group));
             if isfield(params,'exclude')
                 idx=true(size(cluster_info.group));
                 idx_ex=idx;

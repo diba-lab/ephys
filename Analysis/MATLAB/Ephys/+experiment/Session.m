@@ -162,7 +162,20 @@ classdef Session
             try
                 relpath=fullfile(obj.SessionInfo.baseFolder,relativePath);
                 pos=position.PositionDataTimeLoaded(relpath);
-            catch
+            catch er
+                er.message
+                pos=[];
+            end
+        end
+        function pos = getPositionMapped(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            relativePath='_Position';
+            try
+                relpath=fullfile(obj.SessionInfo.baseFolder,relativePath);
+                pos=position.PositionDataTimeLoaded(relpath);
+            catch er
+                er.message
                 pos=[];
             end
         end

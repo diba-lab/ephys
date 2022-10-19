@@ -4,7 +4,7 @@ classdef PositionDataManifold < position.PositionData
     
     properties
         manifold
-        datamapped
+        dataOriginal
         config
     end
     
@@ -12,51 +12,40 @@ classdef PositionDataManifold < position.PositionData
         function obj = PositionDataManifold(positionData,manifold)
             %POSITIONDATAMANIFOLD Construct an instance of this class
             %   Detailed explanation goes here
-            obj=obj@position.PositionData(positionData);
-            data1=table2array(obj.data)';
+            obj.units=positionData.units;
+            obj.channels=positionData.units;
+            obj.time=positionData.time;
+            obj.dataOriginal=positionData.data;
+            data1=table2array(positionData.data)';
             data2=manifold.map(data1);
-            obj.datamapped=array2table(data2,"VariableNames",{'X','Z'});
+            data3=[data2(:,1) zeros(size(data2,1),1) data2(:,2)];
+            obj.data=array2table(data3,"VariableNames",{'X','Y','Z'});
             obj.manifold=manifold;
         end
-        
+        function data=getData(obj)
+            data=obj.data;
+        end        
+        function data=getOriginalData(obj)
+            data=obj.dataOriginal;
+        end        
+        function positionData1D=get1DData(obj)
+            positionData=obj;
+            positionData1D=position.PositionData1D(positionData);
+        end        
         function [] = plotManifold(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             obj.manifold.plotGraph
         end
-        function outputArg = plotMapped(obj)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            numPointsInPlot=200000;
-            ticd=obj.timeIntervalCombined;
-            t_org=ticd.getTimePointsInSec;
-            downsamplefactor=round(numel(t_org)/numPointsInPlot);
-            dims=obj.datamapped.Properties.VariableNames;
-            if numel(dims)>2
-                dims=dims(1:3);
-            end
-            data1=table2array(obj.datamapped(:,dims))';
-            for ich=1:size(data1,1)
-                data2(ich,:)=downsample(medfilt1(data1(ich,:),ticd.getSampleRate),downsamplefactor); %#ok<AGROW> 
-            end
-            color1=linspecer(size(data2,2));
-            scatter(data2(1,:),data2(2,:),[],color1,'filled','MarkerFaceAlpha',.2,'MarkerEdgeAlpha',.2,'SizeData',5);
-            ylabel(dims{2});
-            xlabel(dims{1});
-            ax=gca;
-            ax.DataAspectRatio=[1 1 1];
-            colormap(color1)
-            cb=colorbar;cb.Ticks=[0 1];cb.TickLabels={'Earlier','Later'};cb.Location='north';
-            cb.Position(1)=cb.Position(1)+cb.Position(3)/3*2;cb.Position(3)=cb.Position(3)/3;
-        end
-        function [file1, folder]= saveInPlainFormat(obj,folder)
+
+        function [obj, folder]= saveInPlainFormat(obj,folder)
             ext2='position.points.mapped.csv';
             if exist('folder','var')
-                [file1, folder]= saveInPlainFormat@optiTrack.PositionData(obj,folder);
+                [obj, folder]= saveInPlainFormat@position.PositionData(obj,folder);
             else
-                [file1, folder]= saveInPlainFormat@optiTrack.PositionData(obj);
+                [obj, folder]= saveInPlainFormat@position.PositionData(obj);
             end
-            time=obj.timeIntervalCombined;
+            time=obj.time;
             timestr=matlab.lang.makeValidName(time.tostring);
             file2=fullfile(folder,[timestr ext2]);
             writetable(obj.datamapped,file2);
@@ -67,9 +56,9 @@ classdef PositionDataManifold < position.PositionData
             [file2 uni]=obj.getFile(folder,ext2);
             if exist('folder','var')
                 file1=fullfile(folder,[uni ext1]);
-                obj= loadPlainFormat@optiTrack.PositionData(obj,file1);
+                obj= loadPlainFormat@position.PositionData(obj,file1);
             else
-                obj= loadPlainFormat@optiTrack.PositionData(obj);
+                obj= loadPlainFormat@position.PositionData(obj);
             end
             obj.datamapped=readtable(file2);
         end

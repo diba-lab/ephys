@@ -12,11 +12,29 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
             %   Detailed explanation goes here
             obj=obj@neuro.spike.SpikeUnit(spikeunit);
             obj.PositionData=positionData;
+            stimes=spikeunit.getTimesInSecZT;
+            ptimes=positionData.time.getTimePointsInSecZT;
+            idxnan=isnan(table2array(positionData.data(:,1))');
+            ptimes(1,idxnan)=nan;
+            srate=max([1/spikeunit.TimeIntervalCombined.getSampleRate ...
+                1/positionData.time.getSampleRate]);
+            is1=1;
+            stimes1=[];
+            for is=1:numel(stimes)
+                stime=stimes(is);
+                minValue=min(abs(stime-ptimes),[],"omitnan");
+                if abs(minValue)/2<srate
+                    stimes1(is1)=stime; %#ok<AGROW> 
+                    is1=is1+1;
+                end                    
+            end
+            ticd=obj.TimeIntervalCombined;
+            obj.Times= seconds(seconds(stimes1)-(ticd.getStartTime- ...
+                ticd.getZeitgeberTime))*ticd.SampleRate;
         end
         function [] = plotOnTimeTrack(obj,speedthreshold)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            speedTrack=obj.PositionData.getSpeed;
             alpha=.3;
             track=obj.PositionData;
             track.plotZ;hold on
@@ -41,48 +59,57 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
             s2.MarkerEdgeAlpha=alpha/3;
             str=obj.addInfo(idx);
         end
-        function [] = plotOnTrack(obj)
+        function [] = plotOnTrack2D(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             numPointsInPlot=50000;
-            alpha=.1;
             track=obj.PositionData;
-            track.plot3D(numPointsInPlot);hold on
+            track.plot2D(numPointsInPlot);hold on
 
-            times=obj.getAbsoluteSpikeTimes;
-            
-            [data,idx]=track.getPositionForTimes(times);
-            
-            track.plot3DMark(idx);hold on
-           
+            if numel(obj.Times)>0
+                [~,idx]=track.getPositionForTimes(obj.getAbsoluteSpikeTimes);
+                track.plot2DMark(idx);hold on
+            end
+        end
+        function [] = plotSpikes2D(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            track=obj.PositionData;
+            if numel(obj.Times)>0
+                [~,idx]=track.getPositionForTimes(obj.getAbsoluteSpikeTimes);
+                track.plot2DMark(idx);hold on
+            end
+        end
+        function [] = plotOnTrack3D(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            numPointsInPlot=50000;
+            track=obj.PositionData;
+            track.plot3Dtime(numPointsInPlot);hold on
+
+            if numel(obj.Times)>0
+                [~,idx]=track.getPositionForTimes(obj.getAbsoluteSpikeTimes);
+                track.plot3DMark(idx);hold on
+            end
             ax=gca;
             ticd=obj.PositionData.time;
             t_org=ticd.getTimePointsInSec;
-
-            ax.ZLim=[t_org(2)-t_org(end) 0];
+            ax.ZLim=[0 abs(t_org(2)-t_org(end))];
+            ax.ZDir="reverse";
             str=obj.tostring;
             t=annotation('textbox','String', str);
             t.Position=[0 0 .1 .1;];
             t.VerticalAlignment="bottom";
             t.HorizontalAlignment="left";
         end
-        function [] = plotPlaceFieldBoth(obj,speedthreshold)
+        
+        function [frm] = getFireRateMap(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            times=obj.getAbsoluteSpikeTimes;
-            [~,~,~,idx]=track.getLocationForTimesBoth(times,speedthreshold);
-            idx_track=track.getSpeed.getAboveAbs(speedthreshold);
-            SpkCnt=track.getSpikeArray(times(idx));
-            Pos1=[track.Z track.X];
-            Pos = (Pos1 - min(Pos1)) ./ ( max(Pos1) - min(Pos1) );
-            SpatialBinSizeCM=2;
-            nGrid(1)=round((max(track.Z(idx_track))-min(track.Z(idx_track)))/SpatialBinSizeCM);
-            nGrid(2)=round((max(track.X(idx_track))-min(track.X(idx_track)))/SpatialBinSizeCM);
-            Smooth=.075;
-            Tbin=1/30;
-            TopRate=[];
-            PFClassic(Pos(idx_track,:), SpkCnt(idx_track,:), Smooth, nGrid,Tbin,TopRate);
-            obj.addInfo(idx)
+            track=obj.PositionData;
+            om=obj.PositionData.getOccupancyMap;
+            [sTimes,~]=track.getPositionForTimes(obj.getAbsoluteSpikeTimes);
+            frm=om+sTimes;
         end
         function [] = plotPlaceFieldNeg(obj,speedthreshold)
             %METHOD1 Summary of this method goes here

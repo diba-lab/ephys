@@ -335,6 +335,18 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                 end
             end
         end
+        function tps=getTimePointsInSecZT(obj)
+            til= obj.timeIntervalList;
+            for iInt=1:til.length
+                theTimeInterval=til.get(iInt);
+                tp=theTimeInterval.getTimePointsInSecZT;
+                if exist('tps','var')
+                    tps=horzcat(tps, tp); %#ok<*AGROW> 
+                else
+                    tps=tp;
+                end
+            end
+        end
         function tps=getTimePointsInAbsoluteTimes(obj)
             tps=seconds(obj.getTimePointsInSec)+obj.getStartTime;
         end
