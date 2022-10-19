@@ -21,7 +21,8 @@ classdef Channels
             t=obj.Time;
             if isduration(window)
                 timepoint=t(end);
-                window=window+datetime(year(timepoint),month(timepoint),day(timepoint));
+                window=window+datetime(year(timepoint),month(timepoint), ...
+                    day(timepoint));
             end
             time_idx=(t>window(1)&t<window(2));
             obj.Time=t(time_idx);

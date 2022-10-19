@@ -10,9 +10,12 @@ classdef SpikeArrayVisualize < neuro.spike.SpikeArray
         function obj = SpikeArrayVisualize(spikeArray)
             %SPIKEARRAYVISUALIZE Construct an instance of this class
             %   Detailed explanation goes here
-            
+            obj.SpikeTable=spikeArray.SpikeTable;
+            obj.TimeIntervalCombined=spikeArray.TimeIntervalCombined;
+            obj.ClusterInfo=spikeArray.ClusterInfo;
+            obj.Info=spikeArray.Info;
         end
-        
+
         function []=plot(obj,tfm)
 
             angles1=angle(tfm.matrix);

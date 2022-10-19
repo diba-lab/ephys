@@ -45,7 +45,8 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
             [X,Y,Z,idx]=track.getLocationForTimesBoth(times,speedthreshold);
             color=linspecer(11);
             try
-                s1=scatter(Z(idx),timesmin(idx),50,color(round(timeratio(idx)*10)+1,:),'filled');
+                s1=scatter(Z(idx),timesmin(idx),50,color(round( ...
+                    timeratio(idx)*10)+1,:),'filled');
                 s2=scatter(Z(~idx),timesmin(~idx),5,[0 0 0],'filled');
             catch
                 error
@@ -121,12 +122,15 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
             Pos1=[track.Z track.X];
             Pos = (Pos1 - min(Pos1)) ./ ( max(Pos1) - min(Pos1) );
             SpatialBinSizeCM=2;
-            nGrid(1)=round((max(track.Z(idx_track))-min(track.Z(idx_track)))/SpatialBinSizeCM);
-            nGrid(2)=round((max(track.X(idx_track))-min(track.X(idx_track)))/SpatialBinSizeCM);
+            nGrid(1)=round((max(track.Z(idx_track))-min(track.Z(idx_track))) ...
+                /SpatialBinSizeCM);
+            nGrid(2)=round((max(track.X(idx_track))-min(track.X(idx_track))) ...
+                /SpatialBinSizeCM);
             Smooth=.075;
             Tbin=1/30;
             TopRate=[];
-            PFClassic(Pos(idx_track,:), SpkCnt(idx_track,:), Smooth, nGrid,Tbin,TopRate);
+            PFClassic(Pos(idx_track,:), SpkCnt(idx_track,:), Smooth, ...
+                nGrid,Tbin,TopRate);
             obj.addInfo(idx)
         end
         function [] = plotPlaceFieldPos(obj,speedthreshold)
@@ -139,12 +143,15 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
             Pos1=[track.Z track.X];
             Pos = (Pos1 - min(Pos1)) ./ ( max(Pos1) - min(Pos1) );
             SpatialBinSizeCM=2;
-            nGrid(1)=round((max(track.Z(idx_track))-min(track.Z(idx_track)))/SpatialBinSizeCM);
-            nGrid(2)=round((max(track.X(idx_track))-min(track.X(idx_track)))/SpatialBinSizeCM);
+            nGrid(1)=round((max(track.Z(idx_track))-min(track.Z(idx_track))) ...
+                /SpatialBinSizeCM);
+            nGrid(2)=round((max(track.X(idx_track))-min(track.X(idx_track))) ...
+                /SpatialBinSizeCM);
             Smooth=.075;
             Tbin=1/30;
             TopRate=[];
-            PFClassic(Pos(idx_track,:), SpkCnt(idx_track,:), Smooth, nGrid,Tbin,TopRate);
+            PFClassic(Pos(idx_track,:), SpkCnt(idx_track,:), Smooth, ...
+                nGrid,Tbin,TopRate);
             obj.addInfo(idx)
         end
     end

@@ -22,7 +22,8 @@ classdef FireRatesFilter< neuro.spike.FireRates
             mfrs=mean(frs,2)*ratio;
             numPointsWindow=windowInsec/obj.Info.TimebinInSec;
             numPointsSlide=slide/obj.Info.TimebinInSec;
-            for iwindow=1:ceil((size(frs,2)-numPointsWindow+numPointsSlide)/numPointsSlide)
+            for iwindow=1:ceil((size(frs,2)-numPointsWindow+numPointsSlide) ...
+                    /numPointsSlide)
                 start=(iwindow-1)*numPointsSlide+1;
                 stop=start+numPointsWindow-1;
                 if stop>size(frs,2)

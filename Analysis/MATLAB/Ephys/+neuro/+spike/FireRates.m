@@ -32,7 +32,7 @@ classdef FireRates
                 ch=1:numel(obj.ChannelNames);
                 [~,idx1]=sort(mean(obj.Data,2));
                 obj=obj.sort(idx1);
-                imagesc(t,ch,log10(obj.Data));
+                imagesc(t,ch,obj.Data);
             end
             ax.YLim=[min(ch) max(ch)+1]-.5;
             xlabel('ZT (h)')
@@ -89,7 +89,8 @@ classdef FireRates
                     pairNo=pairNo1';
                     tbl1=table(pairNo,pair,R);
                     tbl1.timeNo(:,1)=itime;
-                    tbl1.time(:,1:2)=repmat([times-1 timee]/obj.Time.getSampleRate,[height(tbl1) 1]);
+                    tbl1.time(:,1:2)=repmat([times-1 timee]/ ...
+                        obj.Time.getSampleRate,[height(tbl1) 1]);
                     if itime==1
                         tblall=tbl1;
                     else
