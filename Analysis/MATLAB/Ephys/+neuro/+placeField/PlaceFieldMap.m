@@ -46,6 +46,17 @@ classdef PlaceFieldMap<neuro.placeField.FireRateMap
             xlabel(['X ' obj.Units])
             ylabel(['Z ' obj.Units])
         end
+        function [] = getPeak(obj)
+            ms=obj.OccupancyMap;
+            ms(ms<eps)=0;
+            alpha1=log(ms);
+            x=[min(obj.PositionData.X) max(obj.PositionData.X)];
+            y=[min(obj.PositionData.Z) max(obj.PositionData.Z)];
+            imagesc(x,y,obj.MapSmooth,AlphaDataMapping="scaled",AlphaData=alpha1);
+            %             ax=gca;ax.CLim=[.05 .2];
+            xlabel(['X ' obj.Units])
+            ylabel(['Z ' obj.Units])
+        end
     end
 end
 
