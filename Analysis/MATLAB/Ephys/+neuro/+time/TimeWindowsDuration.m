@@ -1,43 +1,45 @@
 classdef TimeWindowsDuration
     %TIMEWINDOWS Summary of this class goes here
     %   Detailed explanation goes here
-    
+
     properties
         TimeTable
     end
-    
+
     methods
         function obj = TimeWindowsDuration(timeTable)
             %TIMEWINDOWS Construct an instance of this class
-            %   Time Table should have at least 
+            %   Time Table should have at least
             % two datetime value columns: Start, Stop
-            if isstruct(timeTable)
-                timeTable=struct2table(timeTable);
-            elseif istimetable(timeTable)
-                timeTable=timetable2table(timeTable);
-            elseif ismatrix(timeTable)
-                if ~isempty(timeTable)
-                    timeTable=array2table(timeTable,'VariableNames',{'Start','Stop'});
-                else
-                    timeTable=cell2table(cell(0,2),'VariableNames',{'Start','Stop'});
-                end
-            elseif isfolder(timeTable)
-                folder=timeTable;
-                try
-                    evtlist=dir(fullfile(folder,'*.evt'));[~,idx]=sort(evtlist.datenum);
-                    evtfile=fullfile(evtlist(idx(1)).folder,evtlist(idx(1)).name);
-                    nevt=neuroscope.EventFile(evtfile);
-                    timeTable=nevt.TimeWindowsDuration.TimeTable;
-                catch
-                    l=logging.Logger.getLogger;
-                    l.warning('Tried to get %s, but did not get.',evtfile)
+            if ~istable(timeTable)
+                if isstruct(timeTable)
+                    timeTable=struct2table(timeTable);
+                elseif istimetable(timeTable)
+                    timeTable=timetable2table(timeTable);
+                elseif ismatrix(timeTable)
+                    if ~isempty(timeTable)
+                        timeTable=array2table(timeTable,'VariableNames',{'Start','Stop'});
+                    else
+                        timeTable=cell2table(cell(0,2),'VariableNames',{'Start','Stop'});
+                    end
+                elseif isfolder(timeTable)
+                    folder=timeTable;
+                    try
+                        evtlist=dir(fullfile(folder,'*.evt'));[~,idx]=sort(evtlist.datenum);
+                        evtfile=fullfile(evtlist(idx(1)).folder,evtlist(idx(1)).name);
+                        nevt=neuroscope.EventFile(evtfile);
+                        timeTable=nevt.TimeWindowsDuration.TimeTable;
+                    catch
+                        l=logging.Logger.getLogger;
+                        l.warning('Tried to get %s, but did not get.',evtfile)
+                    end
                 end
             end
             obj.TimeTable = timeTable;
         end
         function t = getTimeTable(this)
             %TIMEWINDOWS Construct an instance of this class
-            %   Time Table should have at least 
+            %   Time Table should have at least
             % two datetime value columns: Start, Stop
             t=this.TimeTable;
         end
@@ -60,7 +62,7 @@ classdef TimeWindowsDuration
                     if temp.Stop<win.Stop
                         temp.Stop=win.Stop;
                     end
-                else 
+                else
                     rest=[rest;temp];
                     temp=win;
                 end
@@ -68,7 +70,7 @@ classdef TimeWindowsDuration
             rest=[rest;temp];
             obj.TimeTable=rest;
         end
-        
+
         function timeWindows = plus(thisTimeWindows,newTimeWindows)
             %METHOD1 Summary of this method goes here
             table1=[thisTimeWindows.TimeTable; newTimeWindows.TimeTable];
@@ -97,7 +99,7 @@ classdef TimeWindowsDuration
                     Stop(ii)=o(2);
                 elseif n(2)>=o(2) % first one is inside
                     if n(1)<o(1)
-                       ii=ii-1;
+                        ii=ii-1;
                     else
                         Start(ii)=o(1);
                         Stop(ii)=n(1);
@@ -120,8 +122,8 @@ classdef TimeWindowsDuration
             Stop=Stop';
             thisTimeWindows.TimeTable= table(Start,Stop);
         end
-        
-        
+
+
         function ax=plotHist(obj, ax, color)
             if ~exist('ax','var')
                 ax=gca;
@@ -150,7 +152,7 @@ classdef TimeWindowsDuration
             alpha(.5)
             legend (s,'5 sec')
         end
-        
+
         function file=saveForClusteringSpyKingCircus(obj,file)
             t=table2array(obj.TimeTable);
             if isduration(t)
@@ -165,14 +167,14 @@ classdef TimeWindowsDuration
             end
             writematrix(timeMs,file,'Delimiter',' ');
         end
-        function ax=saveForNeuroscope(obj, pathname, type)
+        function []=saveForNeuroscope(obj, pathname, type)
             if nargin>2
                 type=upper(type(1));
             else
                 type='R';
             end
-                filename1=sprintf('*.%s*.evt',type);
-                files = dir(fullfile(pathname,filename1));
+            filename1=sprintf('*.%s*.evt',type);
+            files = dir(fullfile(pathname,filename1));
             if isempty(files)
                 fileN = 1;
             else

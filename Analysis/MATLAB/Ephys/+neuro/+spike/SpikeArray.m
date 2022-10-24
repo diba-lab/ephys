@@ -164,6 +164,8 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
         end
         function frs=getFireRates(obj,timebininsec)
             sus=obj.getSpikeUnits;
+            su1=sus(1);frs=su1.getFireRate(timebininsec);
+            vals=nan(numel(sus),size(frs.getValues,2));
             for isu=1:numel(sus)
                 su=sus(isu);
                 frs=su.getFireRate(timebininsec);
@@ -176,7 +178,73 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             frs.Info.TimebinInSec=timebininsec;
             frs.ClusterInfo=obj.ClusterInfo;
         end
-
+        function frs=getFireRatesZScored(obj,timebininsec)
+            sus=obj.getSpikeUnits;
+            su1=sus(1);frs=su1.getFireRate(timebininsec);
+            vals=nan(numel(sus),size(frs.getValues,2));
+            for isu=1:numel(sus)
+                su=sus(isu);
+                frs=su.getFireRate(timebininsec);
+                try
+                    vals(isu,:)=zscore(frs.getValues,0,2);
+                catch
+                end
+            end
+            frs=neuro.spike.FireRates(vals,[sus.Id],frs.getTimeIntervalCombined);
+            frs.Info.TimebinInSec=timebininsec;
+            frs.ClusterInfo=obj.ClusterInfo;
+        end
+        function frs=getFireRatesZScoredRaw(obj,timebininsec)
+            sus=obj.getSpikeUnits;
+            su1=sus(1);
+            sur1=neuro.spike.SpikeUnitRaw(su1.Id,su1.Times);
+            sur1.Info=su1.Info;
+            sur1.NumberOfSamples=su1.NumberOfSamples;
+            sur1.SampleRate=su1.SampleRate;
+            frs1=sur1.getFireRate(timebininsec);
+            vals=nan(numel(sus),size(frs1.getValues,2));
+            for isu=1:numel(sus)
+                su=sus(isu);
+                sur=neuro.spike.SpikeUnitRaw(su.Id,su.Times);
+                sur.Info=su.Info;
+                sur.NumberOfSamples=su.NumberOfSamples;
+                sur.SampleRate=su.SampleRate;
+                frs1=sur.getFireRate(timebininsec);
+                try
+                    vals(isu,:)=zscore(frs1.getValues,0,2);
+                catch
+                end
+            end
+            frs=neuro.spike.FireRatesRaw(vals,[sus.Id]);
+            frs.Info.TimebinInSec=timebininsec;
+            frs.ClusterInfo=obj.ClusterInfo;
+            frs.SampleRate=frs1.SampleRate;
+        end        
+        function tsz=getFireRatesMeanZScoredRaw(obj,timebininsec)
+            sus=obj.getSpikeUnits;
+            sumdata=[];
+            f = waitbar(0, 'Starting');
+            for isu=1:numel(sus)
+                su=sus(isu);
+                sur=neuro.spike.SpikeUnitRaw(su.Id,su.Times);
+                sur.Info=su.Info;
+                sur.NumberOfSamples=su.NumberOfSamples;
+                sur.SampleRate=su.SampleRate;
+                frs1=sur.getFireRate(timebininsec);
+                
+                if isempty(sumdata)
+                    sumdata=zscore(frs1.getValues,0,2);
+                else
+                    sumdata=sumdata+zscore(frs1.getValues,0,2);
+                end
+                waitbar(isu/numel(sus), f, sprintf('Progress: %d %%', ...
+                    floor(isu/numel(sus)*100)));
+                pause(0.1);
+            end
+            close(f);
+            meanData=sumdata/numel(sus);
+            tsz=neuro.basic.TimeSeriesZScored(meanData,frs1.SampleRate);
+        end
         function obj=getTimeInterval(obj,timeWindow)
             if isdatetime(timeWindow)
                 s=obj.TimeIntervalCombined.getSampleForClosest(timeWindow);

@@ -1,12 +1,9 @@
-classdef SpikeUnit
+classdef SpikeUnit < neuro.spike.SpikeUnitRaw
     %SPIKEUNIT Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
-        Id
-        Times
-        TimeIntervalCombined
-        Info
+        Time
     end
     
     methods
@@ -16,87 +13,62 @@ classdef SpikeUnit
             if nargin==3
                 obj.Id = spikeId;
                 obj.Times=spikeTimes;
-                obj.TimeIntervalCombined=timeIntervalCombined;
+                obj.Time=timeIntervalCombined;
             elseif nargin==1 && isa(spikeId,"neuro.spike.SpikeUnit")
                 obj.Id=spikeId.Id;
                 obj.Times=spikeId.Times;
                 obj.Info=spikeId.Info;
-                obj.TimeIntervalCombined=spikeId.TimeIntervalCombined;
+                obj.Time=spikeId.TimeIntervalCombined;
             end
+            obj.NumberOfSamples=obj.Time.getNumberOfPoints;
+            obj.SampleRate=obj.Time.getSampleRate;
         end
         
         function timesnew = getAbsoluteSpikeTimes(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            ticd=obj.TimeIntervalCombined;
+            ticd=obj.Time;
             timesnew=ticd.getRealTimeFor(double(obj.Times));
         end
         function times = getTimes(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            times=neuro.time.Sample(obj.Times, obj.TimeIntervalCombined.getSampleRate);
+            times=neuro.time.Sample(obj.Times, ...
+                obj.Time.getSampleRate);
         end
         function tpInSecZT = getTimesInSecZT(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            tpInSecZT=seconds(obj.getAbsoluteSpikeTimes-obj.TimeIntervalCombined.getZeitgeberTime);
-        end
-        function obj = setInfo(obj,info)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            obj.Info=info;
+            tpInSecZT=seconds(obj.getAbsoluteSpikeTimes- ...
+                obj.Time.getZeitgeberTime);
         end
         function fireRate = getFireRate(obj,timebininsec)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             TimeBinsInSec=timebininsec;
             timesInSamples=obj.Times;
-            til=obj.TimeIntervalCombined.getTimeIntervalList;
+            til=obj.Time.getTimeIntervalList;
             endtimeinseclast=0;
             ticdnew=neuro.time.TimeIntervalCombined;
             for iti=1:til.length
                 ti=til.get(iti);
                 endtimeinsec=seconds(ti.getEndTime-ti.getStartTime);
-                timesInSec=double(timesInSamples)/ti.getSampleRate-endtimeinseclast;
+                timesInSec=double(timesInSamples)/ ...
+                    ti.getSampleRate-endtimeinseclast;
                 endtimeinseclast=endtimeinseclast+endtimeinsec;
-                N=histcounts(timesInSec,0:TimeBinsInSec:endtimeinsec)/TimeBinsInSec;
+                N=histcounts(timesInSec,0:TimeBinsInSec:endtimeinsec)/...
+                    TimeBinsInSec;
                 if iti==1
                     Nres=N;
                 else
                     Nres=[Nres N];
                 end
-                tinew=neuro.time.TimeIntervalZT(ti.getStartTime+seconds(TimeBinsInSec/2),1/(TimeBinsInSec),numel(N),ti.getZeitgeberTime);
+                tinew=neuro.time.TimeIntervalZT( ...
+                    ti.getStartTime+seconds(TimeBinsInSec/2), ...
+                    1/(TimeBinsInSec),numel(N),ti.getZeitgeberTime);
                 ticdnew=ticdnew+tinew;
             end
             fireRate=neuro.basic.Channel(num2str(obj.Id),Nres,ticdnew); %#ok<*CPROPLC>
-        end
-        function info=getInfo(obj,idx)
-            
-            info=sprintf(' ID:%d, nSpk:%d (of %d), Ch:%d',obj.Id,...
-                numel(obj.Times(idx)),numel(obj.Times),obj.Channel);
-            
-        end
-        function str=addInfo(obj,idx)
-            str=obj.getInfo(idx);
-            text(0,1,str,'Units','normalized','VerticalAlignment','bottom','HorizontalAlignment','left');
-            
-        end
-        function sut=plus(obj,track)
-            sut=neuro.spike.SpikeUnitTracked(obj,track);
-        end
-        function str=tostring(obj)
-            info=obj.Info;
-            str=sprintf('Id: %d, %d spikes\n %s\n Sh:%d, Ch:%d\n Gr:%s\n %s\n %s\n Polarity:%.4f\n frGiniCoef:%.4f\n frInstability:%.4f\n', ...
-                info.id, numel(obj.Times),...
-            info.brainRegion{1}, ...
-            info.sh, ...
-            info.ch, ...
-            info.group{1}, ...
-            info.cellType{1}, ...
-            info.synapticEffect{1}, ...
-            info.polarity, ...
-            info.firingRateGiniCoeff, ...
-            info.firingRateInstability);
         end
         
     end

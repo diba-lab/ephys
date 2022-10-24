@@ -1,13 +1,9 @@
-classdef FireRates
+classdef FireRates < neuro.spike.FireRatesRaw
     %FIRERATES Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
-        Data
         Time
-        ChannelNames
-        ClusterInfo
-        Info
     end
     
     methods
@@ -41,26 +37,6 @@ classdef FireRates
             cb.Label.String='Log Fire Rate (Hz)';
             cb.Color='w';
             colormap('hot');
-        end
-        function obj=get(obj,varargin)
-            if islogical(varargin{1})
-                tbl=obj.ClusterInfo;
-                obj.ClusterInfo=tbl(varargin{1},:);
-                data=obj.Data;
-                idx=ismember(obj.ChannelNames, obj.ClusterInfo.id);
-                obj.Data=data(idx,:);
-                chnames=obj.ChannelNames;
-                obj.ChannelNames=chnames(idx);
-            end
-        end
-        function obj=sort(obj,varargin)
-            if isnumeric(varargin{1})
-                data=obj.Data;
-                idx=varargin{1};
-                obj.Data=data(idx,:);
-                chnames=obj.ChannelNames;
-                obj.ChannelNames=chnames(idx);
-            end
         end
         function obj = getWindow(obj,window)
             t=obj.Time;
