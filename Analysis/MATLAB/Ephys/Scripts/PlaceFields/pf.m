@@ -6,7 +6,7 @@ cond='NSD';
 sesno=1;
 sess=sf.getSessions(animal,cond);
 ses=sess(sesno);
-ret=ses.getDataLFP.getRippleEvents.getWindow(ses.getBlock('TRACK'));
+ret=ses.getDataLFP.lfp.getRippleEvents.getWindow(ses.getBlock('TRACK'));
 diff=seconds(seconds(ret.PeakTimes.peak)+ ...
     ret.TimeIntervalCombined.getStartTime- ...
     ret.TimeIntervalCombined.getZeitgeberTime);
@@ -30,15 +30,11 @@ timepositionloc=[1 2];
 pdss{1}=pdsTRACKfast3D;
 pdss{2}=pdsTRACKfastman2D;
 pdss{3}=pdsTRACKfastman1D;
-
-
-isplot=1;
-ivalidunit=1;
 for isu=1:numel(susTRACK)
     su=susTRACK(isu);
     % combined
     sut=su+pdss{1};
-    if numel(sut.TimesInSamples)>100
+    if numel(sut.Times)>100
         f=figure('Position',[2616 -149 1500 1500]);
         t=tiledlayout(3,5);t.TileSpacing='tight';
         for isut=1:numel(pdss)
@@ -50,15 +46,11 @@ for isu=1:numel(susTRACK)
             frms{isut}=sut.getFireRateMap;
             pfms{isut}=frms{isut}.getPlaceFieldMap;
         end
-        sutsRes(ivalidunit)=suts;
-        susRes(ivalidunit)=su;
-        
         nexttile(1,[3,2])
         suts{1}.plotOnTrack3D;
         ax=gca;ax.XLim=xlims{1};ax.YLim=ylims{1};
         len1=[1 1;1 1; 1 1];
         loc=[3 4 5];
-        ret.getPeakTimes
         for isut=1:3
             nexttile(loc(isut),len1(isut,:));
             pdss{isut}.plot2D;hold on
@@ -84,7 +76,6 @@ for isu=1:numel(susTRACK)
         ff.save(str);
         close(f)
     end
-    ivalidunit=ivalidunit+1;
 end
 function shape(isut,xlims,ylims,str)
 ax=gca;ax.YDir="normal"; ax.XLim=xlims{isut};ax.YLim=ylims{isut};
