@@ -12,13 +12,13 @@ classdef SpikeUnit < neuro.spike.SpikeUnitRaw
             %   Detailed explanation goes here
             if nargin==3
                 obj.Id = spikeId;
-                obj.Times=spikeTimes;
+                obj.TimesInSamples=spikeTimes;
                 obj.Time=timeIntervalCombined;
             elseif nargin==1 && isa(spikeId,"neuro.spike.SpikeUnit")
                 obj.Id=spikeId.Id;
-                obj.Times=spikeId.Times;
+                obj.TimesInSamples=spikeId.TimesInSamples;
                 obj.Info=spikeId.Info;
-                obj.Time=spikeId.TimeIntervalCombined;
+                obj.Time=spikeId.Time;
             end
             obj.NumberOfSamples=obj.Time.getNumberOfPoints;
             obj.SampleRate=obj.Time.getSampleRate;
@@ -28,12 +28,12 @@ classdef SpikeUnit < neuro.spike.SpikeUnitRaw
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             ticd=obj.Time;
-            timesnew=ticd.getRealTimeFor(double(obj.Times));
+            timesnew=ticd.getRealTimeFor(double(obj.TimesInSamples));
         end
         function times = getTimes(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            times=neuro.time.Sample(obj.Times, ...
+            times=neuro.time.Sample(obj.TimesInSamples, ...
                 obj.Time.getSampleRate);
         end
         function tpInSecZT = getTimesInSecZT(obj)
@@ -46,7 +46,7 @@ classdef SpikeUnit < neuro.spike.SpikeUnitRaw
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             TimeBinsInSec=timebininsec;
-            timesInSamples=obj.Times;
+            timesInSamples=obj.TimesInSamples;
             til=obj.Time.getTimeIntervalList;
             endtimeinseclast=0;
             ticdnew=neuro.time.TimeIntervalCombined;

@@ -4,7 +4,7 @@ classdef SpikeUnitRaw
 
     properties
         Id
-        Times
+        TimesInSamples
         Info
         NumberOfSamples
         SampleRate
@@ -16,7 +16,7 @@ classdef SpikeUnitRaw
             %   Detailed explanation goes here
             if nargin>0
                 obj.Id=id;
-                obj.Times=times;
+                obj.TimesInSamples=times;
             end
         end
         function obj = setInfo(obj,info)
@@ -26,7 +26,7 @@ classdef SpikeUnitRaw
         end
         function info=getInfo(obj,idx)
             info=sprintf(' ID:%d, nSpk:%d (of %d), Ch:%d',obj.Id,...
-                numel(obj.Times(idx)),numel(obj.Times),obj.Channel);
+                numel(obj.TimesInSamples(idx)),numel(obj.TimesInSamples),obj.Channel);
         end
         function str=addInfo(obj,idx)
             str=obj.getInfo(idx);
@@ -41,7 +41,7 @@ classdef SpikeUnitRaw
             str=sprintf(['Id: %d, %d spikes\n %s\n Sh:%d, ' ...
                 'Ch:%d\n Gr:%s\n %s\n %s\n Polarity:%.4f\n' ...
                 ' frGiniCoef:%.4f\n frInstability:%.4f\n'], ...
-                info.id, numel(obj.Times),...
+                info.id, numel(obj.TimesInSamples),...
                 info.brainRegion{1}, ...
                 info.sh, ...
                 info.ch, ...
@@ -55,7 +55,7 @@ classdef SpikeUnitRaw
         function fireRate = getFireRate(obj,timebininsec)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            timesInSamples=obj.Times;
+            timesInSamples=obj.TimesInSamples;
             timesInSec=double(timesInSamples)/obj.SampleRate;
             endtimeinsec=double(obj.NumberOfSamples)/obj.SampleRate;
             N=histcounts(timesInSec,0:timebininsec:endtimeinsec)/...

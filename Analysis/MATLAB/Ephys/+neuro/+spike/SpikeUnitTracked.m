@@ -16,7 +16,7 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
             ptimes=positionData.time.getTimePointsInSecZT;
             idxnan=isnan(table2array(positionData.data(:,1))');
             ptimes(1,idxnan)=nan;
-            srate=max([1/spikeunit.TimeIntervalCombined.getSampleRate ...
+            srate=max([1/spikeunit.Time.getSampleRate ...
                 1/positionData.time.getSampleRate]);
             is1=1;
             stimes1=[];
@@ -28,8 +28,8 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
                     is1=is1+1;
                 end                    
             end
-            ticd=obj.TimeIntervalCombined;
-            obj.Times= seconds(seconds(stimes1)-(ticd.getStartTime- ...
+            ticd=obj.Time;
+            obj.TimesInSamples= seconds(seconds(stimes1)-(ticd.getStartTime - ...
                 ticd.getZeitgeberTime))*ticd.SampleRate;
         end
         function [] = plotOnTimeTrack(obj,speedthreshold)
@@ -67,7 +67,7 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
             track=obj.PositionData;
             track.plot2D(numPointsInPlot);hold on
 
-            if numel(obj.Times)>0
+            if numel(obj.TimesInSamples)>0
                 [~,idx]=track.getPositionForTimes(obj.getAbsoluteSpikeTimes);
                 track.plot2DMark(idx);hold on
             end
@@ -76,19 +76,19 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             track=obj.PositionData;
-            if numel(obj.Times)>0
+            if numel(obj.TimesInSamples)>0
                 [~,idx]=track.getPositionForTimes(obj.getAbsoluteSpikeTimes);
                 track.plot2DMark(idx);hold on
             end
         end
-        function [] = plotOnTrack3D(obj)
+        function [ax] = plotOnTrack3D(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             numPointsInPlot=50000;
             track=obj.PositionData;
             track.plot3Dtime(numPointsInPlot);hold on
 
-            if numel(obj.Times)>0
+            if numel(obj.TimesInSamples)>0
                 [~,idx]=track.getPositionForTimes(obj.getAbsoluteSpikeTimes);
                 track.plot3DMark(idx);hold on
             end

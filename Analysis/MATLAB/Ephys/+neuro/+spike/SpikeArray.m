@@ -3,7 +3,7 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
     %   Detailed explanation goes here
 
     properties
-        SpikeTable
+        SpikeTableInSamples
         TimeIntervalCombined
         ClusterInfo
         Info
@@ -16,10 +16,10 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             if nargin>0
                 if ~isa(spikeClusters,'neuro.spike.SpikeArray')
                     tablearray=horzcat( spikeTimes, double(spikeClusters));
-                    obj.SpikeTable=array2table(tablearray, ...
+                    obj.SpikeTableInSamples=array2table(tablearray, ...
                         'VariableNames',{'SpikeTimes','SpikeCluster'});
                 else
-                    obj.SpikeTable=spikeClusters.SpikeTable;
+                    obj.SpikeTableInSamples=spikeClusters.SpikeTable;
                     obj.TimeIntervalCombined=spikeClusters.TimeIntervalCombined;
                     obj.ClusterInfo=spikeClusters.ClusterInfo;
                     obj.Info=spikeClusters.Info;
@@ -30,12 +30,12 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
         function obj = getSpikeArrayWithAdjustedTimestamps(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            st=obj.SpikeTable;
+            st=obj.SpikeTableInSamples;
             spiketimessample=st.SpikeTimes;
             ticd=obj.TimeIntervalCombined;
             adjustedspiketimessample= ...
                 ticd.adjustTimestampsAsIfNotInterrupted(spiketimessample);
-            obj.SpikeTable.SpikeTimes=adjustedspiketimessample;
+            obj.SpikeTableInSamples.SpikeTimes=adjustedspiketimessample;
         end
         function print(obj,varargin)
             logger=logging.Logger.getLogger;
@@ -91,10 +91,10 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             obj.ClusterInfo=ci;
         end
         function tbl=getspikeIDs(obj)
-            spikeIDs=unique(obj.SpikeTable.SpikeCluster);
+            spikeIDs=unique(obj.SpikeTableInSamples.SpikeCluster);
             for iid=1:numel(spikeIDs)
                 spikeid=spikeIDs(iid);
-                spikecounts(iid)=sum(obj.SpikeTable.SpikeCluster==spikeid);
+                spikecounts(iid)=sum(obj.SpikeTableInSamples.SpikeCluster==spikeid);
             end
             tbl=array2table(horzcat(spikeIDs,spikecounts'), ...
                 'VariableNames',{'ID','count'});
@@ -252,16 +252,16 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
                 s=obj.TimeIntervalCombined.getSampleForClosest( ...
                     obj.TimeIntervalCombined.getDate+timeWindow);
             end
-            tbl=obj.SpikeTable;
+            tbl=obj.SpikeTableInSamples;
             tbl((tbl.SpikeTimes<s(1))|(tbl.SpikeTimes>=s(2)),:)=[];
             tbl.SpikeTimes=tbl.SpikeTimes-s(1);
-            obj.SpikeTable=tbl;
+            obj.SpikeTableInSamples=tbl;
             obj.Info.TimeFrame=timeWindow;
             obj.TimeIntervalCombined=obj.TimeIntervalCombined. ...
                 getTimeIntervalForTimes(timeWindow);
         end
         function spikeUnits=getSpikeUnits(obj,idx)
-            tbl=obj.SpikeTable;
+            tbl=obj.SpikeTableInSamples;
             ci=obj.ClusterInfo;
             if exist('idx','var') && ~isempty(idx)
                 ci_sub=ci(idx,:);
@@ -297,9 +297,9 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
                 end
                 selected=selected&selected_arg;
             end
-            tbl=obj.SpikeTable;
+            tbl=obj.SpikeTableInSamples;
             obj.ClusterInfo=obj.ClusterInfo(selected,:);
-            obj.SpikeTable=tbl(ismember(tbl.SpikeCluster,obj.ClusterInfo.id),:);
+            obj.SpikeTableInSamples=tbl(ismember(tbl.SpikeCluster,obj.ClusterInfo.id),:);
         end
         function pbe=getPopulationBurstEvents(obj)
 
@@ -324,7 +324,7 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             sa.SpikeTable.SpikeCluster=sa.SpikeTable.SpikeCluster+shift;
             sa.ClusterInfo=sortrows([obj.ClusterInfo; sa.ClusterInfo], ...
                 {'group','sh','ch'});
-            sa.SpikeTable=sortrows([obj.SpikeTable; sa.SpikeTable], ...
+            sa.SpikeTable=sortrows([obj.SpikeTableInSamples; sa.SpikeTable], ...
                 {'SpikeTimes'});
         end
         function [obj]=setShank(obj,shankno)
@@ -341,10 +341,10 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
     end
     methods %inherited
         function st=getSpikeTimes(obj)
-            st=obj.SpikeTable.SpikeTimes;
+            st=obj.SpikeTableInSamples.SpikeTimes;
         end
         function sc=getSpikeClusters(obj)
-            sc=obj.SpikeTable.SpikeCluster;
+            sc=obj.SpikeTableInSamples.SpikeCluster;
         end
     end
 end
