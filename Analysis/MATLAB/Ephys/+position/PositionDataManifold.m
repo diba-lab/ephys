@@ -3,6 +3,7 @@ classdef PositionDataManifold < position.PositionData
     %   Detailed explanation goes here
     
     properties
+        parent
         manifold
         dataOriginal
         config
@@ -12,6 +13,7 @@ classdef PositionDataManifold < position.PositionData
         function obj = PositionDataManifold(positionData,manifold)
             %POSITIONDATAMANIFOLD Construct an instance of this class
             %   Detailed explanation goes here
+            obj.parent=positionData;
             obj.units=positionData.units;
             obj.channels=positionData.units;
             obj.time=positionData.time;

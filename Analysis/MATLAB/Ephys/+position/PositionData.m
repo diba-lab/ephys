@@ -120,7 +120,7 @@ classdef PositionData < neuro.basic.ChannelTimeData & matlab.mixin.indexing.Rede
             vel=neuro.basic.Channel('Velocity',[0 v],obj.time);
         end
         function [om]= getOccupancyMap(obj)
-            om=neuro.placeField.OccupancyMap(obj.data,obj.time.getSampleRate);
+            om=neuro.placeField.OccupancyMap(obj,obj.time.getSampleRate);
             om.Units=obj.units;
         end
         function ax = plot(obj)

@@ -111,6 +111,7 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
             om=obj.PositionData.getOccupancyMap;
             [sTimes,~]=track.getPositionForTimes(obj.getAbsoluteSpikeTimes);
             frm=om+sTimes;
+            frm.SpikeUnitTracked=obj;
         end
         function [] = plotPlaceFieldNeg(obj,speedthreshold)
             %METHOD1 Summary of this method goes here

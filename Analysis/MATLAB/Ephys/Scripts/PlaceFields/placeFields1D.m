@@ -43,9 +43,13 @@ for isu=1:numel(susTRACK)
             frms{isut}=sut.getFireRateMap;
             pfms{isut}=frms{isut}.getPlaceFieldMap;
         end
+        pfms{2}.Parent=pfms{1};
+        pfms{3}.Parent=pfms{2};
         pfmc=pfmc.add(pfms{3});    
     end
     waitbar(double(isu)/numel(susTRACK), f, sprintf('%.1f%%', ...
         double(isu)/numel(susTRACK)*100))
 end
+save(['Scripts/PlaceFields/' sprintf('%s_%s-%s-%d.mat',class(pfmc),animal,cond,sesno)],"pfmc")
 delete(f);
+ax=pfmc.sortByPeak.plot;

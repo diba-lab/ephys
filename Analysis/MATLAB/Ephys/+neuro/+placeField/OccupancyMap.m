@@ -28,16 +28,16 @@ classdef OccupancyMap
             ms=obj.MapSmooth;
             ms(ms<eps)=0;
             alpha1=log(ms);
-            x=[min(obj.PositionData.X) max(obj.PositionData.X)];
-            y=[min(obj.PositionData.Z) max(obj.PositionData.Z)];
+            x=[min(obj.PositionData.data.X) max(obj.PositionData.data.X)];
+            y=[min(obj.PositionData.data.Z) max(obj.PositionData.data.Z)];
             imagesc(x,y,obj.MapOriginal,AlphaDataMapping="scaled",AlphaData=alpha1);    
         end
         function [] = plotSmooth(obj)
             ms=obj.MapSmooth;
             ms(ms<eps)=0;
             alpha1=log(ms);
-            x=[min(obj.PositionData.X) max(obj.PositionData.X)];
-            y=[min(obj.PositionData.Z) max(obj.PositionData.Z)];
+            x=[min(obj.PositionData.data.X) max(obj.PositionData.data.X)];
+            y=[min(obj.PositionData.data.Z) max(obj.PositionData.data.Z)];
             imagesc(x,y,obj.MapSmooth,AlphaDataMapping="scaled",AlphaData=alpha1);    
         end
         function obj = setTimeBinSec(obj,val)
@@ -56,7 +56,7 @@ classdef OccupancyMap
         function obj = calculate(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            pd=obj.PositionData;
+            pd=obj.PositionData.data;
             Pos1=[pd.X pd.Z];
             Pos = (Pos1 - min(Pos1)) ./ ( max(Pos1) - min(Pos1) );
             nGrid(1)=round((max(pd.X)-min(pd.X))/obj.SpatialBinSizeCm);

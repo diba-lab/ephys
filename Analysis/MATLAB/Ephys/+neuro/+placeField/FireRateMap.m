@@ -5,6 +5,7 @@ classdef FireRateMap < neuro.placeField.OccupancyMap
     properties
         SpikePositions
         OccupancyMap
+        SpikeUnitTracked
     end
     
     methods
@@ -26,16 +27,16 @@ classdef FireRateMap < neuro.placeField.OccupancyMap
             ms=obj.OccupancyMap;
             ms(ms<eps)=0;
             alpha1=log(ms);
-            x=[min(obj.PositionData.X) max(obj.PositionData.X)];
-            y=[min(obj.PositionData.Z) max(obj.PositionData.Z)];
+            x=[min(obj.PositionData.data.X) max(obj.PositionData.data.X)];
+            y=[min(obj.PositionData.data.Z) max(obj.PositionData.data.Z)];
             imagesc(x,y,obj.MapOriginal,AlphaDataMapping="scaled",AlphaData=alpha1);    
         end
         function [] = plotSmooth(obj)
             ms=obj.OccupancyMap;
             ms(ms<eps)=0;
             alpha1=log(ms);
-            x=[min(obj.PositionData.X) max(obj.PositionData.X)];
-            y=[min(obj.PositionData.Z) max(obj.PositionData.Z)];
+            x=[min(obj.PositionData.data.X) max(obj.PositionData.data.X)];
+            y=[min(obj.PositionData.data.Z) max(obj.PositionData.data.Z)];
             imagesc(x,y,obj.MapSmooth,AlphaDataMapping="scaled",AlphaData=alpha1);    
         end
         function obj = calculate(obj)
@@ -43,7 +44,7 @@ classdef FireRateMap < neuro.placeField.OccupancyMap
             %   Detailed explanation goes here
             obj= calculate@neuro.placeField.OccupancyMap(obj);
             spikePositions=obj.SpikePositions;
-            pd=obj.PositionData;
+            pd=obj.PositionData.data;
             PosAll=[pd.X pd.Z];
             PosSpk=[spikePositions.X spikePositions.Z];
             Pos = (PosSpk - min(PosAll)) ./ ( max(PosAll) - min(PosAll) );
