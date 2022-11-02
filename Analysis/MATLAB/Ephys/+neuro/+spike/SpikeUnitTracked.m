@@ -97,11 +97,6 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
             t_org=ticd.getTimePointsInSec;
             ax.ZLim=[0 abs(t_org(2)-t_org(end))];
             ax.ZDir="reverse";
-            str=obj.tostring;
-            t=annotation('textbox','String', str);
-            t.Position=[0 0 .1 .1;];
-            t.VerticalAlignment="bottom";
-            t.HorizontalAlignment="left";
         end
         
         function [frm] = getFireRateMap(obj)

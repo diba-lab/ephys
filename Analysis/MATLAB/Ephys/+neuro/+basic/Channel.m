@@ -135,7 +135,6 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             va=obj.getValues;
             t=obj.TimeIntervalCombined;
             if isa(t,'neuro.time.TimeIntervalCombined')
-                hold on
                 tis=t.timeIntervalList;
                 index_va=1;
                 for iti=1:tis.length
@@ -155,7 +154,9 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                     if iti>1
                         p(iti).Color=p(iti-1).Color;
                     end
+                    hold on
                 end
+                hold off
             else
                 t_s=t.getTimePointsInSec;
                 t_s=t.getStartTime+seconds(t_s);

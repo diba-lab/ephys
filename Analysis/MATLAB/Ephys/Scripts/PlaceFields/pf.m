@@ -6,7 +6,7 @@ cond='NSD';
 sesno=1;
 sess=sf.getSessions(animal,cond);
 ses=sess(sesno);
-ret=ses.getDataLFP.lfp.getRippleEvents.getWindow(ses.getBlock('TRACK'));
+ret=ses.getDataLFP.getRippleEvents.getWindow(ses.getBlock('TRACK'));
 diff=seconds(seconds(ret.PeakTimes.peak)+ ...
     ret.TimeIntervalCombined.getStartTime- ...
     ret.TimeIntervalCombined.getZeitgeberTime);

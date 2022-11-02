@@ -62,7 +62,8 @@ classdef FireRateMap < neuro.placeField.OccupancyMap
         function pfm = getPlaceFieldMap(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            pfm=neuro.placeField.PlaceFieldMap(obj);
+            pfm1=neuro.placeField.PlaceFieldMap(obj);
+            pfm=pfm1.getPlaceFieldMapMeasures;
         end
     end
 end

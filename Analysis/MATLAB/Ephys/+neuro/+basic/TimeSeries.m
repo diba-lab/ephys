@@ -51,6 +51,10 @@ classdef TimeSeries
             obj.Values=smoothdata(obj.Values,...
                 'movmean', obj.getSampleRate*windowInSeconds);
         end
+        function obj=getGaussianFiltered(obj,windowInSeconds)
+            obj.Values=smoothdata(obj.Values,...
+                'gaussian', obj.getSampleRate*windowInSeconds);
+        end
         function obj=getZScored(obj)
             obj.Values=zscore(obj.Values);
         end
