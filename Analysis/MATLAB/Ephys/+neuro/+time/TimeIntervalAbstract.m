@@ -59,6 +59,12 @@ classdef TimeIntervalAbstract
             if ~isdatetime(times)
                 if isduration(times)
                     times=obj.convertDurationToDatetime(times);
+                elseif isa(times,"neuro.time.Relative")
+                    times=times.pointsAbsolute;           
+                elseif isa(times,"neuro.time.ZeitgeberTime")
+                    times=times.pointsAbsolute;
+                elseif isa(times,"neuro.time.Absolute")
+                    times=times.points;
                 elseif iscell(times)
                     if (isstring(times{1})||ischar(times{1}))
                         times = obj.convertStringToDatetime(times);

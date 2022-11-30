@@ -98,7 +98,7 @@ classdef ThetaPeaksContainer
             txt=sprintf('ThetaPeak_dist_Comparison_%s_%s_',block,state);
             ff.save(txt);
         end
-        function plotSpeed(obj, blockstr)
+        function plotSpeed(obj, blockstr,cond)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             clear ff;
@@ -107,7 +107,7 @@ classdef ThetaPeaksContainer
             cols=[6 10 3 6];
 
             conds=flipud(obj.condlist);
-            states=obj.statelist(1 );
+            states=obj.statelist(cond);
             if any(ismember({'SD','NSD'},blockstr))
                 if numel(obj.blocklist)==4
                     blockidx=[false; true; false; false];

@@ -85,25 +85,13 @@ classdef OptiLoader<Singleton
                         ofc=position.optiTrack.OptiCSVFileSingleMarker(fullfile(path,[fname '.csv']));
                         of.CaptureStartTime=ofc.CaptureStartTime;
                     case '.csv'
-                        opts=detectImportOptions(fullfile(path,filename),"ReadVariableNames",false);
-                        for i=1:numel(opts.VariableTypes)
-                            opts.VariableTypes{i}='char';
-                        end
-                        opts.DataLines=[3 5];            
-                        t=readtable(fullfile(path,filename),opts);
-                        if ~strcmpi(t(1,3).Var3,'Marker')
-                            if exist('path','var')
-                                of=position.optiTrack.OptiCSVFileRigidBody(fullfile(path,filename));
-                            else
-                                of=position.optiTrack.OptiCSVFileRigidBody(fullfile(path1,filename));
-                            end
+
+                        if exist('path','var')
+                            of=position.optiTrack.OptiCSVFileGeneral(fullfile(path,filename));
                         else
-                            if exist('path','var')
-                                of=position.optiTrack.OptiCSVFileSingleMarker(fullfile(path,filename));
-                            else
-                                of=position.optiTrack.OptiCSVFileSingleMarker(fullfile(path1,filename));
-                            end
+                            of=position.optiTrack.OptiCSVFileGeneral(fullfile(path1,filename));
                         end
+
                 end
                 if ~exist('ofs','var')
                     ofs=of;

@@ -21,7 +21,7 @@ classdef PlaceFieldMapMeasures < neuro.placeField.PlaceFieldMap
                 [obj.Stability.gini,...
                     obj.Stability.cum,...
                     obj.Stability.basecum]=...
-                    obj.calculateStability;
+                    obj.calculateStabilityGini;
                 obj.PlaceFields=obj.calculatePlaceFields;
             end
         end
@@ -40,7 +40,7 @@ classdef PlaceFieldMapMeasures < neuro.placeField.PlaceFieldMap
             els=Pi.*FRiRatio.*log2(FRiRatio);
             information=sum(els,'omitnan');
         end
-        function [gini, cumfiring2, basecumfire]= calculateStability(obj)
+        function [gini, cumfiring2, basecumfire]= calculateStabilityGini(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             pfs=obj.calculatePlaceFields;
@@ -64,6 +64,27 @@ classdef PlaceFieldMapMeasures < neuro.placeField.PlaceFieldMap
             basecumfire=linspace(0,1,numel(cumfiring2));
             apb=sum(basecumfire);
             gini=1-abs(apb-b)/apb;
+        end
+        function [corr1]= calculateStabilityCorr(obj,sections)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            time=obj.SpikeUnitTracked.Time;
+            st=time.getStartTimeZT;et=time.getEndTimeZT;
+            frames=linspace(st,et,sections+1);
+            pfms=neuro.placeField.PlaceFieldMapMeasures.empty([sections 0]);
+            for isec=1:sections
+                frame=frames([isec isec+1]);
+                pdsmall=obj.SpikeUnitTracked.PositionData.getWindow( ...
+                    neuro.time.ZeitgeberTime( ...
+                    frame,time.getZeitgeberTime));
+                sutsmall=obj.SpikeUnitTracked+pdsmall;
+                frm=sutsmall.getFireRateMap(obj.XEdges,obj.ZEdges);
+                pfm=frm.getPlaceFieldMap;
+                pfms(isec)=pfm;
+                mat(:,isec)=reshape(pfm.MapOriginal,[],1); %#ok<AGROW> 
+            end
+            [corr1.R,corr1.P]=corr(mat);
+            corr1.maps=pfms;
         end
         function peaks = calculatePlaceFields(obj)
             %METHOD1 Summary of this method goes here

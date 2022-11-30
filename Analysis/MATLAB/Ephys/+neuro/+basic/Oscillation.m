@@ -40,6 +40,7 @@ classdef Oscillation < neuro.basic.TimeSeries
                 'FrequencyLimits',[1 250]);
             ps=neuro.power.PowerSpectrum(pxx,f);
         end
+
         function ps=getPSpectrumChronux(obj)
 %             params.tapers=[3 5];
             params.Fs=obj.getSampleRate;
@@ -75,6 +76,9 @@ classdef Oscillation < neuro.basic.TimeSeries
         function obj=getWhitened(obj)
             obj.Values = reshape(external.WhitenSignal(obj.Values,[],1), ...
                 size(obj.Values));
+        end
+        function obj=getHilbertPhase(obj)
+            obj.Values = angle(hilbert(double(obj.Values)));
         end
         function obj=getLowpassFiltered(obj,filterFreq)
             obj.Values=ft_preproc_lowpassfilter(...

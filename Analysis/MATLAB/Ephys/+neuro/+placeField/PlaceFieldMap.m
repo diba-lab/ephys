@@ -13,17 +13,12 @@ classdef PlaceFieldMap<neuro.placeField.FireRateMap
             %PLACEFIELDMAP Construct an instance of this class
             %   Detailed explanation goes here
             if nargin>0
-                obj.TimeTreshold=1*fireRateMap.TimeBinSec;
-                obj.SpikePositions=fireRateMap.SpikePositions;
-                obj.TimeBinSec=fireRateMap.TimeBinSec;
-                obj.SpatialBinSizeCm=fireRateMap.SpatialBinSizeCm;
-                obj.Smooth=fireRateMap.Smooth;
-                obj.Units=fireRateMap.Units;
-                obj.PositionData=fireRateMap.PositionData;
-                obj.OccupancyMap=fireRateMap.OccupancyMap;
+                fnames=fieldnames(fireRateMap);
+                for ifn=1:numel(fnames)
+                    obj.(fnames{ifn})=fireRateMap.(fnames{ifn});
+                end
                 obj.FireRateMap=fireRateMap.MapSmooth;
-                obj.SpikeUnitTracked=fireRateMap.SpikeUnitTracked;
-
+                obj.TimeTreshold=1*fireRateMap.TimeBinSec;
                 obj.FireRateMap(obj.OccupancyMap<obj.TimeTreshold)=eps;
                 obj.MapSmooth=obj.FireRateMap./(obj.OccupancyMap+eps);
                 obj.MapSmooth=imgaussfilt(obj.MapSmooth,obj.Smooth);
@@ -61,9 +56,9 @@ classdef PlaceFieldMap<neuro.placeField.FireRateMap
             [pks,locs1,w,p]=findpeaks(obj.MapSmooth);
             X=linspace(min(obj.PositionData.data.X), ...
                 max(obj.PositionData.data.X), ...
-                size(obj.MapSmooth,2));
+                numel(obj.MapSmooth))';
             locs=X(locs1);
-            peak=table(pks',locs',w',p', ...
+            peak=table(pks',locs,w',p', ...
                 VariableNames={'FiringRate','Position','Width','Prominence'});
             peak=sortrows(peak,{'FiringRate', 'Prominence'},"descend");
         end

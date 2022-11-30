@@ -55,6 +55,12 @@ classdef TimeIntervalZT < neuro.time.TimeInterval
             diff1=seconds(obj.getStartTime-obj.getDatetime(obj.getZeitgeberTime));
             tps=tps+diff1;
         end
+        function st=getStartTimeZT(obj)
+            st1=obj.StartTime;
+            zt=obj.getZeitgeberTime;
+            st=st1-zt;
+        end
+
     end
 end
 

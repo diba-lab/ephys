@@ -10,18 +10,20 @@ classdef SpikeUnit < neuro.spike.SpikeUnitRaw
         function obj = SpikeUnit(spikeId,spikeTimes,timeIntervalCombined)
             %SPIKEUNIT Construct an instance of this class
             %   Detailed explanation goes here
-            if nargin==3
-                obj.Id = spikeId;
-                obj.TimesInSamples=spikeTimes;
-                obj.Time=timeIntervalCombined;
-            elseif nargin==1 && isa(spikeId,"neuro.spike.SpikeUnit")
-                obj.Id=spikeId.Id;
-                obj.TimesInSamples=spikeId.TimesInSamples;
-                obj.Info=spikeId.Info;
-                obj.Time=spikeId.Time;
+            if nargin>0
+                if nargin==3
+                    obj.Id = spikeId;
+                    obj.TimesInSamples=spikeTimes;
+                    obj.Time=timeIntervalCombined;
+                elseif nargin==1 && isa(spikeId,"neuro.spike.SpikeUnit")
+                    obj.Id=spikeId.Id;
+                    obj.TimesInSamples=spikeId.TimesInSamples;
+                    obj.Info=spikeId.Info;
+                    obj.Time=spikeId.Time;
+                end
+                obj.NumberOfSamples=obj.Time.getNumberOfPoints;
+                obj.SampleRate=obj.Time.getSampleRate;
             end
-            obj.NumberOfSamples=obj.Time.getNumberOfPoints;
-            obj.SampleRate=obj.Time.getSampleRate;
         end
         
         function timesnew = getAbsoluteSpikeTimes(obj)
@@ -30,6 +32,7 @@ classdef SpikeUnit < neuro.spike.SpikeUnitRaw
             ticd=obj.Time;
             timesnew=ticd.getRealTimeFor(double(obj.TimesInSamples));
         end
+
         function times = getTimes(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here

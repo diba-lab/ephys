@@ -1,9 +1,9 @@
-% clear all
+clear all
 
 sf=experiment.SessionFactory;
 animal='AG';
-cond='NSD';
-sesno=1;
+cond='SD';
+sesno=2;
 sess=sf.getSessions(animal,cond);
 ses=sess(sesno);
 ret=ses.getDataLFP.getRippleEvents.getWindow(ses.getBlock('TRACK'));
@@ -34,15 +34,15 @@ for isu=1:numel(susTRACK)
     su=susTRACK(isu);
     % combined
     sut=su+pdss{1};
-    if numel(sut.Times)>100
+    if numel(sut.TimesInSamples)>100
         f=figure('Position',[2616 -149 1500 1500]);
         t=tiledlayout(3,5);t.TileSpacing='tight';
         for isut=1:numel(pdss)
             suts{isut}=su+pdss{isut};
             sut=suts{isut};
             oms{isut}=sut.PositionData.getOccupancyMap;om=oms{isut};
-            xlims{isut}=[min(om.PositionData.X) max(om.PositionData.X)];
-            ylims{isut}=[min(om.PositionData.Z) max(om.PositionData.Z)];
+            xlims{isut}=om.getXLim;
+            ylims{isut}=om.getZLim;
             frms{isut}=sut.getFireRateMap;
             pfms{isut}=frms{isut}.getPlaceFieldMap;
         end

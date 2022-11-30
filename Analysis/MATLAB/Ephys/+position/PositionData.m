@@ -15,7 +15,8 @@ classdef PositionData < neuro.basic.ChannelTimeData & matlab.mixin.indexing.Rede
                     obj.data=X.data;
                     obj.time=X.timeIntervalCombined;
                     obj.units=X.units;
-                elseif numel(X)==numel(Y)&&numel(Z)==numel(Y)&&numel(X)==ticd.getNumberOfPoints
+                elseif numel(X)==numel(Y)&&numel(Z)==numel(Y)&&...
+                        numel(X)==time.getNumberOfPoints
                     data(1,:)=X;
                     data(2,:)=Y;
                     data(3,:)=Z;
@@ -31,7 +32,7 @@ classdef PositionData < neuro.basic.ChannelTimeData & matlab.mixin.indexing.Rede
             ticd=obj.time;
             pd=obj;
             window=ticd.getTimeIntervalForTimes(plsd);
-            pd.timeIntervalCombined=window;
+            pd.time=window;
             samples=ticd.getSampleForClosest(plsd);
             idx=samples(1):samples(2);
             pd.data=obj.data(idx,:);
@@ -119,8 +120,13 @@ classdef PositionData < neuro.basic.ChannelTimeData & matlab.mixin.indexing.Rede
             end
             vel=neuro.basic.Channel('Velocity',[0 v],obj.time);
         end
-        function [om]= getOccupancyMap(obj)
-            om=neuro.placeField.OccupancyMap(obj,obj.time.getSampleRate);
+        function [om]= getOccupancyMap(obj,xedges,zedges)
+            if nargin==1
+                om=neuro.placeField.OccupancyMap(obj,obj.time.getSampleRate);
+            else
+                om=neuro.placeField.OccupancyMap(obj, ...
+                    obj.time.getSampleRate,xedges,zedges);
+            end
             om.Units=obj.units;
         end
         function ax = plot(obj)
@@ -203,6 +209,29 @@ classdef PositionData < neuro.basic.ChannelTimeData & matlab.mixin.indexing.Rede
 %             cb.Location='northoutside';
 %             cb.Position(1)=cb.Position(1)+cb.Position(3)/3*2;
 %             cb.Position(3)=cb.Position(3)/3;
+        end
+        function ax = plot3DtimeContinuous(obj, numPointsInPlot)
+            if ~exist('numPointsInPlot','var')
+                numPointsInPlot=10000;
+            end
+            ticd=obj.time;
+            t_org=ticd.getTimePointsInSecZT;
+            downsamplefactor=round(numel(t_org)/numPointsInPlot);
+
+            dims={'X','Z','Y'};
+            data0=obj.getData;
+            data1=table2array(data0(:,dims))';
+            for ich=1:size(data1,1)
+                data2(ich,:)=downsample(medfilt1(data1(ich,:), ...
+                    ticd.getSampleRate),downsamplefactor); %#ok<AGROW>
+            end
+            data2(3,:)=data2(3,:)+linspace(1,t_org(end)-t_org(2),size(data2,2)); % add time
+            plot3(data2(1,:),data2(2,:),data2(3,:),LineWidth=1);
+            zlabel('Time (s)');
+            ylabel(dims{2});
+            xlabel(dims{1});
+            ax=gca;
+            ax.DataAspectRatio=[1 1 4];
         end
         function ax = plot3D(obj, numPointsInPlot)
             if ~exist('numPointsInPlot','var')

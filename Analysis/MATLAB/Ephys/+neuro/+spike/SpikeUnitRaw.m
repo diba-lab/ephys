@@ -33,8 +33,12 @@ classdef SpikeUnitRaw
             text(0,1,str,'Units','normalized','VerticalAlignment','bottom', ...
                 'HorizontalAlignment','left');
         end
-        function sut=plus(obj,track)
-            sut=neuro.spike.SpikeUnitTracked(obj,track);
+        function sutl=plus(obj,positionOrLfp)
+            if isa(positionOrLfp,"position.PositionData")
+                sutl=neuro.spike.SpikeUnitTracked(obj,positionOrLfp);
+            else
+                sutl=neuro.spike.SpikeUnitLFP(obj,positionOrLfp);
+            end
         end
         function str=tostring(obj)
             info=obj.Info;

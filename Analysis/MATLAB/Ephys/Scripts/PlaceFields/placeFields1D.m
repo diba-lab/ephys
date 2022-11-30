@@ -1,11 +1,13 @@
-% clear all
+clear all
 
 sf=experiment.SessionFactory;
 animal='AG';
 cond='SD';
-sesno=1;
+sesno=2;
 sess=sf.getSessions(animal,cond);
 ses=sess(sesno);
+%% theta LFP
+thetaLFP=ses.getDataLFP.getStateDetectionData.getThetaLFP;
 %% Units
 sa=ses.getUnits;
 saTrack=sa.getTimeInterval(ses.getBlock('TRACK')).sort('group');%

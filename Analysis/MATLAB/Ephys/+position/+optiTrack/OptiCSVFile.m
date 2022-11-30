@@ -1,4 +1,4 @@
-classdef (Abstract) OptiCSVFile <optiTrack.OptiFile
+classdef (Abstract) OptiCSVFile <position.optiTrack.OptiFile
     %OPTITAKFILE Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -6,10 +6,10 @@ classdef (Abstract) OptiCSVFile <optiTrack.OptiFile
         FormatVersion
         TakeNotes
         TakeName
-        CaptureFrameRate
+%         CaptureFrameRate
         ExportFrameRate
         CaptureStartTime
-        TotalFramesinTake
+%         TotalFramesinTake
         TotalExportedFrames
         RotationType
         LengthUnits
@@ -53,12 +53,12 @@ classdef (Abstract) OptiCSVFile <optiTrack.OptiFile
             obj.FormatVersion=vars.FormatVersion;
             obj.TakeNotes=vars.TakeNotes;
             obj.TakeName=vars.TakeName;
-            obj.CaptureFrameRate=vars.CaptureFrameRate;
+%             obj.CaptureFrameRate=vars.CaptureFrameRate;
             obj.ExportFrameRate=vars.ExportFrameRate;
             captureStartTime=datetime(vars.CaptureStartTime,'InputFormat','yyyy-MM-dd hh.mm.ss.SSS a');
             captureStartTime.Format='dd-MMM-uuuu HH:mm:ss.SSS a';
             obj.CaptureStartTime=captureStartTime;
-            obj.TotalFramesinTake=vars.TotalFramesinTake;
+%             obj.TotalFramesinTake=vars.TotalFramesinTake;
             obj.TotalExportedFrames=vars.TotalExportedFrames;
             obj.RotationType=vars.RotationType;
             obj.LengthUnits=vars.LengthUnits;
