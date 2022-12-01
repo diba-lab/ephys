@@ -36,7 +36,7 @@ classdef ThetaPeaksContainer
             cols=[6 10 3 6];
 
             conds=obj.condlist;
-            states=obj.statelist(4);
+            states=obj.statelist(1);
             if any(ismember({'SD','NSD'},blockstr))
                 if numel(obj.blocklist)==4
                     blockidx=[false; true; false; false];
@@ -85,12 +85,20 @@ classdef ThetaPeaksContainer
                     axs=thpksm.plotCF();
                 end
                 drawnow
+                thpksms(icond)=thpksm;
                 clear thpksm
+            end
+            cmp=thpksms(1).compare(thpksms(2));
+            for ip=1:numel(axs)
+                text(axs(ip),min(axs(ip).XLim),max(axs(ip).YLim),...
+                    sprintf('ks-test:%.3f', cmp(ip).CF.ks2stat),...
+                    'HorizontalAlignment','right',VerticalAlignment='bottom',...
+                    FontSize=8)
             end
             txt=sprintf('ThetaPeak_dist_Comparison_%s_%s_',block,state);
             ff.save(txt);
         end
-        function plotSpeed(obj, blockstr)
+        function plotSpeed(obj, blockstr,cond)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             clear ff;
@@ -99,7 +107,7 @@ classdef ThetaPeaksContainer
             cols=[6 10 3 6];
 
             conds=flipud(obj.condlist);
-            states=obj.statelist(1 );
+            states=obj.statelist(cond);
             if any(ismember({'SD','NSD'},blockstr))
                 if numel(obj.blocklist)==4
                     blockidx=[false; true; false; false];
@@ -163,7 +171,7 @@ classdef ThetaPeaksContainer
             cols=[6 10 3 6];
 
             conds=obj.condlist;
-            states=obj.statelist(4);
+            states=obj.statelist(1);
             if any(ismember({'SD','NSD'},blockstr))
                 if numel(obj.blocklist)==4
                     blockidx=[false; true; false; false];
@@ -213,7 +221,15 @@ classdef ThetaPeaksContainer
                     axs=thpksm.plotPW();
                 end
                 drawnow
+                thpksms(icond)=thpksm;
                 clear thpksm
+            end
+            cmp=thpksms(1).compare(thpksms(2));
+            for ip=1:numel(axs)
+                text(axs(ip),min(axs(ip).XLim),max(axs(ip).YLim),...
+                    sprintf('ks-test:%.3f', cmp(ip).Power.ks2stat),...
+                    'HorizontalAlignment','right',VerticalAlignment='bottom',...
+                    FontSize=8)
             end
             txt=sprintf('ThetaPower_dist_Comparison_%s_%s_',block,state);
             ff.save(txt);
@@ -225,7 +241,7 @@ classdef ThetaPeaksContainer
             rotates=[10.5 6 25 10.5];
 
             conds=obj.condlist(:);
-            states=obj.statelist(4);
+            states=obj.statelist(1);
             colorstr1={'Blues7','Oranges7'};
             colorstr2={'RdBu10','RdBu10'};
             if any(ismember({'SD','NSD'},blockstr))
@@ -294,7 +310,7 @@ classdef ThetaPeaksContainer
             xticklabels(.5:.5:numsub/2),grid on
             conds=unique(tableall.Condition);
             subblocks=unique(tableall.SubBlock);
-            for icond=numel(conds):-1:1
+            for icond=1:numel(conds)
                 cond=conds(icond);
                 colors=flipud(othercolor(colorstr1{icond},10));
                 idx=tableall.Condition==icond;
@@ -382,21 +398,32 @@ classdef ThetaPeaksContainer
                         ax.CLim=[50 400];ax.XLim=[0 60];ax.YLim=[0 size(matp,1)];colorbar("northoutside")
                         figure(7)
                         try
-                            axes(outset(isub));
+                            axo=outset(isub);
+                            axn=axes;
+                            axn.Position=axo.Position;
                         catch
                             outset(isub)=subplot(1,numsub,isub);hold on;
+                            axn=gca;
+                            axn.Color='none';
                         end
                         idx=zscore(arrp1)<2|zscore(arrf1)<5;
                         arrf=arrf1(idx);
                         arrp=arrp1(idx);
-                        s3(icond)=scatter(arrp,arrf, ...
-                            'filled',MarkerFaceColor=mean(colors), ...
-                            MarkerFaceAlpha=.2, ...
-                            SizeData=.5 ...
-                            );
+%                         s3(icond)=scatter(arrp,arrf, ...
+%                             'filled',MarkerFaceColor=mean(colors), ...
+%                             MarkerFaceAlpha=.2, ...
+%                             SizeData=.5 ...
+%                             );
+%                         s3(icond)=dscatter(arrp',arrf','plottype','scatter');
+                        s3(icond)=dscatter(arrp',arrf','plottype','contour');
+                        colormap(s3(icond),othercolor(colorstr1{icond},7))
                         xlim([0 400]);
                         ylim([5 10]);
 
+                        if icond>1          
+                            axes(outset(isub));
+                            axn.Visible='off';
+                        end
                         [p,S,mu] = polyfit(arrp,arrf,1);
                         [R,P] = corrcoef(arrp,arrf);c=exp(-3*abs(R(2,1)));
                         if P(2,1)<.05

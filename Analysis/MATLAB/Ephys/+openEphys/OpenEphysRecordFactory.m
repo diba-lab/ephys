@@ -38,7 +38,8 @@ classdef OpenEphysRecordFactory
                         expfols=dir(fullfile(filename,'*experiment*'));
                         for iexp=1:numel(expfols)
                             expfol=expfols(iexp);
-                            recfols=dir(fullfile(expfol.folder,expfol.name,'*recording*'));
+                            recfols1=dir(fullfile(expfol.folder,expfol.name,'*recording*'));
+                            recfols=recfols1([recfols1.isdir]);
                             for irec=1:numel(recfols)
                                 recfol=recfols(irec);
                                 oebin=dir(fullfile(recfol.folder,recfol.name,'*oebin*'));

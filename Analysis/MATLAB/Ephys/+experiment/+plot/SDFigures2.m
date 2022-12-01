@@ -393,7 +393,7 @@
                             cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache',['' DataHash(params)]...
                                 ,strcat(sprintf('PlotFooof_afoof_%s_%s_%s_%s_',cond,ses.toString,block,state),'.mat'));
                             cacheFilePower=fullfile(sdeparams.FileLocations.General.PlotFolder,'Cache',['dd0ec70abdf774dc65dbfe6051420a73']...
-                                ,strcat(sprintf('PlotFooof_afoof_%s_%s_%s_%s_',cond,ses.toString,block,state),'.mat'));
+                                ,strcat(sprintf('PlotFooof_afoof_%s_%s_%s_%s_%s_',cond,ses.Animal.Code,ses.SessionInfo.Date,block,state),'.mat'));
                             if isfile(cacheFilePower)
                                 S=load(cacheFilePower,'thpks','epiFooof');
                                 try

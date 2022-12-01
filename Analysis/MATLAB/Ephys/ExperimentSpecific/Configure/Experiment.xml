@@ -17,7 +17,7 @@
             <Probe>Parameters/Probe.xlsx</Probe>
             <Analysis>Parameters/Analysis.xml</Analysis>
             <Events>Events/Events.xml</Events>
-            <Location>Location/Location.xml</Location>
+            <Position>_Position/</Position>
         </Session>
         <Preprocess>
             <RawFiles>Preprocess/RawFiles.xml</RawFiles>

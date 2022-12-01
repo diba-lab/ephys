@@ -11,7 +11,8 @@ classdef ChannelsThreshold < neuro.basic.Channel
         function obj = ChannelsThreshold(channel,threshold,sticky)
             %CHANNELSTHRESHOLD Construct an instance of this class
             %   Detailed explanation goes here
-            obj=obj@neuro.basic.Channel(channel.getChannelName,channel.getValues,channel.getTimeInterval);
+            obj=obj@neuro.basic.Channel(channel.getChannelName, ...
+                channel.getValues,channel.getTimeInterval);
             obj.Threshold=threshold;
             obj.Info=channel.Info;
             try

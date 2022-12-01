@@ -17,29 +17,30 @@ classdef (Abstract) Timelined
             f.Units='normalized';
             f.Position=[f.Position(1) f.Position(2) f.Position(4)*2 f.Position(4)/4];
             if nargin>1
-                timelines=varargin{1};
+                timeline=varargin{1};
             else
-                timelines=obj.getTimeline();
+                timeline=obj.getTimeline();
             end
             numrec=1;
-            
-            if iscell(timelines)
-                numrec=numel(timelines);
-                hold on;
-            end
-            
-            for itimeline=1:numrec
-                if iscell(timelines)
-                    timeline=timelines{itimeline};
-                else
-                    timeline=timelines;
+            type=timeline.Type;
+            types=unique(type);
+            colors=colororder;
+
+            for itype=1:numel(types)
+                atype=timeline(ismember(type,types{itype}),:);
+                color=colors(itype,:);
+                for itimeline=1:height(atype)
+                    rec=timeline(itimeline,:);
+                    p1=plot([rec.Start rec.Stop], [itype itype]);hold on
+                    p1.Color=[.1 .1 .1];
+                    p2=plot([rec.Start rec.Stop], [itype itype]);
+                    p2.Color=color;
+                    p2.LineWidth=2;
+                    xtickformat('HH:mm:ss');
+                    p1.LineStyle='none';
+                    p1.Marker='.';
+                    p1.MarkerSize=20;
                 end
-                plot(timeline.TimeInfo.StartDate,double(timeline.Data(1)));
-                p1=timeline.plot;
-                xtickformat('h:mm:ss');
-                p1(1).LineStyle='none';
-                p1(1).Marker='.';
-                p1(1).MarkerSize=20;
             end
             ax=gca;
             ax.YLim=[-1 2];

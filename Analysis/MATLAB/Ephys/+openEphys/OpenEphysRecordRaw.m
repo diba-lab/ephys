@@ -10,8 +10,10 @@ classdef OpenEphysRecordRaw < openEphys.OpenEphysRecord
         function obj = OpenEphysRecordRaw(filename)
             obj = obj@openEphys.OpenEphysRecord(filename);
             fileLoaderMethod=obj.getFileLoaderMethod;
-            
-            oeProperties = fileLoaderMethod.load();
+            try
+                oeProperties = fileLoaderMethod.load();
+            catch
+            end
             obj = obj.setData(oeProperties.Data);
             obj = obj.setTimeInterval(oeProperties.TimeInterval);
             obj = obj.setChannels(oeProperties.Channels);
@@ -20,7 +22,7 @@ classdef OpenEphysRecordRaw < openEphys.OpenEphysRecord
             catch
             end
             try
-%                 obj = obj.setSpikes(oeProperties.spks);
+                %                 obj = obj.setSpikes(oeProperties.spks);
             catch
             end
         end

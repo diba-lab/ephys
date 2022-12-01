@@ -1,13 +1,9 @@
-classdef FireRates
+classdef FireRates < neuro.spike.FireRatesRaw
     %FIRERATES Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
-        Data
         Time
-        ChannelNames
-        ClusterInfo
-        Info
     end
     
     methods
@@ -32,7 +28,7 @@ classdef FireRates
                 ch=1:numel(obj.ChannelNames);
                 [~,idx1]=sort(mean(obj.Data,2));
                 obj=obj.sort(idx1);
-                imagesc(t,ch,log10(obj.Data));
+                imagesc(t,ch,obj.Data);
             end
             ax.YLim=[min(ch) max(ch)+1]-.5;
             xlabel('ZT (h)')
@@ -41,26 +37,6 @@ classdef FireRates
             cb.Label.String='Log Fire Rate (Hz)';
             cb.Color='w';
             colormap('hot');
-        end
-        function obj=get(obj,varargin)
-            if islogical(varargin{1})
-                tbl=obj.ClusterInfo;
-                obj.ClusterInfo=tbl(varargin{1},:);
-                data=obj.Data;
-                idx=ismember(obj.ChannelNames, obj.ClusterInfo.id);
-                obj.Data=data(idx,:);
-                chnames=obj.ChannelNames;
-                obj.ChannelNames=chnames(idx);
-            end
-        end
-        function obj=sort(obj,varargin)
-            if isnumeric(varargin{1})
-                data=obj.Data;
-                idx=varargin{1};
-                obj.Data=data(idx,:);
-                chnames=obj.ChannelNames;
-                obj.ChannelNames=chnames(idx);
-            end
         end
         function obj = getWindow(obj,window)
             t=obj.Time;
@@ -89,7 +65,8 @@ classdef FireRates
                     pairNo=pairNo1';
                     tbl1=table(pairNo,pair,R);
                     tbl1.timeNo(:,1)=itime;
-                    tbl1.time(:,1:2)=repmat([times-1 timee]/obj.Time.getSampleRate,[height(tbl1) 1]);
+                    tbl1.time(:,1:2)=repmat([times-1 timee]/ ...
+                        obj.Time.getSampleRate,[height(tbl1) 1]);
                     if itime==1
                         tblall=tbl1;
                     else

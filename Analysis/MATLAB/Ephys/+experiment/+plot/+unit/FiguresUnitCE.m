@@ -42,7 +42,7 @@ classdef FiguresUnitCE
         function tbl = getEV(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-
+            figureOutputFolder='/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures';
             try close(1);catch,end;f1=figure(1);f1.Position=[1 1 700 1350];
             try close(2);catch,end;f2=figure(2);f2.Position=[561 1 700 1350];
             try close(103);catch,end;f103=figure(103);f103.Position=[1800 1 213 1350];
@@ -82,7 +82,7 @@ classdef FiguresUnitCE
                 sa2=sa1.get(aidx);
                 bls=ses.Session.Blocks;
                 blnames=bls.getBlockNames;
-                window= [15 15 15 15]'*60;
+                window= [15 15 15 15]'*60*2;
                 shift=  [5 5  5  5]'*60;
                 tblbl=table(blnames,window,shift);
 %                 try
@@ -90,9 +90,9 @@ classdef FiguresUnitCE
                     fr2=sa2.getFireRates(frbin);
                     fr2f=neuro.spike.FireRatesFilter(fr2);
                     durationInsec=60*60;%1 hour
-                    ratio=1/3;
+                    ratio=1/5;
                     slidingAmount=5*60;
-%                     fr2f.getRatioFilter(durationInsec, slidingAmount, ratio);
+                    fr2=fr2f.getRatioFilter(durationInsec, slidingAmount, ratio);
                     subplot(5,1,1:2);hold on;
                     axfr=fr2.plotFireRates;
 
@@ -245,7 +245,7 @@ classdef FiguresUnitCE
 %                     else
 %                         evtbl=[evtbl;evtblses];
 %                     end
-                    ff=logistics.FigureFactory.instance(  '/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
+                    ff=logistics.FigureFactory.instance( figureOutputFolder);
                     ff.save(['ses' num2str(ises)]);
                     
                     axes(axs);
@@ -268,9 +268,11 @@ classdef FiguresUnitCE
 %                 catch
 %                 end
             end
-            ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures');
+            ff=logistics.FigureFactory.instance(figureOutputFolder);
             figure(1);ff.save('sdpost')
             figure(2);ff.save('nsdpost')
+            figure(103);ff.save('sdpwc')
+            figure(104);ff.save('nsdpwc')
         end
         function [npairs]=plotPWC(obj,ax,pwc)
             [a,b,c]=unique(pwc(:,{'timeZT','block','timeNo'}));

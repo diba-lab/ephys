@@ -63,7 +63,7 @@ classdef Session
             try
                 logger.info(sdblock.print)
                 %% Location
-                LocFile=fullfile(baseFolder,params.FileLocations.Session.Location);
+%                 LocFile=fullfile(baseFolder,params.FileLocations.Session.Location);
                 
             catch
                 
@@ -79,7 +79,6 @@ classdef Session
             catch
                 logger.info(strcat('No probe file. ', key))
             end
-          
         end
         
         function obj = setAnimal(obj,animal)
@@ -90,7 +89,12 @@ classdef Session
         function sesstr = toString(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            sesstr=strcat(obj.Animal.Code, '_' ,datestr(obj.SessionInfo.Date,29));
+            an=sprintf('%s\t -->',obj.Animal.Code);
+            sesstr=sprintf('%s\t%s\nZT %s%s\n%s',an,obj.SessionInfo.Condition, ...
+                obj.SessionInfo.ZeitgeberTime, ...
+                obj.Blocks.print, ...
+                obj.Probe.toString ...
+                );
         end
         function obj = setProbe(obj,probe)
             %METHOD1 Summary of this method goes here
@@ -102,7 +106,7 @@ classdef Session
                 
             else
                 % load templateProbe
-                obj.Probe=neuro.probe.Probe(sde.FileLocations.General.ProbeTemplate); %#ok<CPROPLC>
+                obj.Probe=neuro.probe.Probe(sde.FileLocations.General.ProbeTemplate); 
                 warning('No Probe File. Template is loaded.');
             end
             obj.Probe.saveProbeTable(probeFile);
@@ -157,10 +161,29 @@ classdef Session
             relativePath='_Position';
             try
                 relpath=fullfile(obj.SessionInfo.baseFolder,relativePath);
-                pos=optiTrack.PositionData(relpath);
-            catch
+                pos=position.PositionDataTimeLoaded(relpath);
+            catch er
+                er.message
                 pos=[];
             end
+        end
+        function pos = getPositionMapped(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            relativePath='_Position';
+            try
+                relpath=fullfile(obj.SessionInfo.baseFolder,relativePath);
+                pos=position.PositionDataTimeLoaded(relpath);
+            catch er
+                er.message
+                pos=[];
+            end
+        end
+        function sa = getUnits(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            us=buzcode.CellMetricsSession(char(obj.SessionInfo.baseFolder));
+            sa=us.getSpikeArray;
         end
         
     end

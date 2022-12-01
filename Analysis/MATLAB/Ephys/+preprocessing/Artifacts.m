@@ -21,7 +21,7 @@ classdef Artifacts
             obj.Preprocess = preprocess;
         end
         
-        function outputArg = plot(obj,wind)
+        function [] = plot(obj,wind)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             if exist('wind','var')

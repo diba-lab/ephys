@@ -147,6 +147,12 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             time=obj.StartTime+seconds((obj.NumberOfPoints-1)/obj.SampleRate);
             time.Format=obj.Format;
         end
+        function time=getEndTimeZT(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            time1=obj.StartTime+seconds((obj.NumberOfPoints-1)/obj.SampleRate);
+            time=time1-obj.getZeitgeberTime;
+        end
         function timeIntervalList=getTimeIntervalList(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here

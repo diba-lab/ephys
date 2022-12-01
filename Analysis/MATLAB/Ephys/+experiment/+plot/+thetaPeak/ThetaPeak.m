@@ -71,6 +71,21 @@ classdef ThetaPeak
             end
             thpkres.fooof=[];
         end
+        function cmp=compare(obj,thpk)
+            if ~isempty(thpk)&&~isempty(obj.Signal)&&~isempty(thpk.Signal)&&~isempty(thpk.Signal)
+                thpkres=obj;
+                [cmp.CF.h,cmp.CF.p,cmp.CF.ks2stat] =kstest2(thpkres.CF.Values,thpk.CF.Values);
+                [cmp.Power.h,cmp.Power.p,cmp.Power.ks2stat] =kstest2(thpkres.Power.Values,thpk.Power.Values);
+                try
+                    if thpk.Speed.getSampleRate~=thpkres.Speed.getSampleRate
+                        thpk.Speed=thpk.Speed.getDownSampled(thpkres.Speed.getSampleRate);
+                    end
+                    [cmp.Speed.h,cmp.Speed.p,cmp.Speed.ks2stat] =kstest2(thpkres.Speed.Values,thpk.Speed.Values);
+                    [cmp.EMG.h,cmp.EMG.p,cmp.EMG.ks2stat] =kstest2(thpkres.EMG.Values,thpk.EMG.Values);
+                catch
+                end
+            end
+        end
         function plotCF(obj)
             ax=gca;
             xlim=[5 9];
@@ -115,8 +130,8 @@ classdef ThetaPeak
         end
         function plotSpeed(obj)
             ax=gca;
-            xlim=[0 15];
-            thpkcf_fd=obj.Speed.getMedianFiltered(1,'omitnan','truncate').getMeanFiltered(1);
+            xlim=[0 30];
+            thpkcf_fd=obj.Speed.getMedianFiltered(.2,'omitnan','truncate').getMeanFiltered(.5);
             colors=linspecer(2);
             switch thpkcf_fd.getInfo.Condition
                 case 'NSD'

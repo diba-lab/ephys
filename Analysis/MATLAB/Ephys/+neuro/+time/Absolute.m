@@ -19,7 +19,6 @@ classdef Absolute
             end
             obj.time.Format='dd-MMM-uuuu HH:mm:ss.SSSSSS';
         end
-        
         function time = getTime(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -29,6 +28,11 @@ classdef Absolute
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             date=datetime(obj.time.Year,obj.time.Month,obj.time.Day);
+        end
+        function pts = points(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            pts=obj.time;
         end
     end
 end

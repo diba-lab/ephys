@@ -13,9 +13,6 @@ classdef OptiLoader<Singleton
         % Singleton superclass.
         function newObj = OptiLoader(path)
             % Initialise your custom properties.
-            s=xml2struct('+optiTrack/configuration.xml');
-            fname=fieldnames(s);
-            newObj.parameters=s.(fname{1});
             if exist('path','var')
                 newObj.defpath=path;
             end
@@ -28,9 +25,9 @@ classdef OptiLoader<Singleton
             persistent uniqueInstance
             if isempty(uniqueInstance)||nargin>0
                 if nargin>0
-                    obj = optiTrack.OptiLoader(path);
+                    obj = position.optiTrack.OptiLoader(path);
                 else
-                    obj = optiTrack.OptiLoader();
+                    obj = position.optiTrack.OptiLoader();
                 end
                 uniqueInstance = obj;
             else
@@ -60,7 +57,7 @@ classdef OptiLoader<Singleton
         %         end
     end
     methods 
-        function [pd] = loadFile(obj, files)
+        function [ofs] = loadFile(obj, files)
             % Just assign the input value to singletonData.  See Singleton
             % superclass.
             if(nargin<2)
@@ -84,29 +81,17 @@ classdef OptiLoader<Singleton
                 filename=[fname ext];
                 switch ext
                     case '.fbx'
-                        of=optiTrack.OptiFBXAsciiFile(fullfile(path,filename));
-                        ofc=optiTrack.OptiCSVFileSingleMarker(fullfile(path,[fname '.csv']));
+                        of=position.optiTrack.OptiFBXAsciiFile(fullfile(path,filename));
+                        ofc=position.optiTrack.OptiCSVFileSingleMarker(fullfile(path,[fname '.csv']));
                         of.CaptureStartTime=ofc.CaptureStartTime;
                     case '.csv'
-                        opts=detectImportOptions(fullfile(path,filename),"ReadVariableNames",false);
-                        for i=1:numel(opts.VariableTypes)
-                            opts.VariableTypes{i}='char';
-                        end
-                        opts.DataLines=[3 5];            
-                        t=readtable(fullfile(path,filename),opts);
-                        if ~strcmpi(t(1,3).Var3,'Marker')
-                            if exist('path','var')
-                                of=optiTrack.OptiCSVFileRigidBody(fullfile(path,filename));
-                            else
-                                of=optiTrack.OptiCSVFileRigidBody(fullfile(path1,filename));
-                            end
+
+                        if exist('path','var')
+                            of=position.optiTrack.OptiCSVFileGeneral(fullfile(path,filename));
                         else
-                            if exist('path','var')
-                                of=optiTrack.OptiCSVFileSingleMarker(fullfile(path,filename));
-                            else
-                                of=optiTrack.OptiCSVFileSingleMarker(fullfile(path1,filename));
-                            end
+                            of=position.optiTrack.OptiCSVFileGeneral(fullfile(path1,filename));
                         end
+
                 end
                 if ~exist('ofs','var')
                     ofs=of;
@@ -114,10 +99,6 @@ classdef OptiLoader<Singleton
                     ofs=ofs+of;
                 end
             end
-            f=figure;ofs.plotTimeline;pause(3);close(f);
-            pd=ofs.getMergedPositionData;
-            pd.source=path;
-            pd.saveInPlainFormat(path);
         end
 
     end

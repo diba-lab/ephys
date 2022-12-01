@@ -18,9 +18,11 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                 voltageArray=voltageArray';
             end
             if numel(voltageArray)>timeIntervalCombined.getNumberOfPoints
-                voltageArray=voltageArray(1:timeIntervalCombined.getNumberOfPoints);
+                voltageArray=voltageArray( ...
+                    1:timeIntervalCombined.getNumberOfPoints);
             elseif numel(voltageArray)<timeIntervalCombined.getNumberOfPoints
-                diff1=timeIntervalCombined.getNumberOfPoints-numel(voltageArray);
+                diff1=timeIntervalCombined.getNumberOfPoints- ...
+                    numel(voltageArray);
                 voltageArray=[voltageArray zeros(1,diff1)];
             end
             obj@neuro.basic.Oscillation(voltageArray,...
@@ -88,7 +90,8 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             ch=ch.setInfo(obj.Info);
         end
         function ets=getEphysTimeSeries(obj)
-            ets=neuro.basic.EphysTimeSeries(obj.getValues,obj.getSampleRate,obj.getChannelName);
+            ets=neuro.basic.EphysTimeSeries(obj.getValues, ...
+                obj.getSampleRate,obj.getChannelName);
             ets=ets.setInfo(obj.Info);
         end
         function obj=getTimeWindowForAbsoluteTime(obj,window)
@@ -132,7 +135,6 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             va=obj.getValues;
             t=obj.TimeIntervalCombined;
             if isa(t,'neuro.time.TimeIntervalCombined')
-                hold on
                 tis=t.timeIntervalList;
                 index_va=1;
                 for iti=1:tis.length
@@ -152,7 +154,9 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                     if iti>1
                         p(iti).Color=p(iti-1).Color;
                     end
+                    hold on
                 end
+                hold off
             else
                 t_s=t.getTimePointsInSec;
                 t_s=t.getStartTime+seconds(t_s);
@@ -163,22 +167,27 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
         end
         function obj=plus(obj,val)
             if isa(val,'neuro.basic.Channel')
-                obj.TimeIntervalCombined=obj.TimeIntervalCombined+val.getTimeInterval;
+                obj.TimeIntervalCombined=obj.TimeIntervalCombined+...
+                    val.getTimeInterval;
                 obj.Values=[obj.Values ;val.Values];
             elseif isnumeric(val)
                 obj.Values=obj.Values+val;
             end
         end
         function ets=getTimeSeries(obj)
-            ets=neuro.basic.EphysTimeSeries(obj.getValues,obj.getSampleRate,obj.ChannelName);
+            ets=neuro.basic.EphysTimeSeries(obj.getValues, ...
+                obj.getSampleRate,obj.ChannelName);
         end
         function thpk=getFrequencyBandPeak(obj,freq)
             tfm=obj.getWhitened.getTimeFrequencyMap(...
-                neuro.tf.TimeFrequencyWavelet(logspace(log10(freq(1)),log10(freq(2)),diff(freq)*5)));
+                neuro.tf.TimeFrequencyWavelet(logspace(log10(freq(1)), ...
+                log10(freq(2)),diff(freq)*5)));
             [thpkcf1,thpkpw1]=tfm.getFrequencyBandPeak(freq);
-            thpkcf=neuro.basic.Channel('CF',thpkcf1.getValues,obj.TimeIntervalCombined);
+            thpkcf=neuro.basic.Channel('CF',thpkcf1.getValues, ...
+                obj.TimeIntervalCombined);
             thpkcf=thpkcf.setInfo(obj.Info);
-            thpkpw=neuro.basic.Channel('Power',thpkpw1.getValues,obj.TimeIntervalCombined);
+            thpkpw=neuro.basic.Channel('Power',thpkpw1.getValues, ...
+                obj.TimeIntervalCombined);
             thpkpw=thpkpw.setInfo(obj.Info);
             thpk=experiment.plot.thetaPeak.ThetaPeak(thpkcf,thpkpw);
             thpk=thpk.addSignal(obj);

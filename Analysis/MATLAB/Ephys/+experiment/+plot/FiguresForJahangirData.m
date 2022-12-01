@@ -338,7 +338,7 @@ classdef FiguresForJahangirData <Singleton
                 plotwh=1;
             end
             sf=experiment.SessionFactoryJ;
-            selected_ses=[15];
+            selected_ses=[11:15];
 %             selected_ses=[21 23];
             tses=sf.getSessionsTable(selected_ses);
             sde=experiment.SDExperimentJ.instance;
@@ -365,17 +365,24 @@ classdef FiguresForJahangirData <Singleton
                             ses=tses_cond;
                         end
                         file=ses.SessionInfo.baseFolder;
-                        sdd=buzcode.sleepDetection.StateDetectionData(file);
+                        try
+                            sdd=buzcode.sleepDetection.StateDetectionData(file);
+                        catch
+                        end
                         sdd.Info.SessionInfo=ses.SessionInfo;
                         EMG=sdd.getEMG;
                         ss=sdd.getStateSeries;
                         thId=sdd.getThetaChannelID;
-                        ctd=neuro.basic.ChannelTimeDataHard(file);
+                        try
+                            ctd=neuro.basic.ChannelTimeDataHard(file);
+                        catch
+                        end        
                         th=ctd.getChannel(thId);
                         blocks=ses.Blocks;
                         blocksStr1=categorical([1 2 3 4],[1 2 3 4], ...
                             blocks.getBlockNames,'Ordinal',true);
                         blocksStr= blocksStr1([1 2 3 4]);
+                        blocksStr= blocksStr1(3);
                         %                         blocksStr= blocksStr1;
                         for iblock=1:numel(blocksStr)
                             boc=neuro.basic.BlockOfChannels();
@@ -401,9 +408,7 @@ classdef FiguresForJahangirData <Singleton
                             end
                             allBlock=th.getTimeWindow(timeWindowadj);
                             boc=boc.addChannel(allBlock);
-                            
                             emg=EMG.getTimeWindow(timeWindowadj);
-                            
                             boc=boc.addChannel(emg);
                             ss_block=ss.getWindow(timeWindowadj);
                             boc=boc.addHypnogram(ss_block);
@@ -442,16 +447,17 @@ classdef FiguresForJahangirData <Singleton
                                                 
                                                 boc_sub.Info.SubBlock=categorical(isublock,1:(numel(subblocks)-1));
                                                 [episode, theEpisodeAbs]=boc_sub.getState(thestateNum);
-                                                if ~isempty(episode) && (episode.getLength>minutes(params.Plot.MinDurationInSubBlockMinutes))
+                                                if ~isempty(episode) && (episode{1}.getLength>minutes(params.Plot.MinDurationInSubBlockMinutes))
                                                     durations1=[0 cumsum(seconds(theEpisodeAbs(:,2)-theEpisodeAbs(:,1)))'];
                                                     thetaFreq=params.BandFrequencies.theta;
-                                                    episode1=episode.getDownSampled(50);
+                                                    episode1=episode{1}.getDownSampled(50);
                                                     thpk=episode1.getFrequencyBandPeak(thetaFreq);
-                                                    fooof=episode.getPSpectrumWelch.getFooof(params.Fooof(2),params.Fooof(2).f_range);
-                                                    fooof.Info=episode.Info;
-                                                    fooof.Info.episode =episode;
+                                                    fooof=episode{1}.getPSpectrumWelch.getFooof(params.Fooof(2),params.Fooof(2).f_range);
+                                                    fooof.Info=episode{1}.Info;
+                                                    fooof.Info.episode =episode{1};
                                                     thpk=thpk.addFooof(fooof);
                                                     thpk.Bouts=durations1;
+                                                    thpk.EMG=episode{2};
                                                 end
                                             end
                                             epiFooof(isublock)=fooof; %#ok<AGROW>
@@ -517,7 +523,7 @@ classdef FiguresForJahangirData <Singleton
             sdeparams=sde.get;
             params=obj.getParams.Fooof;
             sf=experiment.SessionFactoryJ;
-            selected_ses=[3:15];
+            selected_ses=[1:15];
             %             selected_ses=[21 23];
             tses=sf.getSessionsTable(selected_ses);
 
@@ -542,8 +548,8 @@ classdef FiguresForJahangirData <Singleton
                                 ,strcat(sprintf('PlotFooof_afoof_%s_%s_%s_%s_',cond,ses.toString,block,state),'.mat'));
                             if isfile(cacheFilePower)
                                 S=load(cacheFilePower,'thpks','epiFooof');
-                                S.thpks.Info.Session=ses;
                                 try
+                                    S.thpks.Info.Session=ses;
                                     thpks.(char(cond)).(char(block)).(char(state)).(['ses' num2str(isession)])=S.thpks;
                                     fooof.(char(cond)).(char(block)).(char(state)).(['ses' num2str(isession)])=S.epiFooof;
                                 catch
@@ -743,7 +749,7 @@ classdef FiguresForJahangirData <Singleton
             blockstr={'PRE','TRACK','SD','POST'};
             states=[1 2 3 5];
             statestr={'A-WAKE','Q-WAKE','SWS','all','REM'};
-            ff=FigureFactory.instance;
+            ff=logistics.FigureFactory.instance;
             for thestate=states
                 try close(thestate);catch;end; f=figure(thestate);f.Units='normalized';
                 f.Position=[1.0000    0.4391    .2    0.2];
