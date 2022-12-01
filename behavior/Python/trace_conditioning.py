@@ -15,6 +15,7 @@ import csv
 from datetime import datetime
 import atexit
 from copy import deepcopy
+import json
 
 tone_dur_default = 10  # seconds
 trace_dur_default = 20  # seconds
@@ -174,7 +175,7 @@ params = {
         },
         "tone_recall_params": {
             "tone_use": "training",
-            "volume": 0.60,
+            "volume": 0.39,
             "baseline_time": 60,
             "CStimes": None,
             "nCS": 15,
@@ -186,7 +187,7 @@ params = {
         },
         "control_tone_recall_params": {
             "tone_use": "control",
-            "volume": 0.02,
+            "volume": 0.06,
             "baseline_time": 60,
             "CStimes": None,
             "nCS": 12,
@@ -221,9 +222,9 @@ default_port = {
 class Trace:
     def __init__(
         self,
-        arduino_port="COM7",
+        arduino_port="COM3",
         paradigm="Round3",
-        base_dir=r"E:\Nat\Trace_FC\Recording_Rats\Jyn",
+        base_dir=r"E:\Nat\Trace_FC\Recording_Rats\Chewie",
     ):
         assert paradigm in params.keys()
         assert Path(base_dir).exists(), "Base path does not exist - create directory!"
@@ -788,6 +789,19 @@ def write_csv(filename, timestamp, event_id):
         spamwriter = csv.writer(csvfile, delimiter=",")
         spamwriter.writerow([timestamp, event_id])
 
+
+def check_json_settings(basedir, param_check: str in ['ewl', 'frameRate', 'gain', 'led0']):
+    """Checks miniscope settings files to make sure things match. Useful if you want to tweak settings!"""
+    json_files = sorted(Path(basedir).glob('*.json'))
+    param_values = []
+    for json_file in json_files:
+        with open(json_file) as f:
+            data = json.load(f)
+        param_values.append(data['devices']['miniscopes']['My V4 Miniscope'][param_check])
+    print(f'{param_check} values for all .json files are:')
+    print(param_values)
+
+    return param_values
 
 # NRK TODO: Figure out why play_tone for 1 second takes waaaay longer than 1 second. Probably need to initialize
 
