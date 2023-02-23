@@ -49,6 +49,14 @@ classdef PlaceFieldMapCollection
                 end
             end
         end
+        function mat = downsize(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            for ipf= 1:numel(obj.PlaceFieldMaps)
+                pfm=obj.PlaceFieldMaps(ipf);
+                
+            end
+        end
         function X = getXaxis(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
