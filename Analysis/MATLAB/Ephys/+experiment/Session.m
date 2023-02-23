@@ -159,8 +159,8 @@ classdef Session
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             relativePath='_Position';
+            relpath=fullfile(obj.SessionInfo.baseFolder,relativePath);
             try
-                relpath=fullfile(obj.SessionInfo.baseFolder,relativePath);
                 pos=position.PositionDataTimeLoaded(relpath);
             catch er
                 er.message

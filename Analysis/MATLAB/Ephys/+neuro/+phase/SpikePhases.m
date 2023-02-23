@@ -11,9 +11,11 @@ classdef SpikePhases < neuro.phase.Polar
         function obj = SpikePhases(phasetable,varargin)
             %SPIKEPHASES Construct an instance of this class
             %   Detailed explanation goes here
-            obj.PolarData=phasetable;
-            if nargin>1
-                obj.UnitInfo=varargin{1};
+            if nargin>0
+                obj.PolarData=phasetable;
+                if nargin>1
+                    obj.UnitInfo=varargin{1};
+                end
             end
         end
         

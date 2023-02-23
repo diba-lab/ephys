@@ -128,28 +128,29 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             %   Detailed explanation goes here
             obj.print;
         end
-        function new_timeIntervalCombined=getTimeIntervalForSamples(obj, times)
+        function new_timeIntervalCombined=getTimeIntervalForSamples(obj, samples)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            for i=1:size(times,1)
-                timeint=times(i,:);
-                if timeint(1) <1
-                    timeint(1)=1;
+            for i=1:size(samples,1)
+                sampleint=samples(i,:);
+                if sampleint(1) <1
+                    sampleint(1)=1;
                 end
-                if timeint(2) > obj.getNumberOfPoints
-                    timeint(2)=obj.getNumberOfPoints;
+                if sampleint(2) > obj.getNumberOfPoints
+                    sampleint(2)=obj.getNumberOfPoints;
                 end
-                if(times(1)>times(2))
+                if any(samples(:,1)>samples(:,2))
                     new_timeIntervalCombined=[];
                 else
                     til=obj.timeIntervalList;
                     lastSample=0;
                     for iInt=1:til.length
                         theTimeInterval=til.get(iInt);
-                        upstart=timeint(1)-lastSample;
-                        upend=timeint(2)-lastSample;
-                        if upend>0
-                            newti=theTimeInterval.getTimeIntervalForSamples(upstart,upend);
+                        upstart=sampleint(1)-lastSample;
+                        upend=sampleint(2)-lastSample;
+                        if upend>0 % not already assigned
+                            newti=theTimeInterval.getTimeIntervalForSamples(...
+                                upstart,upend);
                             if ~isempty(newti)
                                 try
                                     new_timeIntervalCombined=new_timeIntervalCombined+newti;
@@ -207,7 +208,6 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             times=obj.getDatetime(times);
-            
             samples=nan(size(times));
             til= obj.timeIntervalList;
                 lastSample=0;
@@ -231,8 +231,10 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                 theTimeInterval=til.get(iInt);
                 ends((iInt-1)*2+1,1)=theTimeInterval.getStartTime;
                 ends(iInt*2,1)=theTimeInterval.getEndTime;
-                idx=times>=theTimeInterval.getStartTime & times<=theTimeInterval.getEndTime;
-                samples(idx)=theTimeInterval.getSampleFor(times(idx))+lastSample;
+                idx=times>theTimeInterval.getStartTime & ...
+                    times<=theTimeInterval.getEndTime;
+                samples(idx)=theTimeInterval.getSampleFor(...
+                    times(idx))+lastSample;
                 lastSample=lastSample+theTimeInterval.NumberOfPoints;
             end
             for it=1:numel(samples)
@@ -334,12 +336,12 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             end
             try timeIntervalCombined.Source= obj.Source;catch, end
         end
-        function tps=getTimePointsInSec(obj)
+        function tps=getTimePoints(obj)
             til= obj.timeIntervalList;
             st=obj.getStartTime;
             for iInt=1:til.length
                 theTimeInterval=til.get(iInt);
-                tp=theTimeInterval.getTimePointsInSec+seconds(theTimeInterval.getStartTime-st);
+                tp=theTimeInterval.getTimePoints+theTimeInterval.getStartTime-st;
                 if exist('tps','var')
                     tps=horzcat(tps, tp); %#ok<*AGROW> 
                 else
@@ -347,11 +349,11 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                 end
             end
         end
-        function tps=getTimePointsInSecZT(obj)
+        function tps=getTimePointsZT(obj)
             til= obj.timeIntervalList;
             for iInt=1:til.length
                 theTimeInterval=til.get(iInt);
-                tp=theTimeInterval.getTimePointsInSecZT;
+                tp=theTimeInterval.getTimePointsZT;
                 if exist('tps','var')
                     tps=horzcat(tps, tp); %#ok<*AGROW> 
                 else
@@ -360,7 +362,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             end
         end
         function tps=getTimePointsInAbsoluteTimes(obj)
-            tps=seconds(obj.getTimePointsInSec)+obj.getStartTime;
+            tps=obj.getTimePoints+obj.getStartTime;
         end
         function tps=getTimePointsInSamples(obj)
             tps=1:obj.getNumberOfPoints;

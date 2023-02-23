@@ -50,10 +50,10 @@ classdef TimeIntervalZT < neuro.time.TimeInterval
                 zt=obj.ZeitgeberTime;
             end
         end
-        function tps=getTimePointsInSecZT(obj)
-            tps=0:(1/obj.SampleRate):((obj.NumberOfPoints-1)/obj.SampleRate);
-            diff1=seconds(obj.getStartTime-obj.getDatetime(obj.getZeitgeberTime));
-            tps=tps+diff1;
+        function tps=getTimePointsZT(obj)
+            st=obj.getStartTime-obj.getDatetime(obj.getZeitgeberTime);
+            en=obj.getEndTime-obj.getDatetime(obj.getZeitgeberTime);
+            tps=linspace(st,en,obj.NumberOfPoints);
         end
         function st=getStartTimeZT(obj)
             st1=obj.StartTime;

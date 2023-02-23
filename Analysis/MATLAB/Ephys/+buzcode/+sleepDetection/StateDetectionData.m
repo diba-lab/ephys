@@ -57,7 +57,7 @@ classdef StateDetectionData
             obj.TimeIntervalCombinedOriginal=ticd;
             downsampleFactor=ticd.getSampleRate / obj.SleepScoreLFP.sf;
             timeIntervalCombinedDownsampled=ticd.getDownsampled(downsampleFactor);
-            npds=numel(timeIntervalCombinedDownsampled.getTimePointsInSec);
+            npds=timeIntervalCombinedDownsampled.getNumberOfPoints;
             npss=numel(obj.SleepScoreLFP.t);
             if abs((npds-npss)/npss)<.0001
                 
@@ -122,15 +122,15 @@ classdef StateDetectionData
         function [tps]= getTimePoints(obj,downsample)
             ti=obj.TimeIntervalCombinedOriginal;
             tis=ti.getDownsampled(downsample);
-            tps=tis.getTimePointsInSec;
+            tps=tis.getTimePoints;
         end
         function [tps]= getTimePointsOriginal(obj)
             ti=obj.TimeIntervalCombinedOriginal;
-            tps=ti.getTimePointsInSec;
+            tps=ti.getTimePoints;
         end
         function [tps]= getTimePointsDownSampled(obj)
             ti=obj.TimeIntervalCombinedDownSampled;
-            tps=ti.getTimePointsInSec;
+            tps=ti.getTimePoints;
         end
         function cht=getEMG(obj)
             ts1= obj.EMGFromLFP.data;
@@ -532,7 +532,7 @@ classdef StateDetectionData
     methods (Access=private)
         
         function ts=getTimeSeriesForArraywBAD(obj,array)
-            %             tp=obj.TimeIntervalCombinedDownSampled.getTimePointsInSec;
+            %             tp=obj.TimeIntervalCombinedDownSampled.getTimePoints;
             %
             %             ts=timeseries(array,tp);
             %             ts.TimeInfo.StartDate=obj.TimeIntervalCombined.getStartTime;

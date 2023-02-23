@@ -13,24 +13,22 @@ classdef AutoCorrelogram
             %AUTOCORRELOGRAMS Construct an instance of this class
             %   Detailed explanation goes here
             duration=1.4;
-            binsize=.01;
-            obj.Count=nan(numel(spikeUnits),duration/binsize+1);
+            binsize=.001;
+            obj.Count=nan(numel(spikeUnits),int64(duration/binsize+1));
             sucount=1;
             for isu=1:numel(spikeUnits)
                 spikeUnit=spikeUnits(isu);
                 sample=spikeUnit.getTimes;
                 if numel(sample.sample)>0
                     times=seconds(sample.getDuration);
-                    try
-                        [obj.Count(sucount,:),obj.Time]=CCG(times,ones(size(times)),...
-                            'duration', duration,...
-                            'binSize', binsize,...
-                            'Fs',1/sample.rate,...
-                            'normtype', 'count');
-                        sucount=sucount+1;
-                        obj.Info=[obj.Info;spikeUnit.Info];
-                    catch
-                    end
+                    [obj.Count(sucount,:),obj.Time]=CCG(times,ones(size(times)),...
+                        'duration', duration,...
+                        'binSize', binsize,...
+                        'Fs',1/sample.rate,...
+                        'normtype', 'count');
+                    sucount=sucount+1;
+                    obj.Info=[obj.Info;spikeUnit.Info];
+
                 end
             end
         end
@@ -115,6 +113,7 @@ classdef AutoCorrelogram
         function [tbl]=plot(obj,group,sort1)
             tbl=obj.Info;
             [type,~,gr]=unique(tbl(:,group));
+
             colors_peak=linspecer(height(type));
 
             for ig=1:numel(gr)
@@ -157,24 +156,30 @@ classdef AutoCorrelogram
             s2.MarkerEdgeAlpha=.7;
 
             t_interest=new_t>.05&new_t<.200;
-            [pks,locs] =findpeaks(popmean(:,t_interest),new_t(t_interest),'NPeaks',1);
+            [pks,locs] =findpeaks(popmean(:,t_interest),new_t(t_interest), ...
+                'NPeaks',1);
             p=plot(new_t,popmean);
             p.LineWidth=2;
             p.Color='#A2142F';
             ax.YDir='normal';
             freq=1/locs(1);
-            s3=scatter([-locs locs],[pks pks],'v','filled','MarkerFaceColor','#A2142F');
-            t=text(locs,pks,sprintf('%.2fHz',freq),'VerticalAlignment','bottom','HorizontalAlignment','center');
+            s3=scatter([-locs locs],[pks pks],'v','filled', ...
+                'MarkerFaceColor','#A2142F');
+            t=text(locs,pks,sprintf('%.2fHz',freq), ...
+                'VerticalAlignment','bottom','HorizontalAlignment','center');
             t.FontSize=10;
             t.Color='#A2142F';
             units_interest=1:numel(tbl.thetaFreq);
             mean_inter_peak=peak(units_interest);
             treq_mean_peak=mean(mean_inter_peak);            
-%             eb=errorbar(treq_mean_peak,numel(t_freq)/2,std(mean_inter_peak)/sqrt(numel(mean_inter_peak)),'horizontal');
+%             eb=errorbar(treq_mean_peak,numel(t_freq)/2, ...
+% std(mean_inter_peak)/sqrt(numel(mean_inter_peak)),'horizontal');
             xl=xline(treq_mean_peak);
             xl.Color=colors_peak(1,:);
             xl.LineWidth=1;
-            t2=text(treq_mean_peak,numel(tbl.thetaFreq)/2,sprintf('%.2fHz',1/treq_mean_peak),'VerticalAlignment','bottom','HorizontalAlignment','center');
+            t2=text(treq_mean_peak,numel(tbl.thetaFreq)/2,sprintf('%.2fHz', ...
+                1/treq_mean_peak),'VerticalAlignment','bottom', ...
+                'HorizontalAlignment','center');
             t2.Color=xl.Color;
             t2.FontSize=10;
             ax.XLim=[0 .400];
@@ -185,8 +190,19 @@ classdef AutoCorrelogram
                 catch
                 end
                 txt=strjoin(txt2);
-                text(1,.5-.1*(mean(1:height(type))-ity),txt,'Color',colors_peak(ity,:),Units='normalized')
+                text(1,.5-.1*(mean(1:height(type))-ity),txt, ...
+                    'Color',colors_peak(ity,:),Units='normalized')
             end
+        end
+        function []=plotSingle(obj)
+            plot(obj.Time*1000,obj.Count);
+            ax=gca;
+            ax.XLim=[0 200];
+            tm=obj.getThetaModulations;
+            text(.95,.95,sprintf('theta magnitude:%.3f\ntheta frequency:%.3f', ...
+                tm.getThetaModulationMagnitudes,tm.getThetaFrequency), ...
+                Units="normalized",HorizontalAlignment="right", ...
+                VerticalAlignment="top")
         end
     end
 end

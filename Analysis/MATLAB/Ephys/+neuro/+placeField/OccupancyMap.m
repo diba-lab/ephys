@@ -3,7 +3,7 @@ classdef OccupancyMap
     %   Detailed explanation goes here
     
     properties
-        TimeBinSec
+        TimeBin
         SpatialBinSizeCm
         Smooth
         PositionData
@@ -19,8 +19,9 @@ classdef OccupancyMap
             %OCCUPANCYMAP Construct an instance of this class
             %   Detailed explanation goes here
             if nargin>0
+                
                 obj.PositionData = positionData;
-                obj.TimeBinSec=1/srate;
+                obj.TimeBin=seconds(1/srate);
                 obj.Smooth=5;
                 obj.SpatialBinSizeCm=1;
                 if nargin>2
@@ -46,8 +47,11 @@ classdef OccupancyMap
             y=obj.getZLim;
            imagesc(x,y,obj.MapSmooth,AlphaDataMapping="scaled",AlphaData=alpha1);    
         end
-        function obj = setTimeBinSec(obj,val)
-            obj.TimeBinSec=val;
+        function obj = setTimeBin(obj,val)
+            if ~isduration(val)
+                error('value should be in Duration')
+            end
+            obj.TimeBin=val;
             obj=obj.calculate;
         end
         function obj = setSmooth(obj,val)
@@ -67,8 +71,12 @@ classdef OccupancyMap
             if nargin==1
                 nGrid(1)=round((max(pd.X)-min(pd.X))/obj.SpatialBinSizeCm);
                 nGrid(2)=round((max(pd.Z)-min(pd.Z))/obj.SpatialBinSizeCm);
-                [obj.MapOriginal,Xedges,Zedges]=histcounts2( ...
+                try
+                    [obj.MapOriginal,Xedges,Zedges]=histcounts2( ...
                     Pos1(:,1),Pos1(:,2),nGrid);
+                catch ME
+                    
+                end
             else
                 [obj.MapOriginal,Xedges,Zedges]=histcounts2( ...
                     Pos1(:,1),Pos1(:,2),xedges,zedges);

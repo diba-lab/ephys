@@ -13,14 +13,21 @@ classdef PositionDataManifold < position.PositionData
         function obj = PositionDataManifold(positionData,manifold)
             %POSITIONDATAMANIFOLD Construct an instance of this class
             %   Detailed explanation goes here
+            fnames=fieldnames(positionData);
             obj.parent=positionData;
-            obj.units=positionData.units;
-            obj.channels=positionData.units;
-            obj.time=positionData.time;
+            for ifn=1:numel(fnames)
+                try
+                    obj.(fnames{ifn})=positionData.(fnames{ifn});
+                catch ME
+                    
+                end
+            end
             obj.dataOriginal=positionData.data;
+
             data1=table2array(positionData.data)';
             data2=manifold.map(data1);
             data3=[data2(:,1) zeros(size(data2,1),1) data2(:,2)];
+            data3(any(isnan(data1)),:)=nan;
             obj.data=array2table(data3,"VariableNames",{'X','Y','Z'});
             obj.manifold=manifold;
         end
@@ -39,7 +46,13 @@ classdef PositionDataManifold < position.PositionData
             %   Detailed explanation goes here
             obj.manifold.plotGraph
         end
-
+        function obj=getWindow(obj,plsd)
+            [obj, idx]=getWindow@position.PositionData(obj,plsd);
+            obj.dataOriginal=obj.dataOriginal(idx,:);
+            if isfield(obj,'parent')&&~isempty(obj.parent)
+                obj.parent=obj.parent.getWindow(plsd);
+            end
+        end
         function [obj, folder]= saveInPlainFormat(obj,folder)
             ext2='position.points.mapped.csv';
             if exist('folder','var')

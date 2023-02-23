@@ -43,9 +43,9 @@ classdef TimeWindowsDuration
             % two datetime value columns: Start, Stop
             t=this.TimeTable;
         end
-        function obj = mergeOverlaps(obj,minDurationBetweenEventsInSeconds)
-            if ~isduration(minDurationBetweenEventsInSeconds)
-                minDurationBetweenEventsInSeconds=seconds(minDurationBetweenEventsInSeconds);
+        function obj = mergeOverlaps(obj,minDurationBetweenEvents)
+            if ~isduration(minDurationBetweenEvents)
+                minDurationBetweenEvents=seconds(minDurationBetweenEvents);
             end
             t=obj.TimeTable;
             rest=[];
@@ -53,7 +53,7 @@ classdef TimeWindowsDuration
             for iwin=2:height(t)
                 win=t(iwin,:);
                 % do this win overlap with the temp
-                winStartIsInOrCloseToTemp= (win.Start-temp.Stop)<minDurationBetweenEventsInSeconds;
+                winStartIsInOrCloseToTemp= (win.Start-temp.Stop)<minDurationBetweenEvents;
                 overlap=winStartIsInOrCloseToTemp;
                 if overlap % merge into temp
                     if temp.Start>win.Start

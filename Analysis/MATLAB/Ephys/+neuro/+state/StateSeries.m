@@ -99,7 +99,7 @@ classdef StateSeries
             if isa(timeIntervalCombined,'neuro.basic.Channel')
                 timeIntervalCombined=timeIntervalCombined.getTimeIntervalCombined;
             end
-            timePointsInSec=timeIntervalCombined.getTimePointsInSec;
+            timePointsInSec=seconds(timeIntervalCombined.getTimePoints);
             ts=obj.getTimeSeries;
             ts1=ts.resample(timePointsInSec,'zoh');
             states1=ts1.Data;
@@ -137,7 +137,7 @@ classdef StateSeries
         function [ps] = plotOBSOLETE(obj,colorMap)
             states1=obj.States;
             ticd=obj.TimeIntervalCombined;
-            t=seconds(ticd.getTimePointsInSec)+ticd.getStartTime;
+            t=ticd.getTimePoints+ticd.getStartTime;
             hold on;
             num=1;
             if ~exist('colorMap','var')
@@ -186,7 +186,7 @@ classdef StateSeries
             if isduration( slidingWindowLapsInSeconds)
                 slidingWindowLapsInSeconds=seconds(slidingWindowLapsInSeconds);
             end
-            t=obj.TimeIntervalCombined.getTimePointsInSec;
+            t=seconds(obj.TimeIntervalCombined.getTimePoints);
             statesunique=unique(states);
             for istate=1:numel(statesunique)
                 thestate=statesunique(istate);
@@ -231,7 +231,7 @@ classdef StateSeries
             name=obj.StateNames;
         end
         function np=getTimeSeries(obj)
-            np=timeseries(obj.States,obj.TimeIntervalCombined.getTimePointsInSec);
+            np=timeseries(obj.States,obj.TimeIntervalCombined.getTimePoints);
         end
         function st=getStartTime(obj)
             st=obj.TimeIntervalCombined.getStartTime;

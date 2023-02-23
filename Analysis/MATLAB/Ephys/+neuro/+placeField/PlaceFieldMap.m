@@ -18,8 +18,8 @@ classdef PlaceFieldMap<neuro.placeField.FireRateMap
                     obj.(fnames{ifn})=fireRateMap.(fnames{ifn});
                 end
                 obj.FireRateMap=fireRateMap.MapSmooth;
-                obj.TimeTreshold=1*fireRateMap.TimeBinSec;
-                obj.FireRateMap(obj.OccupancyMap<obj.TimeTreshold)=eps;
+                obj.TimeTreshold=1*fireRateMap.TimeBin;
+                obj.FireRateMap(obj.OccupancyMap<seconds(obj.TimeTreshold))=eps;
                 obj.MapSmooth=obj.FireRateMap./(obj.OccupancyMap+eps);
                 obj.MapSmooth=imgaussfilt(obj.MapSmooth,obj.Smooth);
             end
@@ -36,21 +36,31 @@ classdef PlaceFieldMap<neuro.placeField.FireRateMap
         end
         function [] = plotSmooth(obj)
             ms=obj.OccupancyMap;
+            if min(size(ms))>1
+                is2d=1;
+            else
+                is2d=0;
+            end
             ms(ms<eps)=0;
             alpha1=log(ms);
             x=[min(obj.PositionData.data.X) max(obj.PositionData.data.X)];
             y=[min(obj.PositionData.data.Z) max(obj.PositionData.data.Z)];
-            imagesc(x,y,obj.MapSmooth,AlphaDataMapping="scaled",AlphaData=alpha1);
+            if is2d
+                imagesc(x,y,obj.MapSmooth,AlphaDataMapping="scaled",AlphaData=alpha1);
+            else
+                imagesc(x,y,obj.MapSmooth);
+            end
+            
             %             ax=gca;ax.CLim=[.05 .2];
             xlabel(['X ' obj.Units])
             ylabel(['Z ' obj.Units])
-            str=sprintf('Information: %.3f\n',obj.Information);
+            str=sprintf('Info: %.3f bits\n',obj.Information);
             if ~isempty(obj.Stability)
                 str=sprintf('%sStability: %.3f\n',str,obj.Stability.gini);
             end
-            text(0,1,str, ...
+            text(.5,.1,str, ...
                 Units="normalized", ...
-                VerticalAlignment="bottom");
+                VerticalAlignment="middle",HorizontalAlignment="center");
         end
         function [peak] = getPeakLocalMaxima(obj)
             [pks,locs1,w,p]=findpeaks(obj.MapSmooth);

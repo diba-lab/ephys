@@ -39,11 +39,15 @@ classdef SpikeUnit < neuro.spike.SpikeUnitRaw
             times=neuro.time.Sample(obj.TimesInSamples, ...
                 obj.Time.getSampleRate);
         end
-        function tpInSecZT = getTimesInSecZT(obj)
+        function tpZT = getTimesZT(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            tpInSecZT=seconds(obj.getAbsoluteSpikeTimes- ...
-                obj.Time.getZeitgeberTime);
+            if obj.getNumberOfSpikes>0
+                tpZT=obj.getAbsoluteSpikeTimes- ...
+                    obj.Time.getZeitgeberTime;
+            else
+                tpZT=[];
+            end
         end
         function fireRate = getFireRate(obj,timebininsec)
             %METHOD1 Summary of this method goes here
@@ -72,6 +76,18 @@ classdef SpikeUnit < neuro.spike.SpikeUnitRaw
                 ticdnew=ticdnew+tinew;
             end
             fireRate=neuro.basic.Channel(num2str(obj.Id),Nres,ticdnew); %#ok<*CPROPLC>
+        end
+        function acc = getACC(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            acc=neuro.spike.AutoCorrelogram(obj);
+        end
+        function p = plotWaveform(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            p=plot(obj.Info.time{:}, obj.Info.raw{:});
+            ax=gca;
+            ax.XLim=[min(obj.Info.time{:}) max(obj.Info.time{:})];
         end
         
     end

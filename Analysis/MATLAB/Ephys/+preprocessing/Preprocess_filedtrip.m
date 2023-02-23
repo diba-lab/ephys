@@ -20,7 +20,7 @@ numel(probe.getActiveChannels));
 
 %%
 lfp.label=strsplit(num2str(1:numel(probe.getActiveChannels)))';
-lfp.time={ticd.getTimePointsInSec'};
+lfp.time={seconds(ticd.getTimePoints)'};
 lfp.trial={double(data')};clear data
 lfp.fsample=ticd.getSampleRate;
 cfg=[];

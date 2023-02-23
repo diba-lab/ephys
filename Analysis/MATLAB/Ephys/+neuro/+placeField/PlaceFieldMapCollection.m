@@ -4,7 +4,6 @@ classdef PlaceFieldMapCollection
 
     properties
         PlaceFieldMaps
-
     end
 
     methods
@@ -21,10 +20,16 @@ classdef PlaceFieldMapCollection
 
             end
         end
-        function obj = add(obj,placeField)
+        function obj = add(obj,placeField,varargin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            obj.PlaceFieldMaps(numel(obj.PlaceFieldMaps)+1)=placeField;
+            if isa(placeField,'neuro.placeField.PlaceFieldMap')
+                obj.PlaceFieldMaps(numel(obj.PlaceFieldMaps)+1)=placeField;
+            elseif isa(placeField,'neuro.placeField.PlaceFieldMapCollection')
+                for ip=1:numel(placeField.PlaceFieldMaps)
+                    obj=obj.add(placeField.PlaceFieldMaps(ip));
+                end
+            end
         end
         function mat = getMatrix(obj)
             %METHOD1 Summary of this method goes here
@@ -33,7 +38,14 @@ classdef PlaceFieldMapCollection
                 pfm=obj.PlaceFieldMaps(ipf);
                 try 
                     mat(ipf,:)=pfm.MapSmooth;
-                catch
+                catch me
+                    matsize=size(mat,2);
+                    if numel(pfm.MapSmooth)>matsize
+                        mat(ipf,:)=pfm.MapSmooth(1:matsize);
+                    else
+                        ad1=nan([1 abs(matsize-numel(pfm.MapSmooth))]);
+                        mat(ipf,:)=[pfm.MapSmooth ad1];
+                    end
                 end
             end
         end
@@ -43,14 +55,15 @@ classdef PlaceFieldMapCollection
             pfm=obj.PlaceFieldMaps(1);
             X=[min(pfm.PositionData.data.X) max(pfm.PositionData.data.X)];
         end
-        function ax = plot(obj)
+        function ax = plot(obj,pp)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             mat=obj.getMatrix;
             matz=normalize(mat,2,"range");
-            t=tiledlayout(4,3);nexttile(1,[4 1]);
+            t=tiledlayout(6,3);nexttile(1,[6 1]);
             x=obj.getXaxis;y=1:numel(obj.PlaceFieldMaps);
-            imagesc(x,y,matz,ButtonDownFcn=@(src,evt)updatePlaceFieldPlotsUni(src,evt,obj,t));
+            imagesc(x,y,matz,ButtonDownFcn=@(src,evt)updatePlaceFieldPlotsUni( ...
+                src,evt,obj,pp,t));
             xlabel('Position (cm)');ylabel('Unit #')
             ax=gca;
             ax.YTick=y;
@@ -63,7 +76,7 @@ classdef PlaceFieldMapCollection
             x2=ones(size(y))*x(2);hold on;
             scatter(x2,y,200,sta,"filled",AlphaData=.8,Marker="square");
         end
-        function obj = sortByPeakLocalMaxima(obj)
+        function [obj, ind]= sortByPeakLocalMaxima(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             for ipf=1:numel(obj.PlaceFieldMaps)
@@ -102,24 +115,34 @@ classdef PlaceFieldMapCollection
                 pf=obj.PlaceFieldMaps(ipf);
                 su=pf.SpikeUnitTracked;
                 if exist('tbl','var')
-                    tbl=[tbl; su.Info];
+                    tbl=[tbl; su.getInfoTable];
                 else
-                    tbl=su.Info;
+                    tbl=su.getInfoTable;
                 end
             end
         end
         function tbl = getPlaceFieldInfoTable(obj)
+            stabilityNums=3;
+            vals=[2 6];
             for ipf=1:numel(obj.PlaceFieldMaps)
                 pf=obj.PlaceFieldMaps(ipf);
                 s.Information=pf.Information;
                 s.Stability=pf.Stability;
+%                 s.Stability.gini=1-...
+%                     sum(abs(s.Stability.cum-s.Stability.basecum))/...
+%                     sum(s.Stability.basecum);
                 s.PlaceFields={pf.PlaceFields};
+                cor1=pf.calculateStabilityCorr(stabilityNums);
+                R=cor1.R(vals);
+                p1=cor1.P(vals);
+                R(isnan(R))=0;
+                s.Stability.CorrR1=R(1);
+                s.Stability.CorrR2=R(2);
                 peak=pf.getPeak;
                 tbl1=struct2table(s,'AsArray',true);
                 tbl2=[tbl1 peak];
                 if exist("tbl","var")
-                        tbl=[tbl; tbl2];
-
+                    tbl=[tbl; tbl2];
                 else
                     tbl=tbl2;
                 end

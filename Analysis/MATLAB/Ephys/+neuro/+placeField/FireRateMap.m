@@ -59,7 +59,7 @@ classdef FireRateMap < neuro.placeField.OccupancyMap
                 [obj.MapOriginal]=histcounts2( ...
                     PosSpk(:,1),PosSpk(:,2),xedges,zedges);
             end
-            obj.MapOriginal=obj.MapOriginal'./obj.TimeBinSec;
+            obj.MapOriginal=obj.MapOriginal'./seconds(obj.TimeBin);
 
             % do the smoothing
             obj.MapSmooth=imgaussfilt(obj.MapOriginal,obj.Smooth);

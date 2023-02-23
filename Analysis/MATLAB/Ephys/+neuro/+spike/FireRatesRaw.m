@@ -14,8 +14,10 @@ classdef FireRatesRaw
         function obj = FireRatesRaw(data,channelNames,info)
             %FIRERATESRAW Construct an instance of this class
             %   Detailed explanation goes here
-            obj.Data=data;
-            obj.ChannelNames=channelNames;
+            if nargin>0
+                obj.Data=data;
+                obj.ChannelNames=channelNames;
+            end
         end
         function obj=get(obj,varargin)
             if islogical(varargin{1})

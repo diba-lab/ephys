@@ -43,15 +43,27 @@ classdef TimeSeries
         function ts=getTimeStamps(osc)
             ts=linspace(0, osc.getNumberOfPoints/osc.getSampleRate, osc.getNumberOfPoints);
         end
-        function obj=getMedianFiltered(obj,windowInSeconds,varargin)
+        function obj=getMedianFiltered(obj,window,varargin)
+            if isduration(window)
+                windowInSeconds=seconds(window);
+            end
             obj.Values=medfilt1(obj.Values,...
                 obj.getSampleRate*windowInSeconds,varargin{:});
+
         end
-        function obj=getMeanFiltered(obj,windowInSeconds)
+        function obj=getMeanFiltered(obj,window)
+            if isduration(window)
+                windowInSeconds=seconds(window);
+            end
             obj.Values=smoothdata(obj.Values,...
                 'movmean', obj.getSampleRate*windowInSeconds);
         end
-        function obj=getGaussianFiltered(obj,windowInSeconds)
+        function obj=getGaussianFiltered(obj,window)
+            if isduration(window)
+                windowInSeconds=seconds(window);
+            else
+                windowInSeconds=window;
+            end
             obj.Values=smoothdata(obj.Values,...
                 'gaussian', obj.getSampleRate*windowInSeconds);
         end

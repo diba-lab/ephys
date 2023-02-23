@@ -43,7 +43,8 @@ classdef ChannelTimeDataHard < file.BinarySave
                     folder=thefile.folder;
                 end
                 if numel(thefile)>1
-                    logger.warning('\nMultiple files: selecting the first one.\n\t%s\n\t%s',thefile.name)
+                    logger.warning(['\nMultiple files: selecting the first' ...
+                        ' one.\n\t%s\n\t%s'],thefile.name)
                     thefile=thefile(1);
                 end
                 
@@ -57,7 +58,8 @@ classdef ChannelTimeDataHard < file.BinarySave
                     'Format',{'int16' [numberOfChannels samples] 'mapped'});
                 
                 try
-                    newObj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(folder);
+                    newObj.TimeIntervalCombined=...
+                        neuro.time.TimeIntervalCombined(folder);
                 catch
                     numberOfPoints=samples;
                     prompt = {'Start DateTime:','SampleRate:'};
@@ -65,9 +67,11 @@ classdef ChannelTimeDataHard < file.BinarySave
                     dims = [1 35];
                     definput = {'11-Aug-2011 11:11:11','1250'};
                     answer = inputdlg(prompt,dlgtitle,dims,definput);
-                    startTime=datetime(answer{1},'InputFormat','dd-MMM-yyyy HH:mm:ss');
+                    startTime=datetime(answer{1},'InputFormat',['dd-MMM-yyyy' ...
+                        ' HH:mm:ss']);
                     sampleRate=str2num(answer{2});
-                    ti=neuro.time.TimeInterval(startTime, sampleRate, numberOfPoints);
+                    ti=neuro.time.TimeInterval(startTime, sampleRate, ...
+                        numberOfPoints);
                     ticd=neuro.time.TimeIntervalCombined(ti);
                     ticd.save(folder);
                     newObj.TimeIntervalCombined=ticd;
@@ -76,8 +80,7 @@ classdef ChannelTimeDataHard < file.BinarySave
                     ticd=neuro.time.TimeIntervalCombined;
                     ticd.Source=newObj.TimeIntervalCombined.Source;
                     til=newObj.TimeIntervalCombined.getTimeIntervalList;
-                    for iti=til.length
-
+                    for iti=1:til.length
                         ti=til.get(iti);
                         ti.NumberOfPoints=ti.NumberOfPoints-1;
                         ticd=ticd+ti;
@@ -86,7 +89,8 @@ classdef ChannelTimeDataHard < file.BinarySave
                         newObj.TimeIntervalCombined=ticd;
                         ticd.saveTable
                     else
-                        pause
+                        error(['datsize size and .TimeIntervalCombined ' ...
+                            'files don''t match.'])
                     end
                 end
                 logger.info(newObj.TimeIntervalCombined.tostring)
@@ -98,7 +102,8 @@ classdef ChannelTimeDataHard < file.BinarySave
             probe=obj.Probe;
             file1=dir(obj.Filepath);
             GB=file1.bytes/1024/1024/1024;
-            str=sprintf('\n%s (%.2fGB)\n%s\n%s', obj.Filepath, GB, ticd.tostring, probe.toString);
+            str=sprintf('\n%s (%.2fGB)\n%s\n%s', obj.Filepath, GB, ...
+                ticd.tostring, probe.toString);
         end
         function chnames=getChannelNames(obj)
             probe=obj.Probe;
@@ -113,7 +118,8 @@ classdef ChannelTimeDataHard < file.BinarySave
             probe=obj.Probe;
             channelList=probe.getActiveChannels;
             index=channelList==channelNumber;
-            l.info(sprintf('Loading Channel %d from %s',channelNumber,obj.Filepath))
+            l.info(sprintf('Loading Channel %d from %s',channelNumber, ...
+                obj.Filepath))
             datamemmapfile=obj.Data;
             datamat=datamemmapfile.Data;
             voltageArray=datamat.mapped(index,:);
@@ -130,8 +136,11 @@ classdef ChannelTimeDataHard < file.BinarySave
                 LFPtil=LFPticd.getTimeIntervalList.createIterator;
                 while LFPtil.hasNext
                     LFPti=LFPtil.next;
-                    chsub=ch.getTimeWindow([LFPti.getStartTime LFPti.getEndTime]);
-                    idx=LFPticd.getSampleForClosest(chsub.getStartTime):LFPticd.getSampleForClosest(chsub.getEndTime);
+                    chsub=ch.getTimeWindow([LFPti.getStartTime ...
+                        LFPti.getEndTime]);
+                    idx=LFPticd.getSampleForClosest( ...
+                        chsub.getStartTime):LFPticd.getSampleForClosest( ...
+                        chsub.getEndTime);
                     array(1,idx)=chsub.Values;
                 end
                 [obj.Probe, channum]=obj.Probe.addANewChannel(channel.ChannelName);

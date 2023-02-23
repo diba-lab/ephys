@@ -15,13 +15,14 @@ classdef RippleAbs
     methods
 
         
-        function outputArg = plotScatterHoursInXAxes(obj)
+        function outputArg = plotScatterTimeZt(obj)
             ticd=obj.TimeIntervalCombined;
+            ztshift=ticd.getStartTime-ticd.getZeitgeberTime;
             peaktimestamps=obj.getPeakTimes*ticd.getSampleRate;
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
             peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
-            peakripmax=obj.RipMax(:,1);
-            s=scatter(hours(seconds(peakTimesAdjusted)),peakripmax...
+            peakripmax=obj.SwMax(:,1);
+            s=scatter(minutes(seconds(peakTimesAdjusted)+ztshift),peakripmax...
                 ,'Marker','.','MarkerFaceAlpha',.7,'MarkerEdgeAlpha',.7,...
                 'SizeData',50);
             
@@ -39,7 +40,7 @@ classdef RippleAbs
         end
         function [p2] = plotHistCount(obj, TimeBinsInSec)
             if ~exist('TimeBinsInSec','var')||isempty(TimeBinsInSec)
-                TimeBinsInSec=600;
+                TimeBinsInSec=1;
             end
             ticd=obj.TimeIntervalCombined;
             ztshift=ticd.getStartTime-ticd.getZeitgeberTime;
@@ -47,11 +48,12 @@ classdef RippleAbs
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
             peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
             [N,edges]=histcounts(peakTimesAdjusted,1:TimeBinsInSec:max(peakTimesAdjusted));
-            t=hours(seconds(edges(1:(numel(edges)-1))+TimeBinsInSec/2))+hours(ztshift);
+            t=minutes(seconds(edges(1:(numel(edges)-1))+TimeBinsInSec/2)+ztshift);
             t1=linspace(min(t),max(t),numel(t)*1);
             N=N/TimeBinsInSec;
             N=interp1(t,N,t1,'linear','extrap');
-            p2=plot(t1,N,'LineWidth',1);
+            n1=smoothdata(N,'gaussian',30);
+            p2=plot(t1,n1,'LineWidth',1);
         end
         function [p2] = plotSWAmplitudeHistCount(obj, TimeBinsInSec)
             if ~exist('TimeBinsInSec','var')||isempty(TimeBinsInSec)
@@ -63,7 +65,7 @@ classdef RippleAbs
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
             peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
             SWAmplitude=obj.SwMax;
-            t=hours(seconds(peakTimesAdjusted))+hours(ztshift);
+            t=minutes(seconds(peakTimesAdjusted)+ztshift);
             t1=linspace(min(t),max(t),seconds(hours(range(t)))*1);
             N=interp1(t,SWAmplitude,t1,'nearest');
 %             p2=plot(t,SWAmplitude,'LineWidth',1);p2.LineWidth=2;
@@ -80,7 +82,7 @@ classdef RippleAbs
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
             peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
             RipAmplitude=obj.getRipMax;
-            t=hours(seconds(peakTimesAdjusted))+hours(ztshift);
+            t=minutes(seconds(peakTimesAdjusted)+ztshift);
             t1=linspace(min(t),max(t),seconds(hours(range(t)))*1);
             N=interp1(t,RipAmplitude,t1,'nearest');
 %             p2=plot(t,SWAmplitude,'LineWidth',1);p2.LineWidth=2;

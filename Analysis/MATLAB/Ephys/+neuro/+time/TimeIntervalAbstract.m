@@ -18,7 +18,7 @@ classdef TimeIntervalAbstract
         getDownsampled(obj, downsampleFactor)
         plot(obj)
         getStartTime(obj)
-        getTimePointsInSec(obj)
+        getTimePoints(obj)
         getTimePointsInAbsoluteTimes(obj)
         getNumberOfPoints(obj)
         getSampleRate(obj)

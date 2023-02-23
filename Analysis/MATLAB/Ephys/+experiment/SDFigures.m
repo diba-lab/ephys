@@ -107,7 +107,8 @@ classdef SDFigures <Singleton
                 str=[file num2str(ch.getChannelName) 'tfmap1'];
                 cachefile=fullfile(file,'cache', [DataHash(str) '.mat']);
                 if ~exist(cachefile,'file')
-                    tfmap=ch.getTimeFrequencyMap(TimeFrequencyChronuxMtspecgramc(...
+                    tfmap=ch.getTimeFrequencyMap( ...
+                        TimeFrequencyChronuxMtspecgramc(...
                         freqinterest,movingwindow));
                     tfmap1=tfmap.getTimePointsAdjusted;
                     if ~exist(fullfile(file,'cache'),'dir')
@@ -128,7 +129,8 @@ classdef SDFigures <Singleton
                     str=[file num2str(ch.getChannelName) 'tfmap'];
                     cachefile=fullfile(file,'cache', [DataHash(str) '.mat']);
                     if ~exist(cachefile,'file')
-                        tfmap=ch.getTimeFrequencyMap(TimeFrequencyChronuxMtspecgramc(...
+                        tfmap=ch.getTimeFrequencyMap( ...
+                            TimeFrequencyChronuxMtspecgramc(...
                             freqinterest,movingwindow));
                         if ~exist(fullfile(file,'cache'),'dir')
                             mkdir(fullfile(file,'cache'));
@@ -141,7 +143,8 @@ classdef SDFigures <Singleton
                     meanFreq(meanFreq<0)=nan;
                     meanFreq(zscore(meanFreq)>3)=nan;
                     meanPower=round(nanmean(meanFreq));
-                    meanFreq=(meanFreq-meanPower)*freqinterests_enlarge(ifreq)+plotat;
+                    meanFreq=(meanFreq-meanPower)*freqinterests_enlarge( ...
+                        ifreq)+plotat;
                     t=hours(seconds(tfmap.timePoints));
                     for istate=states
                         meanFreq1=medfilt1(meanFreq,medianfilter);
@@ -170,8 +173,10 @@ classdef SDFigures <Singleton
                         st=TT.start(iblock);
                         en=TT.end1(iblock);
                         t=ss.TimeIntervalCombined.getTimePointsInSec;
-                        sts=hours(seconds(t(ss.TimeIntervalCombined.getSampleFor(st))));
-                        ens=hours(seconds(t(ss.TimeIntervalCombined.getSampleFor(en))));
+                        sts=hours(seconds(t( ...
+                            ss.TimeIntervalCombined.getSampleFor(st))));
+                        ens=hours(seconds(t( ...
+                            ss.TimeIntervalCombined.getSampleFor(en))));
                         name=TT.name(iblock);
                         if iblock==2
                             title(name);
@@ -193,7 +198,8 @@ classdef SDFigures <Singleton
                 ripple=bc.calculateSWR;
                 ticd=ripple.TimeIntervalCombined;
                 peaktimestamps=ripple.PeakTimes*ticd.getSampleRate;
-                peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
+                peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted( ...
+                    peaktimestamps);
                 peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
                 peakripmax=ripple.RipMax(:,1);
                 s=scatter(hours(seconds(peakTimesAdjusted)),200+peakripmax...
@@ -237,7 +243,8 @@ classdef SDFigures <Singleton
         function outputArg = plotSDvsNSD(obj,timeNos)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            try close('PS Compare');catch,end;f=figure('Name','PS Compare','Units','normalized','Position', [0 0 1 1]);
+            try close('PS Compare');catch,end;f=figure('Name', ...
+                'PS Compare','Units','normalized','Position', [0 0 1 1]);
             s=obj.PowerSpecs;
             tfmap=s.tfmat;
             conds=s.conds;
@@ -250,7 +257,8 @@ classdef SDFigures <Singleton
             states={'ALL','A-WAKE','Q-WAKE','SWS','REM'};
             for itime=1:numel(timestr)
                 for istate=1:5
-                    ax=subplot(5,numel(timestr),(istate-1)*numel(timestr)+itime);hold on;
+                    ax=subplot(5,numel(timestr),(istate-1)*numel(timestr)+ ...
+                        itime);hold on;
                     ax.Position=[ax.Position(1)...
                         ax.Position(2)...
                         ax.Position(3)*1.1...
@@ -278,7 +286,8 @@ classdef SDFigures <Singleton
                                         'LineWidth',1);
                                     plotsesl(isession,icond)=p1l;
                                     yyaxis right;
-                                    p1r=semilogx(ax,f,mses,'Color',color_ses(icond,isession,:),...
+                                    p1r=semilogx(ax,f,mses,'Color', ...
+                                        color_ses(icond,isession,:),...
                                         'LineStyle',':','LineWidth',1);
                                     p1r.LineStyle=':';
                                     plotsesr(isession,icond)=p1r;
@@ -310,7 +319,8 @@ classdef SDFigures <Singleton
                     %                     end
                     ax.XScale='log';
                     try
-                        legend(plotsesl(:),'SD AG Day1','SD AG Day3','NSD AG Day2','NSD AG Day4','Location','best')
+                        legend(plotsesl(:),'SD AG Day1','SD AG Day3', ...
+                            'NSD AG Day2','NSD AG Day4','Location','best')
                     catch
                     end
                     clear plotsesl
@@ -414,10 +424,14 @@ classdef SDFigures <Singleton
             f.Units='normalized';
             f.Position=[0 0.4 .7 .2];
             subplot(1,5,1:4);hold on;
-            longRunStart_adj=ticd_track.adjustTimestampsAsIfNotInterrupted(longRunStart_abs);
-            longRunStop_adj=ticd_track.adjustTimestampsAsIfNotInterrupted(longRunStop_abs);
-            longRunStart_abs=seconds(longRunStart_adj/ticd_track.getSampleRate)+ticd_track.getStartTime;
-            longRunStop_abs=seconds(longRunStop_adj/ticd_track.getSampleRate)+ticd_track.getStartTime;
+            longRunStart_adj=ticd_track.adjustTimestampsAsIfNotInterrupted( ...
+                longRunStart_abs);
+            longRunStop_adj=ticd_track.adjustTimestampsAsIfNotInterrupted( ...
+                longRunStop_abs);
+            longRunStart_abs=seconds(longRunStart_adj/ticd_track.getSampleRate ...
+                )+ticd_track.getStartTime;
+            longRunStop_abs=seconds(longRunStop_adj/ticd_track.getSampleRate ...
+                )+ticd_track.getStartTime;
             duration=seconds(longRunStop_abs-longRunStart_abs);
             before=35;after=30;
             for irun=1:numel(longRunStart_abs)
@@ -520,7 +534,8 @@ classdef SDFigures <Singleton
                             run_no=runnos{idir};
                             colorspks=colors(run_no,:);
                             subplot(4,2,[0 2]+idir);
-                            s=polarscatter(phases_active,locs_active,SizeData,colorspks,'filled');
+                            s=polarscatter(phases_active,locs_active, ...
+                                SizeData,colorspks,'filled');
                             s.MarkerFaceAlpha=Alpha1;
                             
                             cb=colorbar;
@@ -552,20 +567,25 @@ classdef SDFigures <Singleton
                             loc=clusterinfo(clusterinfo.id==su.Id,:).location{:};
                             shank=clusterinfo(clusterinfo.id==su.Id,:).sh;
                             channel=clusterinfo(clusterinfo.id==su.Id,:).ch;
-                            text(pi/4,120,sprintf('Id= %d, %s, %s\nshank= %d, channel= %d',su.Id,loc,gr,shank,channel),'HorizontalAlignment','left')
-                            title1=text(pi/2,150,titles{idir});title1.HorizontalAlignment='center';
+                            text(pi/4,120,sprintf(['Id= %d, %s, %s\nshank=' ...
+                                ' %d, channel= %d'],su.Id,loc,gr,shank, ...
+                                channel),'HorizontalAlignment','left')
+                            title1=text(pi/2,150,titles{idir});
+                            title1.HorizontalAlignment='center';
                             title1.FontSize=12;title1.FontWeight='bold';
                             
                             ax1=axes;
                             ax1.Position=ax.Position;
-                            ph=polarhistogram(phases_active,12,'Normalization','pdf','DisplayStyle','stairs');
+                            ph=polarhistogram(phases_active,12, ...
+                                'Normalization','pdf','DisplayStyle','stairs');
                             ax1=gca;
                             ax1.Visible='off';
                             ph.LineWidth=2;
                             ph.EdgeAlpha=.5;ph.EdgeColor='r';
                             
                             subplot(5,2,[6]+idir);
-                            s1=scatter(locs_active,phases_active,SizeData,colorspks,'filled');
+                            s1=scatter(locs_active,phases_active,SizeData, ...
+                                colorspks,'filled');
                             s1.MarkerFaceAlpha=Alpha1;
                             ax=gca;
                             ax.YLim=[-pi pi];
@@ -577,7 +597,8 @@ classdef SDFigures <Singleton
                             ax_=axes;
                             ax_.Position=ax.Position;
                             ax_.Position(2)=ax_.Position(2)-ax_.Position(4);
-                            s1=scatter(locs_active,phases_active,SizeData,colorspks,'filled');
+                            s1=scatter(locs_active,phases_active,SizeData, ...
+                                colorspks,'filled');
                             s1.MarkerFaceAlpha=Alpha1;
                             ax_.YLim=[-pi pi];
                             ax_.XLim=[-100 100];

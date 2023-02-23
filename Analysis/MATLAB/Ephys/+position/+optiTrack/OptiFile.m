@@ -72,7 +72,7 @@ classdef OptiFile < neuro.time.Timelined
         end
         
         function newOptiFileCombined = plus(obj,optiFileToAdd)
-            newOptiFileCombined=optiTrack.OptiFileCombined(obj,optiFileToAdd);
+            newOptiFileCombined=position.optiTrack.OptiFileCombined(obj,optiFileToAdd);
         end
         function ts = getTimestamps(obj)
             startDate=obj.CaptureStartTime;

@@ -41,6 +41,9 @@ classdef TimeFrequencyMapWavelet < neuro.tf.TimeFrequencyMap
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             va=abs(obj.matrix(ismember(obj.frequencyPoints,freq),:));
+            if size(va,1)>1
+                va=mean(va,1);
+            end
             power=neuro.basic.Channel(num2str(freq),va,obj.timeIntervalCombined);
         end
     end
