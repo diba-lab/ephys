@@ -125,6 +125,18 @@ classdef Session
             sessionInfoStruct.Condition=condition;
             obj=obj.setSessionInfo(sessionInfoStruct);
         end
+        function basename= getBaseName(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            a=strsplit(obj.getBasePath,filesep);
+            basename=a{end};
+        end
+        function path= getBasePath(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            path=obj.SessionInfo.baseFolder;
+        end
+
         function blocks = getBlock(obj,varargin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -184,6 +196,22 @@ classdef Session
             %   Detailed explanation goes here
             us=buzcode.CellMetricsSession(char(obj.SessionInfo.baseFolder));
             sa=us.getSpikeArray;
+        end
+        function [] = printProbe(obj,varargin)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            pr=obj.Probe;
+            f=figure;f.Position(3)=f.Position(3)*2;
+            pr.plotProbeLayout(pr.getActiveChannels);
+            if nargin==1
+                ff=logistics.FigureFactory.instance(obj.getBasePath);
+                ff.save([obj.getBaseName '-ProbeLayout']);
+            else
+                [path,fname,ext]=fileparts(varargin{1});
+                ff=logistics.FigureFactory.instance(path);
+                ff.save([fname ext]);
+            end
+            close(f);
         end
         
     end

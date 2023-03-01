@@ -18,7 +18,7 @@ classdef TimeFrequencyMapWavelet < neuro.tf.TimeFrequencyMap
         function imsc = plot(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            mat=abs(obj.matrix);
+            mat=(abs(obj.matrix));
             imsc=imagesc(obj.timePoints-obj.timePoints(1),...
                 obj.frequencyPoints,mat);
             ax=gca;
@@ -26,10 +26,10 @@ classdef TimeFrequencyMapWavelet < neuro.tf.TimeFrequencyMap
             tickpoints=round(linspace(1,numel(obj.frequencyPoints),10));
             ax.YTick=unique(round(obj.frequencyPoints(tickpoints)));
             ax.YDir='normal';
-            ax.XLim=[0 max(obj.timePoints-obj.timePoints(1))];
-            min(min(mat))
+            ax.XLim=[0 max(obj.timePoints)];
             ax.YLim=[obj.frequencyPoints(1) obj.frequencyPoints(end)];
-            ax.CLim=[1 250];
+            m=mean2(mat);s=std2(mat);
+            ax.CLim=[m-2*s m+2*s];
         end
         function phase = getPhase(obj,freq)
             %METHOD1 Summary of this method goes here

@@ -20,7 +20,11 @@ classdef Relative
                     obj.Duration = time.getDuration;
                 end
                 obj.Duration.Format='hh:mm:ss.SSSSSS';
-                obj.Reference=ref;
+                if nargin>1
+                    obj.Reference=ref;
+                else
+                    obj.Reference=[];
+                end
             end
         end
         function abs=pointsAbsolute(obj)

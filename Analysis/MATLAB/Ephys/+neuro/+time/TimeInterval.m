@@ -241,7 +241,7 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             ticd=neuro.time.TimeIntervalCombined(filePath);
         end
         function obj=shiftTimePoints(obj,shift)
-            obj.StartTime=obj.StartTime+shift.duration;
+            obj.StartTime=obj.StartTime+shift.Duration;
         end
 
     end

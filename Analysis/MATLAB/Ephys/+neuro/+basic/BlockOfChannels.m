@@ -151,14 +151,10 @@ classdef BlockOfChannels
             if ~isempty(theEpisodeAbs)
                 nch=obj.Channels.length;
                 for ich=1:nch
-                    try
-                        ch=obj.getChannel(ich);
-                        episode{ich}=ch.getTimeWindow(theEpisodeAbs);
-                        obj.Info.State=state;
-                        episode{ich}=episode{ich}.setInfo(obj.Info);
-                    catch
-                        episode{ich}=[];
-                    end
+                    ch=obj.getChannel(ich);
+                    episode{ich}=ch.getTimeWindow(theEpisodeAbs);
+                    obj.Info.State=state;
+                    episode{ich}=episode{ich}.setInfo(obj.Info);
                 end
             else
                 episode=[];

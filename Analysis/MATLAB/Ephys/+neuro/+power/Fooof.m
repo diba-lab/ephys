@@ -111,6 +111,7 @@ classdef Fooof
             end
         end
         function peakres=getPeaks(obj,freqs,powers,bandwidth)
+            peakres=[];
             if ~isempty(obj.fooof_results)
                 peaks=obj.fooof_results.peak_params;
                 idxall=true([size(peaks,1) 1]);
@@ -144,8 +145,6 @@ classdef Fooof
                         peakres(ipeak).bw=nan;
                     end
                 end
-            else
-                peakres=[];
             end
         end
     end

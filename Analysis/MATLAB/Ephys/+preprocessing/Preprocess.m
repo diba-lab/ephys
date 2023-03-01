@@ -202,12 +202,20 @@ classdef Preprocess
                 sprintf('%s%s',name,ext));
             probe=session.Probe;
             shanks=obj.LFPParams.Shanks.Shank;
-            try 
+            try
                 chans=obj.LFPParams.Channels.Channel;
             catch
             end
-            if exist('chans','var')&&~sum(isnan(chans))
-                chans=chans'+1;
+            if exist('chans','var')
+                if ~isstring(chans)
+                    if ~sum(isnan(chans))
+                        chans=chans'+1;
+                    else
+                        chans=[];
+                    end
+                else
+                    chans=[];
+                end
             else
                 chans=[];
             end

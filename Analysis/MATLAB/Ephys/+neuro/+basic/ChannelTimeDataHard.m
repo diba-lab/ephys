@@ -1,15 +1,15 @@
 classdef ChannelTimeDataHard < file.BinarySave
     %COMBINEDCHANNELS Summary of this class goes here
     %   Detailed explanation goes here
-    
-    properties (Access=private)
+
+    properties (Access=public)
         Probe
         TimeIntervalCombined
         Data
         Filepath
         Info
     end
-    
+
     methods
         function newObj = ChannelTimeDataHard(filepath)
             if isa(filepath,'neuro.basic.ChannelTimeDataHard')
@@ -19,9 +19,11 @@ classdef ChannelTimeDataHard < file.BinarySave
                 logger=logging.Logger.getLogger;
                 if ~exist('filepath','var')
                     defpath='/data/EphysAnalysis/SleepDeprivationData/';
-                    defpath1={'*.eeg;*.lfp;*.dat;*.mat','Binary Record Files (*.eeg,*.lfp,*.dat)'};
+                    defpath1={'*.eeg;*.lfp;*.dat;*.mat',['Binary Record ' ...
+                        'Files (*.eeg,*.lfp,*.dat)']};
                     title='Select basepath';
-                    [file,folder,~] = uigetfile(defpath1, title, defpath,'MultiSelect', 'off');
+                    [file,folder,~] = uigetfile(defpath1, title, defpath, ...
+                        'MultiSelect', 'off');
                     for iext=1:numel(exts)
                         theext=exts{iext};
                         thefile=dir(fullfile(folder,['*' theext]));
@@ -47,7 +49,7 @@ classdef ChannelTimeDataHard < file.BinarySave
                         ' one.\n\t%s\n\t%s'],thefile.name)
                     thefile=thefile(1);
                 end
-                
+
                 probe=neuro.probe.Probe(folder);
                 logger.info(probe.toString)
                 chans=probe.getActiveChannels;
@@ -56,7 +58,7 @@ classdef ChannelTimeDataHard < file.BinarySave
                 samples=thefile.bytes/2/numberOfChannels;
                 newObj.Data=memmapfile(fullfile(thefile.folder,thefile.name),...
                     'Format',{'int16' [numberOfChannels samples] 'mapped'});
-                
+
                 try
                     newObj.TimeIntervalCombined=...
                         neuro.time.TimeIntervalCombined(folder);
@@ -122,7 +124,7 @@ classdef ChannelTimeDataHard < file.BinarySave
                 obj.Filepath))
             datamemmapfile=obj.Data;
             datamat=datamemmapfile.Data;
-            voltageArray=datamat.mapped(index,:);
+            voltageArray=double(datamat.mapped(index,:));
             ch=neuro.basic.Channel(channelNumber,voltageArray,ticd);
         end
         function obj = addChannel(obj,channels)
@@ -145,7 +147,7 @@ classdef ChannelTimeDataHard < file.BinarySave
                 end
                 [obj.Probe, channum]=obj.Probe.addANewChannel(channel.ChannelName);
                 array(isnan(array))=0;
-                array1=int16((normalize(array,'range')-.5) *5000);              
+                array1=int16((normalize(array,'range')-.5) *5000);
                 if channum>size(datamat,1)
                     datamat=[datamat; array1];
                 else
@@ -158,7 +160,7 @@ classdef ChannelTimeDataHard < file.BinarySave
             probe.saveProbeTable(fullfile(folder,[n e]));
             [~,n,e]=fileparts(obj.Filepath);
             probe.createXMLFile(fullfile(folder,[n '.xml']),LFPti.getSampleRate);
-            
+
             fileID = fopen(fullfile(folder,[n e]),'w');
             fwrite(fileID, datamat,'int16');
             fclose(fileID);
@@ -182,11 +184,13 @@ classdef ChannelTimeDataHard < file.BinarySave
                 while LFPtil.hasNext
                     LFPti=LFPtil.next;
                     chsub=ch.getTimeWindow([LFPti.getStartTime LFPti.getEndTime]);
-                    idx=LFPticdd.getSampleForClosest(chsub.getStartTime):LFPticdd.getSampleForClosest(chsub.getEndTime);
+                    idx=LFPticdd.getSampleForClosest(chsub.getStartTime):...
+                        LFPticdd.getSampleForClosest(chsub.getEndTime);
                     try
                         array(ichan*2-1,idx)=chsub.Values;
                     catch e
-                        if strcmp(e.identifier, 'MATLAB:subsassigndimmismatch')&&(numel(chsub.Values)-numel(idx))==1
+                        if strcmp(e.identifier, 'MATLAB:subsassigndimmismatch')...
+                                &&(numel(chsub.Values)-numel(idx))==1
                             array(ichan*2-1,idx)=chsub.Values(1:numel(idx));
                         else
                             error(e);
@@ -194,7 +198,8 @@ classdef ChannelTimeDataHard < file.BinarySave
                     end
                 end
                 array(ichan*2,:)=round(linesh(ichan+1));
-                array(ichan*2-1,:)=round(normalize(array(ichan*2-1,:),'range')*linesw(end-2)+linesw(2));
+                array(ichan*2-1,:)=round(normalize(array(ichan*2-1,:),'range')...
+                    *linesw(end-2)+linesw(2));
             end
             [f,n,e]=fileparts(obj.Filepath);folder=[f filesep '_Position'];
             if ~isfolder(folder), mkdir(folder);end
@@ -209,7 +214,8 @@ classdef ChannelTimeDataHard < file.BinarySave
                 probe=obj.Probe;
                 probe.saveProbeTable;
                 [folder,name,~]=fileparts(obj.Filepath);
-                probe.createXMLFile(fullfile(folder,[name '.xml']),obj.getTimeIntervalCombined.getSampleRate);
+                probe.createXMLFile(fullfile(folder,[name '.xml']),...
+                    obj.getTimeIntervalCombined.getSampleRate);
                 datamat=obj.Data.Data.mapped;
                 if removed<=size(datamat,1)
                     datamat(removed,:)=[];
@@ -232,7 +238,7 @@ classdef ChannelTimeDataHard < file.BinarySave
             end
             datamemmapfile=obj.Data;
             datamat=datamemmapfile.Data;
-            
+
             LFP.data=datamat.mapped(index,:);
             LFP.channels=channelList(index);
             LFP.sampleRate=ticd.getSampleRate;
@@ -243,18 +249,18 @@ classdef ChannelTimeDataHard < file.BinarySave
             samples=ticd1.getSampleForClosest(time);
             probe=obj.Probe;
             channelList=probe.getActiveChannels;
-            if exist('channelNumber','var')
+            if exist('channels','var')
                 ch_index=ismember(channelList, channels);
             else
                 ch_index=true(size(channelList));
-            end                        
+            end
             datamemmapfile=obj.Data;
             datamat=datamemmapfile.Data;
-            
+
             data=datamat.mapped(ch_index,samples(1):samples(2));
             probe=probe.setActiveChannels(channels);
             time=ticd;
-            ctd=neuro.basic.ChannelTimeData(probe,time,data);
+            ctd=neuro.basic.ChannelTimeData(probe.getActiveChannels,time,data);
         end
         function newobj = getDownSampled(obj, newRate, newFileName)
             if nargin>2
@@ -268,7 +274,7 @@ classdef ChannelTimeDataHard < file.BinarySave
             chans=probe.getActiveChannels;
             numberOfChannels=numel(chans);
             currentFileName=obj.Filepath;
-            
+
             [folder1,name,~]=fileparts(newFileName);
             if ~exist(folder1,'dir'), mkdir(folder1);end
             probe.saveProbeTable(fullfile(folder1,strcat(name, '.Probe.xlsx')));
@@ -340,7 +346,8 @@ classdef ChannelTimeDataHard < file.BinarySave
             %% Probe, XML
             pr=obj.Probe;
             pr.saveProbeTable(fullfile(folder,strcat(name,'.Probe.xlsx')));
-            pr.createXMLFile(fullfile(folder,strcat(name,'.xml')),obj.TimeIntervalCombined.getSampleRate)
+            pr.createXMLFile(fullfile(folder,strcat(name,'.xml')),...
+                obj.TimeIntervalCombined.getSampleRate)
             %% Ticd.
             ticd=obj.TimeIntervalCombined;
             ticd.saveTable(fullfile(folder,strcat(name,'.TimeIntervalCombined.csv')));

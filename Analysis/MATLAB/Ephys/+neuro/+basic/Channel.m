@@ -130,11 +130,20 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             elseif isdatetime(window)
                 time=window;
             end
-            sample=ticd.getSampleForClosest(time);
-            samples=sample(1):sample(2);
-            obj.Values=obj.Values(samples);
-            ticd1=ticd.getTimeIntervalForSamples(sample);
-            obj.TimeIntervalCombined=ticd1;
+            samplewlist=ticd.getSampleForClosest(time);
+            sampleall=[];
+            for is=1:size(samplewlist,1)
+                samplew=samplewlist(is,:);
+                samples=samplew(1):samplew(2);
+                sampleall=[sampleall samples];
+                if ~exist('ticdall','var')
+                    ticdall=ticd.getTimeIntervalForSamples(samplew);
+                else
+                    ticdall=ticdall+ticd.getTimeIntervalForSamples(samplew);
+                end
+            end
+            obj.Values=obj.Values(sampleall);
+            obj.TimeIntervalCombined=ticdall;
         end
         
         function p=plot(obj,varargin)
@@ -188,10 +197,11 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             ets=neuro.basic.EphysTimeSeries(obj.getValues, ...
                 obj.getSampleRate,obj.ChannelName);
         end
-        function thpk=getFrequencyBandPeak(obj,freq)
+        function thpk=getFrequencyBandPeakWavelet(obj,freq)
             tfm=obj.getWhitened.getTimeFrequencyMap(...
-                neuro.tf.TimeFrequencyWavelet(logspace(log10(freq(1)), ...
-                log10(freq(2)),diff(freq)*5)));
+                neuro.tf.TimeFrequencyWavelet( ...
+                logspace(log10(freq(1)),log10(freq(2)),diff(freq)*5) ...
+                ));
             [thpkcf1,thpkpw1]=tfm.getFrequencyBandPeak(freq);
             thpkcf=neuro.basic.Channel('CF',thpkcf1.getValues, ...
                 obj.TimeIntervalCombined);
@@ -201,6 +211,26 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             thpkpw=thpkpw.setInfo(obj.Info);
             thpk=experiment.plot.thetaPeak.ThetaPeak(thpkcf,thpkpw);
             thpk=thpk.addSignal(obj);
+        end
+        function thpk=getFrequencyBandPeakMT(obj,freq)
+            tfm=obj.getWhitened.getTimeFrequencyMap(...
+                neuro.tf.TimeFrequencyChronuxMtspecgramc(...
+                freq,[3 .1]));
+            [thpkcf1,thpkpw1]=tfm.getFrequencyBandPeak(freq);
+            thpkcf=neuro.basic.Channel('CF',thpkcf1.getValues, ...
+                obj.TimeIntervalCombined);
+            thpkcf=thpkcf.setInfo(obj.Info);
+            thpkpw=neuro.basic.Channel('Power',thpkpw1.getValues, ...
+                obj.TimeIntervalCombined);
+            thpkpw=thpkpw.setInfo(obj.Info);
+            thpk=experiment.plot.thetaPeak.ThetaPeak(thpkcf,thpkpw);
+            thpk=thpk.addSignal(obj);
+        end
+        function str=toString(obj)
+        str=sprintf('ch%s-n%dHz-%d-%s-%s', string(obj.ChannelName), obj.SampleRate, ...
+            obj.getNumberOfPoints, ...
+            string([obj.TimeIntervalCombined.getStartTime, ...
+            obj.TimeIntervalCombined.getEndTime]));
         end
         
     end

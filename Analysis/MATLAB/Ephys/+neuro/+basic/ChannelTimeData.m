@@ -14,7 +14,7 @@ classdef ChannelTimeData
             %   Detailed explanation goes here
             l= logging.Logger.getLogger;
             if nargin==3
-                if isstring(ch)||iscellstr(ch)||isinteger(ch)
+                if isstring(ch)||iscellstr(ch)||isnumeric(ch)
                     obj.channels=ch;
                 else
                     l.error('Provide string or scalar.')
@@ -24,7 +24,7 @@ classdef ChannelTimeData
                 else
                     l.error('Provide neuro.time.TimeIntervalCombined object.')
                 end
-                if isequal(size(data),[numel(ch.getActiveChannels) time.getNumberOfPoints])
+                if isequal(size(data),[numel(ch) time.getNumberOfPoints])
                     obj.data=data;
                 else
                     l.error('Data size is not compatible with channel and time info.')
@@ -32,16 +32,31 @@ classdef ChannelTimeData
             end
         end
         
+        function obj = plot(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            obj.data=-obj.data/max(max(obj.data))/2;
+            for ic=1:size(obj.data)
+                obj.data(ic,:)=obj.data(ic,:)+ic;
+            end
+            time1=seconds(obj.time.getTimePointsZT);
+            plot(time1,obj.data,Color='k');
+        end
         function obj = getLowpassFiltered(obj,freq)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            mat1=table2array(obj.data)';
-            nanidx=any(isnan(mat1));
-            dat=ft_preproc_lowpassfilter(mat1(:,~nanidx), ...
+
+            obj.data=ft_preproc_lowpassfilter(obj.data, ...
                 obj.time.getSampleRate,freq);
-            mat1(:,~nanidx)=dat;
-            obj.data=array2table(mat1',VariableNames= ...
-                obj.data.Properties.VariableNames);
+            
+        end
+        function obj = getHighpassFiltered(obj,freq)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+
+            obj.data=ft_preproc_highpassfilter(obj.data, ...
+                obj.time.getSampleRate,freq);
+            
         end
         function obj = getMedianFiltered(obj,winSeconds)
             %METHOD1 Summary of this method goes here
@@ -49,12 +64,48 @@ classdef ChannelTimeData
             obj.data=smoothdata(obj.data,"movmedian", ...
                 winSeconds*obj.time.getSampleRate);
         end
+        function obj = getDetrended(obj,winSeconds)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            obj.data=detrend(obj.data);
+        end
         function t1 = getDataTable(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             t=array2table(obj.time.getTimePointsZT',...
                 VariableNames={'TimeZT'});
             t1=[obj.data t];
+        end
+        function csd = getCSD(obj)
+            obj.data=double(obj.data);
+            doDetrend=false;
+            temp_sm=seconds(.01);
+            spat_sm=0;
+            objorg=obj;
+            % detrend
+            if doDetrend
+                obj=obj.getDetrended;
+            end
+
+            % temporal smoothing
+            if temp_sm > 0
+                for ch = 1:size(obj.data,1)
+                    obj.data(:,ch) = smooth(obj.data(:,ch),...
+                        round(seconds(temp_sm)*obj.time.getSampleRate),'sgolay');
+                end
+            end
+
+            % spatial smoothing
+            if spat_sm > 0
+                for t = 1:size(obj.data,2)
+                    obj.data(t,:) = smooth(obj.data(t,:),spat_sm,'lowess');
+                end
+            end
+
+            % calculate CSD
+            CSD = diff(obj.data,2,1);
+
+            csd=neuro.csd.CurrentSourceDensity(CSD,objorg);
         end
         function obj = insertNansForGaps(obj)
             %METHOD1 Summary of this method goes here

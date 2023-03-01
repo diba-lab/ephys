@@ -105,13 +105,9 @@ classdef StateSeries
             states1=ts1.Data;
             newobj=neuro.state.StateSeries(states1,timeIntervalCombined);
         end
-        function [ax] = plot(obj,ax,yShadeRatio)
+        function [ax] = plot(obj,yShadeRatio)
 %             yShadeRatio=[.55 .8];
-            if ~exist('ax','var')
-                ax=gca;
-            else
-                axes(ax);
-            end
+            ax=gca;
             hold1=ishold(ax);hold(ax,"on");
             y=[ax.YLim(1)+diff(ax.YLim)*yShadeRatio(1) ax.YLim(1)+diff(ax.YLim)*yShadeRatio(2)];
             episodes=obj.Episodes;

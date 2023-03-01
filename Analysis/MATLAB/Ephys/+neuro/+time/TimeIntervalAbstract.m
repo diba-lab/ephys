@@ -37,7 +37,8 @@ classdef TimeIntervalAbstract
         function ts=getTimeSeriesDownsampled(obj,downsampleFactor)
             ts=timeseries(ones(round(obj.getNumberOfPoints/downsampleFactor),1));
             ts.TimeInfo.Units='seconds';
-            ts=ts.setuniformtime('StartTime', 0,'Interval',1/obj.getSampleRate*downsampleFactor);
+            ts=ts.setuniformtime('StartTime', 0,'Interval',...
+                1/obj.getSampleRate*downsampleFactor);
             ts.TimeInfo.StartDate=obj.getStartTime;
             ts.TimeInfo.Format='HH:MM:SS.FFF';
         end
@@ -52,7 +53,19 @@ classdef TimeIntervalAbstract
             catch
                 dt1=datetime(time,'InputFormat','HH:mm');
             end
-            dt=datetime(st.Year,st.Month,st.Day)+hours(dt1.Hour)+minutes(dt1.Minute)+seconds(dt1.Second);
+            dt=datetime(st.Year,st.Month,st.Day)+hours(dt1.Hour)+...
+                minutes(dt1.Minute)+seconds(dt1.Second);
+        end
+        function dtDuration=getDataTime(obj,absouluteTime)
+            for i=1:numel(absouluteTime)
+                duration=seconds(obj.getSampleForClosest(absouluteTime(i))...
+                    /obj.getSampleRate);
+                dtDuration(i)=neuro.time.DurationNeuroscope(duration);
+            end
+        end
+        function absTime=getAbsoluteTime(obj,dataTimeInDuration)
+            absTime=obj.getRealTimeFor(seconds(dataTimeInDuration)*...
+                obj.getSampleRate);
         end
         function times=getDatetime(obj,times)
             % Convert times of duration or string('HH:mm') to datetime format.

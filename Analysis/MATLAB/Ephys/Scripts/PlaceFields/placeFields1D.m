@@ -1,19 +1,50 @@
 clear all
-
+%            1    2    3     4     5     6    7     8
+Animal=   {'AG';'AG';'AE'; 'AG'; 'AG'; 'AE';'AE'; 'AF'};% AE NSD 1 removed
+Condition={'SD';'SD';'SD';'NSD';'NSD';'NSD';'NSD';'NSD'};
+Day=      [   1;   2;   1;    1;    2;    1;    2;    1];
+sesDay=   [   1;   3;   2;    2;    4;    1;    3;    2];
+table1=table(Animal,Condition,Day,sesDay);
+sesno=6;
 sf=experiment.SessionFactory;
-animal='AE';
-
-cond='SD';
-sesno=1;
-sess=sf.getSessions(animal ,cond);
-ses=sess(sesno);
+animal=table1.Animal{sesno};
+cond=table1.Condition(sesno);
+ses=sf.getSessions(animal ,cond,table1.sesDay(sesno));
+ses.printProbe;
 baseFolder=ses.SessionInfo.baseFolder;
 cch=cache.Manager.instance(strcat(baseFolder,'/placeFieldAnalysisTable.mat'));
 %% theta LFP
 ctdh=ses.getDataLFP.getChannelTimeDataHard;
+ticd=ctdh.TimeIntervalCombined;
+wind=ses.Blocks.Date+ses.getBlock('TRACK');
+prb=ctdh.Probe;t=prb.getSiteSpatialLayout;
+shanks=table2array(unique(t(t.isActive==1,"ShankNumber")));
+ff=logistics.FigureFactory.instance(ses.getBasePath);
+csdfile=sprintf('%s-CSD-%s',ses.getBaseName,string(datetime('now')));
+for ishank=1:numel(shanks)
+    ch=prb.getShank(ishank).getActiveChannels;
+    chtemplate=sort([1:3:31 2:3:29 32]);
+    ch=chtemplate+(ishank-1)*32;
+%     st1=ticd.getAbsoluteTime(minutes(790)+seconds(11)+seconds(956)/1000);
+    st1=ticd.getAbsoluteTime(minutes(405)+seconds(26)+seconds(109)/1000);
+%     st1=ticd.getAbsoluteTime(minutes(0)+seconds(0)+seconds(1)/1000);
+%     en1=st1+seconds(.1);
+    en1=st1+seconds(2);
+    a=ctdh.get(ch,[st1 en1]);
+%     a=a.getHighpassFiltered(100);
+    a=a.getLowpassFiltered(20);
+    csd=a.getCSD;
+    f1=figure;f1.Position=[1720 2038 560 420*2];
+%     csd.plot;clim([-300 300]);
+    csd.plot;clim([-1000 1000]);
+    title(sprintf('shank %s',string(shanks(ishank))));
+    ff.save(csdfile)
+    close
+end
+
 thetaLFP=ctdh.getChannel(ses.getDataLFP.getStateDetectionData.SleepScoreLFP.THchanID);
 thetaLFPt= thetaLFP.getTimeWindow(ses.getBlock('TRACK'));
-[cch, keyTheta]=cch.hold(thetaLFPt,'thetaLFPt');
+[cch, keyTheta]=cch.hold(thetaLFPt,thetaLFPt.toString);
 %% Units
 sa=ses.getUnits;
 saTrack=sa.getTimeInterval(ses.getBlock('TRACK')).sort('group');%
@@ -56,8 +87,8 @@ pdss{1}=pdsTRACKfast3D;
 pdss{2}=pdsTRACKfastman2D;
 pdss{3}=pdsTRACKfastman1D;
 
-pfmc=neuro.placeField.PlaceFieldMapCollection();
-phpc=neuro.phase.PhasePrecessionCollection();
+pfmc=neuro.placeField.PlaceFieldMapCollection(cch);
+phpc=neuro.phase.PhasePrecessionCollection(cch);
 %% Unit for loop
 f = waitbar(0,'Please wait...');
 for isu=1:numel(susTRACK)

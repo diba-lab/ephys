@@ -20,7 +20,10 @@ classdef Probe < neuro.probe.NeuroscopeLayout & neuro.probe.SpykingCircusLayout 
             if isstring(probeFile)||ischar(probeFile)
 
                 if isfolder(probeFile)
-                    probefile=dir(fullfile(probeFile,sprintf('*Probe*')));
+                    probefile=dir(fullfile(probeFile,sprintf('*Probe*.xlsx')));
+                    if isempty(probefile)
+                        probefile=dir(fullfile(probeFile,sprintf('*Probe*.csv')));
+                    end
                     if numel(probefile)==1
                         probefilefinal=probefile;
                     elseif numel(probefile)>1

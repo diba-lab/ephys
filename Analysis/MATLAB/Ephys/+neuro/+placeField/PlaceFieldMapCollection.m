@@ -4,14 +4,20 @@ classdef PlaceFieldMapCollection
 
     properties
         PlaceFieldMaps
+        CacheManager
     end
 
     methods
-        function obj = PlaceFieldMapCollection(placeFieldMaps)
+        function obj = PlaceFieldMapCollection(cacheManagerFile,placeFieldMaps)
             %PLACEFIELDMAPCOLLECTION Construct an instance of this class
             %   Detailed explanation goes here
+            if ~isa(cacheManagerFile,'cache.Manager')
+                obj.CacheManager=cache.Manager.instance(cacheManagerFile);
+            else
+                obj.CacheManager=cacheManagerFile;
+            end
             obj.PlaceFieldMaps=neuro.placeField.PlaceFieldMapMeasures.empty(0);
-            if nargin>0
+            if nargin>1
                 for ipf=1:numel(placeFieldMaps)
                     pf=placeFieldMaps(ipf);
                     obj=obj.add(pf);
@@ -47,14 +53,6 @@ classdef PlaceFieldMapCollection
                         mat(ipf,:)=[pfm.MapSmooth ad1];
                     end
                 end
-            end
-        end
-        function mat = downsize(obj)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            for ipf= 1:numel(obj.PlaceFieldMaps)
-                pfm=obj.PlaceFieldMaps(ipf);
-                
             end
         end
         function X = getXaxis(obj)

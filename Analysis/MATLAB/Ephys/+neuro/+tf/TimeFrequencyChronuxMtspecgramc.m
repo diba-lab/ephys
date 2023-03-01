@@ -50,7 +50,7 @@ classdef TimeFrequencyChronuxMtspecgramc < neuro.tf.TimeFrequencyMethod
             l.info(sprintf('go'));
             [matrix,t,f]=mtspecgramc(data,movingwin,params);
             aTimeFrequencyMap=neuro.tf.TimeFrequencyMapChronuxMtspecgramc(...
-                matrix, seconds(t), f);
+                matrix', seconds(t), f);
         end
     end
 end
