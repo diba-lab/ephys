@@ -46,6 +46,9 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
                 obj.TimesInSamples= samples;
             end
         end
+        function pd = getPositionData(obj)
+            pd=obj.PositionData;
+        end
         function [] = plotOnTimeTrack(obj,speedthreshold)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here

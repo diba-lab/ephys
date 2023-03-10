@@ -24,7 +24,9 @@ classdef Polar
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             h=polarhistogram(obj.getPhase,0:pi/12:2*pi,'Normalization','count');
-            h.FaceColor=color;
+            if exist('color','var')
+                h.FaceColor=color;
+            end
         end
         function s=plotScatter(obj,rholim,color)
             %METHOD1 Summary of this method goes here

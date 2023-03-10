@@ -32,6 +32,12 @@ classdef ChannelTimeData
             end
         end
         
+        function str = toString(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            str=sprintf('%d Channels: %s, %s',size(obj.data,2), ...
+                strjoin(obj.channels),obj.time.tostring);
+        end
         function obj = plot(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -42,13 +48,27 @@ classdef ChannelTimeData
             time1=seconds(obj.time.getTimePointsZT);
             plot(time1,obj.data,Color='k');
         end
-        function obj = getLowpassFiltered(obj,freq)
+        function obj = getLowpassFiltered(obj, freq)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            if istable(obj.data)
+                data1=table2array(obj.data)';
+            else
+                data1=obj.data;
+            end
+            nansidx=any(isnan(data1));
+            data3=nan(size(data1));
+            data1(:,nansidx)=[];
 
-            obj.data=ft_preproc_lowpassfilter(obj.data, ...
-                obj.time.getSampleRate,freq);
-            
+            data2=ft_preproc_lowpassfilter(data1, ...
+                obj.time.getSampleRate, freq);
+            data3(:,~nansidx)=data2;
+            if istable(obj.data)
+                obj.data=array2table(data3','VariableNames',obj.data.Properties.VariableNames);
+            else
+                obj.data=data3;
+            end
+                        
         end
         function obj = getHighpassFiltered(obj,freq)
             %METHOD1 Summary of this method goes here

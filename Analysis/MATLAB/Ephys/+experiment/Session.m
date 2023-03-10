@@ -134,7 +134,8 @@ classdef Session
         function path= getBasePath(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            path=obj.SessionInfo.baseFolder;
+                path=obj.SessionInfo.baseFolder;
+
         end
 
         function blocks = getBlock(obj,varargin)

@@ -200,11 +200,13 @@ classdef StateSeries
         end
         function theEpisodeAbs=getState(obj,state)
             stateEpisodes=obj.getEpisodes;
-            stateNames=obj.getStateNames;
-            theStateName=stateNames{state};
-            
-            theEpisode=stateEpisodes.(strcat(theStateName,'state'));
-            
+            if state=='AWAKE'
+                theEpisode=stateEpisodes.(strcat('WAKE','state'));
+            elseif state=='SWS'
+                theEpisode=stateEpisodes.(strcat('NREM','state'));
+            else
+                theEpisode=stateEpisodes.(strcat(string(state),'state'));
+            end
             if ~isempty(theEpisode)
                 ticdss=obj.TimeIntervalCombined;
                 for irow=1:size(theEpisode,1)

@@ -26,9 +26,16 @@ classdef PlaceFieldMapCollection
 
             end
         end
-        function obj = add(obj,placeField,varargin)
+        function pf1 = getPlaceField(obj,pfNo)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            pf=obj.PlaceFieldMaps(pfNo);
+            pf1=pf.getPositionReload(obj.CacheManager);
+        end
+        function obj = add(obj, placeField, varargin)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            [obj.CacheManager,placeField]= placeField.getPositionHeld(obj.CacheManager);
             if isa(placeField,'neuro.placeField.PlaceFieldMap')
                 obj.PlaceFieldMaps(numel(obj.PlaceFieldMaps)+1)=placeField;
             elseif isa(placeField,'neuro.placeField.PlaceFieldMapCollection')
@@ -131,7 +138,7 @@ classdef PlaceFieldMapCollection
             stabilityNums=3;
             vals=[2 6];
             for ipf=1:numel(obj.PlaceFieldMaps)
-                pf=obj.PlaceFieldMaps(ipf);
+                pf=obj.getPlaceField(ipf);
                 s.Information=pf.Information;
                 s.Stability=pf.Stability;
 %                 s.Stability.gini=1-...

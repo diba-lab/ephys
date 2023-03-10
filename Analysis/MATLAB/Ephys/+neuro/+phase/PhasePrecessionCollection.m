@@ -4,14 +4,21 @@ classdef PhasePrecessionCollection
     
     properties
         PhasePrecessions
+        CacheManager
     end
-    
+
     methods
-        function obj = PhasePrecessionCollection(phasePrecessions)
+        function obj = PhasePrecessionCollection(cacheManagerFile,phasePrecessions)
             %PHASEPRECESSIONCOLLECTION Construct an instance of this class
             %   Detailed explanation goes here
+            if ~isa(cacheManagerFile,'cache.Manager')
+                obj.CacheManager=cache.Manager.instance(cacheManagerFile);
+            else
+                obj.CacheManager=cacheManagerFile;
+            end
+
             obj.PhasePrecessions=neuro.phase.PhasePrecession.empty(0);
-            if nargin>0
+            if nargin>1
                 for iph=1:numel(phasePrecessions)
                     php=phasePrecessions(iph);
                     obj=obj.add(php);
@@ -24,6 +31,7 @@ classdef PhasePrecessionCollection
         function obj = add(obj,php)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            
             obj.PhasePrecessions(numel(obj.PhasePrecessions)+1)=php;
         end
         function obj = getUnits(obj,idx)

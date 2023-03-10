@@ -49,6 +49,7 @@ classdef SpikeUnitTrackedLFP < ...
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             axes(axs(1));
+            colors=colororder;
             tbl=obj.combinedTable;
             ph=obj.thetaPhasePrecession;
             ph1=ph.PolarData.Phase;
@@ -64,7 +65,7 @@ classdef SpikeUnitTrackedLFP < ...
             axes(axs(3));
             ph.plotPrecession(colorcode);
             axes(axs(4));
-            ph.plotHist
+            ph.plotHist(colors(1,:));
             axes(axs(5));
             ph.plotStats;
             linkaxes(axs,'x');

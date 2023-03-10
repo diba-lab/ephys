@@ -18,6 +18,16 @@ classdef PositionData1D < position.PositionData
             data.Z=rand(height(data),1);
             obj=obj.setData(data);            
         end
+
+        function str=toString(obj)
+            try
+                str=sprintf('%d Channels: %s. %s. ',size(obj.data,2), ...
+                    strjoin(obj.channels), obj.time.tostring);
+            catch ME
+                str=sprintf('%d Channels. %s. ',size(obj.data,2), ...
+                    obj.time.tostring);
+            end
+        end
         function obj=getWindow(obj,plsd)
             [obj]=getWindow@position.PositionData(obj,plsd);
             obj.parent=obj.parent.getWindow(plsd);

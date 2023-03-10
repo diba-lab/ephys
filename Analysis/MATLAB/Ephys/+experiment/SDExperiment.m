@@ -62,10 +62,16 @@ classdef SDExperiment < Singleton
             if exist('state','var')
                 if isnumeric( state)
                     statecode=state;
-                else
+                elseif isstring(state)
                     statecode=S.StateCodes.(state);
+                elseif iscategorical(state)
+                    statecode=S.StateCodes.(string(state));
                 end
-                color=color(statecode);
+                try
+                    color=color(statecode);
+                catch ME
+                    
+                end
             end
         end
         function state1 = getStateCode(obj,state)

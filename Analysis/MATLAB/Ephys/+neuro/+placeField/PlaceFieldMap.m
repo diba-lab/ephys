@@ -84,6 +84,29 @@ classdef PlaceFieldMap<neuro.placeField.FireRateMap
         function [ret] = getPlaceFieldMapMeasures(obj)
             ret=neuro.placeField.PlaceFieldMapMeasures(obj);
         end
+        function [cache,obj] = getPositionHeld(obj,cache)
+            [cache,key]=cache.hold( ...
+                obj.PositionData);
+            obj.PositionData=key;
+            try
+                [cache, obj.Parent]=obj.Parent.getPositionHeld(cache);
+            catch ME
+                
+            end
+        end
+        function [obj] = getPositionReload(obj,cache)
+            try
+                obj1=cache.get(obj.PositionData);
+                obj.PositionData=obj1;
+            catch ME
+                
+            end
+            try
+                obj.Parent=obj.Parent.getPositionReload(cache);
+            catch ME
+                
+            end
+        end
     end
 end
 

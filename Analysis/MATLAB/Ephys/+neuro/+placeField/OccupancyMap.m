@@ -87,7 +87,6 @@ classdef OccupancyMap
 %             figure; tiledlayout('flow'); 
 %             nexttile; imagesc(obj.MapOriginal);
 %             nexttile; imagesc(obj.MapSmooth);
-
             obj.XEdges=Xedges;
             obj.ZEdges=Zedges;
         end
