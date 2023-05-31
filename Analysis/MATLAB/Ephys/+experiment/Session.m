@@ -19,7 +19,8 @@ classdef Session
             logger=logging.Logger.getLogger;
             params=experiment.SDExperiment.instance.get;
             %% SessionInfo
-            sessionInfoFile=fullfile(baseFolder,params.FileLocations.Session.SessionInfo);
+            sessionInfoFile=fullfile(baseFolder, ...
+                params.FileLocations.Session.SessionInfo);
             folder=fileparts(sessionInfoFile);
             if ~isfolder(folder), mkdir(folder);end
             try 
@@ -32,7 +33,8 @@ classdef Session
                 sessionInfo.ZeitgeberTime='hh:mm:ss';
                 sessionInfo.Condition='';                
                 writestruct(sessionInfo,sessionInfoFile)
-                logger.info(strcat('No session info file. It is created.\t', sessionInfoFile))
+                logger.info(strcat(['No session info file. ' ...
+                    'It is created.\t'], sessionInfoFile))
             end
             obj.SessionInfoFile=sessionInfoFile;
             obj.SessionInfo=sessionInfo;
@@ -55,7 +57,8 @@ classdef Session
                     blockstt=[blockstt; timetable(t1, t2, Block)]; %#ok<AGROW>
                 end             
                 writetimetable(blockstt,blockFile);
-                logger.info(strcat('No experimental blocks file. It is created.\t', blockFile))
+                logger.info(strcat(['No experimental blocks file.' ...
+                    ' It is created.\t'], blockFile))
             end
             sdblock=experiment.SDBlocks(obj.SessionInfo.Date,blockstt);
             try sdblock.ZeitgeberTime=obj.SessionInfo.ZeitgeberTime; catch,end
@@ -63,7 +66,8 @@ classdef Session
             try
                 logger.info(sdblock.print)
                 %% Location
-%                 LocFile=fullfile(baseFolder,params.FileLocations.Session.Location);
+%                 LocFile=fullfile(baseFolder,
+% params.FileLocations.Session.Location);
                 
             catch
                 
@@ -90,23 +94,33 @@ classdef Session
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             an=sprintf('%s\t -->',obj.Animal.Code);
-            sesstr=sprintf('%s\t%s\nZT %s%s\n%s',an,obj.SessionInfo.Condition, ...
+            sesstr=sprintf('%s\t%s\nZT %s%s\n%s',an, ...
+                obj.SessionInfo.Condition, ...
                 obj.SessionInfo.ZeitgeberTime, ...
                 obj.Blocks.print, ...
                 obj.Probe.toString ...
                 );
         end
+        function sesstr = toStringShort(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            an=sprintf('%s-',obj.Animal.Code);
+            sesstr=sprintf('%s%s-%s',an,obj.SessionInfo.Condition, ...
+                obj.SessionInfo.Date);
+        end
         function obj = setProbe(obj,probe)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             sde=experiment.SDExperiment.instance.get;
-            probeFile=fullfile(obj.SessionInfo.baseFolder,sde.FileLocations.Session.Probe);
+            probeFile=fullfile(obj.SessionInfo.baseFolder, ...
+                sde.FileLocations.Session.Probe);
             if nargin>1
                 obj.Probe = probe;
                 
             else
                 % load templateProbe
-                obj.Probe=neuro.probe.Probe(sde.FileLocations.General.ProbeTemplate); 
+                obj.Probe=neuro.probe.Probe( ...
+                    sde.FileLocations.General.ProbeTemplate); 
                 warning('No Probe File. Template is loaded.');
             end
             obj.Probe.saveProbeTable(probeFile);
@@ -162,7 +176,8 @@ classdef Session
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             try
-                ticd=neuro.time.TimeIntervalCombined(obj.SessionInfo.baseFolder);
+                ticd=neuro.time.TimeIntervalCombined( ...
+                    obj.SessionInfo.baseFolder);
                 zt=ticd.getZeitgeberTime;
             catch
                 zt=nan;
@@ -195,7 +210,8 @@ classdef Session
         function sa = getUnits(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            us=buzcode.CellMetricsSession(char(obj.SessionInfo.baseFolder));
+            us=buzcode.CellMetricsSession(char( ...
+                obj.SessionInfo.baseFolder));
             sa=us.getSpikeArray;
         end
         function [] = printProbe(obj,varargin)

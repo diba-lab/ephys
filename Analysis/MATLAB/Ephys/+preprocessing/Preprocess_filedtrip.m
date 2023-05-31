@@ -1,4 +1,4 @@
-sdl=SDLoader_light.instance;
+sdl=experiment.SDLoader_light.instance;
 d1=sdl.getRat_AG_Day01_SD;
 oerc=d1.OpenEphysRecordCombined;
 %%

@@ -37,8 +37,8 @@ classdef StateSeries
             else
                 winddt=window;
             end
-            winsInsec=ticd.getSampleFor(winddt)/ticd.getSampleRate;
-            if isnan(winsInsec(1))
+            winsInSample=ticd.getSampleFor(winddt);
+            if isnan(winsInSample(1))
                 try
                     til=ticd.timeIntervalList;
                     %get closest start time
@@ -52,7 +52,7 @@ classdef StateSeries
                     winddt(1)=ticd.getStartTime;
                 end
             end
-            if isnan(winsInsec(2))
+            if isnan(winsInSample(2))
                 try
                     til=ticd.timeIntervalList;
                     %get closest end time
@@ -66,32 +66,33 @@ classdef StateSeries
                     winddt(2)=ticd.getEndTime;
                 end
             end
-            winsInsec=ticd.getSampleFor(winddt)/ticd.getSampleRate;
-
-            idx=winsInsec(1):winsInsec(2);
+            winsInSample=ticd.getSampleFor(winddt);
+            idx=winsInSample(1):winsInSample(2);
+            winInSec=obj.TimePoints(idx);
             states_new=states(idx);
             ticd_new=ticd.getTimeIntervalForTimes(winddt);
-            fnames=fieldnames(  episodes);
+            fnames=fieldnames(episodes);
             for iepi=1:numel(fnames)
                 epi=episodes.(fnames{iepi});
                 start=epi(:,1);
                 stop=epi(:,2);
-                idxstart=start>winsInsec(1)&start<winsInsec(2);
-                idxstop=stop>winsInsec(1)&stop<winsInsec(2);
+                idxstart=start>min(winInSec)&start<max(winInSec);
+                idxstop=stop>min(winInSec)&stop<max(winInSec);
                 idx=idxstart|idxstop;
                 epinew=epi(idx,:);
                 if ~isempty(epinew)
-                    if epinew(1,1)<winsInsec(1)
-                        epinew(1,1)=winsInsec(1);
+                    if epinew(1,1)<min(winInSec)
+                        epinew(1,1)=min(winInSec);
                     end
-                    if epinew(end,2)>winsInsec(2)
-                        epinew(end,2)=winsInsec(2);
+                    if epinew(end,2)>max(winInSec)
+                        epinew(end,2)=max(winInSec);
                     end
                 end
-                epinew=epinew-winsInsec(1)+1;
+                epinew=epinew-min(winInSec)+1;
                 episodes.(fnames{iepi})=epinew;
             end
             obj.States=states_new;
+            obj.TimePoints=winInSec-min(winInSec)+1;
             obj.Episodes=episodes;
             obj.TimeIntervalCombined=ticd_new;
         end
@@ -109,18 +110,17 @@ classdef StateSeries
 %             yShadeRatio=[.55 .8];
             ax=gca;
             hold1=ishold(ax);hold(ax,"on");
-            y=[ax.YLim(1)+diff(ax.YLim)*yShadeRatio(1) ax.YLim(1)+diff(ax.YLim)*yShadeRatio(2)];
-            episodes=obj.Episodes;
-            ztcorrection=seconds(obj.TimeIntervalCombined.getZeitgeberTime-obj.TimeIntervalCombined.getStartTime);
+            y=[ax.YLim(1)+diff(ax.YLim)*yShadeRatio(1) ax.YLim(1)+...
+                diff(ax.YLim)*yShadeRatio(2)];
+            obj1=obj.getZTCorrected;
+            episodes=obj1.Episodes;
             fnames=fieldnames(episodes);
             hold on;
             colors=linspecer(numel(fnames));
             for istate=1:numel(fnames)
                 thestate=episodes.(fnames{istate});
                 for iepisode=1:size(thestate,1)
-                    episode1=thestate(iepisode,:);
-                    episode=hours(seconds(...
-                        obj.TimeIntervalCombined.adjustTimestampsAsIfNotInterrupted(episode1)-ztcorrection));
+                    episode=thestate(iepisode,:);
                     fl=fill([episode(1) episode(2) episode(2) episode(1)], ...
                         [y(1) y(1) y(2) y(2)],colors(istate,:));
                     fl.LineStyle='none';
@@ -129,37 +129,6 @@ classdef StateSeries
             end   
             ax.Color='none';
             if ~hold1,hold(ax,"off");end
-        end
-        function [ps] = plotOBSOLETE(obj,colorMap)
-            states1=obj.States;
-            ticd=obj.TimeIntervalCombined;
-            t=ticd.getTimePoints+ticd.getStartTime;
-            hold on;
-            num=1;
-            if ~exist('colorMap','var')
-                sde=experiment.SDExperiment.instance;
-                colorMap=sde.getStateColors;
-            end
-            for ikey=colorMap.keys
-                statesarr=states1;
-                state=ikey{1};
-                statesarr(states1~=state)=nan;
-                statesarr(states1==state)=num;num=num+1;
-                p1=plot(t,statesarr);
-                try
-                    p1.Color=colorMap(state);
-                catch
-                    p1.Color=sde.getStateColors(state);
-                end
-                p1.LineWidth=5;
-                ps(state)=p1;
-            end
-            ax=gca;
-%             ax.XLim=[t(1) t(end)];
-            ax.YLim=[0 num-1];
-            ax.Color='none';
-%             ax.Visible='off';
-            ax.YDir='reverse';
         end
         function np=getNumberOfPoints(obj)
             np=numel(obj.States);
@@ -174,43 +143,64 @@ classdef StateSeries
             idx=obj.States==state;
             idx=idx';
         end
-        function state=getStateRatios(obj,slidingWindowSizeInSeconds,slidingWindowLapsInSeconds,edges)
-            states=obj.States;
-            if isduration( slidingWindowSizeInSeconds)
-                slidingWindowSizeInSeconds=seconds(slidingWindowSizeInSeconds);
+        function restbl=getStateRatios(obj,slidingWindowSize, ...
+                slidingWindowLaps,windowZT)
+            obj1=obj.getZTCorrected;
+            states=categorical(obj1.States);
+            if exist('windowZT','var')
+                strt1=round( ...
+                    hours(hours(windowZT(1)):slidingWindowLaps:(hours(windowZT(2))-slidingWindowSize/2)) ...
+                    ,3);
+            else
+                strt1=round(hours( ...
+                    hours(obj1.TimePoints(1)):slidingWindowLaps:hours((obj1.TimePoints(end)/2)) ...
+                    ),3);
             end
-            if isduration( slidingWindowLapsInSeconds)
-                slidingWindowLapsInSeconds=seconds(slidingWindowLapsInSeconds);
+            end1=strt1+hours(slidingWindowSize);
+
+            center1=array2table( [hours(strt1)' hours(strt1)'+ ...
+                slidingWindowSize/2 hours(end1)'], ...
+                VariableNames={'ZTStart','ZTCenter','ZTEnd'});
+            wind=nan(size(strt1,2),6);
+            for iwin=1:numel(strt1)
+                s1=strt1(iwin);
+                e1=end1(iwin);
+                [n,c]=histcounts(states(obj1.TimePoints>s1&obj1.TimePoints<e1));
+                statelist={'0','1','2','3','4','5',};
+                [b,a]=ismember(statelist,c);
+                wind(iwin,b)=n(a(b));
             end
-            t=seconds(obj.TimeIntervalCombined.getTimePoints);
-            statesunique=unique(states);
-            for istate=1:numel(statesunique)
-                thestate=statesunique(istate);
-                if sum(ismember(1:5,thestate))
-                    idx=states==thestate;
-                    tsforthestate=t(idx);
-                    [state(thestate).N,state(thestate).edges] =histcounts(tsforthestate,edges);
-                    state(thestate).N=state(thestate).N';
-                    state(thestate).edges=state(thestate).edges';
-                    state(thestate).Ratios=state(thestate).N/slidingWindowSizeInSeconds;
-                    state(thestate).state=thestate;
+            statecounts=array2table(wind,VariableNames={'none','A-WAKE', ...
+                'Q-WAKE','SWS','INT','REM'});
+            restbl=[center1 statecounts];
+        end
+        function [theEpisodeAbs tbls]=getState(obj,states)
+            stateEpisodes=obj.getEpisodes;
+            tbls=[];
+            for is=1:numel(states)
+                state=states(is);
+                if state=="AWAKE"
+                    theEpisode=stateEpisodes.(strcat('WAKE','state'));
+                elseif state=="SWS"
+                    theEpisode=stateEpisodes.(strcat('NREM','state'));
+                else
+                    theEpisode=stateEpisodes.(strcat(string(state),'state'));
+                end
+                tbl=array2table(theEpisode,"VariableNames",{'start','end'});
+                tbl=[tbl array2table(repmat(state,[height(tbl),1]), ...
+                    "VariableNames",{'state'})];
+                if is==1
+                    tbls=tbl;
+                else
+                    tbls=[tbls;tbl];
                 end
             end
-            state=neuro.state.StateRatios(state);
-        end
-        function theEpisodeAbs=getState(obj,state)
-            stateEpisodes=obj.getEpisodes;
-            if state=='AWAKE'
-                theEpisode=stateEpisodes.(strcat('WAKE','state'));
-            elseif state=='SWS'
-                theEpisode=stateEpisodes.(strcat('NREM','state'));
-            else
-                theEpisode=stateEpisodes.(strcat(string(state),'state'));
-            end
-            if ~isempty(theEpisode)
+            tbls=sortrows(tbls,'start');
+            if ~isempty(tbls)
                 ticdss=obj.TimeIntervalCombined;
-                for irow=1:size(theEpisode,1)
-                    theEpisodeAbs(irow,:)=ticdss.getRealTimeFor(theEpisode(irow,:));
+                for irow=1:height(tbls)
+                    wind=[tbls(irow,:).start tbls(irow,:).end];
+                    theEpisodeAbs(irow,:)=ticdss.getStartTime+seconds(wind);
                 end
             else
                 theEpisodeAbs=[];

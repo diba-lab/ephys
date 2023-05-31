@@ -25,7 +25,6 @@ classdef PlaceFieldMapMeasures < neuro.placeField.PlaceFieldMap
                 obj.PlaceFields=obj.calculatePlaceFields;
             end
         end
-        
         function information = calculateInformation(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -93,6 +92,28 @@ classdef PlaceFieldMapMeasures < neuro.placeField.PlaceFieldMap
                 pfm=frm.getPlaceFieldMap;
                 pfms(isec)=pfm;
                 mat(:,isec)=reshape(pfm.MapOriginal,[],1); %#ok<AGROW>
+            end
+            [corr1.R,corr1.P]=corr(mat);
+            corr1.maps=pfms;
+        end
+        function [corr1]= calculateStabilityCorrLapbased(obj,sections)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            time=obj.SpikeUnitTracked.Time;
+            pfms=neuro.placeField.PlaceFieldMapMeasures.empty( ...
+                [height(sections) 0]);
+
+            sut=obj.SpikeUnitTracked;
+            for imap=1:height(sections)
+                subste=sections(imap,:);
+                wind=[subste.start subste.stop];
+                windabs=time.getZeitgeberTime+wind;
+                pdsmall=sut.PositionData.getTimeWindow(windabs);
+                sutsmall=obj.SpikeUnitTracked+pdsmall;
+                frm=sutsmall.getFireRateMap(obj.XEdges,obj.ZEdges);
+                pfm=frm.getPlaceFieldMap;
+                pfms(imap)=pfm;
+                mat(:,imap)=reshape(pfm.MapOriginal,[],1); %#ok<AGROW>
             end
             [corr1.R,corr1.P]=corr(mat);
             corr1.maps=pfms;

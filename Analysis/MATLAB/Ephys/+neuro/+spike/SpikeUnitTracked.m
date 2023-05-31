@@ -4,6 +4,7 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
 
     properties
         PositionData
+        InfoPosition
     end
 
     methods
@@ -25,24 +26,35 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
                 ptimes=seconds(positionData.time.getTimePointsZT)';
                 idxnan=isnan(table2array(positionData.data(:,1)));
                 ptimes(idxnan)=nan;
+                % Create a KDTree object from ptimes
+                tree = KDTreeSearcher(ptimes);
+                % Find the indices of the closest values in pt for each value
+                % in sts
+                try
+                    locinpos = knnsearch(tree, stimes);
+                catch ME
+                    
+                end
                 srate=max([1/spikeunit.Time.getSampleRate ...
                     1/positionData.time.getSampleRate]);
-                is1=1;
-                stimes1=[];
-                for is=1:numel(stimes)
-                    stime=stimes(is);
-                    minValue=min(abs(stime-ptimes),[],"omitnan");
-                    if minValue<srate/2
-                        stimes1(is1)=stime; %#ok<AGROW>
-                        is1=is1+1;
-                    else
+                locinpos(abs(stimes - ptimes(locinpos)) > srate) = NaN;
 
-                    end
-                end
+                % is1=1;
+                % stimes1=[];
+                % for is=1:numel(stimes)
+                %     stime=stimes(is);
+                %     minValue=min(abs(stime-ptimes),[],"omitnan");
+                %     if minValue<srate/2
+                %         stimes1(is1)=stime; %#ok<AGROW>
+                %         is1=is1+1;
+                %     else
+                % 
+                %     end
+                % end
                 ticd=obj.Time;
-                secondsFromRecordBeginnig=seconds(seconds(stimes1)- ...
+                secondsFromRecordBeginnig=seconds(seconds(stimes(~isnan(locinpos)))- ...
                     (ticd.getStartTime - ticd.getZeitgeberTime));
-                samples=uint64(secondsFromRecordBeginnig*ticd.SampleRate)';
+                samples=uint64(secondsFromRecordBeginnig*ticd.SampleRate);
                 obj.TimesInSamples= samples;
             end
         end
@@ -104,6 +116,9 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
         function [ax] = plotOnTrack3D(obj,color)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            if ~exist("color","var")
+                color=[];
+            end
             numPointsInPlot=50000;
             track=obj.PositionData;
             track.plot3DtimeContinuous(numPointsInPlot);hold on
@@ -145,6 +160,23 @@ classdef SpikeUnitTracked < neuro.spike.SpikeUnit
             t2=array2table(t1,VariableNames={'TimeZT'});
             tall=[sTimes t2];
         end
+
+
+        function [cache,obj] = getPositionHeld(obj,cache)
+            [cache,key]=cache.hold( ...
+                obj.PositionData);
+            obj.PositionData=key;
+            
+        end
+        function [obj] = getPositionReload(obj,cache)
+            try
+                obj.PositionData=cache.get(obj.PositionData);
+            catch ME
+
+            end
+
+        end
+
     end
 end
 

@@ -1,5 +1,6 @@
 classdef ChannelTimeDataHard < file.BinarySave
-    %COMBINEDCHANNELS Summary of this class goes here
+    %ChannelTimeDataHard holding lfp data and provides functions to
+    %manipulate it
     %   Detailed explanation goes here
 
     properties (Access=public)

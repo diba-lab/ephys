@@ -2,7 +2,7 @@ clear all
 
 sf=experiment.SessionFactory;
 animal='AG'; 
-cond='SD';
+cond='NSD';
 sesno=2;
 sess=sf.getSessions(animal,cond);
 ses=sess(sesno);
@@ -42,19 +42,23 @@ axs(1)=nexttile(1,[3 1]);
 axs(2)=nexttile(4);
 axs(3)=nexttile(5);
 axs(4)=nexttile(6);
-pdTRACKman1D.plotX(pdTRACK.getSpeed(2));hold on
+% pdTRACKman1D.plotX(pdTRACK.getSpeed(2));hold on
+pdTRACKman1D.plotX();hold on
 saTrackPos.plotFiringRates(axs);
 ax1=nexttile(7);
 thetaLFPt.plot;hold on;thetaLFPtf=thetaLFPt.getBandpassFiltered([5 12]);
 thetaLFPtf.plot
 phase1=thetaLFPtf.getHilbertPhase;
-phase2=phase1.getTimeWindow(minutes([300.0 300.4])+phase2.TimeIntervalCombined.ZeitgeberTime);
-phase2=thetaLFPtf.getHilbertPhaseKamran;
 
-yyaxis('right');p=pow.getGaussianFiltered(3).plot;p.LineWidth=2;
+yyaxis('right');p=pow.getGaussianFiltered(1).plot;p.LineWidth=2;
+axes(axs(4));
+pow.Values=normalize(pow.Values);
+yyaxis('right');p=pow.getGaussianFiltered(1).plot;p.LineWidth=2;
+ret.plotHistCount
+
 ax2=nexttile(8);
 ret.plotHistCount
-axes(axs(3));yyaxis("right"); hold on; ret.plotScatterTimeZt
+yyaxis("right"); hold on; ret.plotScatterTimeZt
 linkaxes([axs ax1 ax2],'x');
 
 ff.save(sprintf('%s-d%d-%s__FiringRates',animal, sesno,cond));
@@ -122,7 +126,7 @@ for isu=1:numel(susTRACK)
             n=nexttile(18);
             pos=n.Position;pos(1)=pos(1)+pos(3)/3;pos(2)=pos(2)+pos(4)/3;
             pos(3)=pos(3)/2;pos(4)=pos(4)/3;
-            acc=su.getACC;acc.plotSingle();
+            acc=su.getACC;acc.plotSingle();legend off
             ax=axes('Position',pos);
             p=su.plotWaveform;ax.Box="off";
             ax.Color='none';ax.Visible="off";

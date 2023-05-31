@@ -33,7 +33,7 @@ classdef Fooof
         function [data,model,ap_fit]=plot(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            [data,model,ap_fit]=fooof_plot(obj.fooof_results);
+            fooof_plot(obj.fooof_results);
             hold on;
 %             obj.plotPeaks;
         end
@@ -98,8 +98,8 @@ classdef Fooof
             peaks1=peaks(idxall,:);
             peaksorted=sortrows(peaks1,2,'descend');%sort by power
             for ipeak=1:1
-                peaks2=peaksorted(ipeak,:);
                 try
+                    peaks2=peaksorted(ipeak,:);
                     peakres(ipeak).cf=peaks2(1);
                     peakres(ipeak).power=peaks2(2);
                     peakres(ipeak).bw=peaks2(3);

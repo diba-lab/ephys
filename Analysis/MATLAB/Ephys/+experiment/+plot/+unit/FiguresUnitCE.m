@@ -39,10 +39,24 @@ classdef FiguresUnitCE
                 str=strcat(str,sprintf('\n\n%s',us.toString));
             end
         end
+        function str = saveTable(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            metSes=obj.CellMetricsSessions;
+            str=[];
+            for imet=1:numel(metSes)
+                us=metSes(imet);
+                ses=us.Session;
+                sa=us.getSpikeArray;
+                str=strcat(str,sprintf('\n\n%s',us.toString));
+            end
+        end
         function tbl = getEV(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            figureOutputFolder='/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/figures';
+            figureOutputFolder=['/data/EphysAnalysis/Structure/' ...
+                'diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/' ...
+                'PlottingRoutines/UnitPlots/figures'];
             try close(1);catch,end;f1=figure(1);f1.Position=[1 1 700 1350];
             try close(2);catch,end;f2=figure(2);f2.Position=[561 1 700 1350];
             try close(103);catch,end;f103=figure(103);f103.Position=[1800 1 213 1350];
@@ -109,7 +123,8 @@ classdef FiguresUnitCE
 
 %                     nquint=5;
 %                     [frm,fre]=sa2.getMeanFireRateQuintiles(nquint,frbin);
-%                     t1=seconds(frm{1}.getTimeInterval.getTimePointsInSec)+frm{1}.getTimeInterval.getStartTime-frm{1}.getTimeInterval.getDate;
+%                     t1=seconds(frm{1}.getTimeInterval.getTimePointsInSec)+
+% frm{1}.getTimeInterval.getStartTime-frm{1}.getTimeInterval.getDate;
 %                     t=hours(t1-ses.Session.SessionInfo.ZeitgeberTime);
 %                     for iq=1:nquint
 %                         step=size(fr2.Data,1)/nquint;
@@ -120,7 +135,8 @@ classdef FiguresUnitCE
 
 %                     sdd.getStateSeries.plot(gca,[0 .1]);
                     sas=[sa2 sa2py sa2in];
-                    colorsfr=linspecer(4);colorsfr=colorsfr([1 3],:);colorsfr=[.5 .5 .5 ;colorsfr];
+                    colorsfr=linspecer(4);colorsfr=colorsfr([1 3],:);
+                    colorsfr=[.5 .5 .5 ;colorsfr];
                     linestr={'All','Pyr','Int'};
                     yyaxis('right');axfrr=gca;ylim([-1 1]);ylabel('FR normalized');
                     axfrr.LineStyleOrder='-';
@@ -148,9 +164,11 @@ classdef FiguresUnitCE
                         %                     frm=sa.getMeanFireRate(frbin);
                         fr=fr2.getWindow(wind);
 
-                        pwc=fr.getPairwiseCorrelation(tblbl(ibl,:).window,tblbl(ibl,:).shift);
+                        pwc=fr.getPairwiseCorrelation(tblbl(ibl,: ...
+                            ).window,tblbl(ibl,:).shift);
                         pwc.block(:,1)={blockname};
-                        pwc.timeZT=pwc.time+seconds(wind(1)-ses.Session.SessionInfo.ZeitgeberTime);
+                        pwc.timeZT=pwc.time+seconds(wind(1)- ...
+                            ses.Session.SessionInfo.ZeitgeberTime);
                         if ibl==1
                             pwcall=pwc;
                         else
@@ -161,7 +179,8 @@ classdef FiguresUnitCE
                             
                             pwc=fr.getPairwiseCorrelation(window1,window);
                             pwc.block(:,1)={[blockname 'b']};
-                            pwc.timeZT=pwc.time+seconds(wind(1)-ses.Session.SessionInfo.ZeitgeberTime);
+                            pwc.timeZT=pwc.time+seconds(wind(1)- ...
+                                ses.Session.SessionInfo.ZeitgeberTime);
                             pwcall=[pwcall;pwc];
                         end
                     end
@@ -202,7 +221,8 @@ classdef FiguresUnitCE
                         ltxt={'NSD'};
                     end
                     obj.plotPWCMatrix(axpwcmat,pwcall)
-                    text(axpwcmat,0,1.04,sesstr, Units="normalized",VerticalAlignment="bottom")
+                    text(axpwcmat,0,1.04,sesstr, Units="normalized", ...
+                        VerticalAlignment="bottom")
 
 %                     ctrl=sd;
                     ctrl=pre;
@@ -236,7 +256,8 @@ classdef FiguresUnitCE
 
                     ylabel('R');
                     text(0,1,sesstr, Units="normalized",VerticalAlignment="bottom")
-                    text(axs,.8,.6,sprintf("#Units:%d\n#Pairs:%d",height(fr2.ClusterInfo),npairs),'Units','normalized');
+                    text(axs,.8,.6,sprintf("#Units:%d\n#Pairs:%d", ...
+                        height(fr2.ClusterInfo),npairs),'Units','normalized');
 %                     axes(axs);
 %                     axpw.addlistener('XLim','PostSet',@(src,evnt)disp('Color changed'));
 %                     ax.YLim=[0 .3];
@@ -259,7 +280,9 @@ classdef FiguresUnitCE
                                 p.fr(ip).LineWidth =.5;
                         end
                     end
-                    l=legend(axs,[p_ev.mainLine p_rev.mainLine p.frall(getfr)],{ltxt{:} linestr{getfr}},Location="westoutside");       
+                    l=legend(axs,[p_ev.mainLine p_rev.mainLine ...
+                        p.frall(getfr)],{ltxt{:} linestr{getfr}}, ...
+                        Location="westoutside");       
                     drawnow
                     text(0,1,sesstr, Units="normalized",VerticalAlignment="bottom")
 
@@ -310,7 +333,8 @@ classdef FiguresUnitCE
             
             %             clim([0 1]);
             lim=[-3 11];xlim(lim);ylim(lim);
-            cb=colorbar(ax,"south",Units="normalized");cb.Position(3)=cb.Position(3)/2
+            cb=colorbar(ax,"south",Units="normalized");cb.Position(3)=...
+                cb.Position(3)/2;
             [a1,b1,c1]=unique(a(:,'block'),'stable');
             axo=ax;
             x=axo.Position(1);
@@ -438,7 +462,9 @@ classdef FiguresUnitCE
     end
     methods
         function obj=plotACG(obj)
-            ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/UnitPlots/ACG/CA1');
+            ff=logistics.FigureFactory.instance(['/data/EphysAnalysis/' ...
+                'Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/' ...
+                'ExperimentSpecific/PlottingRoutines/UnitPlots/ACG/CA1']);
             if ~isempty(obj.acgtbl)
                 tbl1=obj.acgtbl;
             else
@@ -452,7 +478,8 @@ classdef FiguresUnitCE
             loc1=[2561 703 2560 634];
             loc2=[2561 210 2560 552];
 
-            excludes={{'+,brainRegion,CA1','-,cellType,Wide Interneuron','-,synapticEffect,Unknown'},...
+            excludes={{'+,brainRegion,CA1','-,cellType,Wide Interneuron',...
+                '-,synapticEffect,Unknown'},...
                 {'+,brainRegion,CA1','-,cellType,Wide Interneuron'},...
                 {'+,brainRegion,CA1,CA3'},...
                 {'+,brainRegion,CA1','-,synapticEffect,Unknown'}}';

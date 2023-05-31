@@ -1,19 +1,21 @@
 
-for sesno=[1 2 3 4 5 6 7 8]
+for sesno=2:8
+% for sesno=    [     6      ]
     clearvars  -except sesno
-    %            1    2    3     4     5     6    7     8
-    Animal=   {'AG';'AG';'AE'; 'AG'; 'AG'; 'AE';'AE'; 'AF'};% AE NSD 1 removed
-    Condition={'SD';'SD';'SD';'NSD';'NSD';'NSD';'NSD';'NSD'};
-    Day=      [   1;   2;   1;    1;    2;    1;    2;    1];
-    sesDay=   [   1;   3;   2;    2;    4;    1;    3;    2];
+    %            1    2    3    4     5     6    7     8    9
+    Animal=   {'AF';'AG';'AG';'AE'; 'AG'; 'AG';'AE'; 'AF'};% AE NSD 1 removed
+    Condition={'SD';'SD';'SD';'SD';'NSD';'NSD';'NSD';'NSD'};
+    Day=      [  2 ;  1 ;  2 ;  1 ;  1  ;  2  ;  2  ;  1  ];
+    sesDay=   [  3 ;  1 ;  3 ;  2 ;  2  ;  4  ;  3  ;  2  ];
     table1=table(Animal,Condition,Day,sesDay);    sf=experiment.SessionFactory;
     animal=table1.Animal{sesno};
     cond=table1.Condition{sesno};
     day=table1.sesDay(sesno);
     ses=sf.getSessions(animal ,cond,table1.sesDay(sesno));
-    ses.printProbe;
+%     ses.printProbe;
     baseFolder=ses.SessionInfo.baseFolder;
-    cch=cache.Manager.instance(strcat(baseFolder,'/placeFieldAnalysisTable.mat'));
+    cch=cache.Manager.instance(strcat(baseFolder,['/cacheUnits/placeField' ...
+        'AnalysisTable.mat']));
     %% theta LFP CSD
     ctdh=ses.getDataLFP.getChannelTimeDataHard;
     if 0
@@ -31,8 +33,8 @@ for sesno=[1 2 3 4 5 6 7 8]
             st1=ticd.getAbsoluteTime(minutes(405)+seconds(26)+seconds(109)/1000);
             %     st1=ticd.getAbsoluteTime(minutes(0)+seconds(0)+seconds(1)/1000);
             %     en1=st1+seconds(.1);
-            en1=st1+seconds(2);
-            a=ctdh.get(ch,[st1 en1]);
+            en1=st1 + seconds(2);
+            a=ctdh.get(ch, [st1 en1]);
             %     a=a.getHighpassFiltered(100);
             a=a.getLowpassFiltered(20);
             csd=a.getCSD;
@@ -45,7 +47,8 @@ for sesno=[1 2 3 4 5 6 7 8]
         end
     end
     %%
-    thetaLFP=ctdh.getChannel(ses.getDataLFP.getStateDetectionData.SleepScoreLFP.THchanID);
+    thetaLFP=ctdh.getChannel( ...
+        ses.getDataLFP.getStateDetectionData.SleepScoreLFP.THchanID);
     thetaLFPt= thetaLFP.getTimeWindow(ses.getBlock('TRACK'));
     [cch, keyTheta]=cch.hold(thetaLFPt,thetaLFPt.toString);
     %% Units
@@ -75,10 +78,10 @@ for sesno=[1 2 3 4 5 6 7 8]
     filtidx=(idx.pos|idx.neg);
     pdsTRACKfastman1D=pdTRACKman1D(filtidx);
 
-    figure; tiledlayout('flow');ax(1)=nexttile();pdTRACKman.plot
-    ax(2)=nexttile;pd1.plot
-    ax(3)=nexttile;pd2.plot
-    linkaxes(ax)
+    % figure; tiledlayout('flow');ax(1)=nexttile();pdTRACKman.plot
+    % ax(2)=nexttile;pd1.plot
+    % ax(3)=nexttile;pd2.plot
+    % linkaxes(ax)
 
     pdsTRACKfastman2D=pdTRACKman(filtidx);
     pdsTRACKfast3D=pdTRACK(filtidx);
@@ -91,48 +94,53 @@ for sesno=[1 2 3 4 5 6 7 8]
     pdss{3}=pdsTRACKfastman1D;
     %% Unit for loop
     pfmc=neuro.placeField.PlaceFieldMapCollection(cch);
-%     phpc=neuro.phase.PhasePrecessionCollection(cch);
+    % phpc=neuro.phase.PhasePrecessionCollection(cch);
     f = waitbar(0,'Please wait...');
     for isu=1:numel(susTRACK)
         su=susTRACK(isu);
-        sul=su+thetaLFPt;
-        % combined
-        pd1D=pdss{3};
-        tblpds=pd1D.getTrialsDetected;
-        for ipd=1:2
-            sult=sul+tblpds.Obj{ipd};
-            if numel(sult.TimesInSamples)>50
-                %         f=figure('Position',[2616 -149 1500 1500]);
-                %         t=tiledlayout(3,5);t.TileSpacing='tight';
-                for isut=1:numel(pdss)
-                    if isut==3
-                        suts{isut}=su+tblpds.Obj{ipd};
-                    else
-                        suts{isut}=su+pdss{isut};
-                    end
-                    sut=suts{isut};
-                    oms{isut}=sut.PositionData.getOccupancyMap;om=oms{isut};
-                    frms{isut}=sut.getFireRateMap;
-                    pfms{isut}=frms{isut}.getPlaceFieldMap;
-                end
-                pfms{2}.Parent=pfms{1};
-                pfms{3}.Parent=pfms{2};
-                pfmc=pfmc.add(pfms{3});
-%                 phpc=phpc.add(sult.thetaPhasePrecession);
+        if numel(su.TimesInSamples)>50
+            % sul=su+thetaLFPt;
+            % combined
+            pd1D=pdss{3};
+            tblpds=pd1D.getTrialsDetected;
+            for ipd=1:2
+                try
+                    sut=su+tblpds.Obj{ipd};
+                catch ME
 
-                %             figure(Position=[2868 -151 990 1226]);
-                %             tiledlayout(4,2,"TileSpacing","tight");
-                %             axs(1)=nexttile(1,[4 1]);
-                %             axs(2)=nexttile(2,[1 1]);
-                %             axs(3)=nexttile(4,[1 1]);
-                %             axs(4)=nexttile(6,[1 1]);
-                %             axs(5)=nexttile(8,[1 1]);
-                %             sult.plot(axs);
-                %             txt1=annotation('textbox',[.8 0 .2 .3],'String', ...
-                %                 sult.tostring,'VerticalAlignment','bottom');
-                %             txt1.LineStyle='none'; txt1.HorizontalAlignment="right";
-                %             ff.save(sprintf('%s-%s-d%d',animal, cond, sesno));
-                %             close
+                end
+                if numel(sut.TimesInSamples)>50
+                    %         f=figure('Position',[2616 -149 1500 1500]);
+                    %         t=tiledlayout(3,5);t.TileSpacing='tight';
+                    pfms=cell(numel(pdss),1);
+                    for isut=1:numel(pdss)
+                        if isut==3
+                            sut=su+tblpds.Obj{ipd};
+                            sut.InfoPosition.direction=tblpds(ipd,:).Direction;
+                        else
+                            sut=su+pdss{isut};
+                        end
+                        frm=sut.getFireRateMap;
+                        pfms{isut}=frm.getPlaceFieldMap;
+                    end
+                    pfms{2}.Parent=pfms{1};
+                    pfms{3}.Parent=pfms{2};
+                    pfmc=pfmc.add(pfms{3});
+                    % phpc=phpc.add(sult.thetaPhasePrecession);
+                    % figure(Position=[2868 -151 990 1226]);
+                    % tiledlayout(4,2,"TileSpacing","tight");
+                    % axs(1)=nexttile(1,[4 1]);
+                    % axs(2)=nexttile(2,[1 1]);
+                    % axs(3)=nexttile(4,[1 1]);
+                    % axs(4)=nexttile(6,[1 1]);
+                    % axs(5)=nexttile(8,[1 1]);
+                    % sult.plot(axs);
+                    % txt1=annotation('textbox',[.8 0 .2 .3],'String', ...
+                    %     sult.tostring,'VerticalAlignment','bottom');
+                    % txt1.LineStyle='none'; txt1.HorizontalAlignment="right";
+                    % ff.save(sprintf('%s-%s-d%d',animal, cond, sesno));
+                    % close
+                end
             end
         end
         waitbar(double(isu)/numel(susTRACK), f, sprintf('%.1f%%', ...
@@ -141,13 +149,14 @@ for sesno=[1 2 3 4 5 6 7 8]
     save(['Scripts/PlaceFields/' ...
         sprintf('%s_%s-%s-%d.mat',class(pfmc),animal,cond,day)],"pfmc", ...
         '-v7.3'); clear pfmc;
-%     save(['Scripts/PlaceFields/' ...
-%         sprintf('%s_%s-%s-%d.mat',class(phpc),animal,cond,Day)],"phpc", ...
-%         '-v7.3')
+    % save(['Scripts/PlaceFields/' ...
+    %     sprintf('%s_%s-%s-%d.mat',class(phpc),animal,cond,Day)],"phpc", ...
+    %     '-v7.3')
     delete(f);
 end
 %%
-idx=ismember(pfmc.getUnitInfoTable.group,'good');% &...
+tbl=pfmc.getUnitInfoTable;
+idx=ismember(tbl.group,'good');% &...
 %~ismember(pfmc.getUnitInfoTable.cellType,'Pyramidal Cell')
 pftbl=pfmc.getPlaceFieldInfoTable;
 %%

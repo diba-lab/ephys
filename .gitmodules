@@ -7,3 +7,9 @@
 [submodule "Analysis/MATLAB/Ephys/external/CellExplorer"]
 	path = Analysis/MATLAB/Ephys/external/CellExplorer
 	url = https://github.com/petersenpeter/CellExplorer.git
+[submodule "Analysis/MATLAB/Ephys/external/fooof_mat"]
+	path = Analysis/MATLAB/Ephys/external/fooof_mat
+	url = https://github.com/fooof-tools/fooof_mat.git
+[submodule "Analysis/MATLAB/Ephys/external/fooof"]
+	path = Analysis/MATLAB/Ephys/external/fooof
+	url = https://github.com/fooof-tools/fooof_mat.git

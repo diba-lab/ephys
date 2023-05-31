@@ -63,6 +63,7 @@ classdef SessionFactory
                 for iargin=1:numel(varargin)
                     argin1=varargin{iargin};
                     varnames=t.Properties.VariableNames;
+                    varnames=varnames(2:end);
                     idx=false(height(t),1);
                     for ivar=1:numel(varnames)
                         varname=varnames{ivar};

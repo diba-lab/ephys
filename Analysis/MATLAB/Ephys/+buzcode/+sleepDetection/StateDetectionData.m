@@ -137,7 +137,7 @@ classdef StateDetectionData
             chname='EMG';
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/obj.EMGFromLFP.samplingFrequency;
             ticd=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd=ticd.shiftTimePoints(neuro.time.Relative(seconds(obj.EMGFromLFP.timestamps(1))));
+            ticd=ticd.shiftTimePoints(neuro.time.Relative(seconds(obj.EMGFromLFP.timestamps(1)/2)));
             ch=neuro.basic.Channel(chname,ts1,ticd);
             ch=ch.setInfo(obj.Info);
             cht=neuro.basic.ChannelsThreshold(ch,obj.getEMGThreshold,obj.isEMGSticky);
@@ -250,7 +250,7 @@ classdef StateDetectionData
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
             ticd1=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
             ticd2=ticd1.shiftTimePoints(neuro.time.Relative(seconds( ...
-                obj.SleepState.idx.timestamps(1))));
+                obj.SleepState.idx.timestamps(1)/2)));
             ticd=ticd2.getTimeIntervalForTimes([ticd2.getStartTime ticd1.getEndTime]);
             ss=neuro.state.StateSeries(states,ticd);
             ss=ss.setEpisodes(obj.SleepState.ints);

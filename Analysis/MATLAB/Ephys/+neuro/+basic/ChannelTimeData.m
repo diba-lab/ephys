@@ -59,7 +59,6 @@ classdef ChannelTimeData
             nansidx=any(isnan(data1));
             data3=nan(size(data1));
             data1(:,nansidx)=[];
-
             data2=ft_preproc_lowpassfilter(data1, ...
                 obj.time.getSampleRate, freq);
             data3(:,~nansidx)=data2;

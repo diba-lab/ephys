@@ -1,4 +1,4 @@
-classdef StateDetectionBuzcode < neuro.state.State.StateDetectionMethod
+classdef StateDetectionBuzcode < neuro.state.StateDetectionMethod
     %SLEEPDETECTIONBUZCODE Summary of this class goes here
     %   Detailed explanation goes here
     

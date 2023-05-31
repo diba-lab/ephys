@@ -254,18 +254,22 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             tsz=neuro.basic.TimeSeriesZScored(meanData,frs1.SampleRate);
         end
         function obj=getTimeInterval(obj,timeWindow)
-            if isdatetime(timeWindow)
-                s=obj.TimeIntervalCombined.getSampleForClosest(timeWindow);
-            elseif isduration(timeWindow)
-                s=obj.TimeIntervalCombined.getSampleForClosest( ...
-                    obj.TimeIntervalCombined.getDate+timeWindow);
-            elseif strcmpi(class(timeWindow),'neuro.time.ZeitgeberTime')
-                s=obj.TimeIntervalCombined.getSampleForClosest( ...
-                    timeWindow.getAbsoluteTime);
-            end
             tbl=obj.SpikeTableInSamples;
-            tbl((tbl.SpikeTimes<s(1))|(tbl.SpikeTimes>=s(2)),:)=[];
-            tbl.SpikeTimes=tbl.SpikeTimes-s(1);
+            idx=false([height(tbl) 1]);
+            for i=1:size(timeWindow,1)
+                if isdatetime(timeWindow)
+                    s=obj.TimeIntervalCombined.getSampleForClosest(timeWindow);
+                elseif isduration(timeWindow)
+                    s=obj.TimeIntervalCombined.getSampleForClosest( ...
+                        obj.TimeIntervalCombined.getDate+timeWindow);
+                elseif strcmpi(class(timeWindow),'neuro.time.ZeitgeberTime')
+                    s=obj.TimeIntervalCombined.getSampleForClosest( ...
+                        timeWindow.getAbsoluteTime);
+                end
+                idx=idx|(tbl.SpikeTimes>=s(i,1))&(tbl.SpikeTimes<s(i,2));
+            end
+            tbl(~idx,:)=[];
+            tbl.SpikeTimes=tbl.SpikeTimes-s(1,1);
             obj.SpikeTableInSamples=tbl;
             obj.Info.TimeFrame=timeWindow;
             obj.TimeIntervalCombined=...

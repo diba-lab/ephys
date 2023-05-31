@@ -4,7 +4,6 @@ classdef SpikeArrayTrack < neuro.spike.SpikeArray
     
     properties
         Position
-        SpikePosition
     end
     
     methods
@@ -17,26 +16,35 @@ classdef SpikeArrayTrack < neuro.spike.SpikeArray
                 obj.(fname)=spikeArray.(fname);
             end
             obj.Position=positionData;
-            obj.SpikePosition=obj.getPositions;
-            obj.SpikeTableInSamples=[obj.SpikeTableInSamples obj.SpikePosition];
+            obj.SpikeTableInSamples=[obj.SpikeTableInSamples obj.getPositions];
         end
         
         function [positions] = getPositions(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes hereobj.
             pos=obj.Position;
-            pt=seconds(pos.time.getTimePointsZT);
+            pt=seconds(pos.time.getTimePointsZT)';
             sts=seconds(obj.getSpikeTimesZT);
-            locinpos=nan(size(sts));
-            for isp=1:numel(sts)
-                st=sts(isp);
-                [g, idx]=min(abs(st-pt));
-                if g<max(1./[obj.TimeIntervalCombined.getSampleRate ...
-                        pos.time.getSampleRate])
-                    locinpos(isp)=idx;
-                end
-            end
-            positions=pos.data(locinpos,:);
+            % Create a KDTree object from pt
+            tree = KDTreeSearcher(pt);
+            % Find the indices of the closest values in pt for each value
+            % in sts
+            locinpos = knnsearch(tree, sts);
+            threshold=max(1./[obj.TimeIntervalCombined.getSampleRate ...
+                        pos.time.getSampleRate]);
+            locinpos(abs(sts - pt(locinpos)) > threshold) = NaN;
+            positions=array2table(nan(length(sts),3), ...
+                VariableNames=pos.data.Properties.VariableNames);
+            % for isp=1:numel(sts)
+            %     st=sts(isp);
+            %     [g, idx]=min(abs(st-pt));
+            %     if g<max(1./[obj.TimeIntervalCombined.getSampleRate ...
+            %             pos.time.getSampleRate])
+            %         locinpos(isp)=idx;
+            %     end
+            % end
+            idxvalid=~isnan(locinpos);
+            positions(idxvalid,:)=pos.data(locinpos(idxvalid),:);
         end
         function [] = plotFiringRates(obj,axs)
             %METHOD1 Summary of this method goes here

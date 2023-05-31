@@ -145,9 +145,9 @@ classdef BlockOfChannels
             ss=obj.getHypnogram;
             sr=ss.getStateRatios(winsize,a,edges);
         end
-        function [episode, theEpisodeAbs]=getState(obj,state)
+        function [episode, theEpisodeAbs,a]=getState(obj,state)
             ss=obj.getHypnogram;
-            theEpisodeAbs=ss.getState(state);
+            [theEpisodeAbs, a]=ss.getState(state);
             if ~isempty(theEpisodeAbs)
                 nch=obj.Channels.length;
                 for ich=1:nch

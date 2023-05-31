@@ -39,7 +39,7 @@ classdef TimeIntervalZT < neuro.time.TimeInterval
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             str1=tostring@neuro.time.TimeInterval(obj);
-            str2=datestr(obj.ZeitgeberTime,'HH AM');
+            str2=char(obj.ZeitgeberTime,'h aa');
             str=sprintf('\tZT:%s %s',str2,str1);
         end
 

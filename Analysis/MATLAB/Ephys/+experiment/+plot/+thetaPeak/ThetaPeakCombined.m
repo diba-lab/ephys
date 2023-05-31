@@ -28,23 +28,34 @@ classdef ThetaPeakCombined
             %   Detailed explanation goes here
             obj.thpkList.add(thpk,num);
         end
-        function newthpks = merge(obj,thpks)
+        function newthpks = merge(obj, thpks)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            newthpks=experiment.plot.thetaPeak.ThetaPeakCombined;
-            if isa(thpks,'experiment.plot.thetaPeak.ThetaPeakCombined')
-                for il=1:max(obj.thpkList.length,thpks.thpkList.length)
-                    thpk1=obj.thpkList.get(il);
-                    thpk2=thpks.thpkList.get(il);
-                    try
-                        thpkmsum=thpk1.merge(thpk2);
-                    catch
-                        thpkmsum=thpk2.merge(thpk1);
+            if exist('thpks','var')
+                newthpks=experiment.plot.thetaPeak.ThetaPeakCombined;
+                if isa(thpks,'experiment.plot.thetaPeak.ThetaPeakCombined')
+                    for il=1:max(obj.thpkList.length,thpks.thpkList.length)
+                        thpk1=obj.thpkList.get(il);
+                        thpk2=thpks.thpkList.get(il);
+                        try
+                            thpkmsum=thpk1.merge(thpk2);
+                        catch
+                            thpkmsum=thpk2.merge(thpk1);
+                        end
+                        newthpks=newthpks.add(thpkmsum,il);
                     end
-                    newthpks=newthpks.add(thpkmsum,il);
+                else
+                    newthpks=obj;
                 end
             else
-                newthpks=obj;
+                for ith=1:obj.thpkList.length
+                    a=obj.thpkList.get(ith);
+                    if ith==1
+                        newthpks=a;
+                    else
+                        newthpks=newthpks.merge(a);
+                    end
+                end
             end
             %             try close(7);catch, end; figure(7);obj.plotCF
             %             try close(8);catch, end;figure(8);thpks.plotCF
@@ -74,7 +85,7 @@ classdef ThetaPeakCombined
             if ~exist('rows','var')
                 rows=1;
             else
-                if isa(rows,'matlab.graphics.axis.Axes');
+                if isa(rows,'matlab.graphics.axis.Axes')
                     axs=rows;
                 end
             end

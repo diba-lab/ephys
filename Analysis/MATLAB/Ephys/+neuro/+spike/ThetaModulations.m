@@ -45,6 +45,21 @@ classdef ThetaModulations
                 end
             end
         end
+        function r = getGof(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            fitres=obj.FitResult;
+            gof=obj.Gof;
+            r=nan(numel(fitres),1);
+            for isu=1:numel(fitres)
+                fitres1=fitres{isu};
+                gof1=gof{isu};
+                try
+                    r(isu)=gof1.rsquare;
+                catch
+                end
+            end
+        end
     end
 end
 

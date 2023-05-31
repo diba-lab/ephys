@@ -63,6 +63,11 @@ classdef TimeIntervalAbstract
                 dtDuration(i)=neuro.time.DurationNeuroscope(duration);
             end
         end
+        function dur=getDuration(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            dur=obj.getEndTime-obj.getStartTime;
+        end
         function absTime=getAbsoluteTime(obj,dataTimeInDuration)
             absTime=obj.getRealTimeFor(seconds(dataTimeInDuration)*...
                 obj.getSampleRate);

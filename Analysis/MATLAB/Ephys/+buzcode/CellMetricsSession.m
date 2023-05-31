@@ -107,7 +107,7 @@ classdef CellMetricsSession < buzcode.CellMetrics
 
             st=ses.getDataLFP.TimeIntervalCombined.getStartTime;
             zt=ses.getZeitgeberTime;
-            bl.getZeitgeberTimes(zt).plot
+            bl.getZeitgeberTimes(zt).plot(ax,[0 1])
             blnames=bl.getBlockNames;
             for igr=1:numel(groups)
                 cm=obj.CellMetricsStruct;

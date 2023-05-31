@@ -187,7 +187,8 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             if isa(val,'neuro.basic.Channel')
                 obj.TimeIntervalCombined=obj.TimeIntervalCombined+...
                     val.getTimeInterval;
-                obj.Values=[obj.Values ;val.Values];
+                obj.Values=[obj.Values val.Values];
+                
             elseif isnumeric(val)
                 obj.Values=obj.Values+val;
             end

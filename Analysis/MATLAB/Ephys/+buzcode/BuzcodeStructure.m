@@ -80,11 +80,22 @@ classdef BuzcodeStructure
             ripple1=method.execute();
             ripple1=ripple1.setTimeIntervalCombined(obj.TimeIntervalCombined);
         end
+        function sdd = recalculateStates(obj,dur)
+            import buzcode.sleepDetection.*
+            logger=logging.Logger.getLogger;
+            time=obj.TimeIntervalCombined;
+            dur1=seconds(time.getSampleFor(dur)/time.getSampleRate);
+            sdd=buzcode.sleepDetection.StateDetectionData(obj.BasePath);
+
+
+            SleepScoreMaster(obj.BasePath,varargin1{:});
+            sdd=buzcode.sleepDetection.StateDetectionData(obj.BasePath);
+        end
         function sdd = detectStates(obj,params)
             import buzcode.sleepDetection.*
             logger=logging.Logger.getLogger;
             try
-                sdd=StateDetectionData(obj.BasePath);
+                sdd=buzcode.sleepDetection.StateDetectionData(obj.BasePath);
             catch
                 varargin=cell(1,1);
                 try
@@ -130,7 +141,7 @@ classdef BuzcodeStructure
                     ));
                 
                 SleepScoreMaster(obj.BasePath,varargin1{:});
-                sdd=StateDetectionData(obj.BasePath);
+                sdd=buzcode.sleepDetection.StateDetectionData(obj.BasePath);
             end
         end
         

@@ -1,13 +1,15 @@
-Animal={'AG';'AG';'AE';'AG';'AG';'AE';'AF'};% AE NSD 1 removed
-Condition={'SD';'SD';'SD';'NSD';'NSD';'NSD';'NSD'};
-Day=[1; 2; 1; 1; 2;  2; 1];
-table1=table(Animal,Condition,Day);
+    %            1    2    3     4     5     6    7     8    9
+    Animal=   {'AF';'AG';'AG';'AE'; 'AG'; 'AG';'AE'; 'AF'};% AE NSD 1 removed
+    Condition={'SD';'SD';'SD';'SD';'NSD';'NSD';'NSD';'NSD'};
+    Day=      [  2 ;  1 ;  2 ;  1 ;  1  ;  2  ;  2  ;  1  ];
+    sesDay=   [  3 ;  1 ;  3 ;  2 ;  2  ;  4  ;  3  ;  2  ];
+table1=table(Animal,Condition,Day,sesDay);
 for it=1:height(table1)
     s1=table1(it,:);
 %     phaseFile=sprintf('neuro.phase.PhasePrecessionCollection_%s-%s-%d', ...
 %         s1.Animal{:},s1.Condition{:},s1.Day);
     placeFile=sprintf('neuro.placeField.PlaceFieldMapCollection_%s-%s-%d', ...
-        s1.Animal{:},s1.Condition{:},s1.Day);
+        s1.Animal{:},s1.Condition{:},s1.sesDay);
     Sp=load(placeFile); pfmc=Sp.pfmc; clear Sp;
     tpf=pfmc.getPlaceFieldInfoTable; clear pfmc;
     s2=repmat(s1,height(tpf),1);
@@ -40,15 +42,16 @@ end
 % f2=tall.FiringRate<15;
 i1=tallf.Information>0;
 g1=[tallf.Stability.gini]'>0.5;
-c11=[tallf.Stability.CorrR1]'>0;
-c21=[tallf.Stability.CorrR2]'>0;
+c11=[tallf.Stability.Corr2R1]'>0;
+c21=[tallf.Stability.Corr2R2]'>0;
 tall1=tallf(i1&g1&c11&c21,:);
 condstr={'NSD','SD'};
 for ics=1:numel(condstr)
     conds{ics}=tall1(ismember(tall1.Condition,condstr{ics}),:);
 end
 colors=colororder;
-plot1={'Information','FiringRate','Stability.CorrR1','Stability.CorrR2','Stability.gini'};
+plot1={'Information','FiringRate','Stability.Corr2R1','Stability.Corr2R2',...
+    'Stability.gini'};
 figure;    tl=tiledlayout('flow');
 for iplot=1:numel(plot1)
     nexttile;
@@ -76,12 +79,17 @@ for iplot=1:numel(plot1)
         sprintf('%s\np=%.3f\nk=%.3f',hstr,p,ks2stat) ...
         , VerticalAlignment="bottom" ...
         );
-    t1=text(1,2,sprintf('N=%d',numel(this{1})),Color=colors(1,:),Units="characters");
-    t1=text(1,1,sprintf('N=%d',numel(this{2})),Color=colors(2,:),Units="characters");
+    t1=text(1,2,sprintf('N=%d',numel(this{1})),Color=colors(1,:), ...
+        Units="characters");
+    t1=text(1,1,sprintf('N=%d',numel(this{2})),Color=colors(2,:), ...
+        Units="characters");
     legend(condstr,Location="northwest");
 end
+
+
 %%
-ff=logistics.FigureFactory.instance("/home/ukaya/Dropbox (University of Michigan)/Kaya Sleep Project/Placefield");
+ff=logistics.FigureFactory.instance("/home/ukaya/Dropbox (University of " + ...
+    "Michigan)/Kaya Sleep Project/Placefield");
 % i1=tall.FiringRate>2;
 % f2=tall.FiringRate<15;
 tallp.median(tallp.median>pi)=tallp.median(tallp.median>pi)-2*pi;
@@ -114,7 +122,8 @@ for iplot=1:numel(plot1)
     for ic=1:numel(conds)
         try
             this{ic}=conds{ic}.(what);
-            aniDay{ic}=categorical(strcat(conds{ic}.('Animal'),'-',num2str(conds{ic}.('Day'))));
+            aniDay{ic}=categorical(strcat(conds{ic}.('Animal'),'-', ...
+                num2str(conds{ic}.('Day'))));
         catch ME
             what=split(what,'.');
             this{ic}=[conds{ic}.(what{1}).(what{2})]';
@@ -179,8 +188,10 @@ for iplot=1:numel(plot1)
         sprintf('%s\np=%.3f\nk=%.3f',hstr,p,ks2stat) ...
         , VerticalAlignment="bottom" ...
         );
-    t1=text(1,2,sprintf('N=%d',numel(this{1})),Color=colors(1,:),Units="characters");
-    t1=text(1,1,sprintf('N=%d',numel(this{2})),Color=colors(2,:),Units="characters");
+    t1=text(1,2,sprintf('N=%d',numel(this{1})),Color=colors(1,:),Units= ...
+        "characters");
+    t1=text(1,1,sprintf('N=%d',numel(this{2})),Color=colors(2,:),Units= ...
+        "characters");
     legend(condstr,Location="southeast");
     ff.save(savefile);
     close

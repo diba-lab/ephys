@@ -49,7 +49,7 @@ classdef SDExperiment < Singleton
         function S = get(obj)
             S=readstruct(obj.XMLFile);
         end
-        function color = getStateColors(obj,state)
+        function colorres = getStateColors(obj,states)
             S=readstruct(obj.XMLFile);
             statestr=fieldnames(S.Colors);
             for ist=1:numel(statestr)
@@ -59,18 +59,17 @@ classdef SDExperiment < Singleton
                 colors{ist}=S.Colors.(statestr{ist})/255;
             end
             color=containers.Map(statecodes, colors);
-            if exist('state','var')
-                if isnumeric( state)
-                    statecode=state;
-                elseif isstring(state)
-                    statecode=S.StateCodes.(state);
-                elseif iscategorical(state)
-                    statecode=S.StateCodes.(string(state));
-                end
-                try
-                    color=color(statecode);
-                catch ME
-                    
+            for ist=1:numel(states)
+                state=states(ist);
+                if exist('state','var')
+                    if isnumeric( state)
+                        statecode=state;
+                    elseif isstring(state)
+                        statecode=S.StateCodes.(state);
+                    elseif iscategorical(state)
+                        statecode=S.StateCodes.(string(state));
+                    end
+                    colorres(ist,:)=color(statecode);
                 end
             end
         end
@@ -91,6 +90,10 @@ classdef SDExperiment < Singleton
                     state1=statecodes(idx);
                 end
             end
+        end
+        function params = getAnalysisParams(obj,sesFolder)
+            params=readstruct(fullfile(sesFolder, ...
+                obj.get.FileLocations.Session.Analysis));
         end
         function S = set(obj,S)
             writestruct(S,obj.XMLFile);

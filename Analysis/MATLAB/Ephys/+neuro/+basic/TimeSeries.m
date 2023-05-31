@@ -68,7 +68,8 @@ classdef TimeSeries
                 'gaussian', obj.getSampleRate*windowInSeconds);
         end
         function obj=getZScored(obj)
-            obj.Values=zscore(obj.Values);
+            idx=isnan(obj.Values);
+            obj.Values(~idx)=zscore(obj.Values(~idx));
         end
         function vals=getValues(obj)
             vals = obj.Values;

@@ -58,7 +58,8 @@ classdef PositionDataTimeLoaded< position.PositionData
             else
                 file1=dir(fullfile(folder,['*' extension]));
                 if numel(file1)>1
-                    [name,folder1] = uigetfile({['*' extension],extension},'Selectone of the position files',folder);
+                    [name,folder1] = uigetfile({['*' extension],extension}, ...
+                        'Selectone of the position files',folder);
                     file1=dir(fullfile(folder1,name));
                 end
             end

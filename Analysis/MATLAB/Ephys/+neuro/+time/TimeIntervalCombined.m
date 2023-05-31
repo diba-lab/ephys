@@ -263,23 +263,26 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             time=theTimeInterval.getEndTimeZT;
         end
         
-        function obj = plus(obj,varargin)
+        function ticdnew = plus(obj,varargin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            ticdnew=neuro.time.TimeIntervalCombined;
+            for it=1:obj.timeIntervalList.length
+                ticdnew.timeIntervalList.add(obj.timeIntervalList.get(it));
+            end
             for iArgIn=1:nargin-1
                 theTimeInterval=varargin{iArgIn};
                 if ~isempty(theTimeInterval)
                     try
-                        assert(isa(theTimeInterval,'neuro.time.TimeInterval'));
-                        obj.timeIntervalList.add(theTimeInterval);
-                        l=logging.Logger.getLogger;
-                        l.fine(sprintf('\nRecord addded:\n%s',theTimeInterval.tostring));
-                    catch
-                        assert(isa(theTimeInterval,'neuro.time.TimeIntervalCombined'));
-                        til=theTimeInterval.timeIntervalList.createIterator;
-                        while(til.hasNext)
-                            obj.timeIntervalList.add(til.next);
+                        for it=1:theTimeInterval.timeIntervalList.length
+                            ticdnew.timeIntervalList.add( ...
+                                theTimeInterval.timeIntervalList.get(it));
                         end
+                        l=logging.Logger.getLogger;
+                        l.fine(sprintf('\nRecord addded:\n%s', ...
+                            theTimeInterval.tostring));
+                    catch
+                         ticdnew.timeIntervalList.add(theTimeInterval);
                     end
                 end
             end

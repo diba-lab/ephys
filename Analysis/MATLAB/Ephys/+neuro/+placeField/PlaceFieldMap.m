@@ -24,6 +24,9 @@ classdef PlaceFieldMap<neuro.placeField.FireRateMap
                 obj.MapSmooth=imgaussfilt(obj.MapSmooth,obj.Smooth);
             end
         end
+        function str=toString(obj)
+            str=obj.SpikeUnitTracked.tostring;
+        end
         function [] = plot(obj)
             ms=obj.OccupancyMap;
             ms(ms<eps)=0;
@@ -93,6 +96,12 @@ classdef PlaceFieldMap<neuro.placeField.FireRateMap
             catch ME
                 
             end
+            try
+                [cache, obj.SpikeUnitTracked]=...
+                    obj.SpikeUnitTracked.getPositionHeld(cache);
+            catch ME
+                
+            end
         end
         function [obj] = getPositionReload(obj,cache)
             try
@@ -103,6 +112,11 @@ classdef PlaceFieldMap<neuro.placeField.FireRateMap
             end
             try
                 obj.Parent=obj.Parent.getPositionReload(cache);
+            catch ME
+                
+            end
+            try
+                obj.SpikeUnitTracked=obj.SpikeUnitTracked.getPositionReload(cache);
             catch ME
                 
             end

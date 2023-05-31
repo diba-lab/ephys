@@ -20,12 +20,17 @@ classdef PositionData1D < position.PositionData
         end
 
         function str=toString(obj)
+            if ~isempty(obj.Info)
+                dir=string(obj.Info.direction);
+            else
+                dir='';
+            end
             try
-                str=sprintf('%d Channels: %s. %s. ',size(obj.data,2), ...
-                    strjoin(obj.channels), obj.time.tostring);
+                str=sprintf('%d Channels: %s. %s. %s',size(obj.data,2), ...
+                    strjoin(obj.channels), obj.time.tostring,dir);
             catch ME
-                str=sprintf('%d Channels. %s. ',size(obj.data,2), ...
-                    obj.time.tostring);
+                str=sprintf('%d Channels. %s. %s',size(obj.data,2), ...
+                    obj.time.tostring,dir);
             end
         end
         function obj=getWindow(obj,plsd)
@@ -50,6 +55,8 @@ classdef PositionData1D < position.PositionData
                 objs{idir,1}.data.X(~idx)=nan;
                 objs{idir,1}.data.Y(~idx)=nan;
                 objs{idir,1}.data.Z(~idx)=nan;
+                objs{idir,1}.Info.table=tbl1;
+                objs{idir,1}.Info.direction=dir;
             end
             tbl=table(objs,dirs,VariableNames={'Obj','Direction'});
         end

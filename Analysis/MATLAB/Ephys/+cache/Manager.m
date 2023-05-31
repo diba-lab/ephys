@@ -21,6 +21,10 @@ classdef Manager
                 tbl = table('Size',[0 2],...
                     'VariableTypes',{'string','string'}, ...
                     'VariableNames',{'Key','File'});
+                [folder,file,ext]=fileparts(conf);
+                if ~isfolder(folder)
+                    mkdir(folder);
+                end
                 save(conf,'tbl');
             end
             keep=false(height(tbl),1);
@@ -31,7 +35,7 @@ classdef Manager
                 end
             end
             obj.records=tbl(keep,:);
-            obj.load=false([height(obj.records) 1]);
+            obj.load=zeros([height(obj.records) 1]);
             obj.cached=CellArrayList;
             obj.conffile=conf;
             tbl=obj.records;
@@ -46,12 +50,22 @@ classdef Manager
                 obj = cache.Manager(conf);
                 uniqueInstance = obj;
             else
-                obj = uniqueInstance;
+                if strcmp(uniqueInstance.conffile,conf)
+                    obj = uniqueInstance;
+                else
+                    obj = cache.Manager(conf);
+                    uniqueInstance = obj;
+                end
             end
         end
     end
     %*** Define your own methods for SingletonImpl.
     methods % Public Access
+        function [obj]=reload(obj)
+            % Find if exist in the table and update and return the key
+            % or add it and return the generated key.
+            obj=cache.Manager.instance(obj.conffile);
+        end
         function [obj,key]=hold(obj, val,fileext)
             % Find if exist in the table and update and return the key
             % or add it and return the generated key.
@@ -67,10 +81,12 @@ classdef Manager
                 % if loaded replace the loaded item as well or add to
                 % loaded
                 if obj.load(ismember(tbl.Key,fn))>0
-                    obj.cached.add(val,obj.load(ismember(tbl.Key,fn)));
+                    position=obj.load(ismember(tbl.Key,fn));
+                    obj.cached.remove(position);
+                    obj.cached.add(val,position);
                 else
-                    obj.cached.add(val);
-                    obj.load(ismember(tbl.Key,fn))=obj.cached.length;
+%                     obj.cached.add(val);
+%                     obj.load(ismember(tbl.Key,fn))=obj.cached.length;
                 end
                 key=fn;
             else
@@ -100,11 +116,12 @@ classdef Manager
                 else
                     s=load(tbl.File(pos));
                     val=s.val;
+                    obj.cached.add(val);
+                    obj.load(pos)=obj.cached.length;
                 end
             else
                 val=[];
             end
-            
         end
     end
     methods 
