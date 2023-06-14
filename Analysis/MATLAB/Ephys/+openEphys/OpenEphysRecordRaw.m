@@ -12,7 +12,9 @@ classdef OpenEphysRecordRaw < openEphys.OpenEphysRecord
             fileLoaderMethod=obj.getFileLoaderMethod;
             try
                 oeProperties = fileLoaderMethod.load();
-            catch
+            catch ME
+                l=logging.Logger.getLogger;
+                l.error([ME.identifier,ME.message])
             end
             obj = obj.setData(oeProperties.Data);
             obj = obj.setTimeInterval(oeProperties.TimeInterval);

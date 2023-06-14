@@ -28,11 +28,13 @@ classdef HVSSWR
             ticd=obj.SWR.TimeIntervalCombined;
             ztshift=ticd.getStartTime-ticd.getZeitgeberTime;
             tws=neuro.time.TimeWindowsDuration(...
-                seconds(ticd.adjustTimestampsAsIfNotInterrupted(seconds(table2array(...
-                tw.getTimeTable))*ticd.getSampleRate)/ticd.getSampleRate)...
-                +ztshift);
+                seconds(ticd.adjustTimestampsAsIfNotInterrupted( ...
+                seconds(table2array(tw.getTimeTable))* ...
+                ticd.getSampleRate)/ticd.getSampleRate) + ztshift);
             obj.SWR.plotHistCount(120,[0 0 0]);
-            ax=gca;ax.YLim=[0 2];ax.XLim=[-3 10];ax.YLabel.String='SWR Rate /sec';ax.XLabel.String='ZT (hrs)';
+            ax=gca;ax.YLim=[0 2];ax.XLim=[-3 10];
+            ax.YLabel.String='SWR Rate /sec';
+            ax.XLabel.String='ZT (hrs)';
             yyaxis right;ax=gca;ax.YTickLabel=[];
             tws.plotScatter(gca,color);ax.YLim=[-1 1];
             hold off

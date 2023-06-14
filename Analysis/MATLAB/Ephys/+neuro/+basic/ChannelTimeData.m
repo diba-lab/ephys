@@ -59,8 +59,16 @@ classdef ChannelTimeData
             nansidx=any(isnan(data1));
             data3=nan(size(data1));
             data1(:,nansidx)=[];
-            data2=ft_preproc_lowpassfilter(data1, ...
-                obj.time.getSampleRate, freq);
+            try
+                data2=ft_preproc_lowpassfilter(data1, ...
+                    obj.time.getSampleRate, freq);
+            catch ME
+                if strcmp(ME.identifier,'MATLAB:UndefinedFunction')
+                    ft_defaults;
+                    data2=ft_preproc_lowpassfilter(data1, ...
+                        obj.time.getSampleRate, freq);
+                end
+            end
             data3(:,~nansidx)=data2;
             if istable(obj.data)
                 obj.data=array2table(data3','VariableNames',obj.data.Properties.VariableNames);

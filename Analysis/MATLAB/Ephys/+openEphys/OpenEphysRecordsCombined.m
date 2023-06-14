@@ -61,7 +61,11 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
             i=1;
             while(iter.hasNext())
                 anOpenEphysRecord=iter.next();
-                st(i)=anOpenEphysRecord.getRecordStartTime;i=i+1;
+                try
+                    st(i)=anOpenEphysRecord.getRecordStartTime;i=i+1;
+                catch ME
+                    
+                end
             end
             [B,I] =sort(st);
             ors=obj.getOpenEphysRecords;

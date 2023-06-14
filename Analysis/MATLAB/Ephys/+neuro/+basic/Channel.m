@@ -158,7 +158,7 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                     catch
                         diff1=seconds(0);
                     end
-                    t_s=minutes(ati.getTimePoints+diff1);
+                    t_s=hours(ati.getTimePoints+diff1);
                     ava=va(index_va:(index_va+ati.getNumberOfPoints-1));
                     index_va=index_va+ati.getNumberOfPoints;
                     p(iti)=plot(t_s,ava(1:numel(t_s)));
@@ -177,11 +177,12 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                 catch ME
                     t_s=t.getTimePoints;                    
                 end
-                t_s=minutes(t_s);
+                t_s=hours(t_s);
                 diff1=numel(t_s)-numel(va);
                 va((numel(va)+1):(numel(va)+diff1))=zeros(diff1,1);
                 p=plot(t_s,va(1:numel(t_s)),varargin{:});
             end
+            xlabel('ZT (Hrs)')
         end
         function obj=plus(obj,val)
             if isa(val,'neuro.basic.Channel')

@@ -194,12 +194,7 @@ classdef StateDetectionData
         end
         function [LFP]= getLFP(obj,channel,downsamplerate)
             warning('Depricated Method. Use ChannelTimeDataHard.getChannel OR .getCahnnelsLFP.')
-            tokens=tokenize(obj.BaseName,filesep);
-            path=[];
-            for i=1:numel(tokens)-1
-                path=[path tokens{i} filesep];
-            end
-            curr=cd(path);
+            curr=cd(fileparts(obj.BaseName));
             filename=[obj.BaseName '.lfp.ch' num2str(channel) '.' num2str(downsamplerate) '.mat'];
             if ~exist(filename,'file')
                 LFP=bz_GetLFP(channel,'downsample',downsamplerate);
@@ -544,8 +539,7 @@ classdef StateDetectionData
             range=(ss.Time>twsec(1))&(ss.Time<=twsec(2));
         end
         function basepath=getBasePath(~, basename)
-            tokens=tokenize(basename,filesep);
-            basepath=[filesep fullfile(tokens{1:numel(tokens)-1})];
+            basepath=fileparts(basename);
         end
     end
 end
