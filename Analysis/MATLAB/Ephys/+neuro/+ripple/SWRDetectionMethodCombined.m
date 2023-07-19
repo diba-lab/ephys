@@ -42,7 +42,8 @@ classdef SWRDetectionMethodCombined < neuro.ripple.SWRDetectionMethod
                     subfield=['shank' num2str(ashank_sw)];
                     if ~isfield(conf,subfield)
                         % NEUROSCOPE
-                        chansofShank_sw=probe.getShank(ashank_sw).getActiveChannels-1;
+                        chansofShank_sw=probe.getShank(ashank_sw).getActiveChannels;
+                        chansofShank_sw= round(linspace(min(chansofShank_sw),max(chansofShank_sw),17));
                     else
                         chansofShank_sw=str2double(conf.(subfield))'+1;
                     end

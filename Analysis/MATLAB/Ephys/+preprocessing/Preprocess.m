@@ -18,7 +18,12 @@ classdef Preprocess
             %   Detailed explanation goes here
             obj.Session = session;
             %% RawFiles
-            sde=experiment.SDExperiment.instance.get;
+            try
+                sde=readstruct(fullfile(session.SessionInfo.baseFolder,'Parameters/Experiment.xml'));
+            catch ME
+                error(ME)
+                sde=experiment.SDExperiment.instance.get;
+            end
             preprocessFile=fullfile(session.SessionInfo.baseFolder, sde.FileLocations.Preprocess.RawFiles);
             folder=fileparts(preprocessFile);
             if ~isfolder(folder), mkdir(folder);end
@@ -166,7 +171,7 @@ classdef Preprocess
                 end
                 save(oercCacheFile,'oerc')
             end
-            
+            readstr 
             sde=experiment.SDExperiment.instance.get;
             probeFile=fullfile(baseFolder,sde.FileLocations.Preprocess.Probe);
             probe=neuro.probe.Probe(probeFile);

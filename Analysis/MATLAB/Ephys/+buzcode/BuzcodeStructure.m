@@ -99,7 +99,9 @@ classdef BuzcodeStructure
             catch
                 varargin=cell(1,1);
                 try
-                    if ~(isempty(params.Channels.BestSW)||strcmp(params.Channels.BestSW,""))
+                    if ~(isempty(params.Channels.BestSW)|| ...
+                            strcmp(params.Channels.BestSW,"")|| ...
+                            isnan(params.Channels.BestSW))
                         varargin={varargin{:}, 'SWChannels', params.Channels.BestSW};
                     else
                         varargin={varargin{:}, 'SWChannels', params.Channels.SWChannels};
@@ -108,7 +110,9 @@ classdef BuzcodeStructure
                     logger.warning('No SW Channels set.')
                 end
                 try
-                    if ~(isempty(params.Channels.BestTheta)||strcmp(params.Channels.BestTheta,""))
+                    if ~(isempty(params.Channels.BestTheta)|| ...
+                            strcmp(params.Channels.BestTheta,"")|| ...
+                            isnan(params.Channels.BestTheta))
                         varargin={varargin{:},'ThetaChannels',params.Channels.BestTheta};
                     else
                         varargin={varargin{:},'ThetaChannels',params.Channels.ThetaChannels};

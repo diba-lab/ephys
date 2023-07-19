@@ -31,7 +31,7 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
             paramFile=fullfile(obj.BasePath,'Parameters','RippleDetection.xml');
             [folder, ~, ~]=fileparts(paramFile); if ~isfolder(folder), mkdir(folder);end
             if size(chans,1)>1, chans=chans';end
-            chasStr=genvarname(['ch' num2str(chans,'_%d')]);
+            chasStr=matlab.lang.makeValidName(['ch' num2str(chans,'_%d')]);
             try
                 Ripple1=readstruct(paramFile);
             catch

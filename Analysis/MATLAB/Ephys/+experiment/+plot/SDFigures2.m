@@ -173,6 +173,18 @@ classdef SDFigures2 <Singleton
             swrt=table(categorical(condsarr'),SWRarr',sesss','VariableNames',{'Condition','SWR','Sessions'});
 
         end
+        function getStateRelatedInfoTable(obj,block,states)
+            arguments
+                obj
+                block (1,:) ={'SD'}
+                states (1,:) ={'AWAKE','QWAKE','REM'}
+            end
+            sf=experiment.SessionFactory;
+            selected_ses=[1:2 4:12 14:15 18:23 ];
+            %             selected_ses=[1 2 11 12 21 22 ];
+            tses=sf.getSessionsTable(selected_ses);
+
+        end
         function plotFooof(obj,plotwh)
             if ~exist('plotwh','var')
                 plotwh=1;
@@ -225,7 +237,7 @@ classdef SDFigures2 <Singleton
                         blocks=ses.Blocks;
                         blocksStr1=categorical([1 2 3 4],[1 2 3 4],blocks.getBlockNames,'Ordinal',true);
                         blocksStr= blocksStr1([1 2 3 4]);
-                        % blocksStr= blocksStr1([2]);
+                        blocksStr= blocksStr1([2]);
                         %                         blocksStr= blocksStr1;
                         for iblock=1:numel(blocksStr)
                             boc=neuro.basic.BlockOfChannels();
@@ -263,11 +275,8 @@ classdef SDFigures2 <Singleton
                             boc=boc.addHypnogram(ss_block);
                             slidingWindowSize=minutes(params.Plot.SlidingWindowSizeInMinutes);
                             edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
-                            stateRatiosInTime=boc.getStateRatios(...
-                                seconds(slidingWindowSize),[],edges);
-                            statelist1=categorical( ...
-                                stateRatiosInTime.getStateList,[1 2 3 5], ...
-                                {'AWAKE','QWAKE','SWS','REM'});
+                            statelist1=unique(categorical(ss_block.States,[1 2 3 5], ...
+                                {'AWAKE','QWAKE','SWS','REM'}));
                             statelist=statelist1([1 4]);
                             for istate=1:numel(statelist)
                                 thestate=statelist(istate);
@@ -313,7 +322,7 @@ classdef SDFigures2 <Singleton
                                                     thpk1=episode1.getFrequencyBandPeakWavelet(thetaFreq);
                                                     thpk=episode1.getFrequencyBandPeakMT(thetaFreq);
                                                     fooof=episode{1}.getPSpectrumWelch.getFooof( ...
-                                                        params.Fooof(2),params.Fooof(2).f_range);
+                                                        params.Fooof(1),params.Fooof(1).f_range);
                                                     fooof.Info=episode{1}.Info;
                                                     fooof.Info.episode =episode{1};
                                                     thpk=thpk.addFooof(fooof);
@@ -409,9 +418,9 @@ classdef SDFigures2 <Singleton
             condlist=categorical({'NSD','SD'});
             blocklist=categorical({'PRE','NSD','SD','TRACK','POST'});
 
-            conds=condlist(1);
-            blocks=blocklist(1:5);
-            states=statelist(4);
+            conds=condlist(1:2);
+            blocks=blocklist(2:3);
+            states=statelist(1);
             for icond=1:numel(conds)
                 cond=conds(icond);
                 sesc=tses(ismember(tses.Condition,cond),:);

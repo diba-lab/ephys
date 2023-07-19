@@ -39,20 +39,16 @@ classdef TimeIntervalZT < neuro.time.TimeInterval
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             str1=tostring@neuro.time.TimeInterval(obj);
-            str2=char(obj.ZeitgeberTime,'h aa');
+            str2=char(obj.ZeitgeberTime,'yyyy-MM-dd--haa');
             str=sprintf('\tZT:%s %s',str2,str1);
         end
 
         function zt=getZeitgeberTime(obj)
-            if isduration(obj.ZeitgeberTime)
-                zt=obj.ZeitgeberTime+obj.getDate;
-            elseif isdatetime(obj.ZeitgeberTime)
-                zt=obj.ZeitgeberTime;
-            end
+            zt=obj.ZeitgeberTime;
         end
         function tps=getTimePointsZT(obj)
-            st=obj.getStartTime-obj.getDatetime(obj.getZeitgeberTime);
-            en=obj.getEndTime-obj.getDatetime(obj.getZeitgeberTime);
+            st=obj.getStartTimeZT;
+            en=obj.getEndTimeZT;
             tps=linspace(st,en,obj.NumberOfPoints);
         end
         function st=getStartTimeZT(obj)

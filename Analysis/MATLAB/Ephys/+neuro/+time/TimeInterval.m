@@ -172,7 +172,7 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
         % A method that returns the end time of the TimeIntervalZT object
         function time=getEndTimeZT(obj)
             % Compute the end time of the TimeIntervalZT object
-            time1=obj.StartTime+seconds((obj.NumberOfPoints-1)/obj.SampleRate);
+            time1=obj.getEndTime;
             % Subtract the Zeitgeber Time from the computed end time to get
             % the end time in the Zeitgeber Time zone
             time=time1-obj.getZeitgeberTime;

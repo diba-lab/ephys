@@ -52,7 +52,7 @@ classdef ChannelTimeDataHard < file.BinarySave
                 end
 
                 probe=neuro.probe.Probe(folder);
-                logger.info(probe.toString)
+                logger.info(['\n\t',probe.toString])
                 chans=probe.getActiveChannels;
                 numberOfChannels=numel(chans);
                 newObj.Probe=probe;

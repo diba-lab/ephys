@@ -70,7 +70,7 @@ classdef RippleAbs
             end
             [time,count]=obj.getHistCount(TimeBinsInSec);
             count1=smoothdata(count,'gaussian',10);
-            p2=plot(time,count1,'LineWidth',1);
+            p2=plot((time),count1,'LineWidth',1);
         end       
         function [time,count] = getHistCount(obj, TimeBinsInSec)
             if ~exist('TimeBinsInSec','var')||isempty(TimeBinsInSec)
@@ -82,7 +82,7 @@ classdef RippleAbs
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
             peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
             [N,edges]=histcounts(peakTimesAdjusted,1:TimeBinsInSec:max(peakTimesAdjusted));
-            t=minutes(seconds(edges(1:(numel(edges)-1))+TimeBinsInSec/2)+ztshift);
+            t=hours(seconds(edges(1:(numel(edges)-1))+TimeBinsInSec/2)+ztshift);
             time=linspace(min(t),max(t),numel(t)*1);
             N=N/TimeBinsInSec;
             count=interp1(t,N,time,'linear','extrap');
@@ -97,12 +97,14 @@ classdef RippleAbs
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
             peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
             SWAmplitude=obj.SwMax;
-            t=minutes(seconds(peakTimesAdjusted)+ztshift);
+            t=hours(seconds(peakTimesAdjusted)+ztshift);
             t1=linspace(min(t),max(t),seconds(hours(range(t)))*1);
             N=interp1(t,SWAmplitude,t1,'nearest');
+            N=medfilt1(N,TimeBinsInSec, 'omitnan');
             %             p2=plot(t,SWAmplitude,'LineWidth',1);p2.LineWidth=2;
             %             p2=plot(t1,N,'LineWidth',1);
-            p2=plot(t1,medfilt1(N,TimeBinsInSec, 'omitnan'),'LineWidth',1.5);
+            N=smoothdata(N,'gaussian',TimeBinsInSec);
+            p2=plot(t1,N,'LineWidth',1.5);
         end
         function [p2] = plotRippleAmplitudeHistCount(obj, TimeBinsInSec)
             if ~exist('TimeBinsInSec','var')||isempty(TimeBinsInSec)
@@ -114,12 +116,14 @@ classdef RippleAbs
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
             peakTimesAdjusted=peakTimeStampsAdjusted/ticd.getSampleRate;
             RipAmplitude=obj.getRipMax;
-            t=minutes(seconds(peakTimesAdjusted)+ztshift);
+            t=hours(seconds(peakTimesAdjusted)+ztshift);
             t1=linspace(min(t),max(t),seconds(hours(range(t)))*1);
             N=interp1(t,RipAmplitude,t1,'nearest');
+            N=medfilt1(N,TimeBinsInSec, 'omitnan');
             %             p2=plot(t,SWAmplitude,'LineWidth',1);p2.LineWidth=2;
             %             p2=plot(t1,N,'LineWidth',1);
-            p2=plot(t1,medfilt1(N,TimeBinsInSec, 'omitnan'),'LineWidth',1.5);
+            N=smoothdata(N,'gaussian',TimeBinsInSec);
+            p2=plot(t1,N,'LineWidth',1.5);
         end
 
         function [ripples, y]=getRipplesTimesInWindow(obj,toi)
@@ -294,13 +298,28 @@ classdef RippleAbs
 
                 end
             end
-            [ripple.peaktimes, idx]=sort([ripple.peaktimes; pt_new],1);
-            ripple.timestamps=[ripple.timestamps; rt_new];
-            ripple.timestamps=ripple.timestamps(idx,:);
-            ripple.RipMax=[ripple.RipMax; rp_new];
-            ripple.RipMax=ripple.RipMax(idx);
-            ripple.SwMax=[ripple.SwMax; swp_new];
-            ripple.SwMax=ripple.SwMax(idx);
+            try
+                [ripple.peaktimes, idx]=sort([ripple.peaktimes; pt_new],1);
+                ripple.timestamps=[ripple.timestamps; rt_new];
+                ripple.timestamps=ripple.timestamps(idx,:);
+                ripple.RipMax=[ripple.RipMax; rp_new];
+                ripple.RipMax=ripple.RipMax(idx);
+                ripple.SwMax=[ripple.SwMax; swp_new];
+                ripple.SwMax=ripple.SwMax(idx);
+            catch ME
+                if strcmp(ME.identifier,'MATLAB:nonExistentField')
+                    [ripple.peaktimes, idx]=sort(pt_new,1);
+                    ripple.timestamps=rt_new;
+                    ripple.timestamps=ripple.timestamps(idx,:);
+                    ripple.RipMax=rp_new;
+                    ripple.RipMax=ripple.RipMax(idx);
+                    ripple.SwMax= swp_new;
+                    ripple.SwMax=ripple.SwMax(idx);
+                else
+                    throw(ME);
+                end
+            end
+
 
             objnew=neuro.ripple.SWRipple(ripple);
             objnew=objnew.setTimeIntervalCombined(obj.TimeIntervalCombined);

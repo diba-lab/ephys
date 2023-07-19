@@ -18,9 +18,9 @@ classdef Manager
                 s=load(conf);
                 tbl=s.tbl;
             else
-                tbl = table('Size',[0 2],...
-                    'VariableTypes',{'string','string'}, ...
-                    'VariableNames',{'Key','File'});
+                tbl = table('Size',[0 3],...
+                    'VariableTypes',{'string','string','string'}, ...
+                    'VariableNames',{'Key','File','FileExt'});
                 [folder,file,ext]=fileparts(conf);
                 if ~isfolder(folder)
                     mkdir(folder);
@@ -53,6 +53,7 @@ classdef Manager
                 if strcmp(uniqueInstance.conffile,conf)
                     obj = uniqueInstance;
                 else
+                    clear uniqueInstance;
                     obj = cache.Manager(conf);
                     uniqueInstance = obj;
                 end
@@ -92,6 +93,11 @@ classdef Manager
             else
                 % save into file
                 s1.Key=fn;
+                if exist('fileext','var')
+                    s1.FileExt=fileext;
+                else
+                    s1.FileExt=[];
+                end
                 s1.File=fullfile(obj.getFolder,strcat(fn,'.mat'));
                 save(s1.File,'val');
                 % add to table and save the table
@@ -109,7 +115,7 @@ classdef Manager
             % else and load the variable from file and put it into record
             % and return
             tbl=obj.records;
-            pos=ismember(tbl.Key,key);
+            pos=ismember(tbl.Key,key)|ismember(tbl.FileExt,key);
             if any(pos)
                 if obj.load(pos)>0
                     val=obj.cached.get(obj.load(pos));
@@ -122,7 +128,7 @@ classdef Manager
             else
                 val=[];
             end
-        end
+         end
     end
     methods 
         function folder=getFolder(obj)

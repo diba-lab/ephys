@@ -26,10 +26,10 @@ classdef (Abstract) SWRDetectionMethod
             %eventually this will detect which lfp channel has the highest SNR for the
             % ripple componenent of SPWR events....
             ft_defaults
-            data=ft_preproc_bandpassfilter(LFP.data,LFP.sampleRate,frequencyBand);
-            
+
             for i=1:length(LFP.channels)
-                pow = fastrms(data(i,:),15);
+                data=ft_preproc_bandpassfilter(LFP.data(i,:),LFP.sampleRate,frequencyBand);
+                pow = fastrms(data,15);
                 mRipple(i) = mean(pow);
                 meRipple(i) = median(pow);
                 mmRippleRatio(i) = mRipple(i)./meRipple(i);

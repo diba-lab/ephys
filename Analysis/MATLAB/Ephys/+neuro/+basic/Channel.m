@@ -153,12 +153,8 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                 index_va=1;
                 for iti=1:tis.length
                     ati=tis.get(iti);
-                    try
-                        diff1=ati.getStartTime-ati.getZeitgeberTime;
-                    catch
-                        diff1=seconds(0);
-                    end
-                    t_s=hours(ati.getTimePoints+diff1);
+                   
+                    t_s=hours(ati.getTimePointsZT);
                     ava=va(index_va:(index_va+ati.getNumberOfPoints-1));
                     index_va=index_va+ati.getNumberOfPoints;
                     p(iti)=plot(t_s,ava(1:numel(t_s)));

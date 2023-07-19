@@ -34,7 +34,6 @@ classdef Fooof
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             fooof_plot(obj.fooof_results);
-            hold on;
 %             obj.plotPeaks;
         end
         function plotLog(obj)

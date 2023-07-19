@@ -1,18 +1,18 @@
 classdef ThetaPeaksContainer
     %THETAPEAKSCONTAINER Summary of this class goes here
     %   Detailed explanation goes here
-    
+
     properties
         ThetaPeaks
         Fooofs
         Parameters
-    end    
+    end
     properties
         condlist
         statelist
         blocklist
     end
-    
+
     methods
         function obj = ThetaPeaksContainer(thpks,fooof,params)
             %THETAPEAKSCONTAINER Construct an instance of this class
@@ -32,10 +32,14 @@ classdef ThetaPeaksContainer
             conds=fieldnames(thpks);
             tblres=[];
             newrate=25;
-            settings.peak_width_limts=[2.5 5];
+            settings.peak_width_limits=[2.5 5];
+            settings.peak_width_limits=[2 10];
             settings.max_n_peaks=4;
+            settings.max_n_peaks=8;
             settings.aperiodic_mode='fixed';%'knee''fixed'
+            settings.aperiodic_mode='knee';%'knee''fixed'
             f_range=[3 40];
+            f_range=[0.5 40];
 
             for ic=1:numel(conds)
                 cond=thpks.(conds{ic});
@@ -72,18 +76,16 @@ classdef ThetaPeaksContainer
                                     try
                                         ps=signal.getPSpectrumWelch;
                                         fo=ps.getFooof(settings,f_range);
-                                        pks=fo.getPeak([5 12]);
+                                        pks=fo.getPeak([5 10]);
                                     catch ME
-                                        if strcmp(ME.identifier,'signal:welchparse:invalidSegmentLength')
-                                        pks.cf=nan;
-                                        pks.power=nan;
+                                        if strcmp(ME.identifier, ...
+                                                'signal:welchparse:invalidSegmentLength')
+                                            pks.cf=nan;
+                                            pks.power=nan;
                                         end
                                     end
-
-
                                     tbl9(ibo,1)=pks.cf;
                                     tbl10(ibo,1)=pks.power;
-                                    
                                 end
                                 tbl61=array2table(tbl6,VariableNames={'EMG'});
                                 tbl71=array2table(tbl7,VariableNames={'Speed'});
@@ -393,7 +395,7 @@ classdef ThetaPeaksContainer
             try close(10); catch, end
             for icond=1:numel(conds)
                 cond=conds(icond);
-                try close(double(cond)+6); catch, end; 
+                try close(double(cond)+6); catch, end
                 f=figure(double(cond)+6);f.Position=[1,55,1280/10*col,1267];
                 if any(ismember({'SD','NSD'},block))
                     block=cond;
@@ -445,7 +447,7 @@ classdef ThetaPeaksContainer
         function plotDurationvsFrequency(obj,blockstr)
             ff=logistics.FigureFactory.instance(['/data/EphysAnalysis/' ...
                 'Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/' ...
-                'ExperimentSpecific/PlottingRoutines/Printout/fooof']);            
+                'ExperimentSpecific/PlottingRoutines/Printout/fooof']);
             durlim=[3 150];
             numsubs=[6 10 3 6];
             rotates=[10.5 6 25 10.5];
@@ -632,18 +634,18 @@ classdef ThetaPeaksContainer
                         idx=zscore(arrp1)<2|zscore(arrf1)<5;
                         arrf=arrf1(idx);
                         arrp=arrp1(idx);
-%                         s3(icond)=scatter(arrp,arrf, ...
-%                             'filled',MarkerFaceColor=mean(colors), ...
-%                             MarkerFaceAlpha=.2, ...
-%                             SizeData=.5 ...
-%                             );
-%                         s3(icond)=dscatter(arrp',arrf','plottype','scatter');
+                        %                         s3(icond)=scatter(arrp,arrf, ...
+                        %                             'filled',MarkerFaceColor=mean(colors), ...
+                        %                             MarkerFaceAlpha=.2, ...
+                        %                             SizeData=.5 ...
+                        %                             );
+                        %                         s3(icond)=dscatter(arrp',arrf','plottype','scatter');
                         s3(icond)=dscatter(arrp',arrf','plottype','contour');
                         colormap(s3(icond),othercolor(colorstr1{icond},7))
                         xlim([0 400]);
                         ylim([5 10]);
 
-                        if icond>1          
+                        if icond>1
                             axes(outset(isub));
                             axn.Visible='off';
                         end
@@ -721,8 +723,6 @@ classdef ThetaPeaksContainer
             legend(s1,{'NSD','SD'},Location="best")
             title(blockstr);
 
-
-            
             subplot(3,2,6);hold on;
             h1=histogram(tableall.Duration(tableall.Condition==1),linspace( ...
                 durlim(1),durlim(2),100),LineStyle="none", ...
@@ -749,7 +749,6 @@ classdef ThetaPeaksContainer
             ff.save(sprintf('PowerVsFrequency_raw%s_%s.png',blockstr,states))
             figure(11);
             ff.save(sprintf('Power_Spectrum%s_%s.png',blockstr,states))
-
         end
     end
 

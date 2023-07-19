@@ -31,11 +31,11 @@ classdef DataForLFP
                 l.error(sprintf('Couldnt read the file %s',analysisFile));
                 %% State
                 % NEUROSCOPE!
-                S.StateDetection.Channels.ThetaChannels=[2,7,12,16,20,25,30,32,34,39,44,48,52,57,62,64,66,71,76,80,84,89,94,96,98,103,108,112,116,121,126,128]-1;
-                S.StateDetection.Channels.SWChannels=[2,7,12,16,20,25,30,32,34,39,44,48,52,57,62,64,66,71,76,80,84,89,94,96,98,103,108,112,116,121,126,128]-1;
+                S.StateDetection.Channels.ThetaChannels=round(linspace(0,98,50));
+                S.StateDetection.Channels.SWChannels=round(linspace(0,98,50));
                 S.StateDetection.Channels.BestTheta=nan;
                 S.StateDetection.Channels.BestSW=nan;
-                S.StateDetection.Channels.EMGChannel=[0 31 96 127];
+                S.StateDetection.Channels.EMGChannel=[[0 31 96 127] ([0 31 96 127])+128];
                 S.StateDetection.Overwrite=0;
                 S.StateDetection.HVSFilter=0;
                 %% Ripple

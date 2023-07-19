@@ -17,7 +17,12 @@ classdef Session
             %SESSION Construct an instance of this class
             %   Detailed explanation goes here
             logger=logging.Logger.getLogger;
-            params=experiment.SDExperiment.instance.get;
+            try
+                params=readstruct(fullfile(baseFolder,"Parameters/Experiment.xml"));
+            catch ME
+                logger.error(ME.identifier,ME.message);
+                params=experiment.SDExperiment.instance.get;                
+            end
             %% SessionInfo
             sessionInfoFile=fullfile(baseFolder, ...
                 params.FileLocations.Session.SessionInfo);
@@ -28,6 +33,7 @@ classdef Session
                 logger.info('Session info file is loaded.')
             catch
                 sessionInfo.baseFolder=baseFolder;
+                sessionInfo.ExperimentCode='';
                 sessionInfo.Date='';
                 sessionInfo.Notes='';
                 sessionInfo.ZeitgeberTime='hh:mm:ss';

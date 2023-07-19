@@ -22,9 +22,6 @@ classdef TimeFrequencyMapWavelet < neuro.tf.TimeFrequencyMap
             imsc=imagesc(obj.timePoints-obj.timePoints(1),...
                 obj.frequencyPoints,mat);
             ax=gca;
-            ax.YScale='log';
-            tickpoints=round(linspace(1,numel(obj.frequencyPoints),10));
-            ax.YTick=unique(round(obj.frequencyPoints(tickpoints)));
             ax.YDir='normal';
             ax.XLim=[0 max(obj.timePoints)];
             ax.YLim=[obj.frequencyPoints(1) obj.frequencyPoints(end)];

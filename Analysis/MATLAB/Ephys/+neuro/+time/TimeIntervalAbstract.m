@@ -95,7 +95,7 @@ classdef TimeIntervalAbstract
             end
         end
         function date=getDate(obj)
-            st=obj.getEndTime;
+            st=obj.getStartTime;
             date=datetime( st.Year,st.Month,st.Day);
         end
         function tps=getTimePointsInSamples(obj)

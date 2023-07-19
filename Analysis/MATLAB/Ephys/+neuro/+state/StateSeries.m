@@ -174,8 +174,16 @@ classdef StateSeries
                 'Q-WAKE','SWS','INT','REM'});
             restbl=[center1 statecounts];
         end
-        function [theEpisodeAbs tbls]=getState(obj,states)
+        function [theEpisodeAbs, tbls]=getState(obj,states)
+            ticd=obj.TimeIntervalCombined;
             stateEpisodes=obj.getEpisodes;
+            if ~iscategorical(states)
+                if iscell(states)
+                    states=categorical(states);
+                else
+                    states=categorical({states});
+                end
+            end
             tbls=[];
             for is=1:numel(states)
                 state=states(is);
@@ -186,6 +194,8 @@ classdef StateSeries
                 else
                     theEpisode=stateEpisodes.(strcat(string(state),'state'));
                 end
+                theEpisode=ticd.adjustTimestampsAsIfNotInterrupted( ...
+                    theEpisode*ticd.getSampleRate)/ticd.getSampleRate;
                 tbl=array2table(theEpisode,"VariableNames",{'start','end'});
                 tbl=[tbl array2table(repmat(state,[height(tbl),1]), ...
                     "VariableNames",{'state'})];
@@ -202,6 +212,7 @@ classdef StateSeries
                     wind=[tbls(irow,:).start tbls(irow,:).end];
                     theEpisodeAbs(irow,:)=ticdss.getStartTime+seconds(wind);
                 end
+                tbls=[tbls array2table(theEpisodeAbs,VariableNames={'AbsStart','AbsEnd'})];
             else
                 theEpisodeAbs=[];
             end
