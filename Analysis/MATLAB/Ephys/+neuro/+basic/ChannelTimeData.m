@@ -19,10 +19,10 @@ classdef ChannelTimeData
                 else
                     l.error('Provide string or scalar.')
                 end
-                if isa(time,'neuro.time.TimeIntervalCombined')||isa(time,'neuro.time.TimeInterval')
+                if isa(time,'time.TimeIntervalCombined')||isa(time,'time.TimeInterval')
                     obj.time = time;
                 else
-                    l.error('Provide neuro.time.TimeIntervalCombined object.')
+                    l.error('Provide time.TimeIntervalCombined object.')
                 end
                 if isequal(size(data),[numel(ch) time.getNumberOfPoints])
                     obj.data=data;
@@ -137,7 +137,7 @@ classdef ChannelTimeData
         function obj = insertNansForGaps(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            if isa(obj.time,'neuro.time.TimeIntervalCombined')
+            if isa(obj.time,'time.TimeIntervalCombined')
                 obj.time.getNumberOfPoints
                 til=obj.time.getTimeIntervalList.createIterator;
                 it=1;
@@ -162,7 +162,7 @@ classdef ChannelTimeData
                 obj.time=timeIntervalFinal;
             else
                 warning(['No gaps to be filled by nans. Object is ''%s'', not a ''' ...
-                    'neuro.time.TimeIntervalCombined''.\n'],class(obj.time));
+                    'time.TimeIntervalCombined''.\n'],class(obj.time));
 
             end
         end

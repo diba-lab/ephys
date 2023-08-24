@@ -49,7 +49,7 @@ classdef Polar
             %   Detailed explanation goes here
             t=linspace(0,.250,250);
             y=sin(8*t*2*pi);
-            y1=neuro.basic.Channel('',y,neuro.time.TimeInterval(datetime('today'),1000,numel(t)));
+            y1=neuro.basic.Channel('',y,time.TimeInterval(datetime('today'),1000,numel(t)));
             y1ph=y1.getHilbertPhase;
             y1ph.plot
             

@@ -1,4 +1,4 @@
-classdef ZeitgeberTime < neuro.time.Relative
+classdef ZeitgeberTime < time.Relative
     %ZEITGEBERTIME Summary of this class goes here
     %   Detailed explanation goes here
     

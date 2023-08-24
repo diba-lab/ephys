@@ -57,7 +57,7 @@ classdef OptiCSVFileGeneral < position.optiTrack.OptiCSVFile
             zt = duration(inputdlg(prompt,dlgtitle,dims,definput),'InputFormat','hh:mm');
 
 
-            ticzt=neuro.time.TimeIntervalZT(obj.CaptureStartTime, ...
+            ticzt=time.TimeIntervalZT(obj.CaptureStartTime, ...
                 obj.ExportFrameRate,obj.TotalExportedFrames,zt);
             for ipos=1:height(list)
                 ln=list(ipos,:);

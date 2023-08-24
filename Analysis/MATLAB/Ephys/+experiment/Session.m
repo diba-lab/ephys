@@ -1,7 +1,7 @@
 classdef Session
     %SESSION Summary of this class goes here
     %   Detailed explanation goes here
-    
+
     properties
         Animal
         SessionInfo
@@ -11,86 +11,88 @@ classdef Session
     properties (Access=private)
         SessionInfoFile
     end
-    
+
     methods
         function obj = Session(baseFolder)
             %SESSION Construct an instance of this class
             %   Detailed explanation goes here
-            logger=logging.Logger.getLogger;
-            try
-                params=readstruct(fullfile(baseFolder,"Parameters/Experiment.xml"));
-            catch ME
-                logger.error(ME.identifier,ME.message);
-                params=experiment.SDExperiment.instance.get;                
-            end
-            %% SessionInfo
-            sessionInfoFile=fullfile(baseFolder, ...
-                params.FileLocations.Session.SessionInfo);
-            folder=fileparts(sessionInfoFile);
-            if ~isfolder(folder), mkdir(folder);end
-            try 
-                sessionInfo=readstruct(sessionInfoFile);
-                logger.info('Session info file is loaded.')
-            catch
-                sessionInfo.baseFolder=baseFolder;
-                sessionInfo.ExperimentCode='';
-                sessionInfo.Date='';
-                sessionInfo.Notes='';
-                sessionInfo.ZeitgeberTime='hh:mm:ss';
-                sessionInfo.Condition='';                
-                writestruct(sessionInfo,sessionInfoFile)
-                logger.info(strcat(['No session info file. ' ...
-                    'It is created.\t'], sessionInfoFile))
-            end
-            obj.SessionInfoFile=sessionInfoFile;
-            obj.SessionInfo=sessionInfo;
-            if ~strcmp(sessionInfo.baseFolder,baseFolder)
-                sessionInfo.baseFolder=baseFolder;
-                obj=obj.setSessionInfo(sessionInfo);
-            end
-            %% Blocks
-            blockFile=fullfile(baseFolder,params.FileLocations.Session.Blocks);
-            try 
-                blockstt=readtimetable(blockFile,'Delimiter',',');
-                logger.info('Experimental Block file is loaded.')
-            catch
-                blocks=params.Blocks.Block;
-                blockstt=[];
-                for iblock=1:numel(blocks)
-                    t1=datetime('now','Format','HH:mm:ss');
-                    t2=datetime('now','Format','HH:mm:ss')+hours(3);
-                    Block=blocks(iblock);
-                    blockstt=[blockstt; timetable(t1, t2, Block)]; %#ok<AGROW>
-                end             
-                writetimetable(blockstt,blockFile);
-                logger.info(strcat(['No experimental blocks file.' ...
-                    ' It is created.\t'], blockFile))
-            end
-            sdblock=experiment.SDBlocks(obj.SessionInfo.Date,blockstt);
-            try sdblock.ZeitgeberTime=obj.SessionInfo.ZeitgeberTime; catch,end
-            obj.Blocks=sdblock;
-            try
-                logger.info(sdblock.print)
-                %% Location
-%                 LocFile=fullfile(baseFolder,
-% params.FileLocations.Session.Location);
-                
-            catch
-                
-            end
-            %% Probe
-            key=fullfile(baseFolder,strcat('*Probe*.xlsx'));
-            list=dir(key);
-            try
-                probe=neuro.probe.Probe(fullfile(list().folder,list.name));
-                obj.Probe=probe;
-                logger.info('Probe file is loaded.')
-%                 logger.info(probe.print)
-            catch
-                logger.info(strcat('No probe file. ', key))
+            if nargin>0
+                logger=logging.Logger.getLogger;
+                try
+                    params=readstruct(fullfile(baseFolder,"Parameters/Experiment.xml"));
+                catch ME
+                    logger.error(ME.identifier,ME.message);
+                    params=experiment.SDExperiment.instance.get;
+                end
+                %% SessionInfo
+                sessionInfoFile=fullfile(baseFolder, ...
+                    params.FileLocations.Session.SessionInfo);
+                folder=fileparts(sessionInfoFile);
+                if ~isfolder(folder), mkdir(folder);end
+                try
+                    sessionInfo=readstruct(sessionInfoFile);
+                    logger.info('Session info file is loaded.')
+                catch
+                    sessionInfo.baseFolder=baseFolder;
+                    sessionInfo.ExperimentCode='';
+                    sessionInfo.Date='';
+                    sessionInfo.Notes='';
+                    sessionInfo.ZeitgeberTime='hh:mm:ss';
+                    sessionInfo.Condition='';
+                    writestruct(sessionInfo,sessionInfoFile)
+                    logger.info(strcat(['No session info file. ' ...
+                        'It is created.\t'], sessionInfoFile))
+                end
+                obj.SessionInfoFile=sessionInfoFile;
+                obj.SessionInfo=sessionInfo;
+                if ~strcmp(sessionInfo.baseFolder,baseFolder)
+                    sessionInfo.baseFolder=baseFolder;
+                    obj=obj.setSessionInfo(sessionInfo);
+                end
+                %% Blocks
+                blockFile=fullfile(baseFolder,params.FileLocations.Session.Blocks);
+                try
+                    blockstt=readtimetable(blockFile,'Delimiter',',');
+                    logger.info('Experimental Block file is loaded.')
+                catch
+                    blocks=params.Blocks.Block;
+                    blockstt=[];
+                    for iblock=1:numel(blocks)
+                        t1=datetime('now','Format','HH:mm:ss');
+                        t2=datetime('now','Format','HH:mm:ss')+hours(3);
+                        Block=blocks(iblock);
+                        blockstt=[blockstt; timetable(t1, t2, Block)]; %#ok<AGROW>
+                    end
+                    writetimetable(blockstt,blockFile);
+                    logger.info(strcat(['No experimental blocks file.' ...
+                        ' It is created.\t'], blockFile))
+                end
+                sdblock=experiment.SDBlocks(obj.SessionInfo.Date,blockstt);
+                try sdblock.ZeitgeberTime=obj.SessionInfo.ZeitgeberTime; catch,end
+                obj.Blocks=sdblock;
+                try
+                    logger.info(sdblock.print)
+                    %% Location
+                    %                 LocFile=fullfile(baseFolder,
+                    % params.FileLocations.Session.Location);
+
+                catch
+
+                end
+                %% Probe
+                key=fullfile(baseFolder,strcat('*Probe*.xlsx'));
+                list=dir(key);
+                try
+                    probe=neuro.probe.Probe(fullfile(list().folder,list.name));
+                    obj.Probe=probe;
+                    logger.info('Probe file is loaded.')
+                    %                 logger.info(probe.print)
+                catch
+                    logger.info(strcat('No probe file. ', key))
+                end
             end
         end
-        
+
         function obj = setAnimal(obj,animal)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -122,11 +124,11 @@ classdef Session
                 sde.FileLocations.Session.Probe);
             if nargin>1
                 obj.Probe = probe;
-                
+
             else
                 % load templateProbe
                 obj.Probe=neuro.probe.Probe( ...
-                    sde.FileLocations.General.ProbeTemplate); 
+                    sde.FileLocations.General.ProbeTemplate);
                 warning('No Probe File. Template is loaded.');
             end
             obj.Probe.saveProbeTable(probeFile);
@@ -134,7 +136,7 @@ classdef Session
         function obj = setSessionInfo(obj,sessionInfoStruct)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            
+
             writestruct(sessionInfoStruct,obj.SessionInfoFile)
             obj.SessionInfo = sessionInfoStruct;
         end
@@ -154,7 +156,7 @@ classdef Session
         function path= getBasePath(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-                path=obj.SessionInfo.baseFolder;
+            path=obj.SessionInfo.baseFolder;
 
         end
 
@@ -182,7 +184,7 @@ classdef Session
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             try
-                ticd=neuro.time.TimeIntervalCombined( ...
+                ticd=time.TimeIntervalCombined( ...
                     obj.SessionInfo.baseFolder);
                 zt=ticd.getZeitgeberTime;
             catch
@@ -236,7 +238,7 @@ classdef Session
             end
             close(f);
         end
-        
+
     end
 end
 

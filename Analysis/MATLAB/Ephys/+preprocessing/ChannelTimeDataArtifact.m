@@ -98,7 +98,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
                 try mkdir(fullfile(obj.getFolder,'cache')); catch, end
                 save(cachefile,'artifact')
             end
-            tws=neuro.time.TimeWindowsSample(artifact);
+            tws=time.TimeWindowsSample(artifact);
             twd=tws.getDuration(obj.getTimeIntervalCombined.getSampleRate);
             if overwrite
                 twd.saveForNeuroscope(obj.getFolder,'jump');
@@ -117,7 +117,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
                 mkdir(fullfile(obj.getFolder,'cache'));
                 save(cachefile,'artifact')
             end
-            tws=neuro.time.TimeWindowsSample(artifact);
+            tws=time.TimeWindowsSample(artifact);
             twd=tws.getDuration(obj.getTimeIntervalCombined.getSampleRate);
             if overwrite
                 twd.saveForNeuroscope(obj.getFolder,'clip');
@@ -137,7 +137,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
                 mkdir(fullfile(obj.getFolder,'cache'));
                 save(cachefile,'artifact')
             end
-            tws=neuro.time.TimeWindowsSample(artifact);
+            tws=time.TimeWindowsSample(artifact);
             twd=tws.getDuration(obj.getTimeIntervalCombined.getSampleRate);
             if overwrite
                 twd.saveForNeuroscope(obj.getFolder,'zval');
@@ -163,7 +163,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
                 mkdir(fullfile(obj.getFolder,'cache'));
                 save(cachefile,'artifact')
             end
-            tws1=neuro.time.TimeWindowsSample(artifact);
+            tws1=time.TimeWindowsSample(artifact);
             twd1=tws1.getDuration(obj.getTimeIntervalCombined.getSampleRate);
             cfg1.artfctdef.zvalue.cutoff     = -20;
             cachefile=fullfile(obj.getFolder,'cache',[DataHash(cfg1.artfctdef.zvalue) '.mat']);
@@ -175,7 +175,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
                 mkdir(fullfile(obj.getFolder,'cache'));
                 save(cachefile,'artifact')
             end
-            tws2=neuro.time.TimeWindowsSample(artifact);
+            tws2=time.TimeWindowsSample(artifact);
             twd2=tws2.getDuration(obj.getTimeIntervalCombined.getSampleRate);
             twd=twd1+twd2;
             twd=twd.mergeOverlaps(0);
@@ -197,7 +197,7 @@ classdef ChannelTimeDataArtifact < neuro.basic.ChannelTimeDataHard
                 mkdir(fullfile(obj.getFolder,'cache'));
                 save(cachefile,'artifact')
             end
-            tws=neuro.time.TimeWindowsSample(artifact);
+            tws=time.TimeWindowsSample(artifact);
             twd=tws.getDuration(obj.getTimeIntervalCombined.getSampleRate);
             if overwrite
                 twd.saveForNeuroscope(obj.getFolder,'thrd');

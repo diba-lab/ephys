@@ -1,4 +1,4 @@
-classdef TimeWindowsAbsolute<neuro.time.TimeWindows
+classdef TimeWindowsAbsolute<time.TimeWindows
     %TIMEWINDOWS Summary of this class goes here
     %   Detailed explanation goes here
     

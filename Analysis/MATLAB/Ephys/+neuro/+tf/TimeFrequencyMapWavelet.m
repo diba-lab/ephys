@@ -15,15 +15,35 @@ classdef TimeFrequencyMapWavelet < neuro.tf.TimeFrequencyMap
 %             obj.clim=[0 1];
         end
         
-        function imsc = plot(obj)
+        function imsc = plot(obj,varargin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            abs1=ismember(varargin,{'Absolute','Abs','absolute','abs'} );
+            varargin(abs1)=[];
+            zt1=ismember(varargin,{'ZT','zt'});
+            varargin(zt1)=[];
+            s1=ismember(varargin,{'s','sec','second','seconds', ...
+                'S','Sec','Second','Seconds'});
+            varargin(s1)=[];
+            h1=ismember(varargin,{'h','hours','H','Hours'});
+            varargin(h1)=[];
+
             mat=(abs(obj.matrix));
-            imsc=imagesc(obj.timePoints-obj.timePoints(1),...
-                obj.frequencyPoints,mat);
+            ticd=obj.timeIntervalCombined;
+            if any(abs1)
+                timepoints=ticd.getTimePointsInAbsoluteTimes;
+            else
+                tp=ticd.getTimePointsZT;
+                if ~any(s1)
+                    timepoints=hours(tp);
+                else
+                    timepoints=seconds(tp);
+                end
+            end
+            imsc=imagesc(timepoints, obj.frequencyPoints,mat);
             ax=gca;
             ax.YDir='normal';
-            ax.XLim=[0 max(obj.timePoints)];
+            ax.XLim=[min(timepoints) max(timepoints)];
             ax.YLim=[obj.frequencyPoints(1) obj.frequencyPoints(end)];
             m=mean2(mat);s=std2(mat);
             ax.CLim=[m-2*s m+2*s];

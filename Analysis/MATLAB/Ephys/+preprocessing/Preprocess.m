@@ -87,7 +87,7 @@ classdef Preprocess
                 l=logging.Logger.getLogger;
                 l.error('No bad file: %s',badFile);
             end
-            obj.Bad=neuro.time.TimeWindowsDuration(bad);
+            obj.Bad=time.TimeWindowsDuration(bad);
             %% Params
             paramFile=fullfile(session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Parameters);
             cfg=[];
@@ -262,7 +262,7 @@ classdef Preprocess
             dataForLFP=preprocessing.DataForLFP(newFileName);
             dataForLFP=dataForLFP.setProbe(newprobe);
             list=dir(fullfile(baseFolder,'*TimeIntervalCombined*'));
-            ticd=neuro.time.TimeIntervalCombined(fullfile(baseFolder,list.name));
+            ticd=time.TimeIntervalCombined(fullfile(baseFolder,list.name));
             dataForLFP=dataForLFP.setTimeIntervalCombined(ticd);
         end
         function [obj]=reCalculateArtifacts(obj)

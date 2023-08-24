@@ -36,7 +36,7 @@ classdef SpikeUnit < neuro.spike.SpikeUnitRaw
         function times = getTimes(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            times=neuro.time.Sample(obj.TimesInSamples, ...
+            times=time.Sample(obj.TimesInSamples, ...
                 obj.Time.getSampleRate);
         end
         function tpZT = getTimesZT(obj)
@@ -56,7 +56,7 @@ classdef SpikeUnit < neuro.spike.SpikeUnitRaw
             timesInSamples=obj.TimesInSamples;
             til=obj.Time.getTimeIntervalList;
             endtimeinseclast=0;
-            ticdnew=neuro.time.TimeIntervalCombined;
+            ticdnew=time.TimeIntervalCombined;
             for iti=1:til.length
                 ti=til.get(iti);
                 endtimeinsec=seconds(ti.getEndTime-ti.getStartTime);
@@ -70,7 +70,7 @@ classdef SpikeUnit < neuro.spike.SpikeUnitRaw
                 else
                     Nres=[Nres N];
                 end
-                tinew=neuro.time.TimeIntervalZT( ...
+                tinew=time.TimeIntervalZT( ...
                     ti.getStartTime+seconds(TimeBinsInSec/2), ...
                     1/(TimeBinsInSec),numel(N),ti.getZeitgeberTime);
                 ticdnew=ticdnew+tinew;

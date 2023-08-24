@@ -40,7 +40,7 @@ classdef PositionDataTimeLoaded< position.PositionData
             obj.data=readtable(obj.source);
             folder=fileparts(file1);
             obj.channels=obj.data.Properties.VariableNames;
-            obj.time=neuro.time.TimeIntervalCombined( ...
+            obj.time=time.TimeIntervalCombined( ...
                 fullfile(folder,[uni extt]));
             if obj.time.timeIntervalList.length==1
                 obj.time=obj.time.timeIntervalList.get(1);

@@ -62,7 +62,7 @@ classdef HighVoltageSignals < neuro.event.Events
                 edges=diff(HVSeventidx);
                 Start=seconds(find(edges==1)'); Stop=seconds(find(edges==-1)');
                 t=table(Start,Stop);
-                tw2=neuro.time.TimeWindowsDuration(t);
+                tw2=time.TimeWindowsDuration(t);
                 pr=preprocessing.Preprocess(experiment.Session(fileparts(dataForLFP.DataFile)));
                 bad=pr.Bad;
                 tw1=tw2-bad;

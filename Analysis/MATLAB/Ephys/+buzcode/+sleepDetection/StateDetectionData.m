@@ -49,7 +49,7 @@ classdef StateDetectionData
             key=fullfile(basepath, '*TimeIntervalCombined*');
             thefile=dir(key);
             try
-                ticd=neuro.time.TimeIntervalCombined(fullfile(thefile.folder,thefile.name));
+                ticd=time.TimeIntervalCombined(fullfile(thefile.folder,thefile.name));
                 logger.info('Time is loaded.');
             catch
                 logger.error(sprintf('I couldn''t find the TimeIntervalCombined file.\n\t%s',key));
@@ -137,7 +137,7 @@ classdef StateDetectionData
             chname='EMG';
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/obj.EMGFromLFP.samplingFrequency;
             ticd=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd=ticd.shiftTimePoints(neuro.time.Relative(seconds(obj.EMGFromLFP.timestamps(1)/2)));
+            ticd=ticd.shiftTimePoints(time.Relative(seconds(obj.EMGFromLFP.timestamps(1)/2)));
             ch=neuro.basic.Channel(chname,ts1,ticd);
             ch=ch.setInfo(obj.Info);
             cht=neuro.basic.ChannelsThreshold(ch,obj.getEMGThreshold,obj.isEMGSticky);
@@ -157,7 +157,7 @@ classdef StateDetectionData
             tsr=interp1(t,ts1,t1);
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
             ticd1=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd2=ticd1.shiftTimePoints(neuro.time.Relative(seconds( ...
+            ticd2=ticd1.shiftTimePoints(time.Relative(seconds( ...
                 obj.SleepState.idx.timestamps(1))));
             ticd=ticd2.getTimeIntervalForTimes([ticd2.getStartTime ticd1.getEndTime]);
             ch=neuro.basic.Channel('TH',tsr,ticd);
@@ -224,7 +224,7 @@ classdef StateDetectionData
             tsr=interp1(t,ts1,t1);
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
             ticd1=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd2=ticd1.shiftTimePoints(neuro.time.Relative(seconds( ...
+            ticd2=ticd1.shiftTimePoints(time.Relative(seconds( ...
                 obj.SleepState.idx.timestamps(1))));
             ticd=ticd2.getTimeIntervalForTimes([ticd2.getStartTime ticd1.getEndTime]);
             ch=neuro.basic.Channel('SW',tsr,ticd);
@@ -244,7 +244,7 @@ classdef StateDetectionData
             states=idx.states;
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
             ticd1=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd2=ticd1.shiftTimePoints(neuro.time.Relative(seconds( ...
+            ticd2=ticd1.shiftTimePoints(time.Relative(seconds( ...
                 obj.SleepState.idx.timestamps(1)/2)));
             ticd=ticd2.getTimeIntervalForTimes([ticd2.getStartTime ticd1.getEndTime]);
             ss=neuro.state.StateSeries(states,ticd);
@@ -257,7 +257,7 @@ classdef StateDetectionData
             states=idx.states;
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
             ticd1=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd2=ticd1.shiftTimePoints(neuro.time.Relative(seconds( ...
+            ticd2=ticd1.shiftTimePoints(time.Relative(seconds( ...
                 obj.SleepState.idx.timestamps(1))));
             ticd=ticd2.getTimeIntervalForTimes([ticd2.getStartTime ticd1.getEndTime]);
             ch=neuro.basic.Channel('StS',states,ticd);

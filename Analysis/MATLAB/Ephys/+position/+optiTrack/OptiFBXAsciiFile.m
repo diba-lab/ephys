@@ -59,7 +59,7 @@ classdef OptiFBXAsciiFile<position.optiTrack.OptiFile
         function positionData = getPositionData(obj,zt)
             % Create a time interval using the capture start time, the export frame rate,
             % and the height of the table (number of rows).
-            timeInterval = neuro.time.TimeIntervalZT(obj.CaptureStartTime, ...
+            timeInterval = time.TimeIntervalZT(obj.CaptureStartTime, ...
                 obj.ExportFrameRate, height(obj.table),zt);
 
             % Create a PositionData object using the X, Y, and Z columns of the table and the time interval.

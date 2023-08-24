@@ -46,18 +46,11 @@ classdef Manager
         % Concrete implementation.  See Singleton superclass.
         function obj = instance(conf)
             persistent uniqueInstance
-            if isempty(uniqueInstance)
-                obj = cache.Manager(conf);
-                uniqueInstance = obj;
-            else
-                if strcmp(uniqueInstance.conffile,conf)
-                    obj = uniqueInstance;
-                else
-                    clear uniqueInstance;
-                    obj = cache.Manager(conf);
-                    uniqueInstance = obj;
-                end
-            end
+
+            clear uniqueInstance;
+            obj = cache.Manager(conf);
+            uniqueInstance = obj;
+
         end
     end
     %*** Define your own methods for SingletonImpl.

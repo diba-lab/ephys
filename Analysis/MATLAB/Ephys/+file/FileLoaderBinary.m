@@ -161,7 +161,7 @@ p.PhoStartTimestampPlugin.RecordingStartTimestamp.Attributes.startTime;
             file=dir(D.Data.Filename);
             samples=file.bytes/2/hdr.num_channels;
 
-            openEphysRecord.TimeInterval=neuro.time.TimeInterval( ...
+            openEphysRecord.TimeInterval=time.TimeInterval( ...
                 starttime,D.Header.sample_rate,samples);
             openEphysRecord.DataFile=D.Data.Filename;
             try

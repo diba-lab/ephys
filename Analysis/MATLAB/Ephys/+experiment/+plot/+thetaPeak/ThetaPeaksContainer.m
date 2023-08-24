@@ -39,7 +39,7 @@ classdef ThetaPeaksContainer
             settings.aperiodic_mode='fixed';%'knee''fixed'
             settings.aperiodic_mode='knee';%'knee''fixed'
             f_range=[3 40];
-            f_range=[0.5 40];
+            f_range=[1 40];
 
             for ic=1:numel(conds)
                 cond=thpks.(conds{ic});
@@ -134,11 +134,11 @@ classdef ThetaPeaksContainer
                                     zt+[winstart(iw) winend(iw)]);
                                 try
                                     ps=sigsub.getPSpectrumWelch;
-                                    settings.peak_width_limts=[2 8];
-                                    settings.max_n_peaks=4;
-                                    settings.aperiodic_mode='fixed';
-                                    fo=ps.getFooof(settings,[3 40]);
-                                    pk=fo.getPeak([5 12]);
+                                    settings.peak_width_limits=[2 10];
+                                    settings.max_n_peaks=8;
+                                    settings.aperiodic_mode='knee';
+                                    fo=ps.getFooof(settings,[1 40]);
+                                    pk=fo.getPeak([5 10]);
                                     a1(iw,1)=pk.cf;
                                     a1(iw,2)=pk.power;
                                     a1(iw,3)=pk.bw;

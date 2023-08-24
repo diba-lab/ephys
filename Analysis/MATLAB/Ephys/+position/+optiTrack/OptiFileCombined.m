@@ -1,4 +1,4 @@
-classdef OptiFileCombined < neuro.time.Timelined
+classdef OptiFileCombined < time.Timelined
     %OPTIFILECOMBINED Summary of this class goes here
     %   Detailed explanation goes here
     

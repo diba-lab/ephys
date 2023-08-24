@@ -55,7 +55,7 @@ classdef CellMetricsSession < buzcode.CellMetrics
             end
             [spikeTimeSec,idx]=sort(spikeTimeInSec);
             spikeClustersrt=spikeCluster(idx);
-            ticd=neuro.time.TimeIntervalCombined( ...
+            ticd=time.TimeIntervalCombined( ...
                 fullfile(obj.Session.SessionInfo.baseFolder,"Units/"));
             if isempty(ticd.getZeitgeberTime)
                 ticdz=ticd.setZeitgeberTime(obj.Session.SessionInfo.ZeitgeberTime);

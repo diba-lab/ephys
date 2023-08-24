@@ -23,7 +23,7 @@ classdef TimeSeriesZScored < neuro.basic.TimeSeries
             stop=find(edges==-1)'/obj.SampleRate+2.5*1e-3;
             t1=array2table(seconds([start stop]-1*1e-3), ...
                 VariableNames={'Start','Stop'});
-            timeWindowsDuration= neuro.time.TimeWindowsDuration(t1);
+            timeWindowsDuration= time.TimeWindowsDuration(t1);
         end
     end
 end

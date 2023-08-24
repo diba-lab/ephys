@@ -60,7 +60,7 @@ classdef TimeIntervalAbstract
             for i=1:numel(absouluteTime)
                 duration=seconds(obj.getSampleForClosest(absouluteTime(i))...
                     /obj.getSampleRate);
-                dtDuration(i)=neuro.time.DurationNeuroscope(duration);
+                dtDuration(i)=time.DurationNeuroscope(duration);
             end
         end
         function dur=getDuration(obj)
@@ -77,11 +77,11 @@ classdef TimeIntervalAbstract
             if ~isdatetime(times)
                 if isduration(times)
                     times=obj.convertDurationToDatetime(times);
-                elseif isa(times,"neuro.time.Relative")
+                elseif isa(times,"time.Relative")
                     times=times.pointsAbsolute;           
-                elseif isa(times,"neuro.time.ZeitgeberTime")
+                elseif isa(times,"time.ZeitgeberTime")
                     times=times.pointsAbsolute;
-                elseif isa(times,"neuro.time.Absolute")
+                elseif isa(times,"time.Absolute")
                     times=times.points;
                 elseif iscell(times)
                     if (isstring(times{1})||ischar(times{1}))

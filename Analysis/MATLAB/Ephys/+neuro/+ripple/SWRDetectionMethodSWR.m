@@ -17,7 +17,7 @@ classdef SWRDetectionMethodSWR < neuro.ripple.SWRDetectionMethod
                 bad=fullfile(basepath, conf.bad_file);
                 ticd=neuro.basic.ChannelTimeDataHard(obj.BasePath).getTimeIntervalCombined;
                 dur=seconds(ticd.getNumberOfPoints/ticd.getSampleRate);
-                arts_rev=neuro.time.TimeWindowsDuration(readtable(bad)).getReverse(dur);
+                arts_rev=time.TimeWindowsDuration(readtable(bad)).getReverse(dur);
                 obj.Epochs=table2array( arts_rev.getTimeTable);
             else
                 obj.Epochs=[];

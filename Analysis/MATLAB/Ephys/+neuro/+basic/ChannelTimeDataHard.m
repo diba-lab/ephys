@@ -62,7 +62,7 @@ classdef ChannelTimeDataHard < file.BinarySave
 
                 try
                     newObj.TimeIntervalCombined=...
-                        neuro.time.TimeIntervalCombined(folder);
+                        time.TimeIntervalCombined(folder);
                 catch
                     numberOfPoints=samples;
                     prompt = {'Start DateTime:','SampleRate:'};
@@ -73,27 +73,22 @@ classdef ChannelTimeDataHard < file.BinarySave
                     startTime=datetime(answer{1},'InputFormat',['dd-MMM-yyyy' ...
                         ' HH:mm:ss']);
                     sampleRate=str2num(answer{2});
-                    ti=neuro.time.TimeInterval(startTime, sampleRate, ...
+                    ti=time.TimeInterval(startTime, sampleRate, ...
                         numberOfPoints);
-                    ticd=neuro.time.TimeIntervalCombined(ti);
+                    ticd=time.TimeIntervalCombined(ti);
                     ticd.save(folder);
                     newObj.TimeIntervalCombined=ticd;
                 end
                 if newObj.TimeIntervalCombined.getNumberOfPoints>samples
-                    ticd=neuro.time.TimeIntervalCombined;
+                    ticd=time.TimeIntervalCombined;
                     ticd.Source=newObj.TimeIntervalCombined.Source;
-                    til=newObj.TimeIntervalCombined.getTimeIntervalList;
-                    for iti=1:til.length
-                        ti=til.get(iti);
-                        ti.NumberOfPoints=ti.NumberOfPoints-1;
-                        ticd=ticd+ti;
-                    end
                     if ticd.getNumberOfPoints==samples
                         newObj.TimeIntervalCombined=ticd;
                         ticd.saveTable
                     else
-                        error(['datsize size and .TimeIntervalCombined ' ...
-                            'files don''t match.'])
+                        error(sprintf(['datsize(%d) size and .TimeIntervalCombined (%d) ' ...
+                            'files don''t match.'],samples, ...
+                            newObj.TimeIntervalCombined.getNumberOfPoints))
                     end
                 end
                 logger.info(newObj.TimeIntervalCombined.tostring)
@@ -165,7 +160,7 @@ classdef ChannelTimeDataHard < file.BinarySave
             fileID = fopen(fullfile(folder,[n e]),'w');
             fwrite(fileID, datamat,'int16');
             fclose(fileID);
-            source=neuro.time.TimeIntervalCombined(f).Source;[~,n,e]=fileparts(source);
+            source=time.TimeIntervalCombined(f).Source;[~,n,e]=fileparts(source);
 
             copyfile(source,fullfile(folder,[n e]))
             obj=neuro.basic.ChannelTimeDataHard(folder);

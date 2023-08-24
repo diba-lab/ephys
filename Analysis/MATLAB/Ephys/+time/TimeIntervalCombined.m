@@ -1,4 +1,4 @@
-classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
+classdef TimeIntervalCombined < time.TimeIntervalAbstract
     %TIMEINTERVALCOMBINED Summary of this class goes here
     %   Detailed explanation goes here
 
@@ -10,7 +10,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
     
     methods
         function obj = TimeIntervalCombined(varargin)
-            import neuro.time.*
+            import time.*
             logger=logging.Logger.getLogger;
             %TIMEINTERVALCOMBINED Construct an instance of this class
             %   Detailed explanation goes here
@@ -57,7 +57,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                                 end
                             end
                             if exist('zt','var')
-                                theTimeInterval=neuro.time.TimeIntervalZT( ...
+                                theTimeInterval=time.TimeIntervalZT( ...
                                     theTimeInterval,zt);
                             end
                             timeIntervalList.add(theTimeInterval);
@@ -73,9 +73,15 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
                 else
                     for iArgIn=1:nargin
                         theTimeInterval=varargin{iArgIn};
-                        assert(isa(theTimeInterval,'TimeInterval'));
-                        timeIntervalList.add(theTimeInterval);
-                        logger.fine('ti added.');
+                        if isa(theTimeInterval,'TimeInterval')
+                            timeIntervalList.add(theTimeInterval);
+                            logger.fine('ti added.');
+                        elseif isa(theTimeInterval,'TimeIntervalCombined')
+                            iter=theTimeInterval.timeIntervalList.createIterator;
+                            while iter.hasNext
+                                timeIntervalList.add(iter.next)
+                            end
+                        end
                     end
                 end
                 try
@@ -274,7 +280,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
         function ticdnew = plus(obj,varargin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            ticdnew=neuro.time.TimeIntervalCombined;
+            ticdnew=time.TimeIntervalCombined;
             for it=1:obj.timeIntervalList.length
                 ticdnew.timeIntervalList.add(obj.timeIntervalList.get(it));
             end
@@ -402,7 +408,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             end
         end
         function ti=mergeTimeIntervals(obj)
-            ti=neuro.time.TimeInterval(obj.getStartTime, obj.getSampleRate, ...
+            ti=time.TimeInterval(obj.getStartTime, obj.getSampleRate, ...
                 obj.getNumberOfPoints);
         end
         
@@ -442,27 +448,27 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
             end
             T=struct2table(S);
             writetable(T,filePath);
-            ticd=neuro.time.TimeIntervalCombined(filePath);
+            ticd=time.TimeIntervalCombined(filePath);
         end
         function ticd=readTimeIntervalTable(~,table)
             T=readtable(table);
-            ticd=neuro.time.TimeIntervalCombined;
+            ticd=time.TimeIntervalCombined;
             for iti=1:height(T)
                 tiRow=T(iti,:);
-                ti=neuro.time.TimeInterval(tiRow.StartTime, ...
+                ti=time.TimeInterval(tiRow.StartTime, ...
                     tiRow.SampleRate,tiRow.NumberOfPoints);
                 ticd=ticd+ti;
             end
         end
         function ticd=setZeitgeberTime(obj,zt)
-            ticd=neuro.time.TimeIntervalCombined;
+            ticd=time.TimeIntervalCombined;
             iter=obj.timeIntervalList.createIterator;
             if isduration(zt)
                 zt=zt+obj.getDate;
             end
             while(iter.hasNext)
                 ti=iter.next;
-                tiz=neuro.time.TimeIntervalZT(ti,zt);
+                tiz=time.TimeIntervalZT(ti,zt);
                 ticd=ticd+tiz;
             end
             ticd.Source=obj.Source;
@@ -470,7 +476,7 @@ classdef TimeIntervalCombined < neuro.time.TimeIntervalAbstract
         function zt=getZeitgeberTime(obj)
             iter=obj.timeIntervalList.createIterator;
             ti=iter.next;
-            if isa(ti,"neuro.time.TimeIntervalZT")
+            if isa(ti,"time.TimeIntervalZT")
                 zt=ti.getZeitgeberTime;
             else
                 zt=[];

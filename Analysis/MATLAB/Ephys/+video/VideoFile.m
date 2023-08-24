@@ -34,10 +34,10 @@ classdef VideoFile < VideoReader
                 answer = inputdlg(prompt,dlgtitle,dims,definput);
                 startTime=datetime(answer{1},"Format","uuuu-MM-dd HH:mm:ss.SSS");
                 zt=duration(answer{2},"Format","hh:mm");
-                ti=neuro.time.TimeIntervalZT(startTime,obj.FrameRate,obj.NumFrames,zt);
+                ti=time.TimeIntervalZT(startTime,obj.FrameRate,obj.NumFrames,zt);
                 ti.saveTable(fullfile(obj.Path,[name '.time.csv']));
             else
-                ti=neuro.time.TimeIntervalCombined(fullfile(file3.folder,file3.name));
+                ti=time.TimeIntervalCombined(fullfile(file3.folder,file3.name));
             end
             obj.StartTime=ti.getStartTime;
         end

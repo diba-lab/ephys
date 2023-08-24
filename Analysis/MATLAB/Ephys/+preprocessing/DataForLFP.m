@@ -74,7 +74,7 @@ classdef DataForLFP
             catch
             end
             try
-                obj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(baseFolder);
+                obj.TimeIntervalCombined=time.TimeIntervalCombined(baseFolder);
             catch
             end
             obj.AnalysisParameters=S;

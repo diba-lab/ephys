@@ -14,9 +14,9 @@ classdef Relative
             if nargin>0
                 if isduration(time)
                     obj.Duration = time;
-                elseif isa(time,'neuro.time.Absolute')
+                elseif isa(time,'time.Absolute')
                     obj.Duration = time.time-ref;
-                elseif isa(time,'neuro.time.Sample')
+                elseif isa(time,'time.Sample')
                     obj.Duration = time.getDuration;
                 end
                 obj.Duration.Format='hh:mm:ss.SSSSSS';

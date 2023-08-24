@@ -80,7 +80,8 @@ classdef PowerSpectrum
                     fooof_module = py.importlib.import_module('fooof');
                     fooof_results = fooof(powerSpectrum.Frequency, ...
                         powerSpectrum.Power, f_range, settings, true);
-
+                elseif strcmp(ME.identifier,'MATLAB:Python:PyException')
+                    throw(ME);
                 end
             end
             fooofr=neuro.power.Fooof(fooof_results);

@@ -75,7 +75,7 @@ classdef TimeWindowsDuration
             %METHOD1 Summary of this method goes here
             table1=[thisTimeWindows.TimeTable; newTimeWindows.TimeTable];
             table2=sortrows(table1,1);
-            timeWindows=neuro.time.TimeWindowsDuration(table2);
+            timeWindows=time.TimeWindowsDuration(table2);
         end
         function thisTimeWindows = minus(thisTimeWindows,newTimeWindows)
             %METHOD1 Summary of this method goes here

@@ -33,13 +33,13 @@ classdef BuzcodeStructure
             end
             obj.BasePath=filepath;
             try
-                obj.BadIntervals=neuro.time.TimeWindowsDuration(obj.BasePath);
+                obj.BadIntervals=time.TimeWindowsDuration(obj.BasePath);
             catch
                 logging.Logger.getLogger.warning( ...
                     'Could not find an evt file in %s',obj.BasePath);
             end
             obj.Probe=neuro.probe.Probe(obj.BasePath);
-            obj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(obj.BasePath);
+            obj.TimeIntervalCombined=time.TimeIntervalCombined(obj.BasePath);
         end
         function ripple1 = calculateSWR(obj)
             import neuro.ripple.*

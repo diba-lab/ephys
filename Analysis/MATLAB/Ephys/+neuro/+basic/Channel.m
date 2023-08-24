@@ -128,6 +128,8 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                 time=basetime+add1;
             elseif isdatetime(window)
                 time=window;
+            elseif isa(window,'time.ZT')||isa(window,'time.ZeitgeberTime')
+                time=ticd.getZeitgeberTime+window.Duration;
             end
             samplewlist=ticd.getSampleForClosest(time);
             sampleall=[];
@@ -148,16 +150,34 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
         function p=plot(obj,varargin)
             va=obj.getValues;
             t=obj.TimeIntervalCombined;
-            if isa(t,'neuro.time.TimeIntervalCombined')
+            abs1=ismember(varargin,{'Absolute','Abs','absolute','abs'} );
+            varargin(abs1)=[];
+            zt1=ismember(varargin,{'ZT','zt'});
+            varargin(zt1)=[];
+            s1=ismember(varargin,{'s','sec','second','seconds', ...
+                'S','Sec','Second','Seconds'});
+            varargin(s1)=[];
+            h1=ismember(varargin,{'h','hours','H','Hours'});
+            varargin(h1)=[];
+
+            if isa(t,'time.TimeIntervalCombined')
                 tis=t.timeIntervalList;
                 index_va=1;
                 for iti=1:tis.length
                     ati=tis.get(iti);
-                   
-                    t_s=hours(ati.getTimePointsZT);
+                    if any(abs1)
+                        timepoints=ati.getTimePointsInAbsoluteTimes;
+                    else
+                        tp=ati.getTimePointsZT;
+                        if ~any(s1)
+                            timepoints=hours(tp);
+                        else
+                            timepoints=seconds(tp);
+                        end
+                    end
                     ava=va(index_va:(index_va+ati.getNumberOfPoints-1));
                     index_va=index_va+ati.getNumberOfPoints;
-                    p(iti)=plot(t_s,ava(1:numel(t_s)));
+                    p(iti)=plot(timepoints,ava(1:numel(timepoints)));
                     p(iti).LineWidth=1.5;
                     p(iti).Marker='none';
                     p(iti).LineStyle="-";
@@ -168,17 +188,30 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                 end
                 hold off
             else
-                try
-                    t_s=t.getTimePointsZT;                    
-                catch ME
-                    t_s=t.getTimePoints;                    
+                if any(abs1)
+                    timepoints=t.getTimePointsInAbsoluteTimes;
+                    varargin(ismem)
+                else
+                    tp=t.getTimePointsZT;
+                    if ~any(s1)
+                        timepoints=hours(tp);
+                    else
+                        timepoints=seconds(tp);
+                    end
                 end
-                t_s=hours(t_s);
-                diff1=numel(t_s)-numel(va);
+                diff1=numel(timepoints)-numel(va);
                 va((numel(va)+1):(numel(va)+diff1))=zeros(diff1,1);
-                p=plot(t_s,va(1:numel(t_s)),varargin{:});
+                p=plot(timepoints,va(1:numel(timepoints)),varargin{:});
             end
-            xlabel('ZT (Hrs)')
+            if ~any(abs1)
+                if ~any(s1)
+                    xlabel('ZT (Hrs)')
+                else
+                    xlabel('ZT (s.)')
+                end
+            else
+                xlabel('Time')
+            end
         end
         function obj=plus(obj,val)
             if isa(val,'neuro.basic.Channel')

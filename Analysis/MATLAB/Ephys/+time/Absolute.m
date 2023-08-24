@@ -8,13 +8,13 @@ classdef Absolute
     
     methods
         function obj = Absolute(time,ref)
-            if isdatetime(time)||isa(time,'neuro.time.Absolute')
+            if isdatetime(time)||isa(time,'time.Absolute')
                 obj.time = time;
-            elseif isa(time,'neuro.time.Relative')
+            elseif isa(time,'time.Relative')
                 obj.time = time.duration+ref;
             elseif isduration(time)
                 obj.time = duration+ref;
-            elseif isa(time,'neuro.time.Sample')
+            elseif isa(time,'time.Sample')
                 obj.time = time.getDuration+ref;
             end
             obj.time.Format='dd-MMM-uuuu HH:mm:ss.SSSSSS';

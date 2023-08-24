@@ -36,9 +36,9 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
             adjustedspiketimessample= ...
                 ticd.adjustTimestampsAsIfNotInterrupted(spiketimessample);
             obj.SpikeTableInSamples.SpikeTimes=adjustedspiketimessample;
-            if isa(ticd,'neuro.time.TimeIntervalCombined')
+            if isa(ticd,'time.TimeIntervalCombined')
                 ti=ticd.timeIntervalList.get(1);
-            elseif isa(ticd,'neuro.time.TimeInterval')
+            elseif isa(ticd,'time.TimeInterval')
                 ti=ticd;
             end
             ti.NumberOfPoints=ticd.getNumberOfPoints;
@@ -262,7 +262,7 @@ classdef SpikeArray < neuro.spike.SpikeNeuroscope
                 elseif isduration(timeWindow)
                     s=obj.TimeIntervalCombined.getSampleForClosest( ...
                         obj.TimeIntervalCombined.getDate+timeWindow);
-                elseif strcmpi(class(timeWindow),'neuro.time.ZeitgeberTime')
+                elseif strcmpi(class(timeWindow),'time.ZeitgeberTime')
                     s=obj.TimeIntervalCombined.getSampleForClosest( ...
                         timeWindow.getAbsoluteTime);
                 end

@@ -154,6 +154,7 @@ classdef Oscillation < neuro.basic.TimeSeries
         end
         function obj=getBandpassFiltered(obj,filterFreqBand)
             obj1=obj;
+            ft_defaults;
             obj.Values=ft_preproc_bandpassfilter(...
                 obj.Values,obj.SampleRate,filterFreqBand,[],[],[]);
             obj=neuro.basic.ChannelProcessed(obj);

@@ -108,13 +108,16 @@ classdef StateSeries
         end
         function [ax] = plot(obj,yShadeRatio)
 %             yShadeRatio=[.55 .8];
+            statesOrder={'NREMstate','REMstate','WAKEstate','QWAKEstate'};
             ax=gca;
             hold1=ishold(ax);hold(ax,"on");
             y=[ax.YLim(1)+diff(ax.YLim)*yShadeRatio(1) ax.YLim(1)+...
                 diff(ax.YLim)*yShadeRatio(2)];
             obj1=obj.getZTCorrected;
             episodes=obj1.Episodes;
-            fnames=fieldnames(episodes);
+            fnames=sort(fieldnames(episodes));
+            [~,loc]=ismember(fnames,statesOrder);
+            fnames=fnames(loc);
             hold on;
             colors=linspecer(numel(fnames));
             for istate=1:numel(fnames)

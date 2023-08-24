@@ -1,4 +1,4 @@
-classdef TimeInterval < neuro.time.TimeIntervalAbstract
+classdef TimeInterval < time.TimeIntervalAbstract
     %TimeInterval Represents a time interval and provides methods for working with it
 
     properties
@@ -83,7 +83,7 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             % GetTimeIntervalForTimes method that returns an array of TimeInterval objects
             % that correspond to a set of time intervals specified by a set of datetime
             % objects or a set of durations.
-            if isa(windows,'neuro.time.ZeitgeberTime')
+            if isa(windows,'time.ZeitgeberTime')||isa(windows,'time.ZT')
                 windows=windows.getAbsoluteTime;
             elseif isduration(windows)
                 windows=obj.convertDurationToDatetime(windows);
@@ -160,7 +160,7 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
         % object with the specified Zeitgeber Time.
         function tiz=setZeitgeberTime(obj,zt)
             % Set the Zeitgeber Time of the TimeIntervalZT object
-            tiz=neuro.time.TimeIntervalZT(obj,zt);
+            tiz=time.TimeIntervalZT(obj,zt);
         end
         % A method that returns the end time of the TimeInterval object
         function time=getEndTime(obj)
@@ -186,7 +186,7 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
         % A method that combines two TimeInterval objects into a TimeIntervalCombined object
         function timeIntervalCombined=plus(obj,timeInterval)
             % Create a TimeIntervalCombined object containing the two TimeInterval objects
-            timeIntervalCombined=neuro.time.TimeIntervalCombined(obj,timeInterval);
+            timeIntervalCombined=time.TimeIntervalCombined(obj,timeInterval);
         end
         % A method that returns a downsampled TimeInterval object
         function [obj,residual]=getDownsampled(obj,downsampleFactor)
@@ -273,7 +273,7 @@ classdef TimeInterval < neuro.time.TimeIntervalAbstract
             writetable(T,filePath)
 
             % Create a new TimeIntervalCombined object from the saved file
-            ticd=neuro.time.TimeIntervalCombined(filePath);
+            ticd=time.TimeIntervalCombined(filePath);
         end        function obj=shiftTimePoints(obj,shift)
             obj.StartTime=obj.StartTime+shift.Duration;
         end

@@ -14,7 +14,7 @@ classdef Sample
             if isnumeric(time)
                 obj.sample = time;
                 obj.rate=rate;
-            elseif isa(time,'neuro.time.Relative')
+            elseif isa(time,'time.Relative')
                 obj.sample=seconds(time.duration)*rate;
                 obj.rate=rate;
             end
