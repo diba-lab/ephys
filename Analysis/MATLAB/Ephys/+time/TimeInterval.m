@@ -191,8 +191,9 @@ classdef TimeInterval < time.TimeIntervalAbstract
         % A method that returns a downsampled TimeInterval object
         function [obj,residual]=getDownsampled(obj,downsampleFactor)
             % Compute the new number of data points and the residual number of data points
-            obj.NumberOfPoints=floor(obj.NumberOfPoints/downsampleFactor);
+            numberOfPoints1=floor(obj.NumberOfPoints/downsampleFactor);
             residual=mod(obj.NumberOfPoints,downsampleFactor);
+            obj.NumberOfPoints=numberOfPoints1;
             % Compute the new sampling rate
             obj.SampleRate=round(obj.SampleRate/downsampleFactor);
         end

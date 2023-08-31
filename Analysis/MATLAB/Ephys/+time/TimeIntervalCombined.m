@@ -336,8 +336,7 @@ classdef TimeIntervalCombined < time.TimeIntervalAbstract
             til= obj.timeIntervalList;
             for iInt=1:til.length
                 theTimeInterval=til.get(iInt);
-                if iInt==1
-                else
+                if iInt>1
                     residualprev=residualthis;
                     residualtime=seconds(residualprev/theTimeInterval.SampleRate);
                     theTimeInterval.StartTime=theTimeInterval.StartTime-residualtime;
@@ -346,8 +345,7 @@ classdef TimeIntervalCombined < time.TimeIntervalAbstract
                 end
                 [ds_ti, residualthis]=theTimeInterval.getDownsampled(downsampleFactor);
                 if exist('timeIntervalCombined','var')
-                    timeIntervalCombined1=timeIntervalCombined+ds_ti;
-                    timeIntervalCombined=timeIntervalCombined1;
+                    timeIntervalCombined=timeIntervalCombined+ds_ti;
                 else
                     timeIntervalCombined=ds_ti;
                 end
