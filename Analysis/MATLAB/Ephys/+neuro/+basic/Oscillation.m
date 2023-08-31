@@ -46,14 +46,14 @@ classdef Oscillation < neuro.basic.TimeSeries
         function ps=getPSpectrumChronux(obj)
             %             params.tapers=[3 5];
             params.Fs=obj.getSampleRate;
-            params.fpass=[1 250];
+            params.fpass=[1 40];
             [S,f] = mtspectrumc( obj.Values, params );
             ps=neuro.power.PowerSpectrum(S,f);
         end
         function ps=getPSpectrumWelch(osc)
             window=2*osc.getSampleRate;
-            overlap=window/2;
-            [psd, freqs] = pwelch(osc.Values, window, overlap, [], ...
+            overlap=round(window/2);
+            [psd, freqs] = pwelch(osc.Values, window, overlap,[], ...
                 osc.getSampleRate);
             ps=neuro.power.PowerSpectrum(psd,freqs);
         end

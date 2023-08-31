@@ -11,8 +11,10 @@ classdef PowerSpectrum
         function obj = PowerSpectrum(power,frequency)
             %POWERSPECTRUM Construct an instance of this class
             %   Detailed explanation goes here
-            obj.Frequency = frequency;
-            obj.Power = power;
+            if nargin>0
+                obj.Frequency = frequency;
+                obj.Power = power;
+            end
         end
         
         function [p1] = plot(obj,frequencyFrame,ylim)
