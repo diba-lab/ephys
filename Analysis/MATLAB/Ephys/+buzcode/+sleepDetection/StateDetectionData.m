@@ -133,12 +133,12 @@ classdef StateDetectionData
             tps=ti.getTimePoints;
         end
         function cht=getEMG(obj)
-            ts1= obj.EMGFromLFP.data;
+            vals= obj.EMGFromLFP.data;
             chname='EMG';
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/obj.EMGFromLFP.samplingFrequency;
             ticd=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd=ticd.shiftTimePoints(time.Relative(seconds(obj.EMGFromLFP.timestamps(1)/2)));
-            ch=neuro.basic.Channel(chname,ts1,ticd);
+            ticd=ticd.shiftTimePoints(seconds(obj.EMGFromLFP.timestamps(1)));
+            ch=neuro.basic.Channel(chname,vals,ticd);
             ch=ch.setInfo(obj.Info);
             cht=neuro.basic.ChannelsThreshold(ch,obj.getEMGThreshold,obj.isEMGSticky);
         end
@@ -157,8 +157,8 @@ classdef StateDetectionData
             tsr=interp1(t,ts1,t1);
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
             ticd1=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd2=ticd1.shiftTimePoints(time.Relative(seconds( ...
-                obj.SleepState.idx.timestamps(1))));
+            ticd2=ticd1.shiftTimePoints(seconds( ...
+                obj.SleepState.idx.timestamps(1)));
             ticd=ticd2.getTimeIntervalForTimes([ticd2.getStartTime ticd1.getEndTime]);
             ch=neuro.basic.Channel('TH',tsr,ticd);
             ch=ch.setInfo(obj.Info);
@@ -224,8 +224,8 @@ classdef StateDetectionData
             tsr=interp1(t,ts1,t1);
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
             ticd1=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd2=ticd1.shiftTimePoints(time.Relative(seconds( ...
-                obj.SleepState.idx.timestamps(1))));
+            ticd2=ticd1.shiftTimePoints(seconds( ...
+                obj.SleepState.idx.timestamps(1)));
             ticd=ticd2.getTimeIntervalForTimes([ticd2.getStartTime ticd1.getEndTime]);
             ch=neuro.basic.Channel('SW',tsr,ticd);
             ch=ch.setInfo(obj.Info);
@@ -243,22 +243,32 @@ classdef StateDetectionData
             idx=obj.SleepState.idx;
             states=idx.states;
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
-            ticd1=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd2=ticd1.shiftTimePoints(time.Relative(seconds( ...
-                obj.SleepState.idx.timestamps(1)/2)));
+            [ticd1,~]=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
+            ticd2=ticd1.shiftTimePoints(seconds(obj.SleepState.idx.timestamps(1)));
             ticd=ticd2.getTimeIntervalForTimes([ticd2.getStartTime ticd1.getEndTime]);
-            ss=neuro.state.StateSeries(states,ticd);
-            ss=ss.setEpisodes(obj.SleepState.ints);
+            try
+                ss=neuro.state.StateSeries(states,ticd);
+            catch ME
+                if numel(states)-ticd.getNumberOfPoints==1
+                        ticd=ticd.addTimePoints(1);
+                        ss=neuro.state.StateSeries(states,ticd);
+                elseif numel(states)-ticd.getNumberOfPoints==-1
+                    ticd=ticd.addTimePoints(-1);
+                    ss=neuro.state.StateSeries(states,ticd);
+                else
+                    error(ME.message);
+                end
+            end
+            ss=ss.setEpisodesFromBuzcode(obj.SleepState.ints);
             ss=ss.setStateNames(idx.statenames);
-            ss.TimePoints=idx.timestamps;
         end
         function ch=getStateSeriesChannel(obj)
             idx=obj.SleepState.idx;
             states=idx.states;
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
             ticd1=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd2=ticd1.shiftTimePoints(time.Relative(seconds( ...
-                obj.SleepState.idx.timestamps(1))));
+            ticd2=ticd1.shiftTimePoints(seconds( ...
+                obj.SleepState.idx.timestamps(1)));
             ticd=ticd2.getTimeIntervalForTimes([ticd2.getStartTime ticd1.getEndTime]);
             ch=neuro.basic.Channel('StS',states,ticd);
             ch=ch.setInfo(obj.Info);

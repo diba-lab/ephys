@@ -274,8 +274,9 @@ classdef TimeInterval < time.TimeIntervalAbstract
 
             % Create a new TimeIntervalCombined object from the saved file
             ticd=time.TimeIntervalCombined(filePath);
-        end        function obj=shiftTimePoints(obj,shift)
-            obj.StartTime=obj.StartTime+shift.Duration;
+        end        
+        function obj=shiftTimePoints(obj,shift)
+            obj.StartTime=obj.StartTime+shift;
         end
 
     end

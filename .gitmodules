@@ -1,9 +1,6 @@
 [submodule "Analysis/MATLAB/Ephys/external/RatBrainAtlasAPI"]
 	path = Analysis/MATLAB/Ephys/external/RatBrainAtlasAPI
 	url = https://github.com/mattgaidica/RatBrainAtlasAPI.git
-[submodule "Analysis/MATLAB/Ephys/external/circstat"]
-	path = Analysis/MATLAB/Ephys/external/circstat
-	url = https://github.com/circstat/circstat-matlab.git
 [submodule "Analysis/MATLAB/Ephys/external/CellExplorer"]
 	path = Analysis/MATLAB/Ephys/external/CellExplorer
 	url = https://github.com/petersenpeter/CellExplorer.git

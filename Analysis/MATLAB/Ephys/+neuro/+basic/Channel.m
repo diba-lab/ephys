@@ -18,13 +18,9 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                 if size(voltageArray,1)>1
                     voltageArray=voltageArray';
                 end
-                if numel(voltageArray)>timeIntervalCombined.getNumberOfPoints
-                    voltageArray=voltageArray( ...
-                        1:timeIntervalCombined.getNumberOfPoints);
-                elseif numel(voltageArray)<timeIntervalCombined.getNumberOfPoints
-                    diff1=timeIntervalCombined.getNumberOfPoints- ...
-                        numel(voltageArray);
-                    voltageArray=[voltageArray zeros(1,diff1)];
+                numdiff= numel(voltageArray)-timeIntervalCombined.getNumberOfPoints;
+                if numdiff<3 && numdiff>0
+                    timeIntervalCombined=timeIntervalCombined.addTimePoints(numdiff);
                 end
                 obj.SampleRate=timeIntervalCombined.getSampleRate;
                 obj.Values=voltageArray;

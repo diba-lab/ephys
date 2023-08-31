@@ -170,7 +170,8 @@ classdef SDFigures2 <Singleton
                 end
                 save(cachefile,'SWRarr',"trexp");
             end
-            swrt=table(categorical(condsarr'),SWRarr',sesss','VariableNames',{'Condition','SWR','Sessions'});
+            swrt=table(categorical(condsarr'),SWRarr',sesss', ...
+                'VariableNames',{'Condition','SWR','Sessions'});
 
         end
         function getStateRelatedInfoTable(obj,block,states)
@@ -235,7 +236,8 @@ classdef SDFigures2 <Singleton
 
                         th=ctd.getChannel(thId).getDownSampled(250);
                         blocks=ses.Blocks;
-                        blocksStr1=categorical([1 2 3 4],[1 2 3 4],blocks.getBlockNames,'Ordinal',true);
+                        blocksStr1=categorical([1 2 3 4],[1 2 3 4], ...
+                            blocks.getBlockNames,'Ordinal',true);
                         blocksStr= blocksStr1([1 2 3 4]);
                         blocksStr= blocksStr1([2]);
                         %                         blocksStr= blocksStr1;
@@ -275,9 +277,9 @@ classdef SDFigures2 <Singleton
                             boc=boc.addHypnogram(ss_block);
                             slidingWindowSize=minutes(params.Plot.SlidingWindowSizeInMinutes);
                             edges=0:seconds(slidingWindowSize):seconds(hours(abs(winDuration)));
-                            statelist1=unique(categorical(ss_block.States,[1 2 3 5], ...
-                                {'AWAKE','QWAKE','SWS','REM'}));
-                            statelist=statelist1([1 4]);
+                            statelist1=unique(categorical(ss_block.States,[1 2 3 5 0], ...
+                                {'AWAKE','QWAKE','SWS','REM','NA'}));
+                            statelist=statelist1([4]);
                             for istate=1:numel(statelist)
                                 thestate=statelist(istate);
                                 cacheFilePower=fullfile( ...
@@ -304,7 +306,6 @@ classdef SDFigures2 <Singleton
                                             fooof=neuro.power.Fooof();
                                             thpk=experiment.plot.thetaPeak.ThetaPeak();
                                             if ~isempty(boc_sub)
-
                                                 boc_sub.Info.SubBlock=categorical( ...
                                                     isublock,1:(numel(subblocks)-1));
                                                 if thestate=='AWAKE' %#ok<BDSCA>

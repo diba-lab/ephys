@@ -3,17 +3,20 @@ classdef StateSeries
     %   Detailed explanation goes here
     
     properties
-        States
-        Episodes
-        TimePoints
-        TimeIntervalCombined
-        StateNames
+        States % # of time points == ticd.getNumerOfPoints
+        Episodes % Starts at 0 seconds equals to ticd.getStartTime
+        TimeIntervalCombined % First data point is at ticd.getStartTime
+        StateNames % Each coresponds to the numbers in States here
     end
     
     methods
         function obj = StateSeries(states, ticd)
             obj.TimeIntervalCombined=ticd;
             obj.States=states;
+            if ticd.getNumberOfPoints~=numel(states)
+                error(['\n\t # in TimeInterval (%d) and data (%d) ' ...
+                    'are not equal.'],ticd.getNumberOfPoints,numel(states))
+            end
         end
         function obj = getZTCorrected(obj)
             ticd=obj.TimeIntervalCombined;
@@ -24,8 +27,6 @@ classdef StateSeries
                 obj.Episodes.(thestate)=hours(seconds(ticd.adjustTimestampsAsIfNotInterrupted( ...
                     obj.Episodes.(thestate)*ticd.getSampleRate)/ticd.getSampleRate) + ztadj);
             end
-            obj.TimePoints=hours(seconds(ticd.adjustTimestampsAsIfNotInterrupted( ...
-                    obj.TimePoints*ticd.getSampleRate)/ticd.getSampleRate) + ztadj);
         end
         function obj = getWindow(obj,window)
             states=obj.States;
@@ -67,8 +68,8 @@ classdef StateSeries
                 end
             end
             winsInSample=ticd.getSampleFor(winddt);
+            winInSec=seconds((winsInSample-1)*ticd.getSampleRate);
             idx=winsInSample(1):winsInSample(2);
-            winInSec=obj.TimePoints(idx);
             states_new=states(idx);
             ticd_new=ticd.getTimeIntervalForTimes(winddt);
             fnames=fieldnames(episodes);
@@ -88,11 +89,10 @@ classdef StateSeries
                         epinew(end,2)=max(winInSec);
                     end
                 end
-                epinew=epinew-min(winInSec)+1;
+                epinew=epinew-min(winInSec);
                 episodes.(fnames{iepi})=epinew;
             end
             obj.States=states_new;
-            obj.TimePoints=winInSec-min(winInSec)+1;
             obj.Episodes=episodes;
             obj.TimeIntervalCombined=ticd_new;
         end
@@ -198,8 +198,8 @@ classdef StateSeries
                     theEpisode=stateEpisodes.(strcat(string(state),'state'));
                 end
                 theEpisode=ticd.adjustTimestampsAsIfNotInterrupted( ...
-                    theEpisode*ticd.getSampleRate)/ticd.getSampleRate;
-                tbl=array2table(theEpisode,"VariableNames",{'start','end'});
+                    seconds(theEpisode)*ticd.getSampleRate)/ticd.getSampleRate;
+                tbl=array2table(seconds(theEpisode),"VariableNames",{'start','end'});
                 tbl=[tbl array2table(repmat(state,[height(tbl),1]), ...
                     "VariableNames",{'state'})];
                 if is==1
@@ -213,14 +213,22 @@ classdef StateSeries
                 ticdss=obj.TimeIntervalCombined;
                 for irow=1:height(tbls)
                     wind=[tbls(irow,:).start tbls(irow,:).end];
-                    theEpisodeAbs(irow,:)=ticdss.getStartTime+seconds(wind);
+                    theEpisodeAbs(irow,:)=ticdss.getStartTime+wind;
                 end
                 tbls=[tbls array2table(theEpisodeAbs,VariableNames={'AbsStart','AbsEnd'})];
             else
                 theEpisodeAbs=[];
             end
         end
-        function obj=setEpisodes(obj,episodes)
+        function obj=setEpisodesFromBuzcode(obj,episodes)
+            fnames=fieldnames(episodes);
+            for ifnames=1:numel(fnames)
+                state=episodes.(fnames{ifnames});
+                tmp=seconds(state-1);
+                tmp(:,1)=tmp(:,1)-seconds(.5);
+                tmp(:,2)=tmp(:,2)+seconds(.5);
+                episodes.(fnames{ifnames})=tmp;
+            end
             obj.Episodes=episodes;
         end
         function epi=getEpisodes(obj)

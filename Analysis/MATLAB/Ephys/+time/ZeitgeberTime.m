@@ -4,7 +4,6 @@ classdef ZeitgeberTime < time.Relative
     
     properties
     end
-    
     methods
         function obj = ZeitgeberTime(zt,ref)
             %ZEITGEBERTIME Construct an instance of this class
@@ -29,4 +28,3 @@ classdef ZeitgeberTime < time.Relative
         end
     end
 end
-

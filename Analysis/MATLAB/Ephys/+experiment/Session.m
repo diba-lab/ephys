@@ -173,6 +173,13 @@ classdef Session
             %   Detailed explanation goes here
             pr=preprocessing.Preprocess(obj);
             data=pr.getDataForLFP;
+        end       
+        function sdd = getStates(obj,varargin)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            pr=preprocessing.Preprocess(obj);
+            data=pr.getDataForLFP;
+            sdd=data.getStateDetectionData.getStateSeries;
         end
         function data = getDataClustering(obj,varargin)
             %METHOD1 Summary of this method goes here

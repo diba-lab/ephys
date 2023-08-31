@@ -491,7 +491,20 @@ classdef TimeIntervalCombined < time.TimeIntervalAbstract
                 tilnew.add(ti);
             end
             obj.timeIntervalList=tilnew;
-        end        
+        end    
+        function obj=addTimePoints(obj,num)
+            tilnew=CellArrayList;
+            til= obj.timeIntervalList;
+            for iInt=1:til.length
+                theTimeInterval=til.get(iInt);
+                if iInt==til.length
+                    theTimeInterval.NumberOfPoints=...
+                        theTimeInterval.NumberOfPoints+num;
+                end
+                tilnew.add(theTimeInterval);
+            end
+            obj.timeIntervalList=tilnew;
+        end
     end
     methods
 

@@ -21,7 +21,7 @@ classdef DataForLFP
             sde=experiment.SDExperiment.instance.get;
             obj.DataFile = dataFile;
             obj.Session=experiment.Session(fileparts(dataFile));
-            [baseFolder,name,ext]=fileparts(dataFile);
+            [baseFolder,~,~]=fileparts(dataFile);
             analysisFile=fullfile(baseFolder,sde.FileLocations.Session.Analysis);
             obj.AnalysisFile=analysisFile;
             if isfile(analysisFile)
@@ -93,7 +93,7 @@ classdef DataForLFP
         function ctd = getChannelTimeDataHard(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            [folder,name,ext]=fileparts(obj.DataFile);
+            [folder,~,~]=fileparts(obj.DataFile);
             ctd=neuro.basic.ChannelTimeDataHard(folder);
         end
         function bad = getBad(obj)
@@ -115,7 +115,7 @@ classdef DataForLFP
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             %%
-            [folder, name, ext]=fileparts(obj.DataFile);
+            [folder, ~, ~]=fileparts(obj.DataFile);
             baseFolder=convertStringsToChars(folder);
             params=obj.AnalysisParameters.StateDetection;
             
@@ -127,7 +127,6 @@ classdef DataForLFP
             S.StateDetection.Channels.BestTheta=sdd.getThetaChannelID;
             S.StateDetection.Channels.BestSW=sdd.getSWChannelID;
             obj.setAnalysisParameters(S);
-            
         end
         function ripples = getRippleEvents(obj)
             %METHOD1 Summary of this method goes here
