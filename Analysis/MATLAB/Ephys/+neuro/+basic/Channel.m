@@ -42,6 +42,34 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                 datestr(obj.TimeIntervalCombined.getEndTime),...
                 obj.SampleRate);
         end
+        function episodes=lt(obj,num)
+            if isnumeric(num)&&numel(num)==1
+                idx=obj.getValues<num;
+                % Find the indices where binary episodes start
+                zt=obj.TimeIntervalCombined.getTimePointsZT';
+                episodeStart1 = diff([median(idx), idx]) == -1;
+                episodeStart=hours(hours(zt(episodeStart1)));
+                % Find the indices where binary episodes end
+                episodeEnd1 = diff([idx, median(idx)]) == 1;
+                episodeEnd=hours(hours(zt(episodeEnd1)));
+                episodes=array2table([episodeStart episodeEnd], ...
+                    VariableNames={'Start','Stop'});
+            end
+        end
+        function episodes=gt(obj,num)
+            if isnumeric(num)&&numel(num)==1
+                idx=obj.getValues>num;
+                % Find the indices where binary episodes start
+                zt=obj.TimeIntervalCombined.getTimePointsZT';
+                episodeStart1 = diff([median(idx), idx]) == 1;
+                episodeStart=hours(hours(zt(episodeStart1)));
+                % Find the indices where binary episodes end
+                episodeEnd1 = diff([idx, median(idx)]) == -1;
+                episodeEnd=hours(hours(zt(episodeEnd1)));
+                episodes=array2table([episodeStart episodeEnd], ...
+                    VariableNames={'Start','Stop'});
+            end
+        end
         function st=getStartTime(obj)
             ti=obj.getTimeInterval;
             st=ti.getStartTime;
@@ -201,9 +229,9 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             end
             if ~any(abs1)
                 if ~any(s1)
-                    xlabel('ZT (Hrs)')
+                    xlabel('ZT (h)')
                 else
-                    xlabel('ZT (s.)')
+                    xlabel('ZT (s)')
                 end
             else
                 xlabel('Time')

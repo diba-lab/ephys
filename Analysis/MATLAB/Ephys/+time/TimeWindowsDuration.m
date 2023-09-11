@@ -49,8 +49,8 @@ classdef TimeWindowsDuration
             end
             t=obj.TimeTable;
             rest=[];
-            temp=t(1,:);
-            for iwin=2:height(t)
+            temp=t(1,:); % take the first one here
+            for iwin=2:height(t) % should start in the second 
                 win=t(iwin,:);
                 % do this win overlap with the temp
                 winStartIsInOrCloseToTemp= (win.Start-temp.Stop)<minDurationBetweenEvents;
@@ -124,6 +124,22 @@ classdef TimeWindowsDuration
         end
 
 
+        function ax=plot(obj, ax, color)
+            if ~exist('ax','var')
+                ax=gca;
+            end
+            if ~exist('color','var')
+                colors=colororder;
+                color=colors(1,:);
+            end
+            tt=table2array(obj.TimeTable);
+            for ibout=1:height(tt)
+                bout=tt(ibout,:);
+                b=hours(table2array(bout));
+                patch(ax,[b(1) b(1) b(2) b(2)],[0 ax.YLim(2) ax.YLim(2) 0], ...
+                    color,'FaceAlpha',.2)
+            end
+        end
         function ax=plotHist(obj, ax, color)
             if ~exist('ax','var')
                 ax=gca;

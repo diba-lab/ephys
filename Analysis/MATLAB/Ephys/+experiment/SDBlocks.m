@@ -17,19 +17,31 @@ classdef SDBlocks
         function obj = SDBlocks(date,T)
             %EXPERIMENTBLOCKTIMES Construct an instance of this class
             %   Detailed explanation goes here
-
             obj.TimeTable=T;
+            obj.TimeTable.Block=categorical(obj.TimeTable.Block);
             obj.Date=date;
         end
         function wind = get(obj,varargin)
             T=obj.TimeTable;
-            blocks=T.Block;
+            blocks=categorical(T.Block);
             idx=true(size(blocks));
             if nargin>1
-                idx=ismember(blocks,varargin);
-                if any(ismember({'SD','NSD'}, varargin))
-                    idx=ismember(blocks,{'SD','NSD','SD_NSD'});
+                try
+                    idx=ismember(blocks,varargin);
+                    if any(ismember(categorical({'SD','NSD'}), varargin))
+                        idx=ismember(blocks,categorical({'SD','NSD','SD_NSD'}));
+                    end
+                catch ME
+                    if strcmp(ME.identifier,'MATLAB:categorical:ismember:TypeMismatch')
+                        idx=ismember(blocks,varargin{:});
+                        if any(ismember(categorical({'SD','NSD'}), varargin{:}))
+                            idx=ismember(blocks,categorical({'SD','NSD','SD_NSD'}));
+                        end
+                    else
+                        throw(ME);
+                    end
                 end
+
             end
             block=T(idx,:);
             wind=[block.t1 block.t2];
@@ -57,13 +69,11 @@ classdef SDBlocks
             end
             str=sprintf('\n%s\n\t%s',str,strjoin(strs,';\t'));
         end
-        function obj = getZeitgeberTimes(obj,zt)
+        function obj = getZeitgeberTimes(obj)
             t=obj.TimeTable;
-            zt1=zt-obj.getDate;
-            t.t1=t.t1-zt1;
-            t.t2=t.t2-zt1;
+            t.t1=t.t1-obj.ZeitgeberTime;
+            t.t2=t.t2-obj.ZeitgeberTime;
             obj.TimeTable=t;
-            obj.Date=zt;
         end
         function plot(obj,ax,yShadeRatio)
 %             yShadeRatio=[.85 1];

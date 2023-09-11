@@ -26,7 +26,8 @@ classdef Fooof
             if ~exist('f_range','var')
                 f_range = [0, 250];
             end
-            fooof_results = fooof(obj.fooof_results.freqs, obj.fooof_results.power_spectrum, f_range, settings, true);
+            fooof_results = fooof(obj.fooof_results.freqs, ...
+                obj.fooof_results.power_spectrum, f_range, settings, true);
 
             fooofr=Fooof(fooof_results);
         end

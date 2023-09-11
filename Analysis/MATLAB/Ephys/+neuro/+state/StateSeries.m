@@ -150,25 +150,27 @@ classdef StateSeries
                 slidingWindowLaps,windowZT)
             obj1=obj.getZTCorrected;
             states=categorical(obj1.States);
+            roundAccuracy=hours(1)/slidingWindowLaps;
             if exist('windowZT','var')
-                strt1=round( ...
-                    hours(hours(windowZT(1)):slidingWindowLaps:(hours(windowZT(2))-slidingWindowSize/2)) ...
-                    ,3);
+                strt1=windowZT(1):slidingWindowLaps: ...
+                    (windowZT(2)-slidingWindowSize+slidingWindowSize/100);
             else
-                strt1=round(hours( ...
-                    hours(obj1.TimePoints(1)):slidingWindowLaps:hours((obj1.TimePoints(end)/2)) ...
-                    ),3);
+                zt=obj.TimeIntervalCombined.getZeitgeberTime;
+                strt1=hours((obj1.getStartTime-zt):... 
+                    slidingWindowLaps: ...
+                    (obj1.getEndTime-zt-slidingWindowSize+slidingWindowSize/100) ) ;
             end
-            end1=strt1+hours(slidingWindowSize);
-
-            center1=array2table( [hours(strt1)' hours(strt1)'+ ...
-                slidingWindowSize/2 hours(end1)'], ...
+            strt2=hours(round(hours(roundAccuracy*strt1))/roundAccuracy);
+            end2=strt2+slidingWindowSize;
+            center1=array2table( [strt2' strt2'+ ...
+                slidingWindowSize/2 end2'], ...
                 VariableNames={'ZTStart','ZTCenter','ZTEnd'});
-            wind=nan(size(strt1,2),6);
-            for iwin=1:numel(strt1)
-                s1=strt1(iwin);
-                e1=end1(iwin);
-                [n,c]=histcounts(states(obj1.TimePoints>s1&obj1.TimePoints<e1));
+            wind=nan(size(strt2,2),6);
+            timePoints=hours(hours(obj.TimeIntervalCombined.getTimePointsZT));
+            for iwin=1:numel(strt2)
+                s1=strt2(iwin);
+                e1=end2(iwin);
+                [n,c]=histcounts(states(timePoints>s1&timePoints<e1));
                 statelist={'0','1','2','3','4','5',};
                 [b,a]=ismember(statelist,c);
                 wind(iwin,b)=n(a(b));

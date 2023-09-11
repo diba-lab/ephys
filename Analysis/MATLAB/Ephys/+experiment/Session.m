@@ -168,6 +168,14 @@ classdef Session
                 blocks= blocks.get(varargin{:});
             end
         end
+        function blocks = getBlockZT(obj,varargin)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            blocks=obj.Blocks.getZeitgeberTimes;
+            if nargin>1
+                blocks= blocks.get(varargin{:});
+            end
+        end
         function data = getDataLFP(obj,varargin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -179,7 +187,11 @@ classdef Session
             %   Detailed explanation goes here
             pr=preprocessing.Preprocess(obj);
             data=pr.getDataForLFP;
-            sdd=data.getStateDetectionData.getStateSeries;
+            try
+                sdd=data.getStateDetectionData.getStateSeries;
+            catch ME
+                
+            end
         end
         function data = getDataClustering(obj,varargin)
             %METHOD1 Summary of this method goes here

@@ -43,7 +43,15 @@ classdef SessionTheta < experiment.Session
         end
         function spd = getSpeed(obj)
             pos=obj.getPosition;
-            spd=pos.getSpeed;
+            try
+                spd=pos.getSpeed;
+            catch ME
+                if strcmp(ME.identifier,'MATLAB:structRefFromNonStruct')
+                    spd=[];
+                else
+                    throw(ME);
+                end
+            end
         end
     end
 end
