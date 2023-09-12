@@ -24,8 +24,10 @@ classdef StateSeries
             fnames=fieldnames(obj.Episodes);
             for istate=1:numel(fnames)
                 thestate=fnames{istate};
-                obj.Episodes.(thestate)=hours(seconds(ticd.adjustTimestampsAsIfNotInterrupted( ...
-                    obj.Episodes.(thestate)*ticd.getSampleRate)/ticd.getSampleRate) + ztadj);
+                timeCorrected=seconds(ticd.adjustTimestampsAsIfNotInterrupted( ...
+                    seconds(obj.Episodes.(thestate))* ...
+                    ticd.getSampleRate)/ticd.getSampleRate);
+                obj.Episodes.(thestate)=timeCorrected + ztadj;
             end
         end
         function obj = getWindow(obj,window)
@@ -108,20 +110,19 @@ classdef StateSeries
         end
         function [ax] = plot(obj,yShadeRatio)
 %             yShadeRatio=[.55 .8];
-            statesOrder={'NREMstate','REMstate','WAKEstate','QWAKEstate'};
+            statesOrder=categorical({'NREMstate','REMstate','WAKEstate','QWAKEstate'});
             ax=gca;
             hold1=ishold(ax);hold(ax,"on");
             y=[ax.YLim(1)+diff(ax.YLim)*yShadeRatio(1) ax.YLim(1)+...
                 diff(ax.YLim)*yShadeRatio(2)];
-            obj1=obj.getZTCorrected;
-            episodes=obj1.Episodes;
-            fnames=sort(fieldnames(episodes));
+            episodes=obj.Episodes;
+            fnames=categorical(sort(fieldnames(episodes)));
             [~,loc]=ismember(fnames,statesOrder);
             fnames=fnames(loc);
             hold on;
             colors=linspecer(numel(fnames));
             for istate=1:numel(fnames)
-                thestate=episodes.(fnames{istate});
+                thestate=hours(episodes.(string(fnames(istate))));
                 for iepisode=1:size(thestate,1)
                     episode=thestate(iepisode,:);
                     fl=fill([episode(1) episode(2) episode(2) episode(1)], ...
@@ -226,7 +227,7 @@ classdef StateSeries
             fnames=fieldnames(episodes);
             for ifnames=1:numel(fnames)
                 state=episodes.(fnames{ifnames});
-                tmp=seconds(state-1);
+                tmp=seconds(state-1); % now zero is the start time at ticd
                 tmp(:,1)=tmp(:,1)-seconds(.5);
                 tmp(:,2)=tmp(:,2)+seconds(.5);
                 episodes.(fnames{ifnames})=tmp;

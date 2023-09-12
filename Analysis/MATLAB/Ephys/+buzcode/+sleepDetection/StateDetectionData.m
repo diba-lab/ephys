@@ -260,7 +260,7 @@ classdef StateDetectionData
                 end
             end
             ss=ss.setEpisodesFromBuzcode(obj.SleepState.ints);
-            ss=ss.setStateNames(idx.statenames);
+            ss=ss.setStateNames(categorical(idx.statenames));
         end
         function ch=getStateSeriesChannel(obj)
             idx=obj.SleepState.idx;

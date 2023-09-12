@@ -384,8 +384,8 @@ classdef TimeIntervalCombined < time.TimeIntervalAbstract
         function tps=getTimePointsInSamples(obj)
             tps=1:obj.getNumberOfPoints;
         end
-        function arrnew=adjustTimestampsAsIfNotInterrupted(obj,arr)
-            arrnew=arr;
+        function arrnew=adjustTimestampsAsIfNotInterrupted(obj,arrInSamples)
+            arrnew=arrInSamples;
             til= obj.timeIntervalList;
             for iAdj=1:til.length
                 theTimeInterval=til.get(iAdj);
@@ -401,8 +401,8 @@ classdef TimeIntervalCombined < time.TimeIntervalAbstract
                     sample(iAdj).begin=sample(iAdj-1).end+1;
                     sample(iAdj).end=sample(iAdj).begin+theTimeInterval.NumberOfPoints;
                 end
-                idx=(arr>=sample(iAdj).begin)&(arr<=sample(iAdj).end);
-                arrnew(idx)=arr(idx) + sample(iAdj).adj;
+                idx=(arrInSamples>=sample(iAdj).begin)&(arrInSamples<=sample(iAdj).end);
+                arrnew(idx)=arrInSamples(idx) + sample(iAdj).adj;
             end
         end
         function ti=mergeTimeIntervals(obj)
