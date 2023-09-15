@@ -82,7 +82,11 @@ classdef StateSeries
                 idxstart=start>min(winInSec)&start<max(winInSec);
                 idxstop=stop>min(winInSec)&stop<max(winInSec);
                 idx=idxstart|idxstop;
-                epinew=epi(idx,:);
+                try
+                    epinew=epi(idx,:);
+                catch ME
+                    
+                end
                 if ~isempty(epinew)
                     if epinew(1,1)<min(winInSec)
                         epinew(1,1)=min(winInSec);
