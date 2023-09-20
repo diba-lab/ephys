@@ -1,14 +1,14 @@
 classdef BuzcodeStructure
     %BUZCODESTRUCTURE Summary of this class goes here
     %   Detailed explanation goes here
-    
+
     properties
         BasePath
         TimeIntervalCombined
         BadIntervals
         Probe
     end
-    
+
     methods
         function obj = BuzcodeStructure(filepath)
             %Select from no input
@@ -57,14 +57,14 @@ classdef BuzcodeStructure
                 end
             else
                 for ifolder=1:numel(folders)
-                list=dir(fullfile(obj.BasePath,folders{ifolder},'*SWR.conf.xml'));
-                if ~isempty(list)
-                    break
+                    list=dir(fullfile(obj.BasePath,folders{ifolder},'*SWR.conf.xml'));
+                    if ~isempty(list)
+                        break
+                    end
+                    if ~isempty(list)
+                        conf=readstruct(fullfile(list.folder,list.name));
+                    end
                 end
-                if ~isempty(list)
-                    conf=readstruct(fullfile(list.folder,list.name));
-                end
-            end
 
             end
             switch str2double(conf.detectiontype)
@@ -118,12 +118,12 @@ classdef BuzcodeStructure
                         varargin={varargin{:},'ThetaChannels',params.Channels.ThetaChannels};
                     end
                 catch
-                    logger.warning('No Theta Channels set.')                    
+                    logger.warning('No Theta Channels set.')
                 end
                 try
                     varargin={varargin{:},'EMGChannels',params.Channels.EMGChannel};
                 catch
-                    logger.warning('No EMG Channels set.')                    
+                    logger.warning('No EMG Channels set.')
                 end
                 try varargin={varargin{:},'overwrite',logical(params.Overwrite)};catch; end
                 try varargin={varargin{:},'NotchHVS',logical(params.HVSFilter)};catch; end
@@ -143,12 +143,12 @@ classdef BuzcodeStructure
                 logger.info(sprintf('SleepScoreMaster is callled with the following parameters: %s', ...
                     joinedstr{:} ...
                     ));
-                
+
                 SleepScoreMaster(obj.BasePath,varargin1{:});
                 sdd=buzcode.sleepDetection.StateDetectionData(obj.BasePath);
             end
         end
-        
+
         function obj=setBadIntervals(obj,bad)
             obj.BadIntervals=bad;
         end

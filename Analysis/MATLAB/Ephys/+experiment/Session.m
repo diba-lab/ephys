@@ -206,6 +206,9 @@ classdef Session
                 ticd=time.TimeIntervalCombined( ...
                     obj.SessionInfo.baseFolder);
                 zt=ticd.getZeitgeberTime;
+                if isempty(zt)
+                    zt=obj.SessionInfo.ZeitgeberTime+obj.SessionInfo.Date;
+                end
             catch
                 zt=nan;
             end
@@ -240,6 +243,12 @@ classdef Session
             us=buzcode.CellMetricsSession(char( ...
                 obj.SessionInfo.baseFolder));
             sa=us.getSpikeArray;
+        end
+        function ripples = getRipples(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            dlfp=obj.getDataLFP;
+            ripples=dlfp.getRippleEvents;
         end
         function [] = printProbe(obj,varargin)
             %METHOD1 Summary of this method goes here
