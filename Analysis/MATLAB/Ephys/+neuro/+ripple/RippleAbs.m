@@ -17,19 +17,38 @@ classdef RippleAbs
 
         function [s] = plotScatterTimeZt(obj)
             sct=obj.getScatterData;
-            s=scatter(hours(sct.TimePoints),sct.DataMatrix.RippleAmplitude ...
+            s=scatter(hours(sct.TimePoints.Peak),sct.DataMatrix.RippleAmplitude ...
                 ,'Marker','.','MarkerFaceAlpha',.7,'MarkerEdgeAlpha',.7,...
                 'SizeData',50);
+        end
+        function [s] = plotWindowsTimeZt(obj)
+            sct=obj.getScatterData;
+            colors=colororder;
+            ax=gca;
+            y=ax.YLim;
+
+            for iswr=1:height(sct.TimePoints)
+                x=[hours(sct.TimePoints.Start(iswr)) hours(sct.TimePoints.Stop(iswr))];
+                rectangle('Position', [x(1) y(1) diff(x) diff(y)], ...
+                    LineStyle='none',FaceColor=[colors(2,:) .2]);
+            end
         end
         function scatter1 = getScatterData(obj)
             ticd=obj.TimeIntervalCombined;
             ztshift=ticd.getStartTime-ticd.getZeitgeberTime;
             peaktimestamps=obj.getPeakTimes*ticd.getSampleRate;
+            STtimestamps=obj.getStartStopTimes*ticd.getSampleRate;
             peakTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(peaktimestamps);
+            startTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(STtimestamps(:,1));
+            stopTimeStampsAdjusted=ticd.adjustTimestampsAsIfNotInterrupted(STtimestamps(:,2));
             peakTimesAdjusted=seconds(peakTimeStampsAdjusted/ticd.getSampleRate)+ztshift;
+            startTimesAdjusted=seconds(startTimeStampsAdjusted/ticd.getSampleRate)+ztshift;
+            stopTimesAdjusted=seconds(stopTimeStampsAdjusted/ticd.getSampleRate)+ztshift;
+            tbl1=array2table([startTimesAdjusted peakTimesAdjusted ...
+                stopTimesAdjusted],VariableNames={'Start','Peak','Stop'});
             tbl=array2table([obj.RipMax obj.SwMax], ...
                 VariableNames={'SharpWaveAmplitude','RippleAmplitude'});
-            scatter1=plotdata.ScatterData(peakTimesAdjusted,tbl);
+            scatter1=plotdata.ScatterData(tbl1,tbl);
         end
         function tbl = getZtAdjustedTbl(obj)
             ticd=obj.TimeIntervalCombined;
@@ -155,9 +174,15 @@ classdef RippleAbs
             peaktimes=obj.PeakTimes;
             start=peaktimes.start;
             stop=peaktimes.stop;
-
-            windowdt=window+ticd.getDate;
-
+            if isa(window,"time.ZT")
+                windowdt=window.Duration+ticd.getZeitgeberTime;
+            elseif isa(window,"duration")
+                windowdt=window+ticd.getDate;
+            elseif isa(window,"datetime")
+                windowdt=window;
+            else
+                error('Unknown type.')
+            end
             blockInSec=ticd.getSampleFor(windowdt)/ticd.getSampleRate;
             if isnan(blockInSec(1))
                 blockInSec(1)=1;

@@ -3,7 +3,7 @@ classdef ChannelRipple<neuro.basic.Channel
     %   Detailed explanation goes here
     
     properties
-        
+        RippleEvents
     end
     
     methods
@@ -17,10 +17,38 @@ classdef ChannelRipple<neuro.basic.Channel
             end
         end
         
-        function freq = getFrequencyRippleInstantaneous(obj)
+        function obj = getRippleEventWindowsOnly(obj)
+            rips=obj.RippleEvents;
+            tbl=rips.getZtAdjustedTbl;
+            tw_interest=time.ZT([tbl.start tbl.stop]);
+            obj=obj.getTimeWindow(tw_interest);
+        end
+        function obj = getRippleEventTableWithSignal(obj)
+            rips=obj.RippleEvents;
+            tbl=rips.getZtAdjustedTbl;
+            signal_ripple=neuro.basic.ChannelRipple.empty(height(tbl),0);
+            for iripple=1:height(tbl)
+                tw_interest=time.ZT([tbl(iripple,:).start tbl(iripple,:).stop]);
+                signal_ripple(iripple)=obj.getTimeWindow(tw_interest);
+            end
+            signal_ripple_tbl=array2table(signal_ripple,VariableNames={'Signal'});
+            tbl=[tbl signal_ripple_tbl];
+        end
+        function chfreq = getFilteredInRippleFrequency(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            freq=obj.getFrequencyBandPeakWavelet([120 250]);
+            chfreq=obj.getBandpassFiltered([120 500]);
+        end
+        function [freq, tfm] = getFrequencyRippleInstantaneous(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            [freq, tfm]=obj.getFrequencyBandPeakWavelet([100 500]);
+        end
+        function [] = plotRipples(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            rp=obj.RippleEvents;
+            rp.plotWindowsTimeZt
         end
 
         function ps=getPSpectrumWelch(obj)
@@ -35,7 +63,7 @@ classdef ChannelRipple<neuro.basic.Channel
             ps=obj.getPSpectrum@neuro.basic.Oscillation();
             ps=neuro.power.PowerSpectrumRipple(ps);
         end
-
+        
     end
 end
 

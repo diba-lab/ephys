@@ -3,7 +3,8 @@ classdef SessionRipple < experiment.Session
     %   Detailed explanation goes here
     
     properties
-        
+        RippleChannels
+        Ripples
     end
     
     methods
@@ -17,15 +18,76 @@ classdef SessionRipple < experiment.Session
                     obj.(fnames{ifn})=ses.(fnames{ifn});
                 end
             end
+            obj.RippleChannels=obj.getRippleChannels;
+            obj.Ripples=obj.getRipples;
         end
         
-        function cht = getRippleChannels(obj)
+        function chripples = getRippleChannels(obj)
             dlfp=obj.getDataLFP;
             ctdh=dlfp.getChannelTimeDataHard;
-            sdd=dlfp.getStateDetectionData;
-            ch=ctdh.getChannel(sdd.getThetaChannelID);
-            cht=neuro.basic.ChannelTheta(ch);
+            chans=readstruct(fullfile(obj.getBasePath,'Parameters', ...
+                'RippleDetection.xml'));
+            fnames=fieldnames(chans.BestChannel);
+            rippleEvents=obj.getRipples;
+            chripples=neuro.basic.ChannelRipple.empty(numel(fnames),0);
+            for ifn=1:numel(fnames)
+                fname=fnames{ifn};
+                ripChan=chans.BestChannel.(fname);
+                ch=ctdh.getChannel(ripChan);
+                chripples(ifn)=neuro.basic.ChannelRipple(ch);
+                chripples(ifn).RippleEvents=rippleEvents;
+            end
         end
+        function [] = PlotRippleChannels(obj,window_interested)
+            %%
+            ripples0=obj.Ripples;
+            ripples=ripples0.getWindow(window_interested);
+
+            figure(4);clf;tiledlayout("vertical");
+            rippleChannels=obj.RippleChannels;
+            for ichan=1:numel(rippleChannels)
+                rp1x=rippleChannels(ichan);
+                rp1(ichan)=rp1x.getTimeWindow(window_interested);
+                rp2(ichan)=rp1(ichan).getFilteredInRippleFrequency;
+                rp2env(ichan)=rp2(ichan).getEnvelope;
+                [rptf(ichan), tfm(ichan)]=rp1(ichan).getFrequencyRippleInstantaneous;
+            end
+            %%
+            for ichan=1:numel(rippleChannels)
+                ax_orig(ichan)=nexttile;
+            end
+
+            ax_env=nexttile;hold on
+            for ichan=1:numel(rippleChannels)
+                ax_tf(ichan)=nexttile;
+            end
+            linkaxes([ax_tf ax_env ax_orig],'x');
+            linkaxes(ax_orig,'xy');
+
+            colors=colororder;
+            for ichan=1:numel(rippleChannels)
+                axes(ax_orig(ichan));
+                rp1(ichan).plot;hold on
+                yyaxis("right")
+                rp2(ichan).plot
+                p=rp2env(ichan).plot;p.LineWidth=1.5;p.LineStyle="-";p.Color=colors(4,:);
+                rp2env(ichan).Values=-rp2env(ichan).Values;
+                p=rp2env(ichan).plot;p.LineWidth=1.5;p.LineStyle="-";p.Color=colors(4,:);
+                rp2env(ichan).Values=-rp2env(ichan).Values;
+                axes(ax_env);
+                p=rp2env(ichan).plot;p.LineWidth=1.5;p.LineStyle="-";p.Color=colors(4,:);
+                axes(ax_orig(ichan));
+                ripples.plotWindowsTimeZt
+                axes(ax_tf(ichan));
+                tfm(ichan).plot; hold on
+                ripples.plotWindowsTimeZt
+                % rptf.CF.plot;
+            end
+            axes(ax_env);
+            ripples.plotWindowsTimeZt
+
+        end
+
         function th = getThetaRatioBuzcode(obj)
             dlfp=obj.getDataLFP;
             sdd=dlfp.getStateDetectionData;

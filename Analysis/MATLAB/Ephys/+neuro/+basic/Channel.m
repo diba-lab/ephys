@@ -146,27 +146,36 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                 window1=datetime(window,'Format','HH:mm');
                 add1(1)=hours(window1(1).Hour)+minutes(window1(1).Minute);
                 add1(2)=hours(window1(2).Hour)+minutes(window1(2).Minute);
-                time=basetime+add1;
+                time1=basetime+add1;
             elseif isduration(window)
                 add1=window;
-                time=basetime+add1;
+                time1=basetime+add1;
             elseif isdatetime(window)
-                time=window;
+                time1=window;
             elseif isa(window,'time.ZT')||isa(window,'time.ZeitgeberTime')
-                time=ticd.getZeitgeberTime+window.Duration;
+                time1=ticd.getZeitgeberTime+window.Duration;
             end
-            samplewlist=ticd.getSampleForClosest(time);
-            sampleall=[];
+            samplewlist=ticd.getSampleForClosest(time1);
+            ticds=cell(size(samplewlist,1),0);
             for is=1:size(samplewlist,1)
                 samplew=samplewlist(is,:);
-                samples=samplew(1):samplew(2);
-                sampleall=[sampleall samples];
-                if ~exist('ticdall','var')
-                    ticdall=ticd.getTimeIntervalForSamples(samplew);
-                else
-                    ticdall=ticdall+ticd.getTimeIntervalForSamples(samplew);
-                end
+                ticds{is}=ticd.getTimeIntervalForSamples(samplew);
             end
+            ticdall=time.TimeIntervalCombined+ticds;
+
+            % Get the start and stop indices as arrays
+            startIndices = samplewlist(:,1);
+            stopIndices = samplewlist(:,2);
+
+            % Calculate the number of elements in each range
+            rangeSizes = stopIndices - startIndices + 1;
+
+            % Create an array of full indices
+            fullIndices = arrayfun(@(start, size) (start:(start+size-1)), startIndices, rangeSizes, 'UniformOutput', false);
+
+            % Concatenate the arrays of full indices into a single array
+            sampleall = [fullIndices{:}];
+
             obj.Values=obj.Values(sampleall);
             obj.TimeIntervalCombined=ticdall;
         end
@@ -251,7 +260,7 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             ets=neuro.basic.EphysTimeSeries(obj.getValues, ...
                 obj.getSampleRate,obj.ChannelName);
         end
-        function thpk=getFrequencyBandPeakWavelet(obj,freq)
+        function [thpk, tfm]=getFrequencyBandPeakWavelet(obj,freq)
             tfm=obj.getWhitened.getTimeFrequencyMap(...
                 neuro.tf.TimeFrequencyWavelet( ...
                 logspace(log10(freq(1)),log10(freq(2)),diff(freq)*5) ...

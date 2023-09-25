@@ -153,13 +153,9 @@ classdef Oscillation < neuro.basic.TimeSeries
                 obj.Values,obj.SampleRate,filterFreqBand,[],[],[]);
         end
         function obj=getBandpassFiltered(obj,filterFreqBand)
-            obj1=obj;
             ft_defaults;
             obj.Values=ft_preproc_bandpassfilter(...
                 obj.Values,obj.SampleRate,filterFreqBand,[],[],[]);
-            obj=neuro.basic.ChannelProcessed(obj);
-            obj.parent=obj1;
-            obj.processingInfo.BandpassFilterFreq=filterFreqBand;
         end
         function obj=getEnvelope(obj)
             obj.Values=ft_preproc_hilbert(obj.Values,'abs');

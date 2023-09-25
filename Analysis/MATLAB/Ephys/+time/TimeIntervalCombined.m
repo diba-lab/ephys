@@ -287,16 +287,24 @@ classdef TimeIntervalCombined < time.TimeIntervalAbstract
             for iArgIn=1:nargin-1
                 theTimeInterval=varargin{iArgIn};
                 if ~isempty(theTimeInterval)
-                    try
-                        for it=1:theTimeInterval.timeIntervalList.length
-                            ticdnew.timeIntervalList.add( ...
-                                theTimeInterval.timeIntervalList.get(it));
+                    for iti=1:numel(theTimeInterval)
+                        if iscell(theTimeInterval)
+                            ti=theTimeInterval{iti};
+                        else
+                            ti=theTimeInterval(iti);
                         end
-                        l=logging.Logger.getLogger;
-                        l.fine(sprintf('\nRecord addded:\n%s', ...
-                            theTimeInterval.tostring));
-                    catch
-                         ticdnew.timeIntervalList.add(theTimeInterval);
+                        if isa(ti,'time.TimeIntervalCombined')
+
+                            for it=1:ti.timeIntervalList.length
+                                ticdnew.timeIntervalList.add( ...
+                                    ti.timeIntervalList.get(it));
+                                % l=logging.Logger.getLogger;
+                                % l.fine(sprintf('\nRecord addded:\n%s', ...
+                                %     theTimeInterval.tostring));
+                            end
+                        else
+                            ticdnew.timeIntervalList.add(ti);
+                        end
                     end
                 end
             end
