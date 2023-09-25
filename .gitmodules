@@ -1,12 +1,18 @@
-[submodule "Analysis/MATLAB/Ephys/external/RatBrainAtlasAPI"]
-	path = Analysis/MATLAB/Ephys/external/RatBrainAtlasAPI
-	url = https://github.com/mattgaidica/RatBrainAtlasAPI.git
-[submodule "Analysis/MATLAB/Ephys/external/CellExplorer"]
-	path = Analysis/MATLAB/Ephys/external/CellExplorer
-	url = https://github.com/petersenpeter/CellExplorer.git
-[submodule "Analysis/MATLAB/Ephys/external/fooof_mat"]
-	path = Analysis/MATLAB/Ephys/external/fooof_mat
-	url = https://github.com/fooof-tools/fooof_mat.git
 [submodule "Analysis/MATLAB/Ephys/external/fooof"]
 	path = Analysis/MATLAB/Ephys/external/fooof
 	url = https://github.com/fooof-tools/fooof_mat.git
+[submodule "Analysis/MATLAB/Ephys/external/CellExplorer"]
+	path = Analysis/MATLAB/Ephys/external/CellExplorer
+	url = https://github.com/petersenpeter/CellExplorer.git
+[submodule "Analysis/MATLAB/Ephys/external/chronux"]
+	path = Analysis/MATLAB/Ephys/external/chronux
+	url = https://github.com/jsiegle/chronux.git
+[submodule "Analysis/MATLAB/Ephys/external/circstat"]
+	path = Analysis/MATLAB/Ephys/external/circstat
+	url = https://github.com/circstat/circstat-matlab.git
+[submodule "Analysis/MATLAB/Ephys/external/open-ephys-tools"]
+	path = Analysis/MATLAB/Ephys/external/open-ephys-tools
+	url = https://github.com/open-ephys/open-ephys-matlab-tools.git
+[submodule "Analysis/MATLAB/Ephys/external/shadedErrorBar"]
+	path = Analysis/MATLAB/Ephys/external/shadedErrorBar
+	url = https://github.com/raacampbell/shadedErrorBar.git
