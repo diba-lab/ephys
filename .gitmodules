@@ -16,3 +16,6 @@
 [submodule "Analysis/MATLAB/Ephys/external/shadedErrorBar"]
 	path = Analysis/MATLAB/Ephys/external/shadedErrorBar
 	url = https://github.com/raacampbell/shadedErrorBar.git
+[submodule "Analysis/MATLAB/Ephys/external/fieldtrip"]
+	path = Analysis/MATLAB/Ephys/external/fieldtrip
+	url = https://github.com/fieldtrip/fieldtrip.git

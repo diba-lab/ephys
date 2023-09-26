@@ -55,12 +55,12 @@ classdef ChannelRipple<neuro.basic.Channel
             ps=obj.getPSpectrumWelch@neuro.basic.Oscillation();
             ps=neuro.power.PowerSpectrumRipple(ps);
         end
-        function ps=getPSpectrumChronux(obj)
-            ps=obj.getPSpectrumChronux@neuro.basic.Oscillation();
+        function ps=getPSpectrumChronux(obj,freq,tapers)
+            ps=obj.getPSpectrumChronux@neuro.basic.Oscillation(freq,tapers);
             ps=neuro.power.PowerSpectrumRipple(ps);
         end
-        function ps=getPSpectrum(obj)
-            ps=obj.getPSpectrum@neuro.basic.Oscillation();
+        function ps=getPSpectrum(obj,freq)
+            ps=obj.getPSpectrum@neuro.basic.Oscillation(freq);
             ps=neuro.power.PowerSpectrumRipple(ps);
         end
         

@@ -37,16 +37,16 @@ classdef Oscillation < neuro.basic.TimeSeries
                 obj.Values, obj.getSampleRate);
             timeFrequencyMap=timeFrequencyMap.setTimeintervalCombined(ticd1);
         end
-        function ps=getPSpectrum(obj)
+        function ps=getPSpectrum(obj,freq)
             [pxx,f] = pspectrum(double(obj.Values),obj.getSampleRate,...
-                'FrequencyLimits',[1 250]);
+                'FrequencyLimits',freq);
             ps=neuro.power.PowerSpectrum(pxx,f);
         end
 
-        function ps=getPSpectrumChronux(obj)
-            %             params.tapers=[3 5];
+        function ps=getPSpectrumChronux(obj,freq,tapers)
+            params.tapers=tapers;
             params.Fs=obj.getSampleRate;
-            params.fpass=[1 40];
+            params.fpass=freq;
             [S,f] = mtspectrumc( obj.Values, params );
             ps=neuro.power.PowerSpectrum(S,f);
         end
