@@ -21,6 +21,56 @@ classdef Oscillation < neuro.basic.TimeSeries
                 end
             end
         end
+        function obj=uminus(obj)
+            obj.Values=-obj.Values;
+        end
+        function obj=plus(obj,b)
+            if isnumeric(b)
+                obj.Values=obj.Values+b;
+            else
+                if obj.SampleRate==b.SampleRate
+                    obj.Values=[obj.Values b.Values];
+                else
+                    error('Sample rates must be equal a1=%d, a2=%d',...
+                        obj.SampleRate,b.SampleRate)
+                end
+            end
+        end
+        function obj=minus(obj,b)
+            if isnumeric(b)
+                obj.Values=obj.Values-b;
+            else
+                error('Only numbers.')
+            end
+        end
+        function obj=mrdivide(obj,b)
+            if isnumeric(b)
+                obj.Values=obj.Values/b;
+            else
+                error('Only numbers.')
+            end
+        end
+        function obj=rdivide(obj,b)
+            if isnumeric(b)
+                obj.Values=obj.Values./b;
+            else
+                error('Only numbers.')
+            end
+        end
+        function obj=power(obj,b)
+            if isnumeric(b)
+                obj.Values=obj.Values.^b;
+            else
+                error('Only numbers.')
+            end
+        end
+        function obj=mpower(obj,b)
+            if isnumeric(b)
+                obj.Values=obj.Values^b;
+            else
+                error('Only numbers.')
+            end
+        end
         function timeFrequencyMap = getTimeFrequencyMap(obj,...
                 timeFrequencyMethod)
             %METHOD1 Summary of this method goes here
@@ -160,6 +210,9 @@ classdef Oscillation < neuro.basic.TimeSeries
         function obj=getEnvelope(obj)
             obj.Values=ft_preproc_hilbert(obj.Values,'abs');
         end
+        function obj=getPhase(obj)
+            obj.Values=ft_preproc_hilbert(obj.Values,'angle');
+        end
         function samples=subsindex(obj,s)
             error(['This function is changed. Make sure it is working' ...
                 ' properly, then move.'])
@@ -176,10 +229,6 @@ classdef Oscillation < neuro.basic.TimeSeries
         end
     end
     methods
-        function va=getVoltageArray(obj)
-            warning('Obsolete. Use getValues()')
-            va = obj.Values;
-        end
         function obj=setVoltageArray(obj,va)
             warning('Obsolete. Use setValues()')
             obj.Values=va;

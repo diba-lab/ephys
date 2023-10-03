@@ -30,7 +30,7 @@ classdef RippleAbs
             for iswr=1:height(sct.TimePoints)
                 x=[hours(sct.TimePoints.Start(iswr)) hours(sct.TimePoints.Stop(iswr))];
                 rectangle('Position', [x(1) y(1) diff(x) diff(y)], ...
-                    LineStyle='none',FaceColor=[colors(2,:) .2]);
+                    LineStyle='none',FaceColor=[colors(2,:) .4]);
             end
         end
         function scatter1 = getScatterData(obj)

@@ -193,6 +193,18 @@ classdef Session
                 
             end
         end
+        function sr = getStateRatios(obj,varargin)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            pr=preprocessing.Preprocess(obj);
+            data=pr.getDataForLFP;
+            try
+                sdd=data.getStateDetectionData.getStateSeries;
+            catch ME
+                
+            end
+            sr=sdd.getStateRatios;
+        end
         function data = getDataClustering(obj,varargin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here

@@ -11,16 +11,19 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
     end
 
     methods
-        function obj = Channel(channelname, voltageArray, timeIntervalCombined)
+        function obj = Channel(channelname, voltageArray,...
+                timeIntervalCombined)
             %CHANNEL Construct an instance of this class
             %   Detailed explanation goes here
             if nargin>0
                 if size(voltageArray,1)>1
                     voltageArray=voltageArray';
                 end
-                numdiff= numel(voltageArray)-timeIntervalCombined.getNumberOfPoints;
+                numdiff= numel(voltageArray)-...
+                    timeIntervalCombined.getNumberOfPoints;
                 if numdiff<3 && numdiff>0
-                    timeIntervalCombined=timeIntervalCombined.addTimePoints(numdiff);
+                    timeIntervalCombined=...
+                        timeIntervalCombined.addTimePoints(numdiff);
                 end
                 obj.SampleRate=timeIntervalCombined.getSampleRate;
                 obj.Values=voltageArray;
@@ -171,7 +174,8 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             rangeSizes = stopIndices - startIndices + 1;
 
             % Create an array of full indices
-            fullIndices = arrayfun(@(start, size) (start:(start+size-1)), startIndices, rangeSizes, 'UniformOutput', false);
+            fullIndices = arrayfun(@(start, size) (start:(start+size-1)), ...
+                startIndices, rangeSizes, 'UniformOutput', false);
 
             % Concatenate the arrays of full indices into a single array
             sampleall = [fullIndices{:}];
@@ -208,9 +212,8 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                             timepoints=seconds(tp);
                         end
                     end
-                    ava=va(index_va:(index_va+ati.getNumberOfPoints-1));
-                    index_va=index_va+ati.getNumberOfPoints;
-                    p(iti)=plot(timepoints,ava(1:numel(timepoints)));
+                    ava=va(:,index_va:(index_va+ati.getNumberOfPoints-1));
+                    p(iti,:)=plot(timepoints,ava);
                     p(iti).LineWidth=1.5;
                     p(iti).Marker='none';
                     p(iti).LineStyle="-";
@@ -278,7 +281,7 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
         function thpk=getFrequencyBandPeakMT(obj,freq)
             tfm=obj.getWhitened.getTimeFrequencyMap(...
                 neuro.tf.TimeFrequencyChronuxMtspecgramc(...
-                freq,[3 .1]));
+                freq,[2 1]));
             [thpkcf1,thpkpw1]=tfm.getFrequencyBandPeak(freq);
             thpkcf=neuro.basic.Channel('CF',thpkcf1.getValues, ...
                 obj.TimeIntervalCombined);
@@ -290,7 +293,8 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             thpk=thpk.addSignal(obj);
         end
         function str=toString(obj)
-        str=sprintf('ch%s-n%dHz-%d-%s-%s', string(obj.ChannelName), obj.SampleRate, ...
+        str=sprintf('ch%s-n%dHz-%d-%s-%s', string(obj.ChannelName),...
+            obj.SampleRate, ...
             obj.getNumberOfPoints, ...
             string([obj.TimeIntervalCombined.getStartTime, ...
             obj.TimeIntervalCombined.getEndTime]));
@@ -302,7 +306,8 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             if ~isscalar(obj)
                 header = getHeader@matlab.mixin.CustomDisplay(obj);
             else
-                headerStr = matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
+                headerStr = ...
+                    matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
                 headerStr = [headerStr,' with Customized Display'];
                 header = sprintf('%s\n',headerStr);
             end

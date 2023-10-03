@@ -32,8 +32,11 @@ classdef SessionRipple < experiment.Session
             chripples=neuro.basic.ChannelRipple.empty(numel(fnames),0);
             for ifn=1:numel(fnames)
                 fname=fnames{ifn};
-                ripChan=chans.BestChannel.(fname);
-                ch=ctdh.getChannel(ripChan);
+                ripChan(ifn)=chans.BestChannel.(fname);
+            end
+            ripChan=unique(ripChan);
+            for ifn=1:numel(ripChan)
+                ch=ctdh.getChannel(ripChan(ifn));
                 chripples(ifn)=neuro.basic.ChannelRipple(ch);
                 chripples(ifn).RippleEvents=rippleEvents;
             end
@@ -86,34 +89,6 @@ classdef SessionRipple < experiment.Session
             axes(ax_env);
             ripples.plotWindowsTimeZt
 
-        end
-
-        function th = getThetaRatioBuzcode(obj)
-            dlfp=obj.getDataLFP;
-            sdd=dlfp.getStateDetectionData;
-            th=sdd.getThetaRatio;
-        end
-        function sw = getSlowWaveBroadbandBuzcode(obj)
-            dlfp=obj.getDataLFP;
-            sdd=dlfp.getStateDetectionData;
-            sw=sdd.getSW;
-        end
-        function emg = getEMG(obj)
-            dlfp=obj.getDataLFP;
-            sdd=dlfp.getStateDetectionData;
-            emg=sdd.getEMG;
-        end
-        function spd = getSpeed(obj)
-            pos=obj.getPosition;
-            try
-                spd=pos.getSpeed;
-            catch ME
-                if strcmp(ME.identifier,'MATLAB:structRefFromNonStruct')
-                    spd=[];
-                else
-                    throw(ME);
-                end
-            end
         end
     end
 end
