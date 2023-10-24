@@ -18,13 +18,17 @@ classdef StateSeries
                     'are not equal.'],ticd.getNumberOfPoints,numel(states))
             end
         end
+        function dur = getDuration(obj)
+            dur=obj.TimeIntervalCombined.getDuration;
+        end
         function obj = getZTCorrected(obj)
             ticd=obj.TimeIntervalCombined;
             ztadj=ticd.getStartTime-ticd.getZeitgeberTime;
             fnames=fieldnames(obj.Episodes);
             for istate=1:numel(fnames)
                 thestate=fnames{istate};
-                timeCorrected=seconds(ticd.adjustTimestampsAsIfNotInterrupted( ...
+                timeCorrected=seconds( ...
+                    ticd.adjustTimestampsAsIfNotInterrupted( ...
                     seconds(obj.Episodes.(thestate))* ...
                     ticd.getSampleRate)/ticd.getSampleRate);
                 obj.Episodes.(thestate)=timeCorrected + ztadj;
@@ -35,8 +39,10 @@ classdef StateSeries
             ticd=obj.TimeIntervalCombined;
             episodes=obj.Episodes;
             
-            if ~isdatetime(window)
+            if isduration(window)
                 winddt=ticd.getDate+window;
+            elseif isa(window,'time.ZT')
+                winddt=ticd.getZeitgeberTime+window.Duration;
             else
                 winddt=window;
             end
@@ -104,7 +110,8 @@ classdef StateSeries
         end
         function newobj = getResampled(obj,timeIntervalCombined)
             if isa(timeIntervalCombined,'neuro.basic.Channel')
-                timeIntervalCombined=timeIntervalCombined.getTimeIntervalCombined;
+                timeIntervalCombined=...
+                    timeIntervalCombined.getTimeIntervalCombined;
             end
             timePointsInSec=seconds(timeIntervalCombined.getTimePoints);
             ts=obj.getTimeSeries;
@@ -114,7 +121,8 @@ classdef StateSeries
         end
         function [ax] = plot(obj,yShadeRatio)
 %             yShadeRatio=[.55 .8];
-            statesOrder=categorical({'NREMstate','REMstate','WAKEstate','QWAKEstate'});
+            statesOrder=categorical({'NREMstate','REMstate', ...
+                'WAKEstate','QWAKEstate'});
             ax=gca;
             hold1=ishold(ax);hold(ax,"on");
             y=[ax.YLim(1)+diff(ax.YLim)*yShadeRatio(1) ax.YLim(1)+...
@@ -155,34 +163,47 @@ classdef StateSeries
                 slidingWindowLaps,windowZT)
             obj1=obj.getZTCorrected;
             states=categorical(obj1.States);
-            roundAccuracy=hours(1)/slidingWindowLaps;
+            if nargin<2
+                slidingWindowSize=obj.TimeIntervalCombined.getDuration;
+                slidingWindowLaps=slidingWindowSize;
+            end
             if exist('windowZT','var')
-                strt1=windowZT(1):slidingWindowLaps: ...
-                    (windowZT(2)-slidingWindowSize+slidingWindowSize/100);
+                strt1=hours(windowZT(1):slidingWindowLaps: ...
+                    (windowZT(2)-slidingWindowSize+slidingWindowSize/100));
             else
                 zt=obj.TimeIntervalCombined.getZeitgeberTime;
-                strt1=hours((obj1.getStartTime-zt):... 
+                strt1=hours((obj1.getStartTime-zt):...
                     slidingWindowLaps: ...
-                    (obj1.getEndTime-zt-slidingWindowSize+slidingWindowSize/100) ) ;
+                    (obj1.getEndTime-zt-slidingWindowSize+ ...
+                    slidingWindowSize/100) ) ;
             end
-            strt2=hours(round(hours(roundAccuracy*strt1))/roundAccuracy);
-            end2=strt2+slidingWindowSize;
-            center1=array2table( [strt2' strt2'+ ...
-                slidingWindowSize/2 end2'], ...
+            if isempty(strt1)
+                strt1=hours(obj1.getStartTime-zt);
+            end
+            if nargin>1
+                roundAccuracy=hours(1)/slidingWindowLaps;
+                strt2=round(roundAccuracy*strt1)/roundAccuracy;
+            else
+                strt2=strt1;
+            end
+
+            end2=strt2+hours(slidingWindowSize);
+            center1=array2table( hours([strt2' strt2'+ ...
+                hours(slidingWindowSize)/2 end2']), ...
                 VariableNames={'ZTStart','ZTCenter','ZTEnd'});
-            wind=nan(size(strt2,2),6);
-            timePoints=hours(hours(obj.TimeIntervalCombined.getTimePointsZT));
+            wind=zeros(size(strt2,2),6);
+            timePoints=hours(obj.TimeIntervalCombined.getTimePointsZT);
             for iwin=1:numel(strt2)
                 s1=strt2(iwin);
                 e1=end2(iwin);
-                [n,c]=histcounts(states(timePoints>s1&timePoints<e1));
+                [n,c]=histcounts(states(timePoints>=s1&timePoints<=e1));
                 statelist={'0','1','2','3','4','5',};
                 [b,a]=ismember(statelist,c);
                 wind(iwin,b)=n(a(b));
             end
-            statecounts=array2table(wind,VariableNames={'none','A-WAKE', ...
-                'Q-WAKE','SWS','INT','REM'});
-            restbl=[center1 statecounts];
+            statecounts=array2table(seconds(wind),VariableNames={ ...
+                'none','A-WAKE','Q-WAKE','SWS','INT','REM'});
+            restbl=neuro.state.StateRatios([center1 statecounts]);
         end
         function [theEpisodeAbs, tbls]=getState(obj,states)
             ticd=obj.TimeIntervalCombined;
@@ -206,7 +227,8 @@ classdef StateSeries
                 end
                 theEpisode=ticd.adjustTimestampsAsIfNotInterrupted( ...
                     seconds(theEpisode)*ticd.getSampleRate)/ticd.getSampleRate;
-                tbl=array2table(seconds(theEpisode),"VariableNames",{'start','end'});
+                tbl=array2table(seconds(theEpisode),"VariableNames",{ ...
+                    'start','end'});
                 tbl=[tbl array2table(repmat(state,[height(tbl),1]), ...
                     "VariableNames",{'state'})];
                 if is==1
@@ -222,7 +244,8 @@ classdef StateSeries
                     wind=[tbls(irow,:).start tbls(irow,:).end];
                     theEpisodeAbs(irow,:)=ticdss.getStartTime+wind;
                 end
-                tbls=[tbls array2table(theEpisodeAbs,VariableNames={'AbsStart','AbsEnd'})];
+                tbls=[tbls array2table(theEpisodeAbs,VariableNames={ ...
+                    'AbsStart','AbsEnd'})];
             else
                 theEpisodeAbs=[];
             end

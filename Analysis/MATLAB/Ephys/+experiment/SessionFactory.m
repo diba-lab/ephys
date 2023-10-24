@@ -46,7 +46,6 @@ classdef SessionFactory
                 end
                 sessions(ifile)=aSession;
             end
-            sessions=experiment.SessionList(sessions);
         end
         function t_sub = getSessionsTable(obj,varargin)
             %METHOD1 Summary of this method goes here

@@ -2,7 +2,7 @@ clear all
 
 sf=experiment.SessionFactory;
 animal='AG'; 
-cond='NSD';
+cond='SD';
 sesno=2;
 sess=sf.getSessions(animal,cond);
 ses=sess(sesno);

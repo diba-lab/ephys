@@ -77,7 +77,7 @@ classdef ChannelRipple<neuro.basic.Channel
         function [] = plotVisualize(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            frange=[120 200];
+            frange=[100 250];
             tiledlayout(5,5,"TileSpacing","tight")
             raw=nexttile([1, 4]);
             tf=nexttile(6,[3 4]);
@@ -93,6 +93,7 @@ classdef ChannelRipple<neuro.basic.Channel
             env.plot;hold on;
             envi=-env;envi.plot;
             m1=obj.getWhitened.getTimeFrequencyMap(frange);
+            m1=obj.getTimeFrequencyMap(frange);
             axes(tf);m1.plot;hold on
             sz=size(m1.matrix);
             mat=abs(m1.matrix);
@@ -113,27 +114,69 @@ classdef ChannelRipple<neuro.basic.Channel
             f.XLim=frange;
             f.View=[90 270];
         end
-        function [tbl] = getProperties(obj)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            frange=[120 200];
-            bp=obj.getBandpassFiltered(frange);
-            env=bp.getEnvelope;
-            m1=obj.getWhitened.getTimeFrequencyMap(frange);
-            sz=size(m1.matrix);
-            mat=abs(m1.matrix);
-            [row,~]=ind2sub(sz, find(imregionalmax(mat)));
-            vals=mat((imregionalmax(mat)));
-            [~,b]=sort(vals,"descend");
-            pf=m1.frequencyPoints(row(b(1)));
-            f_w=array2table(pf,VariableNames="frequency_wavelet");
-            p_env=array2table(max(env.Values),VariableNames="power_envelope");
-            ph=bp.getPhase;
-            pks=findpeaks(ph.Values);
-            f_ph_count=median(1./(diff(pks.loc)/double(ph.getSampleRate)));
-            f_c=array2table(f_ph_count,VariableNames="frequency_count");
-            tbl=[f_w p_env f_c];
+        function tbl = getProperties(obj)
+            % Define frequency ranges
+            frangecount = [120 200];
+            frangewavelet = [100 250];
+
+            % Get bandpass filtered signals and envelopes
+            bp_count = obj.getBandpassFiltered(frangecount);
+            env_count = bp_count.getEnvelope;
+
+            bp_wavelet = obj.getBandpassFiltered(frangewavelet);
+            env_wavelet = bp_wavelet.getEnvelope;
+
+            % Get time-frequency maps
+            m1_wavelet = obj.getWhitened.getTimeFrequencyMap(frangewavelet);
+            m2_wavelet = obj.getTimeFrequencyMap(frangewavelet);
+
+            % Find regional maxima in the matrix
+            mat_wavelet = abs(m1_wavelet.matrix);
+            [row, ~] = ind2sub(size(mat_wavelet), find(imregionalmax(mat_wavelet)));
+            vals = mat_wavelet(imregionalmax(mat_wavelet));
+            [~, b] = sort(vals, 'descend');
+
+            mat_wavelet2 = abs(m2_wavelet.matrix);
+            [row2, ~] = ind2sub(size(mat_wavelet2), find(imregionalmax(mat_wavelet2)));
+            vals2 = mat_wavelet2(imregionalmax(mat_wavelet2));
+            [~, b2] = sort(vals2, 'descend');
+
+            % Calculate frequency points
+            pf_wavelet = m1_wavelet.frequencyPoints(row(b(1)));
+            pf_wavelet_nowhiten = m2_wavelet.frequencyPoints(row2(b2(1)));
+
+            % Create tables for frequency data
+            f_w = array2table(pf_wavelet, 'VariableNames', {'frequency_wavelet'});
+            f_w2 = array2table(pf_wavelet_nowhiten, 'VariableNames', ...
+                {'frequency_wavelet_nowhiten'});
+
+            % Calculate maximum power from envelopes
+            p_env = array2table(max(env_count.Values), ...
+                'VariableNames', {'power_envelope'});
+            p_env2 = array2table(max(env_wavelet.Values), ...
+                'VariableNames', {'power_envelope_largefilter'});
+
+            % Get phase signals and find peaks
+            ph_count = bp_count.getPhase;
+            ph_count2 = bp_wavelet.getPhase;
+            pks_count = findpeaks(ph_count.Values);
+            pks_count2 = findpeaks(ph_count2.Values);
+
+            % Calculate median frequency counts
+            f_ph_count = median(1 ./ (diff(pks_count.loc) / ...
+                double(ph_count.getSampleRate)));
+            f_ph_count_large = median(1 ./ (diff(pks_count2.loc) / ...
+                double(ph_count2.getSampleRate)));
+
+            % Create tables for frequency counts
+            f_c = array2table(f_ph_count, 'VariableNames', {'frequency_count'});
+            f_c_large = array2table(f_ph_count_large, ...
+                'VariableNames', {'frequency_count_large'});
+
+            % Combine all tables into one
+            tbl = [f_w, f_w2, p_env, p_env2, f_c, f_c_large];
         end
+
         function timeFrequencyMap = getTimeFrequencyMap(obj,freq)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here

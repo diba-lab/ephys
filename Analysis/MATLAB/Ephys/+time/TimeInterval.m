@@ -119,7 +119,12 @@ classdef TimeInterval < time.TimeIntervalAbstract
         function samples=getSampleFor(obj,times)
             % GetSampleFor method that returns an array of sample indices
             % that correspond to a set of datetime objects in the interval.
-            samples=nan(size(times));
+            if obj.NumberOfPoints>0
+                samples=nan(size(times));
+            else
+                samples=zeros(size(times));
+                return
+            end           
             startTime=obj.StartTime;
             endTime=obj.getEndTime;
             for i=1:numel(times)
@@ -131,6 +136,7 @@ classdef TimeInterval < time.TimeIntervalAbstract
                     end
                 end
             end
+
         end
         function samples = getSampleForClosest(obj, datetimes)
             % GetSampleForClosest method that returns an array of sample indices

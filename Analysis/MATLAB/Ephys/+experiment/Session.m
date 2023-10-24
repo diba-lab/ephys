@@ -203,7 +203,19 @@ classdef Session
             catch ME
                 
             end
-            sr=sdd.getStateRatios;
+            sr=sdd.getStateRatios(varargin);
+        end
+        function ss = getStateSeries(obj,varargin)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            pr=preprocessing.Preprocess(obj);
+            data=pr.getDataForLFP;
+            data.TimeIntervalCombined.setZeitgeberTime(obj.getZeitgeberTime)
+            try
+                ss=data.getStateDetectionData.getStateSeries;
+            catch ME
+                
+            end
         end
         function data = getDataClustering(obj,varargin)
             %METHOD1 Summary of this method goes here
@@ -215,14 +227,15 @@ classdef Session
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             try
-                ticd=time.TimeIntervalCombined( ...
-                    obj.SessionInfo.baseFolder);
-                zt=ticd.getZeitgeberTime;
+                zt=obj.SessionInfo.ZeitgeberTime+obj.SessionInfo.Date;
+                zt.Format="default";
                 if isempty(zt)
-                    zt=obj.SessionInfo.ZeitgeberTime+obj.SessionInfo.Date;
+                    ticd=time.TimeIntervalCombined( ...
+                        obj.SessionInfo.baseFolder);
+                    zt=ticd.getZeitgeberTime;
                 end
-            catch
-                zt=nan;
+            catch ME
+                error(ME)
             end
         end
         function pos = getPosition(obj)

@@ -89,8 +89,10 @@ classdef TimeIntervalCombined < time.TimeIntervalAbstract
                 end
                 try
                     obj.timeIntervalList=timeIntervalList;
-                    obj=obj.setZeitgeberTime(timeIntervalList.get( ...
-                        1).ZeitgeberTime);
+                    for ilist=1:timeIntervalList.length
+                        zts(ilist)=timeIntervalList.get(ilist).ZeitgeberTime;
+                    end
+                    obj=obj.setZeitgeberTime(median(zts));
                 catch
                 end
             end
@@ -284,7 +286,11 @@ classdef TimeIntervalCombined < time.TimeIntervalAbstract
                     [~,I]=min(difmat);
                     [~,I2]=min([difmat(I(1),1) difmat(I(2),2)]);
                     time1=win(I(I2),I2);
-                    idx=time1>=win(:,1)&time1<=win(:,2);
+                    if tbl.nPoints(I(I2))>0
+                        idx=time1>=win(:,1)&time1<=win(:,2);
+                    else
+                        idx(I(I2),1)=true;
+                    end
                 end
                 ti=obj.timeIntervalList.get(find(idx));
                 samples(it)=cs(idx)+ti.getSampleFor(time1);
