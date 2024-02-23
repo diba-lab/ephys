@@ -2,38 +2,39 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
     %CHANNEL Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (Access=protected)
+    properties (Access=public)
         TimeIntervalCombined
     end
     properties
         ChannelName
         Info
     end
-    
+
     methods
-        function obj = Channel(channelname, voltageArray, timeIntervalCombined)
+        function obj = Channel(channelname, voltageArray,...
+                timeIntervalCombined)
             %CHANNEL Construct an instance of this class
             %   Detailed explanation goes here
-            if size(voltageArray,1)>1
-                voltageArray=voltageArray';
-            end
-            if numel(voltageArray)>timeIntervalCombined.getNumberOfPoints
-                voltageArray=voltageArray( ...
-                    1:timeIntervalCombined.getNumberOfPoints);
-            elseif numel(voltageArray)<timeIntervalCombined.getNumberOfPoints
-                diff1=timeIntervalCombined.getNumberOfPoints- ...
-                    numel(voltageArray);
-                voltageArray=[voltageArray zeros(1,diff1)];
-            end
-            obj@neuro.basic.Oscillation(voltageArray,...
-                timeIntervalCombined.getSampleRate);
-            try
-                obj.ChannelName=channelname;
-            catch
-            end
-            try
-                obj.TimeIntervalCombined=timeIntervalCombined;
-            catch
+            if nargin>0
+                if size(voltageArray,1)>1
+                    voltageArray=voltageArray';
+                end
+                numdiff= numel(voltageArray)-...
+                    timeIntervalCombined.getNumberOfPoints;
+                if numdiff<3 && numdiff>0
+                    timeIntervalCombined=...
+                        timeIntervalCombined.addTimePoints(numdiff);
+                end
+                obj.SampleRate=timeIntervalCombined.getSampleRate;
+                obj.Values=voltageArray;
+                try
+                    obj.ChannelName=channelname;
+                catch
+                end
+                try
+                    obj.TimeIntervalCombined=timeIntervalCombined;
+                catch
+                end
             end
         end
         function print(obj)
@@ -43,6 +44,34 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                 datestr(obj.TimeIntervalCombined.getStartTime),...
                 datestr(obj.TimeIntervalCombined.getEndTime),...
                 obj.SampleRate);
+        end
+        function episodes=lt(obj,num)
+            if isnumeric(num)&&numel(num)==1
+                idx=obj.getValues<num;
+                % Find the indices where binary episodes start
+                zt=obj.TimeIntervalCombined.getTimePointsZT';
+                episodeStart1 = diff([median(idx), idx]) == -1;
+                episodeStart=hours(hours(zt(episodeStart1)));
+                % Find the indices where binary episodes end
+                episodeEnd1 = diff([idx, median(idx)]) == 1;
+                episodeEnd=hours(hours(zt(episodeEnd1)));
+                episodes=array2table([episodeStart episodeEnd], ...
+                    VariableNames={'Start','Stop'});
+            end
+        end
+        function episodes=gt(obj,num)
+            if isnumeric(num)&&numel(num)==1
+                idx=obj.getValues>num;
+                % Find the indices where binary episodes start
+                zt=obj.TimeIntervalCombined.getTimePointsZT';
+                episodeStart1 = diff([median(idx), idx]) == 1;
+                episodeStart=hours(hours(zt(episodeStart1)));
+                % Find the indices where binary episodes end
+                episodeEnd1 = diff([idx, median(idx)]) == -1;
+                episodeEnd=hours(hours(zt(episodeEnd1)));
+                episodes=array2table([episodeStart episodeEnd], ...
+                    VariableNames={'Start','Stop'});
+            end
         end
         function st=getStartTime(obj)
             ti=obj.getTimeInterval;
@@ -85,69 +114,106 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             obj=obj.setTimeInterval(obj.getTimeInterval.getDownsampled(ratio));
         end
 
-        function ch=setTimeInterval(obj,ti)
-            ch=neuro.basic.Channel(obj.ChannelName,obj.Values,ti);
-            ch=ch.setInfo(obj.Info);
+        function obj=setTimeInterval(obj,ti)
+            obj.TimeIntervalCombined=ti;
         end
         function ets=getEphysTimeSeries(obj)
             ets=neuro.basic.EphysTimeSeries(obj.getValues, ...
                 obj.getSampleRate,obj.getChannelName);
             ets=ets.setInfo(obj.Info);
         end
+        function obj4=getHilbertPhase(obj1)
+            obj2=getHilbertPhase@neuro.basic.Oscillation(obj1);
+            obj3=neuro.basic.ChannelProcessed(obj2);
+            obj3.parent=obj1;
+            obj4=neuro.basic.ChannelPhase(obj3);
+            obj4.processingInfo=[];
+            obj4.processingInfo.hilbertTransformedPhase=true;
+        end
+        function obj4=getHilbertPhaseKamran(obj1)
+            obj2=getHilbertPhaseKamran@neuro.basic.Oscillation(obj1);
+            obj3=neuro.basic.ChannelProcessed(obj2);
+            obj3.parent=obj1;
+            obj4=neuro.basic.ChannelPhase(obj3);
+            obj4.processingInfo=[];
+            obj4.processingInfo.hilbertTransformedPhase=true;
+        end
         function obj=getTimeWindowForAbsoluteTime(obj,window)
             error('Obsolete. Use getTimeWindow instead.')
         end
-        function obj=getTimeWindow(obj,windows)
+        function obj=getTimeWindow(obj,window)
             ticd=obj.TimeIntervalCombined;
             basetime=ticd.getDate;
-            for iwind=1:size(windows,1)
-                window=windows(iwind,:);
-                if isstring(window)
-                    window1=datetime(window,'Format','HH:mm');
-                    add1(1)=hours(window1(1).Hour)+minutes(window1(1).Minute);
-                    add1(2)=hours(window1(2).Hour)+minutes(window1(2).Minute);
-                    time(iwind,1)=basetime+add1(1);
-                    time(iwind,2)=basetime+add1(2);
-                elseif isduration(window)
-                    add1=window;
-                    time(iwind,1)=basetime+add1(1);
-                    time(iwind,2)=basetime+add1(2);
-                elseif isdatetime(window)
-                    time(iwind,1)=window(1);
-                    time(iwind,2)=window(2);
-                end
+
+            if isstring(window)
+                window1=datetime(window,'Format','HH:mm');
+                add1(1)=hours(window1(1).Hour)+minutes(window1(1).Minute);
+                add1(2)=hours(window1(2).Hour)+minutes(window1(2).Minute);
+                time1=basetime+add1;
+            elseif isduration(window)
+                add1=window;
+                time1=basetime+add1;
+            elseif isdatetime(window)
+                time1=window;
+            elseif isa(window,'time.ZT')||isa(window,'time.ZeitgeberTime')
+                time1=ticd.getZeitgeberTime+window.Duration;
             end
-            for iwind=1:size(time,1)
-                int=time(iwind,:);
-                sample(iwind,:)=ticd.getSampleForClosest(int);
+            samplewlist=ticd.getSampleForClosest(time1);
+            ticds=cell(size(samplewlist,1),0);
+            for is=1:size(samplewlist,1)
+                samplew=samplewlist(is,:);
+                ticds{is}=ticd.getTimeIntervalForSamples(samplew);
             end
-            samples=[];
-            for iwind=1:size(sample,1)
-                thesamples=sample(iwind,1):sample(iwind,2);
-                samples=horzcat(samples,thesamples);
-            end        
-            obj.Values=obj.Values(samples);
-            ticd1=ticd.getTimeIntervalForTimes(time);
-            obj.TimeIntervalCombined=ticd1;
+            ticdall=time.TimeIntervalCombined+ticds;
+
+            % Get the start and stop indices as arrays
+            startIndices = samplewlist(:,1);
+            stopIndices = samplewlist(:,2);
+
+            % Calculate the number of elements in each range
+            rangeSizes = stopIndices - startIndices + 1;
+
+            % Create an array of full indices
+            fullIndices = arrayfun(@(start, size) (start:(start+size-1)), ...
+                startIndices, rangeSizes, 'UniformOutput', false);
+
+            % Concatenate the arrays of full indices into a single array
+            sampleall = [fullIndices{:}];
+
+            obj.Values=obj.Values(sampleall);
+            obj.TimeIntervalCombined=ticdall;
         end
         
         function p=plot(obj,varargin)
             va=obj.getValues;
             t=obj.TimeIntervalCombined;
-            if isa(t,'neuro.time.TimeIntervalCombined')
+            abs1=ismember(varargin,{'Absolute','Abs','absolute','abs'} );
+            varargin(abs1)=[];
+            zt1=ismember(varargin,{'ZT','zt'});
+            varargin(zt1)=[];
+            s1=ismember(varargin,{'s','sec','second','seconds', ...
+                'S','Sec','Second','Seconds'});
+            varargin(s1)=[];
+            h1=ismember(varargin,{'h','hours','H','Hours'});
+            varargin(h1)=[];
+
+            if isa(t,'time.TimeIntervalCombined')
                 tis=t.timeIntervalList;
                 index_va=1;
                 for iti=1:tis.length
                     ati=tis.get(iti);
-                    try
-                        diff1=seconds(ati.getStartTime-ati.getZeitgeberTime);
-                    catch
-                        diff1=0;
+                    if any(abs1)
+                        timepoints=ati.getTimePointsInAbsoluteTimes;
+                    else
+                        tp=ati.getTimePointsZT;
+                        if ~any(s1)
+                            timepoints=hours(tp);
+                        else
+                            timepoints=seconds(tp);
+                        end
                     end
-                    t_s=hours(seconds(ati.getTimePointsInSec+diff1));
-                    ava=va(index_va:(index_va+ati.getNumberOfPoints-1));
-                    index_va=index_va+ati.getNumberOfPoints;
-                    p(iti)=plot(t_s,ava(1:numel(t_s)));
+                    ava=va(:,index_va:(index_va+ati.getNumberOfPoints-1));
+                    p(iti,:)=plot(timepoints,ava);
                     p(iti).LineWidth=1.5;
                     p(iti).Marker='none';
                     p(iti).LineStyle="-";
@@ -158,18 +224,37 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
                 end
                 hold off
             else
-                t_s=t.getTimePointsInSec;
-                t_s=t.getStartTime+seconds(t_s);
-                diff1=numel(t_s)-numel(va);
+                if any(abs1)
+                    timepoints=t.getTimePointsInAbsoluteTimes;
+                    varargin(ismem)
+                else
+                    tp=t.getTimePointsZT;
+                    if ~any(s1)
+                        timepoints=hours(tp);
+                    else
+                        timepoints=seconds(tp);
+                    end
+                end
+                diff1=numel(timepoints)-numel(va);
                 va((numel(va)+1):(numel(va)+diff1))=zeros(diff1,1);
-                p=plot(t_s,va(1:numel(t_s)),varargin{:});
+                p=plot(timepoints,va(1:numel(timepoints)),varargin{:});
+            end
+            if ~any(abs1)
+                if ~any(s1)
+                    xlabel('ZT (h)')
+                else
+                    xlabel('ZT (s)')
+                end
+            else
+                xlabel('Time')
             end
         end
         function obj=plus(obj,val)
             if isa(val,'neuro.basic.Channel')
                 obj.TimeIntervalCombined=obj.TimeIntervalCombined+...
                     val.getTimeInterval;
-                obj.Values=[obj.Values ;val.Values];
+                obj.Values=[obj.Values val.Values];
+                
             elseif isnumeric(val)
                 obj.Values=obj.Values+val;
             end
@@ -178,10 +263,11 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             ets=neuro.basic.EphysTimeSeries(obj.getValues, ...
                 obj.getSampleRate,obj.ChannelName);
         end
-        function thpk=getFrequencyBandPeak(obj,freq)
+        function [thpk, tfm]=getFrequencyBandPeakWavelet(obj,freq)
             tfm=obj.getWhitened.getTimeFrequencyMap(...
-                neuro.tf.TimeFrequencyWavelet(logspace(log10(freq(1)), ...
-                log10(freq(2)),diff(freq)*5)));
+                neuro.tf.TimeFrequencyWavelet( ...
+                logspace(log10(freq(1)),log10(freq(2)),diff(freq)*5) ...
+                ));
             [thpkcf1,thpkpw1]=tfm.getFrequencyBandPeak(freq);
             thpkcf=neuro.basic.Channel('CF',thpkcf1.getValues, ...
                 obj.TimeIntervalCombined);
@@ -192,6 +278,27 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             thpk=experiment.plot.thetaPeak.ThetaPeak(thpkcf,thpkpw);
             thpk=thpk.addSignal(obj);
         end
+        function thpk=getFrequencyBandPeakMT(obj,freq)
+            tfm=obj.getWhitened.getTimeFrequencyMap(...
+                neuro.tf.TimeFrequencyChronuxMtspecgramc(...
+                freq,[2 1]));
+            [thpkcf1,thpkpw1]=tfm.getFrequencyBandPeak(freq);
+            thpkcf=neuro.basic.Channel('CF',thpkcf1.getValues, ...
+                obj.TimeIntervalCombined);
+            thpkcf=thpkcf.setInfo(obj.Info);
+            thpkpw=neuro.basic.Channel('Power',thpkpw1.getValues, ...
+                obj.TimeIntervalCombined);
+            thpkpw=thpkpw.setInfo(obj.Info);
+            thpk=experiment.plot.thetaPeak.ThetaPeak(thpkcf,thpkpw);
+            thpk=thpk.addSignal(obj);
+        end
+        function str=toString(obj)
+        str=sprintf('ch%s-n%dHz-%d-%s-%s', string(obj.ChannelName),...
+            obj.SampleRate, ...
+            obj.getNumberOfPoints, ...
+            string([obj.TimeIntervalCombined.getStartTime, ...
+            obj.TimeIntervalCombined.getEndTime]));
+        end
         
     end
     methods (Access = protected)
@@ -199,7 +306,8 @@ classdef Channel < neuro.basic.Oscillation & matlab.mixin.CustomDisplay
             if ~isscalar(obj)
                 header = getHeader@matlab.mixin.CustomDisplay(obj);
             else
-                headerStr = matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
+                headerStr = ...
+                    matlab.mixin.CustomDisplay.getClassNameForHeader(obj);
                 headerStr = [headerStr,' with Customized Display'];
                 header = sprintf('%s\n',headerStr);
             end

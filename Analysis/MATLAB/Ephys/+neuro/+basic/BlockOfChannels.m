@@ -145,20 +145,16 @@ classdef BlockOfChannels
             ss=obj.getHypnogram;
             sr=ss.getStateRatios(winsize,a,edges);
         end
-        function [episode, theEpisodeAbs]=getState(obj,state)
+        function [episode, theEpisodeAbs,a]=getState(obj,state)
             ss=obj.getHypnogram;
-            theEpisodeAbs=ss.getState(state);
+            [theEpisodeAbs, a]=ss.getState(state);
             if ~isempty(theEpisodeAbs)
                 nch=obj.Channels.length;
                 for ich=1:nch
-                    try
-                        ch=obj.getChannel(ich);
-                        episode{ich}=ch.getTimeWindow(theEpisodeAbs);
-                        obj.Info.State=state;
-                        episode{ich}=episode{ich}.setInfo(obj.Info);
-                    catch
-                        episode{ich}=[];
-                    end
+                    ch=obj.getChannel(ich);
+                    episode{ich}=ch.getTimeWindow(theEpisodeAbs);
+                    obj.Info.State=state;
+                    episode{ich}=episode{ich}.setInfo(obj.Info);
                 end
             else
                 episode=[];

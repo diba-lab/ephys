@@ -24,9 +24,21 @@ classdef SpikeUnitRaw
             %   Detailed explanation goes here
             obj.Info=info;
         end
+        function ns = getNumberOfSpikes(obj)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            ns=numel(obj.TimesInSamples);
+        end
         function info=getInfo(obj,idx)
             info=sprintf(' ID:%d, nSpk:%d (of %d), Ch:%d',obj.Id,...
                 numel(obj.TimesInSamples(idx)),numel(obj.TimesInSamples),obj.Channel);
+        end
+        function info=getInfoTable(obj)
+            if ~isempty(obj.Info)
+                info=obj.Info;
+            else
+                info=table(obj.Id,VariableNames={'Id'});
+            end
         end
         function str=addInfo(obj,idx)
             str=obj.getInfo(idx);

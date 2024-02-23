@@ -21,7 +21,7 @@ classdef DataForLFP
             sde=experiment.SDExperiment.instance.get;
             obj.DataFile = dataFile;
             obj.Session=experiment.Session(fileparts(dataFile));
-            [baseFolder,name,ext]=fileparts(dataFile);
+            [baseFolder,~,~]=fileparts(dataFile);
             analysisFile=fullfile(baseFolder,sde.FileLocations.Session.Analysis);
             obj.AnalysisFile=analysisFile;
             if isfile(analysisFile)
@@ -31,11 +31,11 @@ classdef DataForLFP
                 l.error(sprintf('Couldnt read the file %s',analysisFile));
                 %% State
                 % NEUROSCOPE!
-                S.StateDetection.Channels.ThetaChannels=[2,7,12,16,20,25,30,32,34,39,44,48,52,57,62,64,66,71,76,80,84,89,94,96,98,103,108,112,116,121,126,128]-1;
-                S.StateDetection.Channels.SWChannels=[2,7,12,16,20,25,30,32,34,39,44,48,52,57,62,64,66,71,76,80,84,89,94,96,98,103,108,112,116,121,126,128]-1;
+                S.StateDetection.Channels.ThetaChannels=round(linspace(0,98,50));
+                S.StateDetection.Channels.SWChannels=round(linspace(0,98,50));
                 S.StateDetection.Channels.BestTheta=nan;
                 S.StateDetection.Channels.BestSW=nan;
-                S.StateDetection.Channels.EMGChannel=[0 31 96 127];
+                S.StateDetection.Channels.EMGChannel=[[0 31 96 127] ([0 31 96 127])+128];
                 S.StateDetection.Overwrite=0;
                 S.StateDetection.HVSFilter=0;
                 %% Ripple
@@ -74,7 +74,7 @@ classdef DataForLFP
             catch
             end
             try
-                obj.TimeIntervalCombined=neuro.time.TimeIntervalCombined(baseFolder);
+                obj.TimeIntervalCombined=time.TimeIntervalCombined(baseFolder);
             catch
             end
             obj.AnalysisParameters=S;
@@ -93,7 +93,7 @@ classdef DataForLFP
         function ctd = getChannelTimeDataHard(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            [folder,name,ext]=fileparts(obj.DataFile);
+            [folder,~,~]=fileparts(obj.DataFile);
             ctd=neuro.basic.ChannelTimeDataHard(folder);
         end
         function bad = getBad(obj)
@@ -115,7 +115,7 @@ classdef DataForLFP
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             %%
-            [folder, name, ext]=fileparts(obj.DataFile);
+            [folder, ~, ~]=fileparts(obj.DataFile);
             baseFolder=convertStringsToChars(folder);
             params=obj.AnalysisParameters.StateDetection;
             
@@ -127,7 +127,6 @@ classdef DataForLFP
             S.StateDetection.Channels.BestTheta=sdd.getThetaChannelID;
             S.StateDetection.Channels.BestSW=sdd.getSWChannelID;
             obj.setAnalysisParameters(S);
-            
         end
         function ripples = getRippleEvents(obj)
             %METHOD1 Summary of this method goes here

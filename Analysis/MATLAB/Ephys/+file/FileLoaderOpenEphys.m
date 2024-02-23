@@ -41,10 +41,10 @@ classdef FileLoaderOpenEphys < FileLoaderMethod
                 obj.convertChannelFilesToBinary();
             end
             load(obj.outFileForTemporaries);
-            S=xml2struct(obj.xmlfile);
+            S=external.xml2struct.xml2struct(obj.xmlfile);
             starttime=datetime(S.SETTINGS.INFO.DATE.Text ,'InputFormat',...
                 'dd MMM yyyy HH:mm:ss');
-            oefile=xml2struct(obj.openephysFile);
+            oefile=external.xml2struct.xml2struct(obj.openephysFile);
             [filepath1,oefilename,~]=fileparts(obj.openephysFile);
             newlfpfileName = fullfile(filepath1, [oefilename, '.dat']);
             channels=oefile.EXPERIMENT.RECORDING.PROCESSOR.CHANNEL;
@@ -86,14 +86,14 @@ classdef FileLoaderOpenEphys < FileLoaderMethod
             openEphysRecord.Channels=1:numel(channels);
             openEphysRecord.Data=Data;
             sr=str2double(oefile.EXPERIMENT.RECORDING.Attributes.samplerate);
-            openEphysRecord.TimeInterval=neuro.time.TimeInterval(starttime,sr,samples);
+            openEphysRecord.TimeInterval=time.TimeInterval(starttime,sr,samples);
             openEphysRecord.DataFile=newlfpfileName;
             
         end
     end
     methods (Access=private)
         function []=convertChannelFilesToBinary(obj)
-            oefile=xml2struct(obj.openephysFile);
+            oefile=external.xml2struct.xml2struct(obj.openephysFile);
             [filepath1,~,~]=fileparts(obj.openephysFile);
             channels=oefile.EXPERIMENT.RECORDING.PROCESSOR.CHANNEL;
             

@@ -18,7 +18,12 @@ classdef Preprocess
             %   Detailed explanation goes here
             obj.Session = session;
             %% RawFiles
-            sde=experiment.SDExperiment.instance.get;
+            try
+                sde=readstruct(fullfile(session.SessionInfo.baseFolder,'Parameters/Experiment.xml'));
+            catch ME
+                error(ME)
+                sde=experiment.SDExperiment.instance.get;
+            end
             preprocessFile=fullfile(session.SessionInfo.baseFolder, sde.FileLocations.Preprocess.RawFiles);
             folder=fileparts(preprocessFile);
             if ~isfolder(folder), mkdir(folder);end
@@ -82,7 +87,7 @@ classdef Preprocess
                 l=logging.Logger.getLogger;
                 l.error('No bad file: %s',badFile);
             end
-            obj.Bad=neuro.time.TimeWindowsDuration(bad);
+            obj.Bad=time.TimeWindowsDuration(bad);
             %% Params
             paramFile=fullfile(session.SessionInfo.baseFolder,sde.FileLocations.Preprocess.Parameters);
             cfg=[];
@@ -166,7 +171,7 @@ classdef Preprocess
                 end
                 save(oercCacheFile,'oerc')
             end
-            
+            readstr 
             sde=experiment.SDExperiment.instance.get;
             probeFile=fullfile(baseFolder,sde.FileLocations.Preprocess.Probe);
             probe=neuro.probe.Probe(probeFile);
@@ -202,12 +207,20 @@ classdef Preprocess
                 sprintf('%s%s',name,ext));
             probe=session.Probe;
             shanks=obj.LFPParams.Shanks.Shank;
-            try 
+            try
                 chans=obj.LFPParams.Channels.Channel;
             catch
             end
-            if exist('chans','var')&&~sum(isnan(chans))
-                chans=chans'+1;
+            if exist('chans','var')
+                if ~isstring(chans)
+                    if ~sum(isnan(chans))
+                        chans=chans'+1;
+                    else
+                        chans=[];
+                    end
+                else
+                    chans=[];
+                end
             else
                 chans=[];
             end
@@ -249,7 +262,7 @@ classdef Preprocess
             dataForLFP=preprocessing.DataForLFP(newFileName);
             dataForLFP=dataForLFP.setProbe(newprobe);
             list=dir(fullfile(baseFolder,'*TimeIntervalCombined*'));
-            ticd=neuro.time.TimeIntervalCombined(fullfile(baseFolder,list.name));
+            ticd=time.TimeIntervalCombined(fullfile(baseFolder,list.name));
             dataForLFP=dataForLFP.setTimeIntervalCombined(ticd);
         end
         function [obj]=reCalculateArtifacts(obj)

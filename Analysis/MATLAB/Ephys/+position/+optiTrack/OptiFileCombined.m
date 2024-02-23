@@ -1,4 +1,4 @@
-classdef OptiFileCombined < neuro.time.Timelined
+classdef OptiFileCombined < time.Timelined
     %OPTIFILECOMBINED Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -11,7 +11,6 @@ classdef OptiFileCombined < neuro.time.Timelined
             optiFiles=CellArrayList();
             for iArgIn=1:nargin
                 optifile=varargin{iArgIn};
-                assert(isa(optifile,'optiTrack.OptiFile'));
                 optiFiles.add(optifile);
             end
             obj.OptiFiles=optiFiles;
@@ -19,7 +18,6 @@ classdef OptiFileCombined < neuro.time.Timelined
         function obj=plus(obj,varargin)
             for iArgIn=1:(nargin-1)
                 optifile=varargin{iArgIn};
-                assert(isa(optifile,'optiTrack.OptiFile'));
                 obj.OptiFiles.add(optifile);
             end
             obj=obj.getSorted;
@@ -37,33 +35,20 @@ classdef OptiFileCombined < neuro.time.Timelined
         function ofs=getOptiFiles(obj)
             ofs=obj.OptiFiles;
         end
-        function positionData=getMergedPositionData(obj)
+        function pdres=getMergedPositionData(obj,rowNumberInTable)
             ofs=obj.getSorted;
             for iof=1:ofs.OptiFiles.length
                 of=ofs.OptiFiles.get(iof);
-                if isa(of,'optiTrack.OptiCSVFileSingleMarker')
-                    pd=of.getMergedPositionData;
-                    of.table=pd.data;
+                if isa(of,'position.optiTrack.OptiCSVFileSingleMarker')||...
+                        isa(of,'position.optiTrack.OptiCSVFileGeneral')
+                    pd=of.Positions(rowNumberInTable,"PositionData").PositionData{:};
                 end
-                ti1=of.getTimeInterval;
-                if exist('table1','var')
-                    table1=[table1;of.table(:,{'X','Y','Z'})];
-                    tic1=tic1+ti1;
+                if ~exist('pdres','var')
+                    pdres=pd;
                 else
-                    table1=of.table(:,{'X','Y','Z'});
-                    tic1=ti1;
+                    pdres=pdres+pd;
                 end
             end
-            X=table1.X;
-            Y=table1.Y;
-            Z=table1.Z;
-            prompt = {'Zeitgeber Time:'};
-            dlgtitle = datestr(tic1.getDate);
-            dims = [1 10];
-            definput = {'08:00'};
-            zt = duration(inputdlg(prompt,dlgtitle,dims,definput),'InputFormat','hh:mm');
-            tic1=tic1.setZeitgeberTime(zt);
-            positionData=optiTrack.PositionData(X,Y,Z,tic1);
         end
         function obj=getSorted(obj)
             ofs=obj.OptiFiles;

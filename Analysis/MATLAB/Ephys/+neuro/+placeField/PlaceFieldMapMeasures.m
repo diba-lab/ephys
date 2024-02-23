@@ -25,7 +25,6 @@ classdef PlaceFieldMapMeasures < neuro.placeField.PlaceFieldMap
                 obj.PlaceFields=obj.calculatePlaceFields;
             end
         end
-        
         function information = calculateInformation(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -44,26 +43,32 @@ classdef PlaceFieldMapMeasures < neuro.placeField.PlaceFieldMap
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             pfs=obj.calculatePlaceFields;
-            pf=pfs(1,:);
-            pfrang=round([pf.Position-pf.Width/2 pf.Position+pf.Width/2]);
-            pdata= obj.PositionData;
-            idx=pdata.data.X>pfrang(1)&pdata.data.X<pfrang(2);
-            tp1=pdata.time.getTimePointsInSecZT;
-            tp=tp1(idx);
-            tps=zeros(size(tp));
-            stimes=obj.SpikeUnitTracked.getTimesInSecZT;
-            for is=1:numel(stimes)
-                [val,loc]=min(abs(stimes(is)-tp));
-                if val<1/pdata.time.getSampleRate
-                    tps(loc)=tps(loc)+1;
+            if ~isempty(pfs)
+                pf=pfs(1,:);
+
+                pfrang=round([pf.Position-pf.Width/2 pf.Position+pf.Width/2]);
+                pdata= obj.PositionData;
+                idx=pdata.data.X>pfrang(1)&pdata.data.X<pfrang(2);
+                tp1=seconds(pdata.time.getTimePointsZT);
+                tp=tp1(idx);
+                tps=zeros(size(tp));
+                stimes=seconds(obj.SpikeUnitTracked.getTimesZT);
+                for is=1:numel(stimes)
+                    [val,loc]=min(abs(stimes(is)-tp));
+                    if val<1/pdata.time.getSampleRate
+                        tps(loc)=tps(loc)+1;
+                    end
                 end
+                cumfiring1=cumsum(tps);
+                cumfiring2 = cumfiring1/max(cumfiring1);
+                basecumfire=linspace(0,1,numel(cumfiring2));
+                apb=sum(basecumfire);
+                gini = 1-sum(abs(basecumfire-cumfiring2))/apb;
+            else
+                gini=nan;
+                cumfiring2=nan;
+                basecumfire=nan;
             end
-            cumfiring1=cumsum(tps);
-            cumfiring2 = cumfiring1/max(cumfiring1);
-            b=sum(cumfiring2);
-            basecumfire=linspace(0,1,numel(cumfiring2));
-            apb=sum(basecumfire);
-            gini=1-abs(apb-b)/apb;
         end
         function [corr1]= calculateStabilityCorr(obj,sections)
             %METHOD1 Summary of this method goes here
@@ -74,14 +79,41 @@ classdef PlaceFieldMapMeasures < neuro.placeField.PlaceFieldMap
             pfms=neuro.placeField.PlaceFieldMapMeasures.empty([sections 0]);
             for isec=1:sections
                 frame=frames([isec isec+1]);
-                pdsmall=obj.SpikeUnitTracked.PositionData.getWindow( ...
-                    neuro.time.ZeitgeberTime( ...
-                    frame,time.getZeitgeberTime));
+                try
+                    pdsmall=obj.SpikeUnitTracked.PositionData.getWindow( ...
+                        time.ZeitgeberTime( ...
+                        frame,time.getZeitgeberTime));
+                catch ME
+                    
+                end
+                  
                 sutsmall=obj.SpikeUnitTracked+pdsmall;
                 frm=sutsmall.getFireRateMap(obj.XEdges,obj.ZEdges);
                 pfm=frm.getPlaceFieldMap;
                 pfms(isec)=pfm;
-                mat(:,isec)=reshape(pfm.MapOriginal,[],1); %#ok<AGROW> 
+                mat(:,isec)=reshape(pfm.MapOriginal,[],1); %#ok<AGROW>
+            end
+            [corr1.R,corr1.P]=corr(mat);
+            corr1.maps=pfms;
+        end
+        function [corr1]= calculateStabilityCorrLapbased(obj,sections)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            time=obj.SpikeUnitTracked.Time;
+            pfms=neuro.placeField.PlaceFieldMapMeasures.empty( ...
+                [height(sections) 0]);
+
+            sut=obj.SpikeUnitTracked;
+            for imap=1:height(sections)
+                subste=sections(imap,:);
+                wind=[subste.start subste.stop];
+                windabs=time.getZeitgeberTime+wind;
+                pdsmall=sut.PositionData.getTimeWindow(windabs);
+                sutsmall=obj.SpikeUnitTracked+pdsmall;
+                frm=sutsmall.getFireRateMap(obj.XEdges,obj.ZEdges);
+                pfm=frm.getPlaceFieldMap;
+                pfms(imap)=pfm;
+                mat(:,imap)=reshape(pfm.MapOriginal,[],1); %#ok<AGROW>
             end
             [corr1.R,corr1.P]=corr(mat);
             corr1.maps=pfms;

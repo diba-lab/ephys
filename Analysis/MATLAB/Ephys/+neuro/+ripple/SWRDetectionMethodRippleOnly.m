@@ -14,7 +14,7 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
                 bad=fullfile(basepath, conf.bad_file);
                 ticd=neuro.basic.ChannelTimeDataHard(obj.BasePath).getTimeIntervalCombined;
                 dur=seconds(ticd.getNumberOfPoints/ticd.getSampleRate);
-                arts_rev=neuro.time.TimeWindowsDuration(readtable(bad)).getReverse(dur);
+                arts_rev=time.TimeWindowsDuration(readtable(bad)).getReverse(dur);
                 obj.Epochs=table2array( arts_rev.getTimeTable);
             end
         end
@@ -31,7 +31,7 @@ classdef SWRDetectionMethodRippleOnly < neuro.ripple.SWRDetectionMethod
             paramFile=fullfile(obj.BasePath,'Parameters','RippleDetection.xml');
             [folder, ~, ~]=fileparts(paramFile); if ~isfolder(folder), mkdir(folder);end
             if size(chans,1)>1, chans=chans';end
-            chasStr=genvarname(['ch' num2str(chans,'_%d')]);
+            chasStr=matlab.lang.makeValidName(['ch' num2str(chans,'_%d')]);
             try
                 Ripple1=readstruct(paramFile);
             catch

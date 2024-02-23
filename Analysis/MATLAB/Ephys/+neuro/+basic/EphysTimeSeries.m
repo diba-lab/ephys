@@ -2,13 +2,14 @@ classdef EphysTimeSeries < neuro.basic.Oscillation
     %EPHYSTIMESERIES Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (Access=private)
+    properties (Access=public)
         Name
         Info
+        Time
     end
     
     methods
-        function obj = EphysTimeSeries(values,sampleRate,name)
+        function obj = EphysTimeSeries(values,sampleRate,time,name)
             %EPHYSTIMESERIES Construct an instance of this class
             %   Detailed explanation goes here
             obj=obj@neuro.basic.Oscillation(values,sampleRate);
@@ -17,6 +18,11 @@ classdef EphysTimeSeries < neuro.basic.Oscillation
                 obj.Name=name;
             else
                 obj.Name='';
+            end
+            if exist('time','var')
+                obj.Time=time;
+            else
+                obj.Time='';
             end
         end
     end

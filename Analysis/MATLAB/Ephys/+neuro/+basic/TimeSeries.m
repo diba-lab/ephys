@@ -44,19 +44,32 @@ classdef TimeSeries
             ts=linspace(0, osc.getNumberOfPoints/osc.getSampleRate, osc.getNumberOfPoints);
         end
         function obj=getMedianFiltered(obj,windowInSeconds,varargin)
+            if isduration(windowInSeconds)
+                windowInSeconds=seconds(windowInSeconds);
+            end
             obj.Values=medfilt1(obj.Values,...
                 obj.getSampleRate*windowInSeconds,varargin{:});
+
         end
         function obj=getMeanFiltered(obj,windowInSeconds)
+            if isduration(windowInSeconds)
+                windowInSeconds=seconds(windowInSeconds);
+            end
             obj.Values=smoothdata(obj.Values,...
                 'movmean', obj.getSampleRate*windowInSeconds);
         end
-        function obj=getGaussianFiltered(obj,windowInSeconds)
+        function obj=getGaussianFiltered(obj,window)
+            if isduration(window)
+                windowInSeconds=seconds(window);
+            else
+                windowInSeconds=window;
+            end
             obj.Values=smoothdata(obj.Values,...
                 'gaussian', obj.getSampleRate*windowInSeconds);
         end
         function obj=getZScored(obj)
-            obj.Values=zscore(obj.Values);
+            idx=isnan(obj.Values);
+            obj.Values(~idx)=zscore(obj.Values(~idx));
         end
         function vals=getValues(obj)
             vals = obj.Values;
@@ -101,7 +114,11 @@ classdef TimeSeries
         %             obj=obj.setValues(va );
         %         end
         function p1=plot(obj,varargin)
-            ts=obj.getTimeStamps;
+            try 
+                ts=obj.Time;
+            catch ME
+                ts=obj.getTimeStamps;
+            end
             vals=obj.getValues;
             p1=plot(ts,vals,varargin{:});
             %             ax=gca;

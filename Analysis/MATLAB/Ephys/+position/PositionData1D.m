@@ -18,7 +18,25 @@ classdef PositionData1D < position.PositionData
             data.Z=rand(height(data),1);
             obj=obj.setData(data);            
         end
-        
+
+        function str=toString(obj)
+            if ~isempty(obj.Info)
+                dir=string(obj.Info.direction);
+            else
+                dir='';
+            end
+            try
+                str=sprintf('%d Channels: %s. %s. %s',size(obj.data,2), ...
+                    strjoin(obj.channels), obj.time.tostring,dir);
+            catch ME
+                str=sprintf('%d Channels. %s. %s',size(obj.data,2), ...
+                    obj.time.tostring,dir);
+            end
+        end
+        function obj=getWindow(obj,plsd)
+            [obj]=getWindow@position.PositionData(obj,plsd);
+            obj.parent=obj.parent.getWindow(plsd);
+        end
         function tbl = getTrialsDetected(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -37,44 +55,60 @@ classdef PositionData1D < position.PositionData
                 objs{idir,1}.data.X(~idx)=nan;
                 objs{idir,1}.data.Y(~idx)=nan;
                 objs{idir,1}.data.Z(~idx)=nan;
+                objs{idir,1}.Info.table=tbl1;
+                objs{idir,1}.Info.direction=dir;
             end
             tbl=table(objs,dirs,VariableNames={'Obj','Direction'});
         end
-        function tbl = getUninterruptedRuns(obj,minSecondsRun)
+        function [tbl, idxres]= getUninterruptedRuns(obj, minCmRun)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            minsamples=obj.time.getSampleRate*minSecondsRun;
-            
-            sp1=obj.getSpeed(.2);
+            obj.data.X=fillmissing(obj.data.X,"nearest");
+            sp1=obj.getSpeed(1);
             sps{1}=sp1;sps{2}=sp1;
-            sps{1}.Values(~(sps{1}.Values>0))=nan;
-            sps{2}.Values(~(sps{2}.Values<0))=nan;
-            sptemp=sps{1}.getGaussianFiltered(1);
+            sps{1}.Values(~(sps{1}.Values>5))=nan;%positive >5
+            sps{2}.Values(~(sps{2}.Values<-5))=nan;%negative <-5
+            
+            sptemp=sps{1};
             sptemp.Values=[0 sptemp.Values];sptemp.Values(end)=0;
             Start=find(diff(sptemp>1)==1);
             Stop=find(diff(sptemp>1)==-1);
-            len1=Stop-Start;
-            idx=len1>minsamples;
+            startpos=obj.data.X(Start);
+            stoppos=obj.data.X(Stop);
+            len1=abs(stoppos-startpos);
+            idx=len1>minCmRun;
             tblpos1=table(Start', Stop',VariableNames={'Start','Stop'});
             tblpos=tblpos1(idx,:);
             tblpos.Direction(:)=1;
 
 
-            sptemp=sps{2}.getGaussianFiltered(1);
+            sptemp=sps{2};
             sptemp.Values=[0 sptemp.Values];sptemp.Values(end)=0;
             Start=find(diff(sptemp<-1)==1);
             Stop=find(diff(sptemp<-1)==-1);
-            len1=Stop-Start;
-            idx=len1>minsamples;
+            startpos=obj.data.X(Start);
+            stoppos=obj.data.X(Stop);
+            len1=abs(stoppos-startpos);
+            idx=len1>minCmRun;
             tblneg1=table(Start', Stop',VariableNames={'Start','Stop'});
             tblneg=tblneg1(idx,:);
             tblneg.Direction(:)=-1;
 
             tbl=[tblpos;tblneg];
+            idxres.neg=zeros(size(sp1.Values));
+            idxres.pos=zeros(size(sp1.Values));
+            for iw=1:height(tbl)
+                w=tbl(iw,:);
+                if w.Direction==1
+                    idxres.pos(w.Start:w.Stop)=1;
+                elseif w.Direction==-1
+                    idxres.neg(w.Start:w.Stop)=1;
+                end
+            end
         end
         function [vel]= getSpeed(obj,smoothingWindowInSec)
             data1=table2array(obj.getData)';
-            dt=diff(obj.time.getTimePointsInSec);
+            dt=diff(seconds(obj.time.getTimePoints));
             speed2=diff(data1(1,:));
             v=speed2./dt;
             if exist('smoothingWindowInSec','var')
@@ -82,6 +116,22 @@ classdef PositionData1D < position.PositionData
                     smoothingWindowInSec);
             end
             vel=neuro.basic.Channel('Velocity',[0 v],obj.time);
+        end
+        function [p,s]= plotX(obj,scat1)
+            X=obj.getDataTable.X';
+            t=minutes(obj.getDataTable.TimeZT);
+            p=plot(t,X,LineWidth=1);
+            if exist("scat1","var")
+                p.LineWidth=.5;
+                val=scat1.Values';
+                a=colormap(gca,"turbo");
+                valc=round(normalize(val,'range',[1 256]));
+                color1=nan([max(size(valc)) 3]);
+                validx=~isnan(valc);
+                color1(validx,:)=a(valc(validx),:);
+                s=scatter(t,X,10,color1,"filled");
+                s.MarkerFaceAlpha=.7;
+            end
         end
 
     end

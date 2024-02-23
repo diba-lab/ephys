@@ -46,18 +46,26 @@ classdef CellMetricsSession < buzcode.CellMetrics
             %   Detailed explanation goes here
             uid=obj.CellMetricsStruct.UID;
             spikeCluster=[];
-            spikeTime=[];
+            spikeTimeInSec=[];
             for iuid=1:numel(uid)
                 spkt=obj.CellMetricsStruct.spikes.times{uid(iuid)};
-                spikeTime=[spikeTime; spkt];
+                spikeTimeInSec=[spikeTimeInSec; spkt];
                 clu=ones(size(spkt))*uid(iuid);
                 spikeCluster=[spikeCluster; clu];
             end
-            [spikeTimesrt,idx]=sort(spikeTime);
+            [spikeTimeSec,idx]=sort(spikeTimeInSec);
             spikeClustersrt=spikeCluster(idx);
-            ticd=obj.Session.getDataLFP.TimeIntervalCombined;
-            spikeTimesrt=spikeTimesrt*ticd.getSampleRate;
-            sa=neuro.spike.SpikeArray(spikeClustersrt,spikeTimesrt);
+            ticd=time.TimeIntervalCombined( ...
+                fullfile(obj.Session.SessionInfo.baseFolder,"Units/"));
+            if isempty(ticd.getZeitgeberTime)
+                ticdz=ticd.setZeitgeberTime(obj.Session.SessionInfo.ZeitgeberTime);
+                ticdz.saveTable()
+                ticd=ticdz;
+            end
+            sr=obj.CellMetricsStruct.general. ...
+                processinginfo.params.session.extracellular.sr;
+            spikeTimeSample=uint64(spikeTimeSec*sr);
+            sa=neuro.spike.SpikeArray(spikeClustersrt,spikeTimeSample);
             sa=sa.setTimeIntervalCombined(ticd);
             id=obj.CellMetricsStruct.UID';
             group=obj.CellMetricsStruct.label';
@@ -70,8 +78,15 @@ classdef CellMetricsSession < buzcode.CellMetrics
             firingRateGiniCoeff=obj.CellMetricsStruct.firingRateGiniCoeff';
             firingRateCV=obj.CellMetricsStruct.firingRateCV';
             firingRateInstability=obj.CellMetricsStruct.firingRateInstability';
+            waveforms=obj.CellMetricsStruct.waveforms;
+            fnames=fieldnames(waveforms);
+            for ifn=1:numel(fnames)
+                waveforms.(fnames{ifn})=waveforms.(fnames{ifn})';
+            end
+            waveforms=struct2table(waveforms);
             cluinfo=table(id,group,sh,ch,cellType,synapticEffect,polarity,...
                 brainRegion,firingRateGiniCoeff,firingRateCV,firingRateInstability);
+            cluinfo=[cluinfo waveforms];
             sa=sa.setClusterInfo(cluinfo);
         end
 
@@ -92,7 +107,7 @@ classdef CellMetricsSession < buzcode.CellMetrics
 
             st=ses.getDataLFP.TimeIntervalCombined.getStartTime;
             zt=ses.getZeitgeberTime;
-            bl.getZeitgeberTimes(zt).plot
+            bl.getZeitgeberTimes(zt).plot(ax,[0 1])
             blnames=bl.getBlockNames;
             for igr=1:numel(groups)
                 cm=obj.CellMetricsStruct;

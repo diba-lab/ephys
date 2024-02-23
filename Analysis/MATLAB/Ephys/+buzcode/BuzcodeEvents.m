@@ -23,7 +23,7 @@ classdef BuzcodeEvents
                 evts1=event.getPeakTimes;
                 evts=[ones(numel(evts1),1) evts1];
                 obj.EventsArray=evts;
-            elseif isa(varargin{1},'neuro.time.TimeWindowsDuration')
+            elseif isa(varargin{1},'time.TimeWindowsDuration')
                 event=varargin{1};
                 evts1=seconds(mean([event.TimeTable.Start event.TimeTable.Stop],2));
                 evts=[ones(numel(evts1),1) evts1];

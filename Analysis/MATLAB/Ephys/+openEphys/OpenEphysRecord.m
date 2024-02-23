@@ -1,4 +1,4 @@
-classdef (Abstract)OpenEphysRecord < neuro.time.Timelined & file.BinarySave
+classdef (Abstract)OpenEphysRecord < time.Timelined & file.BinarySave
     %OPENEPHYSRECORD Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -106,7 +106,7 @@ classdef (Abstract)OpenEphysRecord < neuro.time.Timelined & file.BinarySave
             events=obj.Events;
             s=events.Timestamps;
             if ~isempty(s)
-                a=neuro.time.Absolute(neuro.time.Sample(s,obj.getTimeInterval.SampleRate),obj.getTimeInterval.StartTime);
+                a=time.Absolute(time.Sample(s,obj.getTimeInterval.SampleRate),obj.getTimeInterval.StartTime);
                 tt=timetable(a.time, events.ChannelIndex, logical(events.FullWords),'VariableNames',{'Channel','On-Off'});
                 events=neuro.event.Events(tt,events.Header);
             else

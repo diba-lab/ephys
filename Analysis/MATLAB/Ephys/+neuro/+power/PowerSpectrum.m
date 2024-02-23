@@ -11,8 +11,10 @@ classdef PowerSpectrum
         function obj = PowerSpectrum(power,frequency)
             %POWERSPECTRUM Construct an instance of this class
             %   Detailed explanation goes here
-            obj.Frequency = frequency;
-            obj.Power = power;
+            if nargin>0
+                obj.Frequency = frequency;
+                obj.Power = power;
+            end
         end
         
         function [p1] = plot(obj,frequencyFrame,ylim)
@@ -63,7 +65,7 @@ classdef PowerSpectrum
         end
         function fooofr=getFooof(powerSpectrum,settings,f_range)
             % FOOOF settings
-            if ~exist('settings','var')
+            if ~exist('settings','var')||isempty(settings)
                 settings = struct();  % Use defaults
             else
                 settings.aperiodic_mode=char(settings.aperiodic_mode);
@@ -71,7 +73,19 @@ classdef PowerSpectrum
             if ~exist('f_range','var')
                 f_range = [0, 250];
             end
-            fooof_results = fooof(powerSpectrum.Frequency, powerSpectrum.Power, f_range, settings, true);
+            try
+                fooof_results = fooof(powerSpectrum.Frequency, ...
+                    powerSpectrum.Power, f_range, settings, true);
+            catch ME
+                if strcmp(ME.identifier,'MATLAB:undefinedVarOrClass')
+                    setenv('LD_LIBRARY_PATH', '/home/ukaya/anaconda3/lib/libstdc++.so.6')
+                    fooof_module = py.importlib.import_module('fooof');
+                    fooof_results = fooof(powerSpectrum.Frequency, ...
+                        powerSpectrum.Power, f_range, settings, true);
+                elseif strcmp(ME.identifier,'MATLAB:Python:PyException')
+                    throw(ME);
+                end
+            end
             fooofr=neuro.power.Fooof(fooof_results);
         end
         function [freq, pwr]=getPeak(powerSpectrum,f_range)

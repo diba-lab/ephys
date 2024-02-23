@@ -15,19 +15,24 @@ function [fitresult, gof] = createFit(t, line)
 
 
 %% Fit: 'theta'.
+% idx=t<.35&t>0.07;
+% t1=t(idx);
+% line1=line(idx);
 [xData, yData] = prepareCurveData( t, line );
 
 % Set up fittype and options.
-ft = fittype( '(a * (sin(2*pi*(w*t+d))+1)+b) * exp(-abs(t)/t1) + c * exp(-(t) ^2/t2^2)', 'independent', 't', 'dependent', 'line' );
+ft = fittype( ['(a * (sin(2*pi*(w*t+d))+1)+b) * exp(-abs(t)/t1) + c *' ...
+    ' exp(-(t) ^2/t2^2)'], 'independent', 't', 'dependent', 'line' );
 opts = fitoptions( 'Method', 'NonlinearLeastSquares' );
 opts.Display = 'Off';
-opts.Lower = [0.01 -Inf -Inf -Inf -Inf -0.05 6];
+%                   a       b       c       d       t1      t2      w
+opts.Lower = [      0.01    0       0       0       -Inf    -0.05   5];
+opts.Upper = [      Inf     Inf     Inf     .5      Inf     0.05    10];
+opts.StartPoint = [ 1       0.2     1       0.25    0.8     0.03    7.5];
 opts.MaxFunEvals = 1600;
 opts.MaxIter = 4000;
-opts.StartPoint = [0.9991 0.171121066356432 1 0.56119979270966 0.88186650045181 0.03 8];
 opts.TolFun = 1e-08;
 opts.TolX = 1e-08;
-opts.Upper = [Inf Inf Inf Inf Inf 0.05 10];
 
 % Fit model to data.
 [fitresult, gof] = fit( xData, yData, ft, opts );

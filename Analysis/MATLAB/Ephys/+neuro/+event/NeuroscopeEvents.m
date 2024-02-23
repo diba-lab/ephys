@@ -53,7 +53,7 @@ classdef NeuroscopeEvents < neuro.event.Events
         end
         function file=saveSpykingCircusDeadFile(obj)
             t=obj.getTableTypesInColumn;
-            tw=neuro.time.TimeWindowsDuration(t);
+            tw=time.TimeWindowsDuration(t);
             [folder,~,~]=fileparts(obj.info.path);
             file=tw.saveForClusteringSpyKingCircus(folder);
         end

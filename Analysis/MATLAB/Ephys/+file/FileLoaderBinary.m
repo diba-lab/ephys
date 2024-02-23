@@ -1,13 +1,13 @@
 classdef FileLoaderBinary < file.FileLoaderMethod
     %FILELOADERBINARY Summary of this class goes here
     %   Detailed explanation goes here
-    
+
     properties
         OEBinFile
         xmlfile
         Record1Lantency
     end
-    
+
     methods
         function obj = FileLoaderBinary(oeBinFile)
             %FILELOADERBINARY Construct an instance of this class
@@ -20,11 +20,14 @@ classdef FileLoaderBinary < file.FileLoaderMethod
                     listing1=dir(fullfile(filepath,'..'));
                     experimentno=str2double(listing1(1).folder(end));
                     if experimentno>1
-                        xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
+                        xmlfile=fullfile(listing(1).folder, sprintf( ...
+                            'settings_%d.xml',experimentno));
                     else
-                        xmlfile=fullfile(listing(1).folder, sprintf('settings_%d.xml',experimentno));
+                        xmlfile=fullfile(listing(1).folder, sprintf( ...
+                            'settings_%d.xml',experimentno));
                         if ~isfile(xmlfile)
-                            xmlfile=fullfile(listing(1).folder, sprintf('settings.xml'));
+                            xmlfile=fullfile(listing(1).folder, sprintf( ...
+                                'settings.xml'));
                         end
                     end
                 else
@@ -32,62 +35,73 @@ classdef FileLoaderBinary < file.FileLoaderMethod
                 end
                 obj.xmlfile=xmlfile;
             catch
-                warning('Settings .XML file couldn''t be found in folder\n%s\nIt should be in ../.. relative to .oebin file\n',listing(1).folder);
+                warning(['Settings .XML file couldn''t be found in folder' ...
+                    '\n%s\nIt should be in ../.. relative to .oebin' ...
+                    ' file\n'],listing(1).folder);
                 [file,path] = uigetfile('*.xml');
                 obj.xmlfile=fullfile(path,file);
             end
         end
-        
+
         function starttime=getRecordStartTime(obj)
             try
-                S = xml2struct(obj.xmlfile);
-                starttime=datetime(S.SETTINGS.INFO.DATE.Text ,'InputFormat','dd MMM yyyy HH:mm:ss');
+                S = external.xml2struct.xml2struct(obj.xmlfile);
+                starttime=datetime(S.SETTINGS.INFO.DATE.Text , ...
+                    'InputFormat','dd MMM yyyy HH:mm:ss');
                 ps=S.SETTINGS.SIGNALCHAIN{1,1}.PROCESSOR;
                 for ipro=1:numel(ps)
                     p=ps{ipro};
-                    if ismember('PhoStartTimestampPlugin',fieldnames(ps{ipro}))
-                        starttime1=p.PhoStartTimestampPlugin.RecordingStartTimestamp.Attributes.startTime;
-                        starttime2=datetime(starttime1 ,'InputFormat','yyyy-MM-dd_HH:mm:ss.SSSSSSS');
-                        if starttime.Minute==starttime2.Minute&&starttime.Year==starttime2.Year...
-                            &&starttime.Month==starttime2.Month...
-                            &&starttime.Day==starttime2.Day
+                    if ismember('PhoStartTimestampPlugin', ...
+                            fieldnames(ps{ipro}))
+                        starttime1=...
+p.PhoStartTimestampPlugin.RecordingStartTimestamp.Attributes.startTime;
+                        starttime2=datetime(starttime1 ,'InputFormat', ...
+                            'yyyy-MM-dd_HH:mm:ss.SSSSSSS');
+                        if starttime.Minute==starttime2.Minute&&...
+                                starttime.Year==starttime2.Year...
+                                &&starttime.Month==starttime2.Month...
+                                &&starttime.Day==starttime2.Day
                             starttime.Second=starttime2.Second;
                             starttime.Second=starttime2.Second;
                         end
-                        fprintf('\t-->\tStart time of the record read by milisecond accuracy %.7f.\n',starttime2.Second);
+                        fprintf(['\t-->\tStart time of the record read by' ...
+                            ' milisecond accuracy %.7f.\n'],starttime2.Second);
                     end
                 end
-            catch
+            catch ME
                 warning('Start time of the record couldn''t be read properly.\n')
                 starttime=[];
             end
-            
+
         end
-        
-        
+
+
         function openEphysRecord = load(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             log=logging.Logger.getLogger;
-            
+
             starttime1=obj.getRecordStartTime();
-            fprintf('Start Time in .xml file: %s\n',datestr(starttime1,'dd-mmm-yyyy HH:MM:SS.FFF'));
+            fprintf('Start Time in .xml file: %s\n',datestr(starttime1, ...
+                'dd-mmm-yyyy HH:MM:SS.FFF'));
             %             file=dir(obj.OEBinFile);
             %             samples=file.bytes/2/header.num_channels;
-            
-                datFileSize=obj.calculateDatFileSize;
-                [ts,file]=obj.getTimeStamps;
-%                 log.info(num2str(file.bytes))
-%                 log.info(num2str(obj.calculateTimestampsFileSize))
-%                 log.info(num2str(obj.calculateTimestampsFileSize-file.bytes))
-           
-            
+
+            datFileSize=obj.calculateDatFileSize;
+            [ts,file]=obj.getTimeStamps;
+            %                 log.info(num2str(file.bytes))
+            %                 log.info(num2str(obj.calculateTimestampsFileSize))
+            %                 log.info(num2str(obj.calculateTimestampsFileSize-file.bytes))
+
+
             if datFileSize<=obj.getDatFile.bytes
                 fprintf('Loading binary file...\n');tic
-                D= load_open_ephys_binary(obj.OEBinFile,'continuous',1,'mmap','.dat');toc
+                D= load_open_ephys_binary(obj.OEBinFile,'continuous',1, ...
+                    'mmap','.dat');toc
                 log.fine(sprintf('Binary continuous loaded. %s',obj.OEBinFile))
             else
-                log.error(sprintf('\n%s\n\t should be --> %d bytes.',fullfile(obj.getDatFile.folder,obj.getDatFile.name),datFileSize))
+                log.error(sprintf('\n%s\n\t should be --> %d bytes.', ...
+                    fullfile(obj.getDatFile.folder,obj.getDatFile.name),datFileSize))
                 return
             end
             recLatency=double(ts(1))/D.Header.sample_rate;
@@ -101,47 +115,64 @@ classdef FileLoaderBinary < file.FileLoaderMethod
                 a=fullfile(filepath,'..','recording1');
                 f1=java.io.File(a);
                 a1=f1.getCanonicalPath;
+
                 try
-                    T=readtable(fullfile(char(a1),'sync_messages.txt'),VariableNamingRule="preserve");
-                    c=table2cell(T);txt=c{1};tokens=tokenize(txt,' @Hz');
-                    time=str2double(tokens{end-1-2});sampleRate=str2double(tokens{end-2});
+                    fileID = fopen(fullfile(char(a1),'sync_messages.txt'), 'r');
+                    lines=textscan(fileID, '%s', 'delimiter', '\n');lines=lines{:};
+                    fclose(fileID);
+                    % Extract information using regular expressions
+                    % softwareTime = regexp(lines{1}, ...
+                    %     'Software time: (\d+)@(\d+)Hz', 'tokens');
+                    % softwareTime=softwareTime{:};
+                    processorInfo = regexp(lines{2}, ...
+                        ['Id: (\d+) subProcessor: ' ...
+                        '(\d+) start time: (\d+)@(\d+)Hz'], 'tokens');
+                    processorInfo=processorInfo{:};
+                    time=str2double(processorInfo{3});
+                    sampleRate=str2double(processorInfo{4});
                     obj.Record1Lantency=seconds(time/sampleRate);
-                catch
+                catch ME
+                    log.error([ME.identifier ME.message]);
                     a=fullfile(filepath,'..','recording1LatencyInSec.txt');
                     f1=java.io.File(a);
                     a1=char(f1.getCanonicalPath);
                     try
                         obj.Record1Lantency=seconds(readmatrix(a1));
-                    catch
+                    catch ME
+                        log.error([ME.identifier ME.message]);
                         est=starttime1+seconds(recLatency);
-                        log.error(sprintf(['%s \n\t is not found in the location. \n\t provide the difference' ...
+                        log.error(sprintf(['%s \n\t is not found in the ' ...
+                            'location. \n\t provide the difference' ...
                             ' for rec %d, estimation was %s'],a1, recno,est))
                     end
                 end
             end
             starttime=starttime1+seconds(recLatency)-obj.Record1Lantency;
-            fprintf('Real start time of the record: %s\n',datestr(starttime));
+            fprintf('Real start time of the record: %s\n',string(starttime));
             hdr=D.Header;
-            S = xml2struct(obj.xmlfile);
+            S = external.xml2struct.xml2struct(obj.xmlfile);
             hdr.SettingsAtXMLFile=S.SETTINGS;
-            
-            
+
+
             openEphysRecord.Header=hdr;
             openEphysRecord.Channels=1:hdr.num_channels;
             openEphysRecord.Data=D.Data;
 
             file=dir(D.Data.Filename);
             samples=file.bytes/2/hdr.num_channels;
-            
-            openEphysRecord.TimeInterval=neuro.time.TimeInterval(starttime,D.Header.sample_rate,samples);
+
+            openEphysRecord.TimeInterval=time.TimeInterval( ...
+                starttime,D.Header.sample_rate,samples);
             openEphysRecord.DataFile=D.Data.Filename;
             try
-                openEphysRecord.evts= load_open_ephys_binary(obj.OEBinFile,'events',1,'mmap','.dat');toc
+                openEphysRecord.evts= load_open_ephys_binary( ...
+                    obj.OEBinFile,'events',1,'mmap','.dat');toc
             catch
                 log.warning('No event data.')
             end
             try
-                openEphysRecord.spks= load_open_ephys_binary(obj.OEBinFile,'spikes',1,'mmap','.dat');toc
+                openEphysRecord.spks= load_open_ephys_binary( ...
+                    obj.OEBinFile,'spikes',1,'mmap','.dat');toc
             catch
                 log.warning('No spike data.')
             end
@@ -153,7 +184,8 @@ classdef FileLoaderBinary < file.FileLoaderMethod
             if (~f.isAbsolute())
                 f=java.io.File(fullfile(pwd,jsonFile));
             end
-            f=java.io.File(f.getParentFile(),fullfile('continuous', json.continuous.folder_name));
+            f=java.io.File(f.getParentFile(),fullfile('continuous', ...
+                json.continuous.folder_name));
             if(~f.exists())
                 error('Data folder not found');
             end
@@ -164,18 +196,27 @@ classdef FileLoaderBinary < file.FileLoaderMethod
             catch
                 log=logging.Logger.getLogger;
                 try
-                    log.error('\nFile %s \n\tFile size is %d bytes, should be %d bytes.\n',...
-                    fullfile(file.folder,file.name), file.bytes, obj.calculateTimestampsFileSize);
+                    log.error(['\nFile %s \n\tFile size is %d bytes,' ...
+                        ' should be %d bytes.\n'],...
+                        fullfile(file.folder,file.name), file.bytes, ...
+                        obj.calculateTimestampsFileSize);
                 catch
                     if isempty(file)
-                        log.error('\n No file \n\t%s\n\twill be created.', fullfile(folder,'timestamps.npy'));
+                        log.error('\n No file \n\t%s\n\twill be created.', ...
+                            fullfile(folder,'timestamps.npy'));
                     end
                 end
-                filepath = fileparts(obj.OEBinFile);
-                T=readtable(fullfile(filepath,'sync_messages.txt'),VariableNamingRule="preserve");
-                c=table2cell(T);txt=c{1};tokens=tokenize(txt,' @Hz');
-                startsample=str2double(tokens{end-1-2});
-                obj.createTimestamps(fullfile(folder,'timestamps.npy'),startsample);
+                filepath=fileparts(char(f.getParent));
+                fileID = fopen(fullfile(filepath,'sync_messages.txt'), 'r');
+                lines=textscan(fileID, '%s', 'delimiter', '\n');lines=lines{:};
+                fclose(fileID);
+                processorInfo = regexp(lines{2}, ...
+                    ['Id: (\d+) subProcessor: ' ...
+                    '(\d+) start time: (\d+)@(\d+)Hz'], 'tokens');
+                processorInfo=processorInfo{:};
+                time=str2double(processorInfo{3});
+
+                obj.createTimestamps(fullfile(folder,'timestamps.npy'),time);
                 ts = readNPY(fullfile(folder,'timestamps.npy'));
             end
         end
@@ -191,13 +232,14 @@ classdef FileLoaderBinary < file.FileLoaderMethod
             if (~f.isAbsolute())
                 f=java.io.File(fullfile(pwd,jsonFile));
             end
-            f=java.io.File(f.getParentFile(),fullfile('continuous', json.continuous.folder_name));
+            f=java.io.File(f.getParentFile(),fullfile('continuous', ...
+                json.continuous.folder_name));
             if(~f.exists())
                 error('Data folder not found');
             end
             folder = char(f.getCanonicalPath());
             contFile=fullfile(folder,'continuous.dat');
-            file=dir(contFile);            
+            file=dir(contFile);
         end
         function fileSize=calculateDatFileSize(obj)
             samplesize=numel(obj.getTimeStamps);

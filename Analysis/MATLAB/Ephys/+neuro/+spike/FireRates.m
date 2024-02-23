@@ -15,28 +15,59 @@ classdef FireRates < neuro.spike.FireRatesRaw
             obj.Time=Time;
         end
         
-        function [ax]=plotFireRates(obj)
+        function [axs]=plotFireRates(obj,axs)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            if ~exist('axs','var')
+                tiledlayout(5,1)
+                ax1=nexttile(1,[3 1]);hold on;
+            else
+                axes(axs(1));ax1=gca;
+            end
             til=obj.Time.getTimeIntervalList;
-            ax=gca;
-            ax.Color='k';
+            ax1.Color='k';
+            st=1;
             for iti=1:til.length
                 ti=til.get(iti);
-                t=hours(seconds(ti.getTimePointsInSec("08:00")));
+                t=minutes(ti.getTimePointsZT);
 
                 ch=1:numel(obj.ChannelNames);
                 [~,idx1]=sort(mean(obj.Data,2));
                 obj=obj.sort(idx1);
-                imagesc(t,ch,obj.Data);
+                imagesc(t,ch,obj.Data(:,st:(st+ti.getNumberOfPoints-1)));hold on
+                st=st+ti.getNumberOfPoints;
             end
-            ax.YLim=[min(ch) max(ch)+1]-.5;
-            xlabel('ZT (h)')
+            ax1.YLim=[min(ch) max(ch)+1]-.5;
+            ax1.CLim=[0 5];
+            xlabel('ZT (min)')
             cb=colorbar('Location','south');
             cb.Position(3)=cb.Position(3)/5;
             cb.Label.String='Log Fire Rate (Hz)';
             cb.Color='w';
             colormap('hot');
+            ax1.YDir="normal";
+            hold on
+            t1=minutes(obj.Time.getTimePointsZT);
+            data=mean(obj.Data);
+
+            data2=ft_preproc_lowpassfilter(data,1/obj.Info.TimebinInSec,1/10);
+            if ~exist('axs','var')
+                ax2=nexttile(4);
+            else
+                axes(axs(2));ax2=gca;
+            end
+            plot(t1,data2);
+
+            data1=ft_preproc_highpassfilter(data,1/obj.Info.TimebinInSec,1/6);
+            if ~exist('axs','var')
+                ax3=nexttile(5);
+            else
+                axes(axs(3));ax3=gca;
+            end
+            plot(t1,data1);
+            yline(.3);
+
+            linkaxes([ax1 ax2 ax3],'x');
         end
         function obj = getWindow(obj,window)
             t=obj.Time;
@@ -47,6 +78,12 @@ classdef FireRates < neuro.spike.FireRatesRaw
             obj.Time=tnew;
             window_samples=t.getSampleForClosest(window);
             obj.Data=obj.Data(:,window_samples(1):window_samples(2));
+        end
+        function obj = getFilteredGaussian(obj,windowsec)
+            t=obj.Time;
+            sr=t.getSampleRate;
+            winsample=windowsec*sr;
+            obj.Data=smoothdata(obj.Data,2,"gaussian",winsample);
         end
         function tblall = getPairwiseCorrelation(obj,windowLength,shift)
             pair=nchoosek(1:size(obj.Data,1),2);

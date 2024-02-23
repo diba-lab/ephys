@@ -20,7 +20,7 @@ classdef EventFile
                         evt=evtnames{ievt};
                         all1(:,ievt)=times(ismember(t.Var2,evt));
                     end
-                    obj.TimeWindowsDuration=neuro.time.TimeWindowsDuration( ...
+                    obj.TimeWindowsDuration=time.TimeWindowsDuration( ...
                         array2table(all1,VariableNames=evtnames));
                     obj.Location=file;
                 else

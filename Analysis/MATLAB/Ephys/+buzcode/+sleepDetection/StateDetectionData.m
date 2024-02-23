@@ -49,7 +49,7 @@ classdef StateDetectionData
             key=fullfile(basepath, '*TimeIntervalCombined*');
             thefile=dir(key);
             try
-                ticd=neuro.time.TimeIntervalCombined(fullfile(thefile.folder,thefile.name));
+                ticd=time.TimeIntervalCombined(fullfile(thefile.folder,thefile.name));
                 logger.info('Time is loaded.');
             catch
                 logger.error(sprintf('I couldn''t find the TimeIntervalCombined file.\n\t%s',key));
@@ -57,7 +57,7 @@ classdef StateDetectionData
             obj.TimeIntervalCombinedOriginal=ticd;
             downsampleFactor=ticd.getSampleRate / obj.SleepScoreLFP.sf;
             timeIntervalCombinedDownsampled=ticd.getDownsampled(downsampleFactor);
-            npds=numel(timeIntervalCombinedDownsampled.getTimePointsInSec);
+            npds=timeIntervalCombinedDownsampled.getNumberOfPoints;
             npss=numel(obj.SleepScoreLFP.t);
             if abs((npds-npss)/npss)<.0001
                 
@@ -122,23 +122,23 @@ classdef StateDetectionData
         function [tps]= getTimePoints(obj,downsample)
             ti=obj.TimeIntervalCombinedOriginal;
             tis=ti.getDownsampled(downsample);
-            tps=tis.getTimePointsInSec;
+            tps=tis.getTimePoints;
         end
         function [tps]= getTimePointsOriginal(obj)
             ti=obj.TimeIntervalCombinedOriginal;
-            tps=ti.getTimePointsInSec;
+            tps=ti.getTimePoints;
         end
         function [tps]= getTimePointsDownSampled(obj)
             ti=obj.TimeIntervalCombinedDownSampled;
-            tps=ti.getTimePointsInSec;
+            tps=ti.getTimePoints;
         end
         function cht=getEMG(obj)
-            ts1= obj.EMGFromLFP.data;
+            vals= obj.EMGFromLFP.data;
             chname='EMG';
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/obj.EMGFromLFP.samplingFrequency;
             ticd=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd=ticd.shiftTimePoints(neuro.time.Relative(seconds(obj.EMGFromLFP.timestamps(1))));
-            ch=neuro.basic.Channel(chname,ts1,ticd);
+            ticd=ticd.shiftTimePoints(seconds(obj.EMGFromLFP.timestamps(1)));
+            ch=neuro.basic.Channel(chname,vals,ticd);
             ch=ch.setInfo(obj.Info);
             cht=neuro.basic.ChannelsThreshold(ch,obj.getEMGThreshold,obj.isEMGSticky);
         end
@@ -157,8 +157,8 @@ classdef StateDetectionData
             tsr=interp1(t,ts1,t1);
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
             ticd1=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd2=ticd1.shiftTimePoints(neuro.time.Relative(seconds( ...
-                obj.SleepState.idx.timestamps(1))));
+            ticd2=ticd1.shiftTimePoints(seconds( ...
+                obj.SleepState.idx.timestamps(1)));
             ticd=ticd2.getTimeIntervalForTimes([ticd2.getStartTime ticd1.getEndTime]);
             ch=neuro.basic.Channel('TH',tsr,ticd);
             ch=ch.setInfo(obj.Info);
@@ -194,12 +194,7 @@ classdef StateDetectionData
         end
         function [LFP]= getLFP(obj,channel,downsamplerate)
             warning('Depricated Method. Use ChannelTimeDataHard.getChannel OR .getCahnnelsLFP.')
-            tokens=tokenize(obj.BaseName,filesep);
-            path=[];
-            for i=1:numel(tokens)-1
-                path=[path tokens{i} filesep];
-            end
-            curr=cd(path);
+            curr=cd(fileparts(obj.BaseName));
             filename=[obj.BaseName '.lfp.ch' num2str(channel) '.' num2str(downsamplerate) '.mat'];
             if ~exist(filename,'file')
                 LFP=bz_GetLFP(channel,'downsample',downsamplerate);
@@ -229,8 +224,8 @@ classdef StateDetectionData
             tsr=interp1(t,ts1,t1);
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
             ticd1=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd2=ticd1.shiftTimePoints(neuro.time.Relative(seconds( ...
-                obj.SleepState.idx.timestamps(1))));
+            ticd2=ticd1.shiftTimePoints(seconds( ...
+                obj.SleepState.idx.timestamps(1)));
             ticd=ticd2.getTimeIntervalForTimes([ticd2.getStartTime ticd1.getEndTime]);
             ch=neuro.basic.Channel('SW',tsr,ticd);
             ch=ch.setInfo(obj.Info);
@@ -248,22 +243,32 @@ classdef StateDetectionData
             idx=obj.SleepState.idx;
             states=idx.states;
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
-            ticd1=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd2=ticd1.shiftTimePoints(neuro.time.Relative(seconds( ...
-                obj.SleepState.idx.timestamps(1))));
+            [ticd1,~]=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
+            ticd2=ticd1.shiftTimePoints(seconds(obj.SleepState.idx.timestamps(1)));
             ticd=ticd2.getTimeIntervalForTimes([ticd2.getStartTime ticd1.getEndTime]);
-            ss=neuro.state.StateSeries(states,ticd);
-            ss=ss.setEpisodes(obj.SleepState.ints);
-            ss=ss.setStateNames(idx.statenames);
-            ss.TimePoints=idx.timestamps;
+            try
+                ss=neuro.state.StateSeries(states,ticd);
+            catch ME
+                if numel(states)-ticd.getNumberOfPoints==1
+                        ticd=ticd.addTimePoints(1);
+                        ss=neuro.state.StateSeries(states,ticd);
+                elseif numel(states)-ticd.getNumberOfPoints==-1
+                    ticd=ticd.addTimePoints(-1);
+                    ss=neuro.state.StateSeries(states,ticd);
+                else
+                    error(ME.message);
+                end
+            end
+            ss=ss.setEpisodesFromBuzcode(obj.SleepState.ints);
+            ss=ss.setStateNames(categorical(idx.statenames));
         end
         function ch=getStateSeriesChannel(obj)
             idx=obj.SleepState.idx;
             states=idx.states;
             factor=obj.TimeIntervalCombinedOriginal.getSampleRate/1;
             ticd1=obj.TimeIntervalCombinedOriginal.getDownsampled(factor);
-            ticd2=ticd1.shiftTimePoints(neuro.time.Relative(seconds( ...
-                obj.SleepState.idx.timestamps(1))));
+            ticd2=ticd1.shiftTimePoints(seconds( ...
+                obj.SleepState.idx.timestamps(1)));
             ticd=ticd2.getTimeIntervalForTimes([ticd2.getStartTime ticd1.getEndTime]);
             ch=neuro.basic.Channel('StS',states,ticd);
             ch=ch.setInfo(obj.Info);
@@ -532,7 +537,7 @@ classdef StateDetectionData
     methods (Access=private)
         
         function ts=getTimeSeriesForArraywBAD(obj,array)
-            %             tp=obj.TimeIntervalCombinedDownSampled.getTimePointsInSec;
+            %             tp=obj.TimeIntervalCombinedDownSampled.getTimePoints;
             %
             %             ts=timeseries(array,tp);
             %             ts.TimeInfo.StartDate=obj.TimeIntervalCombined.getStartTime;
@@ -544,8 +549,7 @@ classdef StateDetectionData
             range=(ss.Time>twsec(1))&(ss.Time<=twsec(2));
         end
         function basepath=getBasePath(~, basename)
-            tokens=tokenize(basename,filesep);
-            basepath=[filesep fullfile(tokens{1:numel(tokens)-1})];
+            basepath=fileparts(basename);
         end
     end
 end

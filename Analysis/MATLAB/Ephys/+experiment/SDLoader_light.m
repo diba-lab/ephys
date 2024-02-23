@@ -1,4 +1,4 @@
-classdef SDLoader_light < SDLoader
+classdef SDLoader_light < experiment.SDLoader
     %SDLOADER Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -19,7 +19,7 @@ classdef SDLoader_light < SDLoader
         function obj = instance()
             persistent uniqueInstance
             if isempty(uniqueInstance)
-                obj = SDLoader_light();
+                obj = experiment.SDLoader_light();
                 uniqueInstance = obj;
             else
                 obj = uniqueInstance;

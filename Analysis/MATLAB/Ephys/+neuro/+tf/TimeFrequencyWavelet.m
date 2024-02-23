@@ -35,8 +35,8 @@ classdef TimeFrequencyWavelet < neuro.tf.TimeFrequencyMethod
                 obj.FrequencyInterest,...
                 obj.centralFrequency,...
                 obj.scalingExponent);
-            l=logging.Logger.getLogger;
-            l.info(sprintf('go'));
+            % l=logging.Logger.getLogger;
+            % l.info(sprintf('go'));
             aTimeFrequencyMap=neuro.tf.TimeFrequencyMapWavelet(...
                 matrix, (1:numel(data))/sampleRate, obj.FrequencyInterest);
         end

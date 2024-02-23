@@ -1,18 +1,18 @@
 classdef ThetaPeaksContainer
     %THETAPEAKSCONTAINER Summary of this class goes here
     %   Detailed explanation goes here
-    
+
     properties
         ThetaPeaks
         Fooofs
         Parameters
-    end    
+    end
     properties
         condlist
         statelist
         blocklist
     end
-    
+
     methods
         function obj = ThetaPeaksContainer(thpks,fooof,params)
             %THETAPEAKSCONTAINER Construct an instance of this class
@@ -27,11 +27,208 @@ classdef ThetaPeaksContainer
             obj.statelist=categorical(states);
             obj.blocklist=categorical(blocks);
         end
+        function tblres = getFreqTimebouts(obj)
+            thpks=obj.ThetaPeaks;
+            conds=fieldnames(thpks);
+            tblres=[];
+            newrate=25;
+            settings.peak_width_limits=[2.5 5];
+            settings.peak_width_limits=[2 10];
+            settings.max_n_peaks=4;
+            settings.max_n_peaks=8;
+            settings.aperiodic_mode='fixed';%'knee''fixed'
+            settings.aperiodic_mode='knee';%'knee''fixed'
+            f_range=[3 40];
+            f_range=[1 40];
+
+            for ic=1:numel(conds)
+                cond=thpks.(conds{ic});
+                bls=fieldnames(cond);
+                for ib=1:numel(bls)
+                    bl=cond.(bls{ib});
+                    sts=fieldnames(bl);
+                    for ist=1:numel(sts)
+                        st=bl.(sts{ist});
+                        sess=fieldnames(st);
+                        for ises=1:numel(sess)
+                            ses=st.(sess{ises});
+                            for isub=1:ses.thpkList.length
+                                sub=ses.thpkList.get(isub);
+                                tbl1=sub.Bouts;
+                                tbl2=[repmat(string(conds{ic}),height(tbl1),1), ...
+                                    repmat(string(bls{ib}),height(tbl1),1), ...
+                                    repmat(string(sts{ist}),height(tbl1),1),...
+                                    repmat(string(sess{ises}),height(tbl1),1)];
+                                tbl3=array2table(tbl2,VariableNames={'Condition', ...
+                                    'Block','StateTemp','Session'});
+                                for ibo=1:height(tbl1)
+                                    tbl6(ibo,1)=sub.EMG.getTimeWindow( ...
+                                        [tbl1(ibo,:).startAbs tbl1(ibo,:).endAbs] ...
+                                        ).getDownSampled(newrate);
+                                    tbl7(ibo,1)=sub.Speed .getTimeWindow( ...
+                                        [tbl1(ibo,:).startAbs tbl1(ibo,:).endAbs] ...
+                                        ).getDownSampled(30);
+                                    signal=sub.Signal.getTimeWindow( ...
+                                        [tbl1(ibo,:).startAbs-seconds(.5) ...
+                                        tbl1(ibo,:).endAbs+seconds(.5)] ...
+                                        );
+                                    tbl8(ibo,1)=signal;
+                                    try
+                                        ps=signal.getPSpectrumWelch;
+                                        fo=ps.getFooof(settings,f_range);
+                                        pks=fo.getPeak([5 10]);
+                                    catch ME
+                                        if strcmp(ME.identifier, ...
+                                                'signal:welchparse:invalidSegmentLength')
+                                            pks.cf=nan;
+                                            pks.power=nan;
+                                        end
+                                    end
+                                    tbl9(ibo,1)=pks.cf;
+                                    tbl10(ibo,1)=pks.power;
+                                end
+                                tbl61=array2table(tbl6,VariableNames={'EMG'});
+                                tbl71=array2table(tbl7,VariableNames={'Speed'});
+                                tbl81=array2table(tbl8,VariableNames={'Signal'});
+                                tbl91=array2table(tbl9,VariableNames={'CentralFrequenyFooof'});
+                                tbl101=array2table(tbl10,VariableNames={'PowerFooof'});
+                                clear tbl6 tbl7 tbl8 tbl9 tbl10
+                                tblres1=[tbl3 tbl1  tbl61 tbl71 tbl81 tbl91 tbl101];
+                                tblres=[tblres;tblres1];
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        function tblres = getFreqTimeContinuous(obj)
+            winlenght=minutes(30);
+            winslidingsize=minutes(3);
+            winstart=hours(0):winslidingsize:(hours(5)-winlenght);
+            num=numel(winstart);
+            winend=winstart+winlenght;
+            wincenter=winend-winlenght/2;
+            thpks=obj.ThetaPeaks;
+            conds=fieldnames(thpks);
+            tblres=[];
+            for ic=1:numel(conds)
+                cond=thpks.(conds{ic});
+                bls=fieldnames(cond);
+                for ib=1:numel(bls)
+                    bl=cond.(bls{ib});
+                    sts=fieldnames(bl);
+                    for ist=1:numel(sts)
+                        st=bl.(sts{ist});
+                        sess=fieldnames(st);
+                        for ises=1:numel(sess)
+                            ses=st.(sess{ises});
+                            thpksm=ses.merge;
+                            signal=thpksm.Signal;
+                            awakebouts=thpksm.Bouts(thpksm.Bouts.state=='AWAKE',:);
+                            awakesignal=signal.getTimeWindow([awakebouts.startAbs awakebouts.endAbs]);
+                            qwakebouts=thpksm.Bouts(thpksm.Bouts.state=='QWAKE',:);
+                            qwakesignal=signal.getTimeWindow([qwakebouts.startAbs qwakebouts.endAbs]);
+                            zt=signal.TimeIntervalCombined.getZeitgeberTime;
+                            for iw=1:numel(winstart)
+                                sigsub=signal.getTimeWindow( ...
+                                    zt+[winstart(iw) winend(iw)]);
+                                try
+                                    ps=sigsub.getPSpectrumWelch;
+                                    settings.peak_width_limits=[2 10];
+                                    settings.max_n_peaks=8;
+                                    settings.aperiodic_mode='knee';
+                                    fo=ps.getFooof(settings,[1 40]);
+                                    pk=fo.getPeak([5 10]);
+                                    a1(iw,1)=pk.cf;
+                                    a1(iw,2)=pk.power;
+                                    a1(iw,3)=pk.bw;
+                                catch ME
+                                    if strcmp(ME.identifier,...
+                                            'signal:welchparse:invalidSegmentLength')
+                                        a1(iw,1)=nan;
+                                        a1(iw,2)=nan;
+                                        a1(iw,3)=nan;
+                                    end
+                                end
+
+                                sigsub=awakesignal.getTimeWindow( ...
+                                    zt+[winstart(iw) winend(iw)]);
+                                try
+                                    ps=sigsub.getPSpectrumWelch;
+                                    settings.peak_width_limts=[2 8];
+                                    settings.max_n_peaks=4;
+                                    settings.aperiodic_mode='fixed';
+                                    fo=ps.getFooof(settings,[3 40]);
+                                    pk=fo.getPeak([5 12]);
+                                    aw1(iw,1)=pk.cf;
+                                    aw1(iw,2)=pk.power;
+                                    aw1(iw,3)=pk.bw;
+                                catch ME
+                                    if strcmp(ME.identifier,...
+                                            'signal:welchparse:invalidSegmentLength')
+                                        aw1(iw,1)=nan;
+                                        aw1(iw,2)=nan;
+                                        aw1(iw,3)=nan;
+                                    end
+                                end
+
+                                sigsub=qwakesignal.getTimeWindow( ...
+                                    zt+[winstart(iw) winend(iw)]);
+                                try
+                                    ps=sigsub.getPSpectrumWelch;
+                                    settings.peak_width_limts=[2 8];
+                                    settings.max_n_peaks=4;
+                                    settings.aperiodic_mode='fixed';
+                                    fo=ps.getFooof(settings,[3 40]);
+                                    pk=fo.getPeak([5 12]);
+                                    qw1(iw,1)=pk.cf;
+                                    qw1(iw,2)=pk.power;
+                                    qw1(iw,3)=pk.bw;
+                                catch ME
+                                    if strcmp(ME.identifier,...
+                                            'signal:welchparse:invalidSegmentLength')
+                                        qw1(iw,1)=nan;
+                                        qw1(iw,2)=nan;
+                                        qw1(iw,3)=nan;
+                                    end
+                                end
+                                t1(iw,1)=wincenter(iw);
+                                t1(iw,2)=seconds(...
+                                    sigsub.TimeIntervalCombined.getNumberOfPoints/...
+                                    sigsub.TimeIntervalCombined.getSampleRate);
+                            end
+                            tbl2=[repmat(string(conds{ic}),num,1), ...
+                                repmat(string(bls{ib}),num,1), ...
+                                repmat(string(sts{ist}),num,1),...
+                                repmat(string(sess{ises}),num,1)];
+                            tbl21=array2table(tbl2,VariableNames={'Condition', ...
+                                'Block','StateTemp','Session',});
+                            a11=array2table(a1,VariableNames={ ...
+                                'CentralFrequency','RelativePower','BandWitdth'});
+                            aw11=array2table(aw1,VariableNames={ ...
+                                'CentralFrequencyAW','RelativePowerAW','BandWitdthAW'});
+                            qw11=array2table(qw1,VariableNames={ ...
+                                'CentralFrequencyQW','RelativePowerQW','BandWitdthQW'});
+                            t11=array2table(t1,VariableNames={ ...
+                                'ZTCenter','Duration'});
+                            tbl4=[tbl21 t11 a11 aw11 qw11];
+                            if ~isempty(tblres)
+                                tblres=[tblres; tbl4];
+                            else
+                                tblres=tbl4;
+                            end
+                        end
+                    end
+                end
+            end
+        end
         function plotPeakFreqDist(obj, blockstr)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             clear ff;
-            ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof');
+            ff=logistics.FigureFactory.instance(['/data/EphysAnalysis/' ...
+                'Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/' ...
+                'ExperimentSpecific/PlottingRoutines/Printout/fooof']);
 
             cols=[6 10 3 6];
 
@@ -53,7 +250,8 @@ classdef ThetaPeaksContainer
             try close(10); catch, end
             for icond=1:numel(conds)
                 cond=conds(icond);
-                try close(double(cond)+6); catch, end; f=figure(double(cond)+6);f.Position=[1,55,1280/10*col,1267];
+                try close(double(cond)+6); catch, end
+                f=figure(double(cond)+6);f.Position=[1,55,1280/10*col,1267];
                 if any(ismember({'SD','NSD'},block))
                     block=cond;
                 end
@@ -61,10 +259,12 @@ classdef ThetaPeaksContainer
                     block=block(iblock);
                     for istate=1:numel(states)
                         state=states(istate);
-                        fnames=fieldnames(obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)));
+                        fnames=fieldnames(obj.ThetaPeaks.(char(cond)).( ...
+                            char(block)).(char(state)));
                         for isession=1:numel(fnames)
                             sesno=fnames{isession};
-                            thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(sesno);
+                            thpks=obj.ThetaPeaks.(char(cond)).( ...
+                                char(block)).(char(state)).(sesno);
                             thpks.plotCF(numel(fnames),isession,col);
                             if exist('thpksm','var')
                                 thpksm=thpksm.merge(thpks);
@@ -102,7 +302,9 @@ classdef ThetaPeaksContainer
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             clear ff;
-            ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof');
+            ff=logistics.FigureFactory.instance(['/data/EphysAnalysis/' ...
+                'Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/' ...
+                'ExperimentSpecific/PlottingRoutines/Printout/fooof']);
 
             cols=[6 10 3 6];
 
@@ -124,7 +326,8 @@ classdef ThetaPeaksContainer
             try close(10); catch, end
             for icond=1:numel(conds)
                 cond=conds(icond);
-                try close(double(cond)+6); catch, end; f=figure(double(cond)+6);f.Position=[1,55,1280/10*col,1267];
+                try close(double(cond)+6); catch, end; f=figure(double( ...
+                    cond)+6);f.Position=[1,55,1280/10*col,1267];
                 if any(ismember({'SD','NSD'},block))
                     block=cond;
                 end
@@ -132,11 +335,13 @@ classdef ThetaPeaksContainer
                     block=block(iblock);
                     for istate=1:numel(states)
                         state=states(istate);
-                        fnames=fieldnames(obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)));
+                        fnames=fieldnames(obj.ThetaPeaks.(char(cond)).( ...
+                            char(block)).(char(state)));
                         for isession=1:numel(fnames)
                             sesno=fnames{isession};
                             try
-                                thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(sesno);
+                                thpks=obj.ThetaPeaks.(char(cond)).( ...
+                                    char(block)).(char(state)).(sesno);
                                 thpks.plotSpeed(numel(fnames),isession,col);
                                 if exist('thpksm','var')
                                     thpksm=thpksm.merge(thpks);
@@ -167,7 +372,9 @@ classdef ThetaPeaksContainer
         function plotPowerDist(obj, blockstr)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof');
+            ff=logistics.FigureFactory.instance(['/data/EphysAnalysis/' ...
+                'Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/' ...
+                'ExperimentSpecific/PlottingRoutines/Printout/fooof']);
             cols=[6 10 3 6];
 
             conds=obj.condlist;
@@ -188,7 +395,8 @@ classdef ThetaPeaksContainer
             try close(10); catch, end
             for icond=1:numel(conds)
                 cond=conds(icond);
-                try close(double(cond)+6); catch, end; f=figure(double(cond)+6);f.Position=[1,55,1280/10*col,1267];
+                try close(double(cond)+6); catch, end
+                f=figure(double(cond)+6);f.Position=[1,55,1280/10*col,1267];
                 if any(ismember({'SD','NSD'},block))
                     block=cond;
                 end
@@ -196,10 +404,12 @@ classdef ThetaPeaksContainer
                     block=block(iblock);
                     for istate=1:numel(states)
                         state=states(istate);
-                        fnames=fieldnames(obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)));
+                        fnames=fieldnames(obj.ThetaPeaks.(char(cond)).( ...
+                            char(block)).(char(state)));
                         for isession=1:numel(fnames)
                             sesno=fnames{isession};
-                            thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(sesno);
+                            thpks=obj.ThetaPeaks.(char(cond)).( ...
+                                char(block)).(char(state)).(sesno);
                             thpks.plotPW(numel(fnames),isession,col);
 
                             if exist('thpksm','var')
@@ -235,7 +445,9 @@ classdef ThetaPeaksContainer
             ff.save(txt);
         end
         function plotDurationvsFrequency(obj,blockstr)
-            ff=logistics.FigureFactory.instance('/data/EphysAnalysis/Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/ExperimentSpecific/PlottingRoutines/Printout/fooof');            
+            ff=logistics.FigureFactory.instance(['/data/EphysAnalysis/' ...
+                'Structure/diba-lab_ephys/Analysis/MATLAB/Ephys/' ...
+                'ExperimentSpecific/PlottingRoutines/Printout/fooof']);
             durlim=[3 150];
             numsubs=[6 10 3 6];
             rotates=[10.5 6 25 10.5];
@@ -281,11 +493,14 @@ classdef ThetaPeaksContainer
                     block=block(iblock);
                     for istate=1:numel(states)
                         state=states(istate);
-                        fnames=fieldnames(obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)));
+                        fnames=fieldnames(obj.ThetaPeaks.(char(cond)).( ...
+                            char(block)).(char(state)));
                         for isession=1:numel(fnames)
                             sesno=fnames{isession};
-                            thpks=obj.ThetaPeaks.(char(cond)).(char(block)).(char(state)).(sesno);
-                            fooofs=obj.Fooofs.(char(cond)).(char(block)).(char(state)).(sesno);
+                            thpks=obj.ThetaPeaks.(char(cond)).( ...
+                                char(block)).(char(state)).(sesno);
+                            fooofs=obj.Fooofs.(char(cond)).( ...
+                                char(block)).(char(state)).(sesno);
                             thpks.Info.fooof=fooofs;
                             hold on
                             try
@@ -301,10 +516,12 @@ classdef ThetaPeaksContainer
                     end
                 end
             end
-            tableall(isnan(tableall.Frequency)|tableall.Duration>durlim(2)|tableall.Duration<durlim(1),:)=[];
+            tableall(isnan(tableall.Frequency)|tableall.Duration> ...
+                durlim(2)|tableall.Duration<durlim(1),:)=[];
             ylim(durlim);
             zlim([5.5 8.5]);
-            ylabel('Duration (s)');zlabel('Mean Instant Frequency');xlabel('Time-blocks (hrs)');
+            ylabel('Duration (s)');zlabel('Mean Instant Frequency');
+            xlabel('Time-blocks (hrs)');
             %             view([45 145])
             xticks(1:numsub);
             xticklabels(.5:.5:numsub/2),grid on
@@ -326,9 +543,12 @@ classdef ThetaPeaksContainer
                     [R,P] = corrcoef(table1.Duration,table1.Frequency);
                     if P(2,1)<.05
                         [f, delta ]= polyval(p,sort(table1.Duration),S,mu);
-                        p1=plot3(ones(size(table1.Duration))*subblock,sort(table1.Duration),f,'-');
-                        p2u=plot3(ones(size(table1.Duration))*subblock,sort(table1.Duration),f+2*delta,'-');
-                        p2d=plot3(ones(size(table1.Duration))*subblock,sort(table1.Duration),f-2*delta,'-');
+                        p1=plot3(ones(size(table1.Duration))*subblock,sort( ...
+                            table1.Duration),f,'-');
+                        p2u=plot3(ones(size(table1.Duration))*subblock,sort( ...
+                            table1.Duration),f+2*delta,'-');
+                        p2d=plot3(ones(size(table1.Duration))*subblock,sort( ...
+                            table1.Duration),f-2*delta,'-');
                         p1.Color=colors(1,:);p1.LineWidth=2.5;
                         p2u.Color=colors(1,:);p2u.LineWidth=2;p2u.LineStyle=':';
                         p2d.Color=colors(1,:);p2d.LineWidth=2;p2d.LineStyle=':';
@@ -363,7 +583,8 @@ classdef ThetaPeaksContainer
                 for isub=1:numsub
                     tablesub=tablecond(tablecond.SubBlock==isub,:);
                     if ~isempty(tablesub)
-                        numpoints=round(max(tablesub.Duration)*tablesub(1,:).Array.SampleRate);
+                        numpoints=round(max(tablesub.Duration)*tablesub(1,: ...
+                            ).Array.SampleRate);
                         [~,I]=sort(tablesub.Duration);
                         matp=nan(height(tablesub),numpoints);
                         matf=nan(height(tablesub),numpoints);
@@ -385,17 +606,21 @@ classdef ThetaPeaksContainer
                         end
                         figure(9)
                         ax=subplot(2,numsub,(icond-1)*numsub+isub);hold on;
-                        imagesc(linspace(0,size(matf,2)/boutarrp.SampleRate,size(matf,2)),1:size(matf,1),matf)
+                        imagesc(linspace(0,size(matf,2)/boutarrp.SampleRate, ...
+                            size(matf,2)),1:size(matf,1),matf)
                         colormap(ax,colors2);
                         ax=gca;
-                        ax.CLim=[5.5 8.5];ax.XLim=[0 60];ax.YLim=[0 size(matf,1)];colorbar("northoutside")
+                        ax.CLim=[5.5 8.5];ax.XLim=[0 60];ax.YLim=[0 size( ...
+                            matf,1)];colorbar("northoutside")
                         drawnow;
                         figure(8)
                         ax=subplot(2,numsub,(icond-1)*numsub+isub);hold on;
-                        imagesc(linspace(0,size(matp,2)/boutarrp.SampleRate,size(matp,2)),1:size(matp,1),matp)
+                        imagesc(linspace(0,size(matp,2)/boutarrp.SampleRate, ...
+                            size(matp,2)),1:size(matp,1),matp)
                         colormap(ax,colors2);
                         ax=gca;
-                        ax.CLim=[50 400];ax.XLim=[0 60];ax.YLim=[0 size(matp,1)];colorbar("northoutside")
+                        ax.CLim=[50 400];ax.XLim=[0 60];ax.YLim=[0 size( ...
+                            matp,1)];colorbar("northoutside")
                         figure(7)
                         try
                             axo=outset(isub);
@@ -409,18 +634,18 @@ classdef ThetaPeaksContainer
                         idx=zscore(arrp1)<2|zscore(arrf1)<5;
                         arrf=arrf1(idx);
                         arrp=arrp1(idx);
-%                         s3(icond)=scatter(arrp,arrf, ...
-%                             'filled',MarkerFaceColor=mean(colors), ...
-%                             MarkerFaceAlpha=.2, ...
-%                             SizeData=.5 ...
-%                             );
-%                         s3(icond)=dscatter(arrp',arrf','plottype','scatter');
+                        %                         s3(icond)=scatter(arrp,arrf, ...
+                        %                             'filled',MarkerFaceColor=mean(colors), ...
+                        %                             MarkerFaceAlpha=.2, ...
+                        %                             SizeData=.5 ...
+                        %                             );
+                        %                         s3(icond)=dscatter(arrp',arrf','plottype','scatter');
                         s3(icond)=dscatter(arrp',arrf','plottype','contour');
                         colormap(s3(icond),othercolor(colorstr1{icond},7))
                         xlim([0 400]);
                         ylim([5 10]);
 
-                        if icond>1          
+                        if icond>1
                             axes(outset(isub));
                             axn.Visible='off';
                         end
@@ -432,8 +657,10 @@ classdef ThetaPeaksContainer
                             p2u=plot(sort(arrp),f+2*delta,'-');
                             p2d=plot(sort(arrp),f-2*delta,'-');
                             p1.Color=colors(ceil(c*10),:);p1.LineWidth=2.5;
-                            p2u.Color=colors(ceil(c*10),:);p2u.LineWidth=2;p2u.LineStyle=':';
-                            p2d.Color=colors(ceil(c*10),:);p2d.LineWidth=2;p2d.LineStyle=':';
+                            p2u.Color=colors(ceil(c*10),:);...
+                                p2u.LineWidth=2;p2u.LineStyle=':';
+                            p2d.Color=colors(ceil(c*10),:);...
+                                p2d.LineWidth=2;p2d.LineStyle=':';
                             t=text(mean(arrp),mean(arrf), ...
                                 sprintf('R=%.2f, p=%.3f',R(2,1),P(2,1)) ...
                                 );
@@ -451,7 +678,8 @@ classdef ThetaPeaksContainer
                                 );
                             hold on; box on;
                         end
-                        sigosc=neuro.basic.Oscillation(sig1, boutarrs.SampleRate);
+                        sigosc=neuro.basic.Oscillation(sig1, ...
+                            boutarrs.SampleRate);
                         ps=sigosc.getPSpectrumWelch;
                         sett.aperiodic_mode='knee';
                         fooof2=ps.getFooof(sett);
@@ -495,15 +723,17 @@ classdef ThetaPeaksContainer
             legend(s1,{'NSD','SD'},Location="best")
             title(blockstr);
 
-
-            
             subplot(3,2,6);hold on;
-            h1=histogram(tableall.Duration(tableall.Condition==1),linspace(durlim(1),durlim(2),100),LineStyle="none", ...
-                FaceColor=mean(othercolor(colorstr1{1},numsub*2)),Normalization="cdf",FaceAlpha=.3);
+            h1=histogram(tableall.Duration(tableall.Condition==1),linspace( ...
+                durlim(1),durlim(2),100),LineStyle="none", ...
+                FaceColor=mean(othercolor(colorstr1{1},numsub*2)), ...
+                Normalization="cdf",FaceAlpha=.3);
             plot(linspace(h1.BinEdges(1),h1.BinEdges(end),numel(h1.Values)), ...
                 h1.Values,LineWidth=3,Color=h1.FaceColor);
-            h2=histogram(tableall.Duration(tableall.Condition==2),linspace(durlim(1),durlim(2),100),LineStyle="none", ...
-                FaceColor=mean(othercolor(colorstr1{2},numsub*2)),Normalization="cdf",FaceAlpha=.3);
+            h2=histogram(tableall.Duration(tableall.Condition==2), ...
+                linspace(durlim(1),durlim(2),100),LineStyle="none", ...
+                FaceColor=mean(othercolor(colorstr1{2},numsub*2)), ...
+                Normalization="cdf",FaceAlpha=.3);
             plot(linspace(h2.BinEdges(1),h2.BinEdges(end),numel(h2.Values)), ...
                 h2.Values,LineWidth=3,Color=h2.FaceColor);
             xlim(durlim);
@@ -519,7 +749,6 @@ classdef ThetaPeaksContainer
             ff.save(sprintf('PowerVsFrequency_raw%s_%s.png',blockstr,states))
             figure(11);
             ff.save(sprintf('Power_Spectrum%s_%s.png',blockstr,states))
-
         end
     end
 

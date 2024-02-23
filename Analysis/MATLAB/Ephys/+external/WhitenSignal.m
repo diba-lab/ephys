@@ -1,5 +1,5 @@
 %function [y, ARmodel] = WhitenSignal(x, window,CommonAR,ARmodel)
-% whitens the signal 
+% whitens the signal
 % if window specified will recompute the model in each window of that size
 % if CommonAR is set to 1, then will use model from first channel for all
 % if ARmodel is specified - use it, not compute fromthe data
@@ -24,29 +24,29 @@ else
     seg = repmat([1 window],nwin,1)+repmat([0:nwin-1]'*window,1,2);
     if nwin*window<nT
         seg(end,2) =nT;
-    end   
+    end
 end
 
 for j=1:nwin
     if ~isempty(ARmodel)
-    A = ARmodel;
+        A = ARmodel;
         for i=1:nCh
-	    y(seg(j,1):seg(j,2),i) = external.Filter0([1 -A], x(seg(j,1):seg(j,2),i));
+    	    y(seg(j,1):seg(j,2),i) = external.Filter0([1 -A], x(seg(j,1):seg(j,2),i));
         end
-    else    
-	if CommonAR 
-		for i=1:nCh
-		if  j==1
-			[w A] = external.arfit(x(seg(j,1):seg(j,2),i),2,2);
-		end
-		y(seg(j,1):seg(j,2),i) = external.Filter0([1 -A], x(seg(j,1):seg(j,2),i));
-		end
-	else
-		for i=1:nCh
-		[w A] = external.arfit(x(seg(j,1):seg(j,2),i),2,2);
-		y(seg(j,1):seg(j,2),i) = external.Filter0([1 -A], x(seg(j,1):seg(j,2),i));
-		end
-	end
+    else
+    	if CommonAR
+    		for i=1:nCh
+        		if  j==1
+        			[w A] = external.arfit(x(seg(j,1):seg(j,2),i),2,2);
+        		end
+        		y(seg(j,1):seg(j,2),i) = external.Filter0([1 -A], x(seg(j,1):seg(j,2),i));
+    		end
+    	else
+    		for i=1:nCh
+        		[w A] = external.arfit(x(seg(j,1):seg(j,2),i),2,2);
+        		y(seg(j,1):seg(j,2),i) = external.Filter0([1 -A], x(seg(j,1):seg(j,2),i));
+    		end
+    	end
     end
 end
 

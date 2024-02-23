@@ -30,7 +30,7 @@ classdef TimeIntervalCombinedEvents < neuro.event.Events
                 subEvents=obj.get(variableName,var);
                 subeventstt=subEvents.timetable;
                 t=subeventstt.Time;
-                smp=neuro.time.Sample(ticd.getSampleFor(t),ticd.getSampleRate);
+                smp=time.Sample(ticd.getSampleFor(t),ticd.getSampleRate);
                 ms=seconds(smp.getDuration)*1000;
                 fid = fopen(sprintf('%s%s%s.R%02d.evt',folder,filesep,filename,var),'w');
                 

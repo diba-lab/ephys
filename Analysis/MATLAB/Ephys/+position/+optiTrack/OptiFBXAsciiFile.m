@@ -1,4 +1,4 @@
-classdef OptiFBXAsciiFile<optiTrack.OptiFile
+classdef OptiFBXAsciiFile<position.optiTrack.OptiFile
     %OPTITAKFILE Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -50,12 +50,23 @@ classdef OptiFBXAsciiFile<optiTrack.OptiFile
             obj.ExportFrameRate=str2double(obj.ExportFrameRate{1});
             
             obj.CaptureStartTime=datetime(...
-                obj.TakeName(6:27),'InputFormat','yyyy-MM-dd hh.mm.ss a');  
-            
-%             opts.SelectedVariableNames = ["v2", "v3", "v4"];
-%             opts.DataLines = [490, 490+obj.TotalExportedFrames-1];
-%             obj.table=readtable(file, opts);
+                obj.TakeName(6:27),'InputFormat','yyyy-MM-dd hh.mm.ss a');
+
+            %             opts.SelectedVariableNames = ["v2", "v3", "v4"];
+            %             opts.DataLines = [490, 490+obj.TotalExportedFrames-1];
+            %             obj.table=readtable(file, opts);
         end
+        function positionData = getPositionData(obj,zt)
+            % Create a time interval using the capture start time, the export frame rate,
+            % and the height of the table (number of rows).
+            timeInterval = time.TimeIntervalZT(obj.CaptureStartTime, ...
+                obj.ExportFrameRate, height(obj.table),zt);
+
+            % Create a PositionData object using the X, Y, and Z columns of the table and the time interval.
+            positionData = position.PositionData(obj.table.X, ...
+                obj.table.Y, obj.table.Z, timeInterval);
+        end
+
         function [ts1] = getTimeSeriesX(obj)
             ts1=timeseries(obj.table.X,obj.getTime());
             ts1.Name='X Data';

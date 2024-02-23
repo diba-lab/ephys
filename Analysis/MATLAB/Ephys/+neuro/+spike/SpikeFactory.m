@@ -29,7 +29,7 @@ classdef SpikeFactory
     methods
         function [sa, foldername]= getPhyOutputFolder(obj,foldername)
             logger=logging.Logger.getLogger;
-            import neuro.time.*
+            import time.*
             import neuro.spike.*
             import external.npymatlab.*
             defaultloc='/data/EphysAnalysis/cluster';

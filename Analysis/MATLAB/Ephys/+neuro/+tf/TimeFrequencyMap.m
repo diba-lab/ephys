@@ -57,8 +57,11 @@ classdef (Abstract) TimeFrequencyMap < neuro.tf.Topography2D
                 end
                 
             end
-            thpkfreq=neuro.basic.EphysTimeSeries(thpkfreq,obj.getSampleRate);
-            thpkpower=neuro.basic.EphysTimeSeries(thpkpower,obj.getSampleRate);
+            if isduration(obj.timePoints)
+                obj.timePoints=seconds(obj.timePoints);
+            end
+            thpkfreq=neuro.basic.EphysTimeSeries(thpkfreq,obj.getSampleRate,obj.timePoints);
+            thpkpower=neuro.basic.EphysTimeSeries(thpkpower,obj.getSampleRate,obj.timePoints);
         end
         function [obj] = setTimeintervalCombined(obj,ticd)
             %METHOD1 Summary of this method goes here

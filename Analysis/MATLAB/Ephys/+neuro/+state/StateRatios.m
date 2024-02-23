@@ -10,21 +10,56 @@ classdef StateRatios
         function obj = StateRatios(state)
             %STATERATIOS Construct an instance of this class
             %   Detailed explanation goes here
-            ist=1;
-            for istate=1:numel(state)
-                st1=state(istate);
-                if ismember(st1.state,[1 2 3 5])
-                    newst(ist)=st1;ist=ist+1;
-                end
-            end
-            obj.State=newst;
+            obj.State=state;
         end
         
-        function list = getStateList(obj)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            state=obj.State;
-            list=unique([state.state]);
+        function [] = plotAwakeFractionPreceeding(obj)
+            a=obj.getStateFractionPreceeding( ...
+                categorical({'A-WAKE','Q-WAKE'}),categorical({'SWS','REM'}));
+            imagesc([min(a.time) max(a.time)],[],a.awakeFraction');
+        end
+        function res = getStateFractionPreceeding(obj,interest,rest)
+            res.ZTtime=obj.State.ZTEnd;
+            for iint=1:numel(interest)
+                var=string(interest(iint));
+                if iint==1
+                    suminterest=obj.State.(var);
+                else
+                    suminterest=suminterest+obj.State.(var);
+                end
+            end            
+            for iint=1:numel(rest)
+                var=string(rest(iint));
+                if iint==1
+                    sumrest=obj.State.(var);
+                else
+                    sumrest=sumrest+obj.State.(var);
+                end
+            end
+
+            res.interest=suminterest;
+            res.rest=sumrest;
+            res.sum=res.interest+res.rest;
+            res.fraction=res.interest./res.sum;
+        end
+        function res = getAwakeFractionPreceeding(obj)
+            res=obj.getStateFractionPreceeding( ...
+                categorical({'A-WAKE','Q-WAKE'}), ...
+                categorical({'SWS','REM'}));
+            res.awakedur=res.interest;
+            res.sleepdur=res.rest;
+            res.sum=res.awakedur+res.sleepdur;
+            res.awakeFraction=res.awakedur./res.sum;
+        end
+        function res = getSleepFractionPreceeding(obj)
+            res=obj.getStateFractionPreceeding( ...
+                categorical({'SWS','REM'}), ...
+                categorical({'A-WAKE','Q-WAKE'}) ...
+                );
+            res.sleepdur=res.interest;
+            res.awakedur=res.rest;
+            res.sum=res.awakedur+res.sleepdur;
+            res.sleepFraction=res.sleepdur./res.sum;
         end
     end
 end

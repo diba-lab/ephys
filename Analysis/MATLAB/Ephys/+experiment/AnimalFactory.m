@@ -63,12 +63,16 @@ classdef AnimalFactory
                     idx_all(varargin{1})=true;
             else
                 for iargin=1:numel(varargin)
-                    argin1=varargin(iargin);
+                    argin1=varargin{iargin};
                     varnames=fieldnames(animalstruct);
                     idx=false(numel(animalstruct),1);
                     for ivar=1:numel(varnames)
                         varname=varnames{ivar};
-                        try idx=idx|ismember([animalstruct.(varname)],argin1)';catch, end
+                        try idx=idx|ismember( ...
+                                categorical([animalstruct.(varname)]), ...
+                                argin1)';
+                        catch
+                        end
                         
                     end
                     idx_all=idx_all&idx;

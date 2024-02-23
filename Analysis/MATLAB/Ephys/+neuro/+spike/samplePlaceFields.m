@@ -62,7 +62,7 @@ tracksa_s.plot(tfm);f1=gcf;
 ax=gca;
 ax.Position(4)=.7;
 ticd=ch1_short.getTimeIntervalCombined;
-t=seconds(ticd.getTimePointsInSec)+ticd.getStartTime;
+t=ticd.getTimePoints+ticd.getStartTime;
 
 
 bc=BuzcodeFactory.getBuzcode(filepath);

@@ -8,11 +8,11 @@
             {"name":"channel", "kind":"required", "type":["neuro.basic.Channel"], "purpose":"Channels to be added in cell array"}
         ]
     },
-    "neuro.time.TimeIntervalCombined.getDownsampled":
+    "time.TimeIntervalCombined.getDownsampled":
     {
         "inputs":
         [
-            {"name":"obj", "kind":"required", "type":["neuro.time.TimeIntervalCombined"]},
+            {"name":"obj", "kind":"required", "type":["time.TimeIntervalCombined"]},
             {"name":"Downsample Factor", "kind":"required", "type":["numeric"]}
         ]
     },

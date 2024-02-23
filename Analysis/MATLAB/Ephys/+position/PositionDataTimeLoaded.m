@@ -40,8 +40,11 @@ classdef PositionDataTimeLoaded< position.PositionData
             obj.data=readtable(obj.source);
             folder=fileparts(file1);
             obj.channels=obj.data.Properties.VariableNames;
-            obj.time=neuro.time.TimeIntervalCombined( ...
+            obj.time=time.TimeIntervalCombined( ...
                 fullfile(folder,[uni extt]));
+            if obj.time.timeIntervalList.length==1
+                obj.time=obj.time.timeIntervalList.get(1);
+            end
         end
         function [file2, uni]=getFile(~,folder,extension)
             if ~exist('folder','var')
@@ -55,7 +58,8 @@ classdef PositionDataTimeLoaded< position.PositionData
             else
                 file1=dir(fullfile(folder,['*' extension]));
                 if numel(file1)>1
-                    [name,folder1] = uigetfile({['*' extension],extension},'Selectone of the position files',folder);
+                    [name,folder1] = uigetfile({['*' extension],extension}, ...
+                        'Selectone of the position files',folder);
                     file1=dir(fullfile(folder1,name));
                 end
             end

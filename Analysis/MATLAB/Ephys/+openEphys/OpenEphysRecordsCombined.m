@@ -1,4 +1,4 @@
-classdef OpenEphysRecordsCombined < neuro.time.Timelined
+classdef OpenEphysRecordsCombined < time.Timelined
     %OPENEPHYSRECORDSCOMBINED Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -61,7 +61,11 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
             i=1;
             while(iter.hasNext())
                 anOpenEphysRecord=iter.next();
-                st(i)=anOpenEphysRecord.getRecordStartTime;i=i+1;
+                try
+                    st(i)=anOpenEphysRecord.getRecordStartTime;i=i+1;
+                catch ME
+                    
+                end
             end
             [B,I] =sort(st);
             ors=obj.getOpenEphysRecords;
@@ -196,7 +200,7 @@ classdef OpenEphysRecordsCombined < neuro.time.Timelined
         end
         function timeIntervalCombined=getTimeIntervalCombined(obj)
             iter=obj.getIterator();
-            timeIntervalCombined=neuro.time.TimeIntervalCombined;
+            timeIntervalCombined=time.TimeIntervalCombined;
             while(iter.hasNext)
                 anOpenEphysRecord=iter.next();
                 timeIntervalCombined=timeIntervalCombined+anOpenEphysRecord.getTimeInterval();

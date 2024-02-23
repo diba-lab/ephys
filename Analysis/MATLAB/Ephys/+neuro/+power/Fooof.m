@@ -26,15 +26,15 @@ classdef Fooof
             if ~exist('f_range','var')
                 f_range = [0, 250];
             end
-            fooof_results = fooof(obj.fooof_results.freqs, obj.fooof_results.power_spectrum, f_range, settings, true);
+            fooof_results = fooof(obj.fooof_results.freqs, ...
+                obj.fooof_results.power_spectrum, f_range, settings, true);
 
             fooofr=Fooof(fooof_results);
         end
         function [data,model,ap_fit]=plot(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            [data,model,ap_fit]=fooof_plot(obj.fooof_results);
-            hold on;
+            fooof_plot(obj.fooof_results);
 %             obj.plotPeaks;
         end
         function plotLog(obj)
@@ -98,8 +98,8 @@ classdef Fooof
             peaks1=peaks(idxall,:);
             peaksorted=sortrows(peaks1,2,'descend');%sort by power
             for ipeak=1:1
-                peaks2=peaksorted(ipeak,:);
                 try
+                    peaks2=peaksorted(ipeak,:);
                     peakres(ipeak).cf=peaks2(1);
                     peakres(ipeak).power=peaks2(2);
                     peakres(ipeak).bw=peaks2(3);
@@ -111,6 +111,7 @@ classdef Fooof
             end
         end
         function peakres=getPeaks(obj,freqs,powers,bandwidth)
+            peakres=[];
             if ~isempty(obj.fooof_results)
                 peaks=obj.fooof_results.peak_params;
                 idxall=true([size(peaks,1) 1]);
@@ -144,8 +145,6 @@ classdef Fooof
                         peakres(ipeak).bw=nan;
                     end
                 end
-            else
-                peakres=[];
             end
         end
     end

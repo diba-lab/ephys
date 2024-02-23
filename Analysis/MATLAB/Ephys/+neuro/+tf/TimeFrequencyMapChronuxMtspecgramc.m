@@ -16,18 +16,21 @@ classdef TimeFrequencyMapChronuxMtspecgramc < neuro.tf.TimeFrequencyMap
             if ~exist('ax','var')||isempty('ax')
                 ax=gca;
             end
-            imsc=imagesc(ax,hours(obj.timePoints-obj.timePoints(1)),...
-                obj.frequencyPoints,10*log10( abs(obj.matrix')));
+            mat=(abs(obj.matrix));
+            imsc=imagesc(ax,seconds(obj.timePoints),...
+                obj.frequencyPoints,mat);
             if ~exist('clim','var')||isempty('clim')
             else
                 ax.CLim=clim;
             end
-            ax.XLabel.String='Time (hours)';
-            ax.YLabel.String='Frequency';
-            colormap('copper');
-            cb=colorbar;
-            cb.Label.String='Amplitude (dB)';
+            ax.XLabel.String='Time (s)';
+            ax.YLabel.String='Frequency Hz';
+            %             colormap('copper');
+            %             cb=colorbar;
+            %             cb.Label.String='Amplitude (dB)';
             ax.YDir='normal';
+            m=mean2(mat);s=std2(mat);
+            ax.CLim=[m-2*s m+2*s];
         end
     end
     methods (Access=public)

@@ -5,7 +5,7 @@ sessions=sf.getSessions('AG',5);
 for ises=1:numel(sessions)
     theses=sessions(ises);
     pr=preprocessing.Preprocess(theses);
-    %     datalfp=theses.getDataLFP;
+    datalfp=theses.getDataLFP;
     dataclu=pr.getDataForClustering;
     pr.saveBadFile
     for iclu=dataclu
