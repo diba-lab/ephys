@@ -198,6 +198,71 @@ params = {
             "nCS_end": 3,
         },
     },
+    "Round3counterbalance": {
+        "alias": "Round3",
+        "tone": {
+            "control": {
+                "type": "pure_tone",
+                "f": 7000,
+                "fp": 10,
+                "duration": 10,
+            },
+            "training": {
+                "type": "pure_tone",
+                "f": 1000,
+                "fp": None,
+                "duration": 10,
+            },
+        },
+        "ctx_recall_params": {
+            "duration": 15,
+        },
+        "tone_habituation_params": {
+            "baseline_time": 60,
+            "tone_use": "control",
+            "volume": 0.50,
+            "tone_dur": 10,
+            "CStimes": None,
+            "nCS": 15,
+            "ITI": 60,
+            "ITI_range": 10,
+        },
+        "training_params": {
+            "tone_use": "training",
+            "tone_dur": 10,
+            "volume": 0.07,
+            "trace_dur": 20,
+            "shock_dur": 1,
+            "ITI": 240,
+            "ITI_range": 20,
+            "nshocks": 6,
+            "start_buffer": 6 * 60,
+        },
+        "tone_recall_params": {
+            "tone_use": "training",
+            "volume": 0.12,
+            "baseline_time": 60,
+            "CStimes": None,
+            "nCS": 15,
+            "ITI": 60,
+            "ITI_range": 10,
+            "end_tone": "control",
+            "end_volume": 0.025,
+            "nCS_end": 0,
+        },
+        "control_tone_recall_params": {
+            "tone_use": "control",
+            "volume": 0.39,
+            "baseline_time": 60,
+            "CStimes": None,
+            "nCS": 12,
+            "ITI": 60,
+            "ITI_range": 10,
+            "end_tone": "training",
+            "end_volume": 0.09,
+            "nCS_end": 3,
+        },
+    },
     "Misc": {
         "alias": "Misc",
         "training_params": {"tone_dur": 10},
@@ -215,16 +280,16 @@ params["Round3_unpaired"]["training_params"]["unpaired_control"] = True
 
 default_port = {
     "linux": "/dev/ttyACM0",
-    "windows": "COM7",
+    "windows": "COM3",
 }
 
 
 class Trace:
     def __init__(
         self,
-        arduino_port="COM3",
+        arduino_port="COM4",
         paradigm="Round3",
-        base_dir=r"E:\Nat\Trace_FC\Recording_Rats\Chewie",
+        base_dir=r"E:\Nat\Trace_FC\Recording_Rats\Finn2",
     ):
         assert paradigm in params.keys()
         assert Path(base_dir).exists(), "Base path does not exist - create directory!"
