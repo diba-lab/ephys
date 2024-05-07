@@ -95,7 +95,8 @@ classdef Fooof
                 idxbw=idxall;
             end
             idxall=idxall & idxfreq & idxpow & idxbw;
-            peaks1=peaks(idxall,:);
+            s=struct2table(obj.getPeaksXY);
+            peaks1=[peaks(idxall,:) s(idxall,:).y];
             peaksorted=sortrows(peaks1,2,'descend');%sort by power
             for ipeak=1:1
                 try
@@ -103,10 +104,12 @@ classdef Fooof
                     peakres(ipeak).cf=peaks2(1);
                     peakres(ipeak).power=peaks2(2);
                     peakres(ipeak).bw=peaks2(3);
+                    peakres(ipeak).powerAbs=peaks2(4);
                 catch
                     peakres(ipeak).cf=nan;
                     peakres(ipeak).power=nan;
                     peakres(ipeak).bw=nan;
+                    peakres(ipeak).powerAbs=nan;
                 end
             end
         end

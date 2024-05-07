@@ -203,7 +203,7 @@ classdef Session
             catch ME
                 
             end
-            sr=sdd.getStateRatios(varargin);
+            sr=sdd.getStateRatios(varargin{:});
         end
         function ss = getStateSeries(obj,varargin)
             %METHOD1 Summary of this method goes here

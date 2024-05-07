@@ -2,11 +2,18 @@ classdef StateTable
 
     properties
         Table
+        sessionFactory
     end
 
     methods
-        function obj = StateTable(table)
+        function obj = StateTable(table,sesionFactory)
             obj.Table = table;
+            if nargin>1
+                obj.sessionFactory = sesionFactory;
+            else
+                obj.sessionFactory=experiment.SessionFactory;
+                error('Assigns session factory')
+            end
         end
 
         function obj = getDurationLongerThan(obj,dur)
@@ -32,7 +39,7 @@ classdef StateTable
                 end
             end
             % add ZT times
-            sf=experiment.SessionFactory;
+            sf=obj.sessionFactory;
             sess=sf.getSessions;
             zts=datetime.empty(0,1);
             for ibout=1:height(tbl_theta_peak)

@@ -147,7 +147,7 @@ classdef AutoCorrelogram
                 t_range=t>1.000/10&t<1.000/5;
                 line_interest=line(t_range);
                 t_interest=t(t_range);
-                [pwr,locs] = findpeaks(line_interest,'SortStr','descend');
+                [pwr,locs] = builtin('findpeaks',line_interest,'SortStr','descend');
                 if numel(locs)>0
                     peaktime=t_interest(locs(1));
                     t_freq(isu)=1/peaktime;

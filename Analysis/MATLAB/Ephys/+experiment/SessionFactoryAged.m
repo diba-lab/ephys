@@ -32,9 +32,9 @@ classdef SessionFactoryAged
             for ifile=1:height(t_sub)
                 aSession=experiment.Session(t_sub.Filepath{ifile});
                 af=experiment.AnimalFactory;
-                animal=af.getAnimals(t_sub.animal{ifile});
+                animal=af.getAnimals(t_sub.animal(ifile));
                 aSession=aSession.setAnimal(animal);
-                aSession=aSession.setCondition(t_sub.Condition{ifile});
+                aSession=aSession.setCondition(t_sub.Condition(ifile));
                 if isempty(aSession.Probe)
                     probe=animal.getProbe;
                     if ~isempty(probe)
@@ -74,6 +74,9 @@ classdef SessionFactoryAged
                 end
             end
             t_sub=t(idx_all,:);
+            t_sub.animal=categorical(t_sub.animal);
+            t_sub.Condition=categorical(t_sub.Condition);
+            t_sub.Injection=categorical(t_sub.Injection);
         end
     end
 end

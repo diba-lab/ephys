@@ -36,6 +36,12 @@ classdef OpenEphysRecordFactory
                 otherwise
                     if isfolder(filename)
                         expfols=dir(fullfile(filename,'*experiment*'));
+                        if isempty( expfols)
+                            allFolders=dir(fullfile(filename));
+                            isSubfolder = [allFolders(:).isdir] & ~strcmp({allFolders(:).name}, '.') & ~strcmp({allFolders(:).name}, '..'); % Logical index for subfolders
+                            subfolders = {allFolders(isSubfolder).name}; % Extract subfolder names
+                            expfols=dir(fullfile(filename,subfolders{1},'*experiment*'));
+                        end
                         for iexp=1:numel(expfols)
                             expfol=expfols(iexp);
                             recfols1=dir(fullfile(expfol.folder,expfol.name,'*recording*'));

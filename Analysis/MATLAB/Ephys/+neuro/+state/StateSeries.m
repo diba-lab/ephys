@@ -169,7 +169,7 @@ classdef StateSeries
             end
             if exist('windowZT','var')
                 strt1=hours(windowZT(1):slidingWindowLaps: ...
-                    (windowZT(2)-slidingWindowSize+slidingWindowSize/100));
+                    (windowZT(2)-slidingWindowSize+slidingWindowLaps));
             else
                 zt=obj.TimeIntervalCombined.getZeitgeberTime;
                 strt1=hours((obj1.getStartTime-zt):...

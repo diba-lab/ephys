@@ -16,10 +16,14 @@ classdef StateRatios
         function [] = plotAwakeFractionPreceeding(obj)
             a=obj.getStateFractionPreceeding( ...
                 categorical({'A-WAKE','Q-WAKE'}),categorical({'SWS','REM'}));
-            imagesc([min(a.time) max(a.time)],[],a.awakeFraction');
+            try
+                imagesc([min(a.time) max(a.time)],[],a.fraction');
+            catch ME
+                imagesc(hours([min(a.ZTtime) max(a.ZTtime)]),[],a.fraction');
+            end
         end
         function res = getStateFractionPreceeding(obj,interest,rest)
-            res.ZTtime=obj.State.ZTEnd;
+            res.ZTtime=obj.State.ZTCenter;
             for iint=1:numel(interest)
                 var=string(interest(iint));
                 if iint==1

@@ -19,6 +19,3 @@
 [submodule "Analysis/MATLAB/Ephys/external/fieldtrip"]
 	path = Analysis/MATLAB/Ephys/external/fieldtrip
 	url = https://github.com/fieldtrip/fieldtrip.git
-[submodule "Analysis/MATLAB/Ephys/external/buzcode"]
-	path = Analysis/MATLAB/Ephys/external/buzcode
-	url = https://github.com/buzsakilab/buzcode.git
