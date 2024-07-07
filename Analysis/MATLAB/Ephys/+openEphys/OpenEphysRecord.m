@@ -35,6 +35,7 @@ classdef (Abstract)OpenEphysRecord < time.Timelined & file.BinarySave
             try 
                 obj.Probe=neuro.probe.Probe([filepath filesep '..' filesep '..' ]);
             catch
+                
                 l=logging.Logger.getLogger;
                 l.error('You should provide a probe file in %s',[filepath filesep '..' filesep '..' ]);
             end
